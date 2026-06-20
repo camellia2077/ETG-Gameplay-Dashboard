@@ -25,18 +25,8 @@ vX.Y.Z
 
 ## Annotated Message Template
 
-最小形式：
-
 ```text
 vX.Y.Z
-```
-
-带正文形式：
-
-```text
-vX.Y.Z
-
-Release for vX.Y.Z.
 ```
 
 ## Command Template

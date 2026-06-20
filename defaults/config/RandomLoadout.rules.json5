@@ -1,74 +1,76 @@
 {
   // Default startup loadout:
   // 1) Always Casey.
-  // 2) Randomly 1 Casey-synergy passive.
-  // 3) Randomly 3 bullets-themed passives.
-  "rules": [
+  // 2) Randomly 1 Casey Careful Iteration synergy trigger.
+  // 3) Randomly 1 bullets-themed passive.
+  "presets": [
     {
-      "enabled": true,
-      "mode": "specific",
-      "category": "gun",
-      "id": 541
-    },
-    {
-      "enabled": true,
-      "mode": "random",
-      "category": "passive",
-      // Grant count is configured by JSON `count` (not hardcoded in code).
-      "count": 0,
-      "poolIds": [
-        427, // Shotgun Coffee
-        114, // Bionic Leg
-        118, // Eyepatch
-        457, // Armor of Thorns
-        440, // Ruby Bracelet
-        313, // Monster Blood
-        436, // Bloodied Scarf
-      ],
-    },
-    {
-      "enabled": true,
-      "mode": "random",
-      "category": "passive",
-      // Grant count is configured by JSON `count` (not hardcoded in code).
-      "count": 1,
-      "poolIds": [
-        111, // Heavy Bullets
-        113, // Rocket-Powered Bullets
-        172, // Ghost Bullets
-        277, // Fat Bullets
-        278, // Frost Bullets
-        284, // Homing Bullets
-        286, // +1 Bullets
-        288, // Bouncy Bullets
-        // 303, // Bullet That Can Kill The Past (Quest Item: No stat bonuses, story progression only)
-        323, // Angry Bullets
-        352, // Shadow Bullets
-        373, // Alpha Bullet
-        374, // Omega Bullets
-        375, // Easy Reload Bullets
-        410, // Battery Bullets
-        434, // Bullet Idol
-        521, // Chance Bullets
-        523, // Stout Bullets
-        528, // Zombie Bullets
-        530, // Remote Bullets
-        531, // Flak Bullets
-        532, // Gilded Bullets
-        533, // Magic Bullets
-        538, // Silver Bullets
-        568, // Helix Bullets
-        569, // Chaos Bullets
-        571, // Cursed Bullets
-        579, // Blank Bullets
-        627, // Platinum Bullets
-        630, // Bumbullets
-        640, // Vorpal Bullets
-        655, // Hungry Bullets
-        661, // Orbital Bullets
-        815, // Lich's Eye Bullets
-        817, // Cat Bullet King Throne
-        822, // Katana Bullets
+      "name": "default",
+      "rules": [
+        {
+          "enabled": true,
+          "mode": "specific",
+          "category": "gun",
+          "id": 541
+        },
+        {
+          "enabled": true,
+          "mode": "random",
+          "category": "gun",
+          // Grant count is configured by JSON `count` (not hardcoded in code).
+          "count": 1,
+          "poolIds": [
+            118, // Eyepatch
+            457, // Armor of Thorns
+            143, // Shotgun Full of Hate
+            26,  // Nail Gun
+          ],
+        },
+        {
+          "enabled": true,
+          "mode": "random",
+          "category": "passive",
+          // Grant count is configured by JSON `count` (not hardcoded in code).
+          "count": 1,
+          "poolIds": [
+            111, // Heavy Bullets
+            113, // Rocket-Powered Bullets
+            172, // Ghost Bullets
+            277, // Fat Bullets
+            278, // Frost Bullets
+            284, // Homing Bullets
+            286, // +1 Bullets
+            288, // Bouncy Bullets
+            // 303, // Bullet That Can Kill The Past (Quest Item: No stat bonuses, story progression only)
+            323, // Angry Bullets
+            352, // Shadow Bullets
+            373, // Alpha Bullet
+            374, // Omega Bullets
+            375, // Easy Reload Bullets
+            410, // Battery Bullets
+            434, // Bullet Idol
+            521, // Chance Bullets
+            523, // Stout Bullets
+            528, // Zombie Bullets
+            530, // Remote Bullets
+            531, // Flak Bullets
+            532, // Gilded Bullets
+            533, // Magic Bullets
+            538, // Silver Bullets
+            568, // Helix Bullets
+            569, // Chaos Bullets
+            571, // Cursed Bullets
+            579, // Blank Bullets
+            627, // Platinum Bullets
+            630, // Bumbullets
+            640, // Vorpal Bullets
+            655, // Hungry Bullets
+            661, // Orbital Bullets
+            815, // Lich's Eye Bullets
+            817, // Cat Bullet King Throne
+            822, // Katana Bullets
+          ],
+        },
       ],
     },
   ]

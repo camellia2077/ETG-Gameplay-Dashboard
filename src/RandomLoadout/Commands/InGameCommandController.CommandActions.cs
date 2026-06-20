@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using BepInEx.Logging;
 using RandomLoadout.Core;
 using UnityEngine;
@@ -208,6 +209,126 @@ namespace RandomLoadout
             }
 
             GrantCommandExecutionResult executionResult = _rapidFireToggleService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleAutoReload(ManualLogSource logger)
+        {
+            if (_autoReloadToggleService == null)
+            {
+                string unavailableMessage = GuiText.Get("result.auto_reload.unavailable");
+                ShowStatus(unavailableMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(GuiText.GetEnglish("result.auto_reload.unavailable")));
+                }
+
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _autoReloadToggleService.Toggle();
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleInvincibility(PlayerController player, ManualLogSource logger)
+        {
+            if (_invincibilityToggleService == null)
+            {
+                string unavailableMessage = GuiText.Get("result.invincible.unavailable");
+                ShowStatus(unavailableMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(GuiText.GetEnglish("result.invincible.unavailable")));
+                }
+
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _invincibilityToggleService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleNoAmmoConsumption(ManualLogSource logger)
+        {
+            if (_noAmmoConsumptionToggleService == null)
+            {
+                string unavailableMessage = GuiText.Get("result.no_ammo_consumption.unavailable");
+                ShowStatus(unavailableMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(GuiText.GetEnglish("result.no_ammo_consumption.unavailable")));
+                }
+
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _noAmmoConsumptionToggleService.Toggle();
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleAmmonomiconOpenAnimation(ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = AmmonomiconAnimationToggleService.Toggle();
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (logger == null)

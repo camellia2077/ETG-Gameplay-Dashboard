@@ -22,7 +22,7 @@ from release_package_upstream import (
     extract_upstream_content,
     sha256_for_file,
 )
-from tool_common import get_default_sync_paths, get_plugin_output_path, read_repo_version, run_process, sync_generated_version_files
+from tool_common import get_default_sync_paths, get_plugin_output_path, read_repo_version, run_process, sync_generated_version_files, get_runtime_dependency_specs, get_local_dependency_path
 
 
 DIST_DIRECTORY = Path("dist")
@@ -60,6 +60,19 @@ def overlay_randomloadout_files(repo_root: Path, configuration: str, staging_roo
     plugin_target = staging_root / "BepInEx" / "plugins" / plugin_path.name
     plugin_target.parent.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(str(plugin_path), str(plugin_target))
+
+    # Copy ModTheGungeonAPI runtime dependencies (from lib/)
+    for file_name, relative_target_dir in get_runtime_dependency_specs():
+        source_path = get_local_dependency_path(repo_root, file_name)
+        if not source_path.is_file():
+            raise FileNotFoundError(
+                "Runtime dependency not found: {0}\nExpected to copy this dependency during release packaging.".format(
+                    source_path
+                )
+            )
+        target_dir = staging_root / relative_target_dir
+        target_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(str(source_path), str(target_dir / file_name))
 
     config_directory = staging_root / "BepInEx" / "config"
     config_directory.mkdir(parents=True, exist_ok=True)
@@ -111,7 +124,7 @@ def build_release_package(
         ensure_no_game_owned_dlls(staging_root)
         ensure_required_package_files(staging_root)
 
-        output_path = repo_root / DIST_DIRECTORY / "RandomLoadout-{0}-ETG.zip".format(version_tag)
+        output_path = repo_root / DIST_DIRECTORY / "ETG-Gameplay-Dashboard-{0}-ETG.zip".format(version_tag)
         create_release_zip(staging_root, output_path)
 
     return output_path

@@ -1,5 +1,6 @@
 using RandomLoadout.Core;
 using UnityEngine;
+using System;
 
 namespace RandomLoadout
 {
@@ -82,11 +83,19 @@ namespace RandomLoadout
                 // Prefer the same prefab-to-player flow used by ModTheGungeonAPI's give command.
                 // It is generally the most stable path across guns, passives, and actives because
                 // the game handles the pickup as if it were granted from its real prefab.
-                if (LootEngine.TryGivePrefabToPlayer(component.gameObject, player, false))
+                try
                 {
-                    grantPath = "primary";
-                    grantDetail = "Granted via LootEngine.TryGivePrefabToPlayer.";
-                    return true;
+                    if (LootEngine.TryGivePrefabToPlayer(component.gameObject, player, false))
+                    {
+                        grantPath = "primary";
+                        grantDetail = "Granted via LootEngine.TryGivePrefabToPlayer.";
+                        return true;
+                    }
+                }
+                catch (Exception exception)
+                {
+                    grantPath = "primary-exception";
+                    grantDetail = "LootEngine.TryGivePrefabToPlayer threw " + exception.GetType().Name + ": " + exception.Message;
                 }
             }
 
@@ -95,22 +104,48 @@ namespace RandomLoadout
                 case PickupCategory.Gun:
                     player.inventory.AddGunToInventory((Gun)pickup, false);
                     grantPath = "fallback";
-                    grantDetail = "Primary prefab grant failed; used AddGunToInventory.";
+                    grantDetail = AppendFallbackDetail(grantDetail, "Used AddGunToInventory.");
                     return true;
                 case PickupCategory.Passive:
                     player.AcquirePassiveItem((PassiveItem)pickup);
                     grantPath = "fallback";
-                    grantDetail = "Primary prefab grant failed; used AcquirePassiveItem.";
+                    grantDetail = AppendFallbackDetail(grantDetail, "Used AcquirePassiveItem.");
                     return true;
                 case PickupCategory.Active:
-                    grantPath = "primary";
-                    grantDetail = "Active item requires LootEngine.TryGivePrefabToPlayer.";
-                    return component != null && LootEngine.TryGivePrefabToPlayer(component.gameObject, player, false);
+                    if (component == null)
+                    {
+                        grantPath = "unsupported";
+                        grantDetail = "Active item requires a component prefab for LootEngine.TryGivePrefabToPlayer.";
+                        return false;
+                    }
+
+                    try
+                    {
+                        grantPath = "primary";
+                        grantDetail = "Active item requires LootEngine.TryGivePrefabToPlayer.";
+                        return LootEngine.TryGivePrefabToPlayer(component.gameObject, player, false);
+                    }
+                    catch (Exception exception)
+                    {
+                        grantPath = "primary-exception";
+                        grantDetail = "Active item LootEngine.TryGivePrefabToPlayer threw " + exception.GetType().Name + ": " + exception.Message;
+                        return false;
+                    }
                 default:
                     grantPath = "unsupported";
                     grantDetail = "No grant implementation was available for the resolved category.";
                     return false;
             }
+        }
+
+        private static string AppendFallbackDetail(string primaryDetail, string fallbackDetail)
+        {
+            if (string.IsNullOrEmpty(primaryDetail))
+            {
+                return "Primary prefab grant failed; " + fallbackDetail;
+            }
+
+            return primaryDetail + "; fallback: " + fallbackDetail;
         }
 
         private static string GetPickupLabel(PickupObject pickup)

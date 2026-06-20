@@ -22,6 +22,8 @@ namespace RandomLoadout
         private readonly ISeedProvider _seedProvider = new UtcTickSeedProvider();
 
         private ConfigEntry<bool> _enableRandomLoadoutConfig;
+        private ConfigEntry<string> _uiLanguageConfig;
+        private ConfigEntry<string> _activeStartItemsPresetConfig;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
         private PickupAliasRegistry _aliasRegistry;
@@ -33,8 +35,12 @@ namespace RandomLoadout
         private JsonLoadoutRuleFileProvider _ruleFileProvider;
         private InGameCommandController _commandController;
         private RapidFireToggleService _rapidFireToggleService;
+        private AutoReloadToggleService _autoReloadToggleService;
+        private InvincibilityToggleService _invincibilityToggleService;
+        private NoAmmoConsumptionToggleService _noAmmoConsumptionToggleService;
         private BossRushService _bossRushService;
         private Harmony _bossRushHarmony;
+        private Harmony _ammonomiconAnimationHarmony;
         private bool _hasExportedPickupCatalog;
         private string _lastPickupCatalogExportFailure;
         private RunGrantState _runState;

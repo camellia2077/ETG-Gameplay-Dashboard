@@ -16,6 +16,7 @@ namespace RandomLoadout
 
         private static Dictionary<string, string> _englishTable = EmptyTable;
         private static Dictionary<string, string> _simplifiedChineseTable = EmptyTable;
+        private static string _languageOverride = string.Empty;
 
         public static string CurrentLanguageCode
         {
@@ -26,6 +27,27 @@ namespace RandomLoadout
         {
             _englishTable = LoadTable(Path.Combine(configDirectory, "RandomLoadout.localization.en.json5"));
             _simplifiedChineseTable = LoadTable(Path.Combine(configDirectory, "RandomLoadout.localization.zh-CN.json5"));
+        }
+
+        public static void SetLanguageOverride(string languageCode)
+        {
+            _languageOverride = NormalizeLanguageOverride(languageCode);
+        }
+
+        public static string NormalizeLanguageOverride(string languageCode)
+        {
+            if (string.IsNullOrEmpty(languageCode))
+            {
+                return "auto";
+            }
+
+            string normalized = languageCode.Trim();
+            if (string.Equals(normalized, "auto", StringComparison.OrdinalIgnoreCase))
+            {
+                return "auto";
+            }
+
+            return NormalizeLanguageCode(normalized);
         }
 
         public static string Get(string key)
@@ -212,12 +234,23 @@ namespace RandomLoadout
 
         private static string DetectLanguageCode()
         {
+            if (!string.IsNullOrEmpty(_languageOverride) &&
+                !string.Equals(_languageOverride, "auto", StringComparison.OrdinalIgnoreCase))
+            {
+                return NormalizeLanguageCode(_languageOverride);
+            }
+
             string token = ReadLanguageToken();
             if (string.IsNullOrEmpty(token))
             {
                 return EnglishLanguageCode;
             }
 
+            return NormalizeLanguageCode(token);
+        }
+
+        private static string NormalizeLanguageCode(string token)
+        {
             string normalized = token.Trim().ToLowerInvariant();
             if (normalized.Contains("zh") ||
                 normalized.Contains("chinese") ||

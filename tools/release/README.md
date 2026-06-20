@@ -12,4 +12,4 @@ Files:
 
 Typical usage:
 
-- `python .\tools\build_release_package.py --configuration Release`
+- `python .\tools\release\build_release_package.py --configuration Release`

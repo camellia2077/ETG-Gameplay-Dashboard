@@ -5,7 +5,22 @@ namespace RandomLoadout
         public LoadoutRuleFileModel()
         {
             Rules = new LoadoutRuleFileRuleModel[0];
+            Presets = new LoadoutRuleFilePresetModel[0];
         }
+
+        public LoadoutRuleFileRuleModel[] Rules { get; set; }
+
+        public LoadoutRuleFilePresetModel[] Presets { get; set; }
+    }
+
+    internal sealed class LoadoutRuleFilePresetModel
+    {
+        public LoadoutRuleFilePresetModel()
+        {
+            Rules = new LoadoutRuleFileRuleModel[0];
+        }
+
+        public string Name { get; set; }
 
         public LoadoutRuleFileRuleModel[] Rules { get; set; }
     }

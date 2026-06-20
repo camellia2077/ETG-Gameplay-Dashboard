@@ -8,14 +8,16 @@ The repository root `README.md` stays high-level; operational and design details
 If you are new to the project:
 
 1. [Start Here](./getting-started/start-here.md)
-2. [Terminology And Naming](./reference/terminology.md)
-3. [Source Guide](../src/AGENTS.md)
+2. [Code Index](./reference/code-index.md)
+3. [Terminology And Naming](./reference/terminology.md)
+4. [Source Guide](../src/AGENTS.md)
 
 ## Read By Goal
 
 I am new to the project:
 
 - [Start Here](./getting-started/start-here.md)
+- [Code Index](./reference/code-index.md)
 - [System Overview](./architecture/system-overview.md)
 - [Testing Matrix](./reference/testing-matrix.md)
 
@@ -74,6 +76,7 @@ I am changing build, deploy, or tools:
 - [Logging](./operations/logging.md)
 - [Smoke Checklist](./operations/smoke-checklist.md)
 - [Command Notes](./notes/cmd.md)
+- [Code Index](./reference/code-index.md)
 - [Commands](./reference/commands.md)
 - [Terminology And Naming](./reference/terminology.md)
 - [Testing Matrix](./reference/testing-matrix.md)

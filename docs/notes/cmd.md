@@ -1,4 +1,8 @@
-Release
+## Debug
+
+python .\tools\build\build.py --configuration Debug
+
+## Release
 
 python .\tools\deploy\deploy_mod.py "C:\Game\steam\steamapps\common\Enter the Gungeon" --configuration Release --overwrite-config
 

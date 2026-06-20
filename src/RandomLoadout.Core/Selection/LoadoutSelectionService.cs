@@ -64,13 +64,13 @@ namespace RandomLoadout.Core
                 return;
             }
 
-            if (rule.PoolIds.Length == 0)
+            if (rule.PoolEntries.Length == 0)
             {
                 warnings.Add(new SelectionWarning(rule.Category, "PoolEmpty", "The configured pickup pool is empty."));
                 return;
             }
 
-            List<int> candidates = BuildCandidateIds(rule, ownedIds, selectedIds);
+            List<LoadoutPoolEntryConfig> candidates = BuildCandidateEntries(rule, ownedIds, selectedIds);
             if (candidates.Count == 0)
             {
                 warnings.Add(new SelectionWarning(rule.Category, "NoCandidates", "No valid pickup candidates remained after filtering."));
@@ -81,10 +81,10 @@ namespace RandomLoadout.Core
             while (selectedCount < rule.Count && candidates.Count > 0)
             {
                 int index = rng.Next(candidates.Count);
-                int pickupId = candidates[index];
+                LoadoutPoolEntryConfig pickup = candidates[index];
                 candidates.RemoveAt(index);
 
-                AddSelection(rule.Category, pickupId, ownedIds, selectedIds, selections);
+                AddSelection(pickup.Category, pickup.PickupId, ownedIds, selectedIds, selections);
                 selectedCount++;
             }
 
@@ -138,14 +138,20 @@ namespace RandomLoadout.Core
             ownedIds.Add(pickupId);
         }
 
-        private static List<int> BuildCandidateIds(LoadoutRuleConfig rule, HashSet<int> ownedIds, HashSet<int> selectedIds)
+        private static List<LoadoutPoolEntryConfig> BuildCandidateEntries(LoadoutRuleConfig rule, HashSet<int> ownedIds, HashSet<int> selectedIds)
         {
             HashSet<int> seenIds = new HashSet<int>();
-            List<int> candidates = new List<int>(rule.PoolIds.Length);
+            List<LoadoutPoolEntryConfig> candidates = new List<LoadoutPoolEntryConfig>(rule.PoolEntries.Length);
 
-            for (int i = 0; i < rule.PoolIds.Length; i++)
+            for (int i = 0; i < rule.PoolEntries.Length; i++)
             {
-                int pickupId = rule.PoolIds[i];
+                LoadoutPoolEntryConfig pickup = rule.PoolEntries[i];
+                if (pickup == null)
+                {
+                    continue;
+                }
+
+                int pickupId = pickup.PickupId;
                 if (!seenIds.Add(pickupId))
                 {
                     continue;
@@ -156,7 +162,7 @@ namespace RandomLoadout.Core
                     continue;
                 }
 
-                candidates.Add(pickupId);
+                candidates.Add(pickup);
             }
 
             return candidates;

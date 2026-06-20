@@ -92,6 +92,9 @@
     <Compile Include="..\RandomLoadout.Core\Configuration\LoadoutConfig.cs">
       <Link>Core\Configuration\LoadoutConfig.cs</Link>
     </Compile>
+    <Compile Include="..\RandomLoadout.Core\Configuration\LoadoutPoolEntryConfig.cs">
+      <Link>Core\Configuration\LoadoutPoolEntryConfig.cs</Link>
+    </Compile>
     <Compile Include="..\RandomLoadout.Core\Configuration\LoadoutRuleConfig.cs">
       <Link>Core\Configuration\LoadoutRuleConfig.cs</Link>
     </Compile>
@@ -130,6 +133,8 @@
     <Compile Include="Configuration\JsonLoadoutRuleFileProvider.Convert.cs" />
     <Compile Include="Configuration\JsonLoadoutRuleFileProvider.Load.cs" />
     <Compile Include="Configuration\JsonLoadoutRuleFileProvider.Parse.cs" />
+    <Compile Include="Configuration\JsonLoadoutRuleFileProvider.Presets.cs" />
+    <Compile Include="Configuration\JsonLoadoutRuleFileProvider.Save.cs" />
     <Compile Include="Configuration\JsonPickupAliasFileProvider.cs" />
     <Compile Include="Configuration\LoadoutConfigResolutionResult.cs" />
     <Compile Include="Configuration\LoadoutRuleFileLoadResult.cs" />
@@ -141,22 +146,36 @@
     <Compile Include="Commands\GrantCommandService.cs" />
     <Compile Include="Commands\GrantCommandService.Messages.cs" />
     <Compile Include="Commands\GrantCommandService.Resolve.cs" />
+    <Compile Include="Commands\AmmonomiconAnimationToggleService.cs" />
     <Compile Include="Commands\FoyerCharacterOption.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.Helpers.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.Switching.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.Unlocking.cs" />
     <Compile Include="Commands\InGameCommandController.cs" />
+    <Compile Include="Commands\InGameCommandController.About.cs" />
     <Compile Include="Commands\InGameCommandController.BossRush.cs" />
     <Compile Include="Commands\InGameCommandController.CharacterActions.cs" />
     <Compile Include="Commands\InGameCommandController.CharacterPage.cs" />
     <Compile Include="Commands\InGameCommandController.CommandPage.cs" />
     <Compile Include="Commands\InGameCommandController.CommandActions.cs" />
     <Compile Include="Commands\InGameCommandController.Currency.cs" />
+    <Compile Include="Commands\InGameCommandController.LoadoutEditor.cs" />
     <Compile Include="Commands\InGameCommandController.PickupBrowser.cs" />
+    <Compile Include="Commands\InGameCommandController.PlayerStats.cs" />
     <Compile Include="Commands\InGameCommandController.State.cs" />
     <Compile Include="Commands\InGameCommandController.Styles.cs" />
+    <Compile Include="Commands\InGameCommandController.Teleport.cs" />
     <Compile Include="Commands\PlayerDebugCommandService.cs" />
+    <Compile Include="Commands\LoadoutPresetEditorEntry.cs" />
+    <Compile Include="Commands\LoadoutRandomPoolEditorEntry.cs" />
+    <Compile Include="Commands\LoadoutRuleEditorEntry.cs" />
+    <Compile Include="Commands\LoadoutRuleEditorService.cs" />
+    <Compile Include="Commands\LoadoutRuleEditorService.Entries.cs" />
+    <Compile Include="Commands\LoadoutRuleEditorService.Presets.cs" />
+    <Compile Include="Commands\AutoReloadToggleService.cs" />
+    <Compile Include="Commands\InvincibilityToggleService.cs" />
+    <Compile Include="Commands\NoAmmoConsumptionToggleService.cs" />
     <Compile Include="Commands\RapidFireToggleService.cs" />
     <Compile Include="Etg\EtgGrantOutcome.cs" />
     <Compile Include="Etg\EtgPickupCatalogEntry.cs" />
@@ -180,6 +199,7 @@
     <Compile Include="Plugin.RunLifecycle.cs" />
     <Compile Include="Plugin.State.cs" />
     <Compile Include="Runtime\BossRushEncounter.cs" />
+    <Compile Include="Runtime\AmmonomiconAnimationHooks.cs" />
     <Compile Include="Runtime\BossRushHooks.cs" />
     <Compile Include="Runtime\BossRushService.cs" />
     <Compile Include="Runtime\BossRushService.Flow.cs" />

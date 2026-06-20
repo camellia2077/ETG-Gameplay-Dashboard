@@ -27,6 +27,7 @@ namespace RandomLoadout.Core.Tests
                 new KeyValuePair<string, Action>("FixedSeedProducesRepeatableSelections", LoadoutSelectionServiceTests.FixedSeedProducesRepeatableSelections),
                 new KeyValuePair<string, Action>("OwnedPickupsAreFiltered", LoadoutSelectionServiceTests.OwnedPickupsAreFiltered),
                 new KeyValuePair<string, Action>("DuplicateIdsAcrossCategoriesAreNotSelectedTwice", LoadoutSelectionServiceTests.DuplicateIdsAcrossCategoriesAreNotSelectedTwice),
+                new KeyValuePair<string, Action>("RandomRuleCanSelectMixedCategoryEntries", LoadoutSelectionServiceTests.RandomRuleCanSelectMixedCategoryEntries),
                 new KeyValuePair<string, Action>("CategoryWithoutCandidatesDoesNotBlockOthers", LoadoutSelectionServiceTests.CategoryWithoutCandidatesDoesNotBlockOthers),
                 new KeyValuePair<string, Action>("RequestedCountGreaterThanAvailableDoesNotCrash", LoadoutSelectionServiceTests.RequestedCountGreaterThanAvailableDoesNotCrash),
                 new KeyValuePair<string, Action>("EmptyPoolProducesWarning", LoadoutSelectionServiceTests.EmptyPoolProducesWarning),

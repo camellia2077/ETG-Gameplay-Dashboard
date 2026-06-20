@@ -29,6 +29,10 @@ namespace RandomLoadout
             _hintStyle.normal.textColor = SecondaryTextColor;
             _hintStyle.fontSize = 14;
 
+            _playerStatsTextStyle = new GUIStyle(_hintStyle);
+            _playerStatsTextStyle.normal.textColor = PlayerStatsTextColor;
+            _playerStatsTextStyle.fontSize = 15;
+
             _wrappedHintStyle = new GUIStyle(_hintStyle);
             _wrappedHintStyle.wordWrap = true;
 

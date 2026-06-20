@@ -36,23 +36,16 @@ namespace RandomLoadout
                 switch (definition.Mode)
                 {
                     case GrantMode.Random:
-                        List<int> resolvedPoolIds = new List<int>();
+                        List<LoadoutPoolEntryConfig> resolvedPoolEntries = new List<LoadoutPoolEntryConfig>();
                         HashSet<int> seenPoolIds = new HashSet<int>();
 
                         for (int poolIdIndex = 0; poolIdIndex < definition.PoolIds.Length; poolIdIndex++)
                         {
-                            EtgPickupResolveResult idResolveResult = _pickupResolver.Resolve(definition.Category, definition.PoolIds[poolIdIndex]);
-                            if (idResolveResult.Succeeded)
-                            {
-                                if (seenPoolIds.Add(idResolveResult.PickupId))
-                                {
-                                    resolvedPoolIds.Add(idResolveResult.PickupId);
-                                }
-                            }
-                            else if (idResolveResult.Warning != null)
-                            {
-                                warnings.Add(idResolveResult.Warning);
-                            }
+                            AddResolvedRandomPoolEntry(
+                                _pickupResolver.ResolveAny(definition.PoolIds[poolIdIndex]),
+                                resolvedPoolEntries,
+                                seenPoolIds,
+                                warnings);
                         }
 
                         for (int poolAliasIndex = 0; poolAliasIndex < definition.PoolAliases.Length; poolAliasIndex++)
@@ -69,23 +62,12 @@ namespace RandomLoadout
                                 continue;
                             }
 
-                            EtgPickupResolveResult aliasResolveResult = _pickupResolver.Resolve(definition.Category, resolvedAliasPickupId);
-                            if (aliasResolveResult.Succeeded)
-                            {
-                                if (seenPoolIds.Add(aliasResolveResult.PickupId))
-                                {
-                                    resolvedPoolIds.Add(aliasResolveResult.PickupId);
-                                }
-                            }
-                            else if (aliasResolveResult.Warning != null)
-                            {
-                                warnings.Add(
-                                    new SelectionWarning(
-                                        definition.Category,
-                                        aliasResolveResult.Warning.Code,
-                                        "Alias '" + pickupAlias + "' resolved to pickup ID " + resolvedAliasPickupId + ", but " +
-                                        aliasResolveResult.Warning.Message));
-                            }
+                            AddResolvedRandomPoolEntry(
+                                _pickupResolver.ResolveAny(resolvedAliasPickupId),
+                                resolvedPoolEntries,
+                                seenPoolIds,
+                                warnings,
+                                "Alias '" + pickupAlias + "' resolved to pickup ID " + resolvedAliasPickupId + ", but ");
                         }
 
                         for (int poolIndex = 0; poolIndex < definition.PoolNames.Length; poolIndex++)
@@ -93,21 +75,14 @@ namespace RandomLoadout
                             string pickupName = definition.PoolNames[poolIndex];
                             // String pools now follow give-style resolution: internal name first,
                             // display name as a compatibility fallback.
-                            EtgPickupResolveResult randomResolveResult = _pickupResolver.Resolve(definition.Category, pickupName);
-                            if (randomResolveResult.Succeeded)
-                            {
-                                if (seenPoolIds.Add(randomResolveResult.PickupId))
-                                {
-                                    resolvedPoolIds.Add(randomResolveResult.PickupId);
-                                }
-                            }
-                            else if (randomResolveResult.Warning != null)
-                            {
-                                warnings.Add(randomResolveResult.Warning);
-                            }
+                            AddResolvedRandomPoolEntry(
+                                _pickupResolver.ResolveAny(pickupName),
+                                resolvedPoolEntries,
+                                seenPoolIds,
+                                warnings);
                         }
 
-                        rules.Add(LoadoutRuleConfig.CreateRandom(definition.Category, definition.Count, resolvedPoolIds));
+                        rules.Add(LoadoutRuleConfig.CreateRandom(definition.Category, definition.Count, resolvedPoolEntries));
                         break;
                     case GrantMode.Specific:
                         EtgPickupResolveResult resolveResult = ResolveSpecificDefinition(definition, effectiveAliasRegistry);
@@ -128,6 +103,55 @@ namespace RandomLoadout
             }
 
             return new LoadoutConfigResolutionResult(new LoadoutConfig(rules), warnings.ToArray());
+        }
+
+        private static void AddResolvedRandomPoolEntry(
+            EtgPickupResolveResult resolveResult,
+            List<LoadoutPoolEntryConfig> resolvedPoolEntries,
+            HashSet<int> seenPoolIds,
+            List<SelectionWarning> warnings)
+        {
+            AddResolvedRandomPoolEntry(resolveResult, resolvedPoolEntries, seenPoolIds, warnings, string.Empty);
+        }
+
+        private static void AddResolvedRandomPoolEntry(
+            EtgPickupResolveResult resolveResult,
+            List<LoadoutPoolEntryConfig> resolvedPoolEntries,
+            HashSet<int> seenPoolIds,
+            List<SelectionWarning> warnings,
+            string warningPrefix)
+        {
+            if (resolveResult == null)
+            {
+                return;
+            }
+
+            if (resolveResult.Succeeded)
+            {
+                if (resolveResult.Category.HasValue && seenPoolIds.Add(resolveResult.PickupId))
+                {
+                    resolvedPoolEntries.Add(new LoadoutPoolEntryConfig(resolveResult.Category.Value, resolveResult.PickupId));
+                }
+
+                return;
+            }
+
+            if (resolveResult.Warning == null)
+            {
+                return;
+            }
+
+            if (string.IsNullOrEmpty(warningPrefix))
+            {
+                warnings.Add(resolveResult.Warning);
+                return;
+            }
+
+            warnings.Add(
+                new SelectionWarning(
+                    resolveResult.Warning.Category,
+                    resolveResult.Warning.Code,
+                    warningPrefix + resolveResult.Warning.Message));
         }
 
         private EtgPickupResolveResult ResolveSpecificDefinition(LoadoutRuleDefinition definition, PickupAliasRegistry aliasRegistry)

@@ -9,10 +9,11 @@ If your change touches ETG runtime behavior, do not start by editing code.
 Read these first, in order:
 
 1. [Terminology And Naming](../reference/terminology.md)
-2. [System Overview](../architecture/system-overview.md)
-3. [Runtime Hotspots](../architecture/runtime-hotspots.md)
-4. [Testing Matrix](../reference/testing-matrix.md)
-5. [Source Guide](../../src/AGENTS.md)
+2. [Code Index](../reference/code-index.md)
+3. [System Overview](../architecture/system-overview.md)
+4. [Runtime Hotspots](../architecture/runtime-hotspots.md)
+5. [Testing Matrix](../reference/testing-matrix.md)
+6. [Source Guide](../../src/AGENTS.md)
 
 ## Task Paths
 
@@ -33,10 +34,11 @@ If you are changing character-select-hub behavior:
 
 If you are changing command UI, item grant, or pickup lookup:
 
-1. [Commands](../reference/commands.md)
-2. [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)
-3. [Pickups](../reference/pickups.md)
-4. [ModTheGungeonAPI Reference](../reference/modthegungeonapi.md)
+1. [Code Index](../reference/code-index.md)
+2. [Commands](../reference/commands.md)
+3. [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)
+4. [Pickups](../reference/pickups.md)
+5. [ModTheGungeonAPI Reference](../reference/modthegungeonapi.md)
 
 If you are changing build, deploy, or workflow tooling:
 

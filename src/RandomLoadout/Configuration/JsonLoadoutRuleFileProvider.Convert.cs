@@ -6,12 +6,10 @@ namespace RandomLoadout
 {
     internal sealed partial class JsonLoadoutRuleFileProvider
     {
-        private static LoadoutRuleDefinition[] ConvertToDefinitions(LoadoutRuleFileModel fileModel, List<string> messages)
+        private LoadoutRuleDefinition[] ConvertToDefinitions(LoadoutRuleFileModel fileModel, List<string> messages)
         {
             List<LoadoutRuleDefinition> definitions = new List<LoadoutRuleDefinition>();
-            LoadoutRuleFileRuleModel[] rules = fileModel != null && fileModel.Rules != null
-                ? fileModel.Rules
-                : new LoadoutRuleFileRuleModel[0];
+            LoadoutRuleFileRuleModel[] rules = GetActivePresetRules(fileModel, messages);
 
             for (int i = 0; i < rules.Length; i++)
             {
@@ -21,18 +19,24 @@ namespace RandomLoadout
                     continue;
                 }
 
-                PickupCategory category;
-                if (!TryParseCategory(rule.Category, out category))
-                {
-                    messages.Add("Skipped rule #" + (i + 1) + " because category '" + rule.Category + "' was invalid.");
-                    continue;
-                }
-
                 GrantMode mode;
                 if (!TryParseMode(rule.Mode, out mode))
                 {
                     messages.Add("Skipped rule #" + (i + 1) + " because mode '" + rule.Mode + "' was invalid.");
                     continue;
+                }
+
+                PickupCategory category;
+                bool hasValidCategory = TryParseCategory(rule.Category, out category);
+                if (!hasValidCategory && mode == GrantMode.Specific)
+                {
+                    messages.Add("Skipped rule #" + (i + 1) + " because category '" + rule.Category + "' was invalid.");
+                    continue;
+                }
+
+                if (!hasValidCategory)
+                {
+                    category = PickupCategory.Gun;
                 }
 
                 switch (mode)

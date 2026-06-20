@@ -1,5 +1,6 @@
 using RandomLoadout.Core;
 using UnityEngine;
+using System;
 
 namespace RandomLoadout
 {
@@ -24,6 +25,21 @@ namespace RandomLoadout
             if (_rapidFireToggleService != null)
             {
                 _rapidFireToggleService.Update(player);
+            }
+
+            if (_autoReloadToggleService != null)
+            {
+                _autoReloadToggleService.Update(player);
+            }
+
+            if (_invincibilityToggleService != null)
+            {
+                _invincibilityToggleService.Update(player);
+            }
+
+            if (_noAmmoConsumptionToggleService != null)
+            {
+                _noAmmoConsumptionToggleService.Update(player);
             }
 
             if (_sceneWatcher == null || !_sceneWatcher.IsPollDue(Time.unscaledTime))
@@ -159,18 +175,51 @@ namespace RandomLoadout
             EnsureResolvedLoadoutConfig();
 
             int seed = _seedProvider.CreateSeed();
+            System.Collections.Generic.HashSet<int> ownedPickupIds = _ownedPickupReader.CollectOwnedPickupIds(player);
             LoadoutSelectionResult selectionResult = _selectionService.SelectLoadout(
-                new LoadoutSelectionRequest(seed, _resolvedLoadoutConfig, _ownedPickupReader.CollectOwnedPickupIds(player)));
+                new LoadoutSelectionRequest(seed, _resolvedLoadoutConfig, ownedPickupIds));
 
             _runState.MarkGranted(selectionResult.Seed);
-            Logger.LogInfo(RandomLoadoutLog.Grant("Granting configured loadout. Scene=" + sceneName + ", Seed=" + selectionResult.Seed));
+            int configuredRuleCount = _resolvedLoadoutConfig != null && _resolvedLoadoutConfig.Rules != null
+                ? _resolvedLoadoutConfig.Rules.Length
+                : 0;
+            Logger.LogInfo(
+                RandomLoadoutLog.Grant(
+                    "Granting configured loadout. Scene=" +
+                    sceneName +
+                    ", Seed=" +
+                    selectionResult.Seed +
+                    ", ConfigRuleCount=" +
+                    configuredRuleCount +
+                    ", OwnedPickupCount=" +
+                    ownedPickupIds.Count +
+                    ", SelectedPickupCount=" +
+                    selectionResult.Selections.Length +
+                    "."));
 
             LogSelectionWarnings(selectionResult.Warnings);
 
             for (int i = 0; i < selectionResult.Selections.Length; i++)
             {
                 SelectedPickup selection = selectionResult.Selections[i];
-                EtgGrantOutcome outcome = _pickupGranter.Grant(player, selection);
+                EtgGrantOutcome outcome;
+                try
+                {
+                    outcome = _pickupGranter.Grant(player, selection);
+                }
+                catch (Exception exception)
+                {
+                    Logger.LogWarning(
+                        RandomLoadoutLog.Grant(
+                            "Unhandled exception while granting pickup ID " +
+                            selection.PickupId +
+                            ": " +
+                            exception.GetType().Name +
+                            ": " +
+                            exception.Message));
+                    continue;
+                }
+
                 if (outcome.Succeeded)
                 {
                     Logger.LogInfo(

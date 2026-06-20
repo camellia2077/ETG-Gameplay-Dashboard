@@ -18,6 +18,7 @@ Before changing command UI, pickup grant behavior, Boss Rush entry flow, or char
 - Press `F7` to open or close the command panel.
 - The panel is positioned near the bottom center of the screen to avoid the top-left HUD.
 - The UI uses a darker ETG-friendly color scheme with clearer text sizing.
+- The command page can show a separate side stats panel with current player vitals and combat stats from `HealthHaver` and `PlayerStats`.
 
 ### Supported Typed Commands
 
@@ -60,17 +61,64 @@ Recommended input style:
   Opens the Boss Rush page.
 - `Pickups`
   Opens the in-game pickup browser with search, category filters, and runtime sprite icons.
+- `Start Items`
+  Opens the start-items editor for the current rules file.
 - `Rapid OFF` / `Rapid ON`
   Toggles hold-to-rapid-fire mode for the current gun.
+- `Reload OFF` / `Reload Fast` / `Reload Anim`
+  Cycles automatic reload between off, instant reload, and vanilla animated reload when the current gun's clip is empty and ammo is available.
+- `Stats OFF` / `Stats ON`
+  Toggles the side player-stats panel.
+- `God OFF` / `God ON`
+  Toggles invincibility. When enabled, the player is kept non-vulnerable and protected from touch damage, pits, and status effects; disabling restores the values captured when the toggle was enabled.
+- `Lang Auto` / `Lang EN` / `Lang CN`
+  Cycles the command panel language preference through `auto`, `en`, and `zh-CN`, then persists it to `randomgun.randomloadout.cfg` under `[UI] Language`.
 - `Currency`
   Opens the resource-actions submenu.
+- `Teleport`
+  Opens a separate left-side floor picker. Each row loads one configured floor through the same vanilla level-load route as the console `load_level` flow.
 
 ### Pickup Browser
 
 - search matches `alias`, `internalName`, `displayName`, and `pickupId`
 - category filters support `All`, `Gun`, `Passive`, and `Active`
+- quality filters are ordered `S`, `A`, `B`, `C`, `D`, with `Special`, `Excluded`, and all-quality options available
+- when the `Gun` category is selected, gun-class filters support pistol, full-auto, shotgun, rifle, beam, charge, explosive, elemental, and special buckets
+- when the `Passive` category is selected, passive subcategory filters support bullet-related items
+- when the `Active` category is selected, cooldown filters support uses, damage, time, and room buckets
 - clicking a result row or its `Grant` button grants the selected pickup directly
+- clicking `Add` writes the selected pickup as a `specific` ID rule in the current start-items rules file
+- duplicate `specific` ID rules are blocked by the in-game editor
 - icons are reused from the game's live pickup sprites
+
+### Start Items Editor
+
+The Start Items editor opens on a preset preview list:
+
+- clicking a preset row or `Open` selects that preset and opens its detail page
+- clicking `Select` only selects that preset; it does not open the detail page
+- preset rows show total, specific, and random rule counts
+- `Add Item` / `添加物品`
+  Available on the preset detail page. Opens the pickup browser in Start Items add mode. In this mode, clicking a row or `Add` writes the selected pickup to the active preset instead of granting it to the current run.
+- `Reload Config` / `重新读取配置`
+  Invalidates the cached resolved start-items config and manually re-reads the current rules file from disk on the next automatic grant.
+- `New` / `新建`
+  Creates an empty preset with an auto-generated unique name such as `preset` / `preset-2` in English or `预设` / `预设-2` in Chinese, selects it, and saves `RandomLoadout.rules.json5`.
+- `Copy` / `复制`
+  Duplicates the active preset's rules into a new uniquely named preset, selects it, and saves `RandomLoadout.rules.json5`.
+- `Delete` / `删除`
+  Deletes the active preset, then selects the next available preset. Deleting the only preset is blocked.
+- `Rename` / `改名`
+  Available on the preset preview page. Renames the active preset, updates `[StartItems] ActivePreset`, and blocks empty or duplicate names.
+- in Chinese UI, the default `default` preset is renamed to `预设`; new presets then start from `预设-2` when `预设` already exists
+- `Remove`
+  Deletes the selected rule from the current rules file by its current row index.
+- the first implementation edits `RandomLoadout.rules.json5` directly and stores added pickups as `specific` ID rules
+- when `presets` are present, `Add` and `Remove` edit only the active preset
+- legacy top-level `rules` files are treated as the `default` preset and are saved back as `presets` after in-game edits
+- rows include resolved pickup metadata such as quality, gun class, and active cooldown where available
+- `Add` and `Remove` automatically invalidate the cached config and refresh the in-game editor list; the manual reload button is kept for edits made outside the game
+- changes affect the next automatic start-of-run grant; they do not immediately grant or remove items in the current run
 
 ### Currency Menu
 
@@ -82,6 +130,23 @@ In the `Currency` submenu:
   Adds 50 casings to the current player.
 - `+10 Hegemony`
   Adds 10 meta currency via `TrackedStats.META_CURRENCY`.
+
+### Teleport Picker
+
+The left-side `Teleport` picker loads these floors:
+
+- `load_level keep`: Keep / Chamber 1
+- `load_level oubliette`: Oubliette / Chamber 1.5 / Sewer
+- `load_level proper`: Proper / Chamber 2
+- `load_level abbey`: Abbey / Chamber 2.5 / Old King
+- `load_level mine`: Mines / Chamber 3
+- `load_level ratden`: Rat Den / Chamber 3.5
+- `load_level hollow`: Hollow / Chamber 4
+- `load_level R&G_Dept`: R&G Dept / Chamber 4.5
+- `load_level forge`: Forge / Chamber 5
+- `load_level heli`: Bullet Hell / Chamber 6
+
+The picker refuses normal teleports while Boss Rush is active so the Boss Rush state machine does not conflict with manual floor loads.
 
 ### Boss Rush Page
 
@@ -127,6 +192,7 @@ Current minimum behavior:
 - rules support:
   - `random`
   - `specific`
+- the in-game loadout editor currently writes only `specific` ID rules
 - `specific` rules support:
   - `name`
   - `alias`
@@ -154,6 +220,7 @@ Resolution priority:
 - command execution logs are tagged with `[RandomLoadout][Command]`
 - the command panel is intentionally a compact debug and experimentation surface, not a full console
 - Boss Rush entry and return actions touch ETG runtime hotspots and should be treated as manual-verify areas
+- invincibility uses ETG runtime damage flags (`HealthHaver.IsVulnerable`, `HealthHaver.PreventAllDamage`, and player immunity flags), so verify it in combat before release
 - character-select-hub actions must not assume scene token meaning equals gameplay-state meaning
 
 ### After Editing This Surface

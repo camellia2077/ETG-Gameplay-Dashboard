@@ -16,6 +16,18 @@ namespace RandomLoadout
                 "EnableRandomLoadout",
                 true,
                 "Enable or disable the automatic start-of-run loadout grant.");
+            _uiLanguageConfig = Config.Bind(
+                "UI",
+                "Language",
+                "auto",
+                "Command panel language. Use auto, en, or zh-CN.");
+            _uiLanguageConfig.Value = GuiText.NormalizeLanguageOverride(_uiLanguageConfig.Value);
+            GuiText.SetLanguageOverride(_uiLanguageConfig.Value);
+            _activeStartItemsPresetConfig = Config.Bind(
+                "StartItems",
+                "ActivePreset",
+                "default",
+                "Active start-items preset name from RandomLoadout.rules.json5.");
             _aliasRegistry = PickupAliasRegistry.Empty;
             _configResolver = new EtgLoadoutConfigResolver(_pickupResolver);
             _pickupCatalogExporter = new EtgPickupCatalogExporter(
@@ -25,28 +37,42 @@ namespace RandomLoadout
                 Path.Combine(Paths.ConfigPath, PickupCatalogRulePoolFileName));
             _aliasFileProvider = new JsonPickupAliasFileProvider(Path.Combine(Paths.ConfigPath, NAME + ".aliases.json5"));
             _rapidFireToggleService = new RapidFireToggleService();
+            _autoReloadToggleService = new AutoReloadToggleService();
+            _invincibilityToggleService = new InvincibilityToggleService();
+            _noAmmoConsumptionToggleService = new NoAmmoConsumptionToggleService();
             _bossRushService = new BossRushService(Logger);
+            _ruleFileProvider = new JsonLoadoutRuleFileProvider(
+                Path.Combine(Paths.ConfigPath, NAME + ".rules.json5"),
+                Path.Combine(Paths.ConfigPath, PickupCatalogRulePoolFileName));
+            _ruleFileProvider.ActivePresetName = GetActiveStartItemsPreset();
             _commandController = new InGameCommandController(
                 new GrantCommandService(_pickupResolver, _pickupGranter, GetAliasRegistry),
                 new PlayerDebugCommandService(),
                 new FoyerCharacterSwitchService(),
                 _bossRushService,
                 _rapidFireToggleService,
+                _autoReloadToggleService,
+                _invincibilityToggleService,
+                _noAmmoConsumptionToggleService,
+                new LoadoutRuleEditorService(_ruleFileProvider, _pickupResolver.GetGrantablePickupCatalog, InvalidateResolvedLoadoutConfig, GetActiveStartItemsPreset, SetActiveStartItemsPreset, _ownedPickupReader),
                 _pickupResolver.GetGrantablePickupCatalog,
-                GetAliasRegistry);
-            _ruleFileProvider = new JsonLoadoutRuleFileProvider(
-                Path.Combine(Paths.ConfigPath, NAME + ".rules.json5"),
-                Path.Combine(Paths.ConfigPath, PickupCatalogRulePoolFileName));
+                GetAliasRegistry,
+                GetUiLanguage,
+                SetUiLanguage);
             _ruleDefinitions = new LoadoutRuleDefinition[0];
             _runState = new RunGrantState();
             _runLifecycleTracker = new RunLifecycleTracker(CharacterSelectSceneName, LegacyCharacterSelectSceneName, LoadingSceneName);
             _sceneWatcher = new RunSceneWatcher(CharacterSelectSceneName);
             _bossRushHarmony = new Harmony(GUID + ".bossrush");
+            _ammonomiconAnimationHarmony = new Harmony(GUID + ".ammonomicon_animation");
 
             Logger.LogInfo(RandomLoadoutLog.Init("Waiting for GameManager startup."));
             Logger.LogInfo(RandomLoadoutLog.Init("Automatic random loadout is " + (_enableRandomLoadoutConfig.Value ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Command panel language preference is " + GetUiLanguage() + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Active start-items preset is " + GetActiveStartItemsPreset() + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Boss Rush service initialized. Startup self-check is running."));
             LogBossRushHookSelfCheck(BossRushHooks.Install(_bossRushHarmony, Logger));
+            AmmonomiconAnimationHooks.Install(_ammonomiconAnimationHarmony, Logger);
             StartCoroutine(WaitForGameManagerAndSubscribe());
         }
 
@@ -57,6 +83,23 @@ namespace RandomLoadout
                 _rapidFireToggleService.Reset();
             }
 
+            if (_autoReloadToggleService != null)
+            {
+                _autoReloadToggleService.Reset();
+            }
+
+            if (_invincibilityToggleService != null)
+            {
+                _invincibilityToggleService.Reset();
+            }
+
+            if (_noAmmoConsumptionToggleService != null)
+            {
+                _noAmmoConsumptionToggleService.Reset();
+            }
+
+            AmmonomiconAnimationToggleService.Reset();
+
             if (_bossRushService != null)
             {
                 _bossRushService.Dispose();
@@ -65,6 +108,11 @@ namespace RandomLoadout
             if (_bossRushHarmony != null)
             {
                 _bossRushHarmony.UnpatchSelf();
+            }
+
+            if (_ammonomiconAnimationHarmony != null)
+            {
+                _ammonomiconAnimationHarmony.UnpatchSelf();
             }
 
             if (_sceneWatcher != null)
@@ -139,9 +187,21 @@ namespace RandomLoadout
             }
 
             EnsureAliasRegistryLoaded();
+            if (_ruleFileProvider != null)
+            {
+                _ruleFileProvider.ActivePresetName = GetActiveStartItemsPreset();
+            }
 
             LoadoutRuleFileLoadResult ruleFileLoadResult = _ruleFileProvider.Load();
             _ruleDefinitions = ruleFileLoadResult.Definitions;
+            Logger.LogInfo(
+                RandomLoadoutLog.Init(
+                    "Loaded start-loadout rules. File=" +
+                    _ruleFileProvider.FilePath +
+                    ", DefinitionCount=" +
+                    (_ruleDefinitions != null ? _ruleDefinitions.Length : 0) +
+                    "."));
+
             for (int i = 0; i < ruleFileLoadResult.Messages.Length; i++)
             {
                 Logger.LogInfo(RandomLoadoutLog.Init(ruleFileLoadResult.Messages[i]));
@@ -155,8 +215,20 @@ namespace RandomLoadout
             LoadoutConfigResolutionResult resolutionResult = _configResolver.Resolve(_ruleDefinitions, _aliasRegistry);
             _resolvedLoadoutConfig = resolutionResult.Config;
             _hasResolvedLoadoutConfig = true;
+            int resolvedRuleCount = _resolvedLoadoutConfig != null && _resolvedLoadoutConfig.Rules != null
+                ? _resolvedLoadoutConfig.Rules.Length
+                : 0;
+            Logger.LogInfo(RandomLoadoutLog.Init("Resolved start-loadout config. ResolvedRuleCount=" + resolvedRuleCount + "."));
 
             LogSelectionWarnings(resolutionResult.Warnings);
+        }
+
+        private void InvalidateResolvedLoadoutConfig()
+        {
+            _hasResolvedLoadoutConfig = false;
+            _resolvedLoadoutConfig = null;
+            _ruleDefinitions = new LoadoutRuleDefinition[0];
+            Logger.LogInfo(RandomLoadoutLog.Init("Invalidated cached start-loadout config. The next automatic grant will reload rules from disk."));
         }
 
         private void LogSelectionWarnings(SelectionWarning[] warnings)
@@ -177,6 +249,52 @@ namespace RandomLoadout
             }
 
             return _aliasRegistry ?? PickupAliasRegistry.Empty;
+        }
+
+        private string GetUiLanguage()
+        {
+            return _uiLanguageConfig != null ? GuiText.NormalizeLanguageOverride(_uiLanguageConfig.Value) : "auto";
+        }
+
+        private void SetUiLanguage(string languageCode)
+        {
+            string normalized = GuiText.NormalizeLanguageOverride(languageCode);
+            if (_uiLanguageConfig != null)
+            {
+                _uiLanguageConfig.Value = normalized;
+                Config.Save();
+            }
+
+            GuiText.SetLanguageOverride(normalized);
+            Logger.LogInfo(RandomLoadoutLog.Command("Command panel language preference changed to " + normalized + "."));
+        }
+
+        private string GetActiveStartItemsPreset()
+        {
+            return _activeStartItemsPresetConfig != null ? _activeStartItemsPresetConfig.Value : "default";
+        }
+
+        private void SetActiveStartItemsPreset(string presetName)
+        {
+            string normalized = string.IsNullOrEmpty(presetName) ? "default" : presetName.Trim();
+            if (string.IsNullOrEmpty(normalized))
+            {
+                normalized = "default";
+            }
+
+            if (_activeStartItemsPresetConfig != null)
+            {
+                _activeStartItemsPresetConfig.Value = normalized;
+                Config.Save();
+            }
+
+            if (_ruleFileProvider != null)
+            {
+                _ruleFileProvider.ActivePresetName = normalized;
+            }
+
+            InvalidateResolvedLoadoutConfig();
+            Logger.LogInfo(RandomLoadoutLog.Command("Active start-items preset changed to " + normalized + "."));
         }
 
         private void EnsureAliasRegistryLoaded()

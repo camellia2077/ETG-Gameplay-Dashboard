@@ -54,9 +54,16 @@ def write_install_readme(version_tag: str, staging_root: Path) -> None:
 4. Allow overwrite if Windows asks.
 5. Launch the game. `BepInEx` and `RandomLoadout` should now be installed.
 
+Project:
+- Homepage: https://github.com/camellia2077/ETG-Gameplay-Dashboard
+- Source code and releases: https://github.com/camellia2077/ETG-Gameplay-Dashboard
+
 Uninstall:
 - Remove `BepInEx\\plugins\\RandomLoadout.dll`
 - Remove `BepInEx\\config\\randomgun.randomloadout.cfg`
+- Remove `BepInEx\\config\\RandomLoadout.aliases.json5`
+- Remove `BepInEx\\config\\RandomLoadout.rules.json5`
+- Optionally remove the generated `RandomLoadout.pickups*.json` and `RandomLoadout.rules.full-pool.json5` files from `BepInEx\\config\\`
 - Remove `BepInEx\\config\\RandomLoadout.aliases.json5`
 - Remove `BepInEx\\config\\RandomLoadout.rules.json5`
 - Optionally remove the generated `RandomLoadout.pickups*.json` and `RandomLoadout.rules.full-pool.json5` files from `BepInEx\\config\\`
@@ -92,7 +99,7 @@ def write_third_party_notices(
         "### RandomLoadout",
         "",
         "- Project: `RandomLoadout`",
-        "- Homepage: <https://github.com/camellia2077/items>",
+        "- Homepage: <https://github.com/camellia2077/ETG-Gameplay-Dashboard>",
         "- License: `MIT`",
         "- Bundled license file: `licenses/RandomLoadout-LICENSE.txt`",
         "",
@@ -139,13 +146,19 @@ def write_third_party_notices(
 def ensure_no_game_owned_dlls(staging_root: Path) -> None:
     for path in staging_root.rglob("*.dll"):
         name = path.name
-        if name in FORBIDDEN_GAME_DLLS or (name.startswith("UnityEngine") and name.endswith(".dll")):
+        if name in FORBIDDEN_GAME_DLLS or (
+            name.startswith("UnityEngine")
+            and name.endswith(".dll")
+            and not name.endswith(".MTGAPIPatcher.mm.dll")
+        ):
             raise OSError("Forbidden game-owned DLL found in release package staging area: {0}".format(path))
 
 
 def ensure_required_package_files(staging_root: Path) -> None:
     required_paths = (
         staging_root / "BepInEx" / "plugins" / "RandomLoadout.dll",
+        staging_root / "BepInEx" / "plugins" / "MtGAPI" / "ModTheGungeonAPI.dll",
+        staging_root / "monomod" / "UnityEngine.CoreModule.MTGAPIPatcher.mm.dll",
         staging_root / "BepInEx" / "config" / "RandomLoadout.rules.json5",
         staging_root / "BepInEx" / "config" / "RandomLoadout.aliases.json5",
         staging_root / "THIRD_PARTY_NOTICES.md",

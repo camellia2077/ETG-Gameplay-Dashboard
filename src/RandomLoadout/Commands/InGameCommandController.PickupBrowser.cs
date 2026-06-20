@@ -10,14 +10,30 @@ namespace RandomLoadout
     {
         private void OpenPickupPage(ManualLogSource logger)
         {
+            OpenPickupPage(PickupBrowserMode.Grant, logger);
+        }
+
+        private void OpenPickupAddToStartItemsPage(ManualLogSource logger)
+        {
+            OpenPickupPage(PickupBrowserMode.AddToStartItems, logger);
+        }
+
+        private void OpenPickupAddToRandomPoolPage(ManualLogSource logger)
+        {
+            OpenPickupPage(PickupBrowserMode.AddToRandomPool, logger);
+        }
+
+        private void OpenPickupPage(PickupBrowserMode mode, ManualLogSource logger)
+        {
             _currentPage = PanelPage.Pickups;
+            _pickupBrowserMode = mode;
             _focusInputField = false;
             _focusPickupSearchField = true;
             RefreshPickupBrowserData();
 
             if (logger != null)
             {
-                logger.LogInfo(RandomLoadoutLog.Command("Pickup browser opened."));
+                logger.LogInfo(RandomLoadoutLog.Command("Pickup browser opened. Mode=" + _pickupBrowserMode + "."));
             }
         }
 
@@ -26,15 +42,31 @@ namespace RandomLoadout
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
             {
-                _currentPage = PanelPage.Command;
-                _focusInputField = true;
+                if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
+                {
+                    _currentPage = PanelPage.LoadoutEditor;
+                    RefreshLoadoutEditorEntries();
+                }
+                else if (_pickupBrowserMode == PickupBrowserMode.AddToRandomPool)
+                {
+                    _currentPage = PanelPage.LoadoutEditor;
+                    _loadoutEditorMode = LoadoutEditorMode.RandomPoolDetail;
+                    RefreshLoadoutEditorEntries();
+                    RefreshLoadoutRandomPoolEntries();
+                }
+                else
+                {
+                    _currentPage = PanelPage.Command;
+                    _focusInputField = true;
+                }
+
                 _focusPickupSearchField = false;
                 return;
             }
 
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 12f, panelRect.width - ButtonWidth - 32f, 24f),
-                GuiText.Get("gui.pickups.title"),
+                GetPickupBrowserTitle(),
                 _titleStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
@@ -42,7 +74,7 @@ namespace RandomLoadout
                 _hintStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 58f, panelRect.width - 28f, 20f),
-                GuiText.Get("gui.pickups.hint.grant"),
+                GetPickupBrowserActionHint(),
                 _hintStyle);
 
             GUI.SetNextControlName(PickupSearchControlName);
@@ -57,28 +89,167 @@ namespace RandomLoadout
             float filtersTop = searchRect.yMax + 10f;
             DrawPickupFilterButtons(panelRect.x + 14f, filtersTop);
 
-            float listTop = filtersTop + 38f;
+            float listTop = filtersTop + GetPickupFilterAreaHeight();
             Rect listRect = new Rect(panelRect.x + 14f, listTop, panelRect.width - 28f, panelRect.height - (listTop - panelRect.y) - 14f);
             DrawPickupResults(listRect, player, logger);
         }
 
         private void DrawPickupFilterButtons(float left, float top)
         {
-            DrawPickupFilterButton(new Rect(left, top, PickupFilterButtonWidth, 30f), PickupBrowserFilter.All, GuiText.Get("gui.pickups.filter.all"));
-            DrawPickupFilterButton(new Rect(left + PickupFilterButtonWidth + ButtonGap, top, PickupFilterButtonWidth, 30f), PickupBrowserFilter.Gun, GuiText.Get("gui.pickups.filter.gun"));
-            DrawPickupFilterButton(new Rect(left + (PickupFilterButtonWidth + ButtonGap) * 2f, top, PickupFilterButtonWidth, 30f), PickupBrowserFilter.Passive, GuiText.Get("gui.pickups.filter.passive"));
-            DrawPickupFilterButton(new Rect(left + (PickupFilterButtonWidth + ButtonGap) * 3f, top, PickupFilterButtonWidth, 30f), PickupBrowserFilter.Active, GuiText.Get("gui.pickups.filter.active"));
+            float currentLeft = left;
+            currentLeft = DrawPickupFilterButton(new Rect(currentLeft, top, PickupFilterButtonWidth, 28f), PickupBrowserFilter.All, GuiText.Get("gui.pickups.filter.all"));
+            currentLeft = DrawPickupFilterButton(new Rect(currentLeft, top, PickupFilterButtonWidth, 28f), PickupBrowserFilter.Gun, GuiText.Get("gui.pickups.filter.gun"));
+            currentLeft = DrawPickupFilterButton(new Rect(currentLeft, top, PickupFilterButtonWidth, 28f), PickupBrowserFilter.Passive, GuiText.Get("gui.pickups.filter.passive"));
+            DrawPickupFilterButton(new Rect(currentLeft, top, PickupFilterButtonWidth, 28f), PickupBrowserFilter.Active, GuiText.Get("gui.pickups.filter.active"));
+
+            float qualityTop = top + 34f;
+            currentLeft = left;
+            currentLeft = DrawPickupQualityFilterButton(new Rect(currentLeft, qualityTop, PickupFilterSmallButtonWidth, 28f), PickupQualityFilter.S, "S");
+            currentLeft = DrawPickupQualityFilterButton(new Rect(currentLeft, qualityTop, PickupFilterSmallButtonWidth, 28f), PickupQualityFilter.A, "A");
+            currentLeft = DrawPickupQualityFilterButton(new Rect(currentLeft, qualityTop, PickupFilterSmallButtonWidth, 28f), PickupQualityFilter.B, "B");
+            currentLeft = DrawPickupQualityFilterButton(new Rect(currentLeft, qualityTop, PickupFilterSmallButtonWidth, 28f), PickupQualityFilter.C, "C");
+            currentLeft = DrawPickupQualityFilterButton(new Rect(currentLeft, qualityTop, PickupFilterSmallButtonWidth, 28f), PickupQualityFilter.D, "D");
+            currentLeft = DrawPickupQualityFilterButton(new Rect(currentLeft, qualityTop, PickupFilterButtonWidth, 28f), PickupQualityFilter.All, GuiText.Get("gui.pickups.filter.quality_all"));
+            currentLeft = DrawPickupQualityFilterButton(new Rect(currentLeft, qualityTop, PickupFilterButtonWidth, 28f), PickupQualityFilter.Special, GuiText.Get("gui.pickups.filter.quality_special"));
+            DrawPickupQualityFilterButton(new Rect(currentLeft, qualityTop, PickupFilterButtonWidth, 28f), PickupQualityFilter.Excluded, GuiText.Get("gui.pickups.filter.quality_excluded"));
+
+            if (_pickupBrowserFilter == PickupBrowserFilter.Gun)
+            {
+                DrawPickupGunClassFilterButtons(left, top + 68f);
+            }
+            else if (_pickupBrowserFilter == PickupBrowserFilter.Passive)
+            {
+                DrawPickupPassiveSubcategoryFilterButtons(left, top + 68f);
+            }
+            else if (_pickupBrowserFilter == PickupBrowserFilter.Active)
+            {
+                DrawPickupActiveCooldownFilterButtons(left, top + 68f);
+            }
         }
 
-        private void DrawPickupFilterButton(Rect rect, PickupBrowserFilter filter, string label)
+        private float DrawPickupFilterButton(Rect rect, PickupBrowserFilter filter, string label)
         {
             GUIStyle style = _pickupBrowserFilter == filter ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle;
             if (GUI.Button(rect, label, style))
             {
                 _pickupBrowserFilter = filter;
+                if (_pickupBrowserFilter != PickupBrowserFilter.Gun)
+                {
+                    _pickupGunClassFilter = PickupGunClassFilter.All;
+                }
+
+                if (_pickupBrowserFilter != PickupBrowserFilter.Passive)
+                {
+                    _pickupPassiveSubcategoryFilter = PickupPassiveSubcategoryFilter.All;
+                }
+
+                if (_pickupBrowserFilter != PickupBrowserFilter.Active)
+                {
+                    _pickupActiveCooldownFilter = PickupActiveCooldownFilter.All;
+                }
+
                 _pickupScrollPosition = Vector2.zero;
                 _focusPickupSearchField = true;
             }
+
+            return rect.xMax + ButtonGap;
+        }
+
+        private float DrawPickupQualityFilterButton(Rect rect, PickupQualityFilter filter, string label)
+        {
+            GUIStyle style = _pickupQualityFilter == filter ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle;
+            if (GUI.Button(rect, label, style))
+            {
+                _pickupQualityFilter = filter;
+                _pickupScrollPosition = Vector2.zero;
+                _focusPickupSearchField = true;
+            }
+
+            return rect.xMax + ButtonGap;
+        }
+
+        private void DrawPickupGunClassFilterButtons(float left, float top)
+        {
+            float currentLeft = left;
+            currentLeft = DrawPickupGunClassFilterButton(new Rect(currentLeft, top, PickupFilterButtonWidth, 28f), PickupGunClassFilter.All, GuiText.Get("gui.pickups.filter.gunclass_all"));
+            currentLeft = DrawPickupGunClassFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.Pistol, GuiText.Get("gui.pickups.filter.gunclass_pistol"));
+            currentLeft = DrawPickupGunClassFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.FullAuto, GuiText.Get("gui.pickups.filter.gunclass_fullauto"));
+            currentLeft = DrawPickupGunClassFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.Shotgun, GuiText.Get("gui.pickups.filter.gunclass_shotgun"));
+            currentLeft = DrawPickupGunClassFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.Rifle, GuiText.Get("gui.pickups.filter.gunclass_rifle"));
+            currentLeft = DrawPickupGunClassFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.Beam, GuiText.Get("gui.pickups.filter.gunclass_beam"));
+            DrawPickupGunClassFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.Charge, GuiText.Get("gui.pickups.filter.gunclass_charge"));
+
+            currentLeft = left;
+            float secondRowTop = top + 34f;
+            currentLeft = DrawPickupGunClassFilterButton(new Rect(currentLeft, secondRowTop, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.Explosive, GuiText.Get("gui.pickups.filter.gunclass_explosive"));
+            currentLeft = DrawPickupGunClassFilterButton(new Rect(currentLeft, secondRowTop, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.Elemental, GuiText.Get("gui.pickups.filter.gunclass_elemental"));
+            DrawPickupGunClassFilterButton(new Rect(currentLeft, secondRowTop, PickupFilterGunClassButtonWidth, 28f), PickupGunClassFilter.Special, GuiText.Get("gui.pickups.filter.gunclass_special"));
+        }
+
+        private float DrawPickupGunClassFilterButton(Rect rect, PickupGunClassFilter filter, string label)
+        {
+            GUIStyle style = _pickupGunClassFilter == filter ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle;
+            if (GUI.Button(rect, label, style))
+            {
+                _pickupGunClassFilter = filter;
+                _pickupScrollPosition = Vector2.zero;
+                _focusPickupSearchField = true;
+            }
+
+            return rect.xMax + ButtonGap;
+        }
+
+        private void DrawPickupPassiveSubcategoryFilterButtons(float left, float top)
+        {
+            float currentLeft = left;
+            currentLeft = DrawPickupPassiveSubcategoryFilterButton(new Rect(currentLeft, top, PickupFilterButtonWidth, 28f), PickupPassiveSubcategoryFilter.All, GuiText.Get("gui.pickups.filter.passive_all"));
+            DrawPickupPassiveSubcategoryFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupPassiveSubcategoryFilter.Bullet, GuiText.Get("gui.pickups.filter.passive_bullet"));
+        }
+
+        private float DrawPickupPassiveSubcategoryFilterButton(Rect rect, PickupPassiveSubcategoryFilter filter, string label)
+        {
+            GUIStyle style = _pickupPassiveSubcategoryFilter == filter ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle;
+            if (GUI.Button(rect, label, style))
+            {
+                _pickupPassiveSubcategoryFilter = filter;
+                _pickupScrollPosition = Vector2.zero;
+                _focusPickupSearchField = true;
+            }
+
+            return rect.xMax + ButtonGap;
+        }
+
+        private void DrawPickupActiveCooldownFilterButtons(float left, float top)
+        {
+            float currentLeft = left;
+            currentLeft = DrawPickupActiveCooldownFilterButton(new Rect(currentLeft, top, PickupFilterButtonWidth, 28f), PickupActiveCooldownFilter.All, GuiText.Get("gui.pickups.filter.activecooldown_all"));
+            currentLeft = DrawPickupActiveCooldownFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupActiveCooldownFilter.Uses, GuiText.Get("gui.pickups.filter.activecooldown_uses"));
+            currentLeft = DrawPickupActiveCooldownFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupActiveCooldownFilter.Damage, GuiText.Get("gui.pickups.filter.activecooldown_damage"));
+            currentLeft = DrawPickupActiveCooldownFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupActiveCooldownFilter.Time, GuiText.Get("gui.pickups.filter.activecooldown_time"));
+            DrawPickupActiveCooldownFilterButton(new Rect(currentLeft, top, PickupFilterGunClassButtonWidth, 28f), PickupActiveCooldownFilter.Room, GuiText.Get("gui.pickups.filter.activecooldown_room"));
+        }
+
+        private float DrawPickupActiveCooldownFilterButton(Rect rect, PickupActiveCooldownFilter filter, string label)
+        {
+            GUIStyle style = _pickupActiveCooldownFilter == filter ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle;
+            if (GUI.Button(rect, label, style))
+            {
+                _pickupActiveCooldownFilter = filter;
+                _pickupScrollPosition = Vector2.zero;
+                _focusPickupSearchField = true;
+            }
+
+            return rect.xMax + ButtonGap;
+        }
+
+        private float GetPickupFilterAreaHeight()
+        {
+            if (_pickupBrowserFilter == PickupBrowserFilter.Gun)
+            {
+                return 140f;
+            }
+
+            return _pickupBrowserFilter == PickupBrowserFilter.Passive || _pickupBrowserFilter == PickupBrowserFilter.Active ? 106f : 72f;
         }
 
         private void DrawPickupResults(Rect listRect, PlayerController player, ManualLogSource logger)
@@ -108,17 +279,31 @@ namespace RandomLoadout
         {
             GUI.Box(rowRect, GUIContent.none, _pickupRowStyle);
 
-            Rect rowButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.width - PickupGrantButtonWidth - ButtonGap, rowRect.height);
+            const float addButtonWidth = 64f;
+            bool isAddMode = _pickupBrowserMode == PickupBrowserMode.AddToStartItems || _pickupBrowserMode == PickupBrowserMode.AddToRandomPool;
+            float actionButtonsWidth = isAddMode ? addButtonWidth : PickupGrantButtonWidth;
+            Rect rowButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.width - actionButtonsWidth - ButtonGap, rowRect.height);
             if (GUI.Button(rowButtonRect, GUIContent.none, _pickupRowButtonStyle))
             {
-                ExecutePickupBrowserGrant(entry, player, logger);
+                if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
+                {
+                    ExecuteLoadoutEditorAdd(entry.CatalogEntry, logger);
+                }
+                else if (_pickupBrowserMode == PickupBrowserMode.AddToRandomPool)
+                {
+                    ExecuteLoadoutEditorAddToRandomPool(entry.CatalogEntry, logger);
+                }
+                else
+                {
+                    ExecutePickupBrowserGrant(entry, player, logger);
+                }
             }
 
             Rect iconRect = new Rect(rowRect.x + 8f, rowRect.y + ((rowRect.height - PickupIconSize) * 0.5f), PickupIconSize, PickupIconSize);
             DrawPickupIcon(iconRect, entry);
 
             float textLeft = iconRect.xMax + 8f;
-            float textWidth = rowRect.width - PickupGrantButtonWidth - 32f - PickupIconSize - 16f;
+            float textWidth = rowRect.width - actionButtonsWidth - 32f - PickupIconSize - 24f;
             GUI.Label(
                 new Rect(textLeft, rowRect.y + 5f, textWidth, 20f),
                 entry.DisplayName,
@@ -128,11 +313,53 @@ namespace RandomLoadout
                 entry.MetadataLine,
                 _pickupSecondaryTextStyle);
 
+            if (isAddMode)
+            {
+                Rect addButtonRect = new Rect(rowRect.x + rowRect.width - addButtonWidth - 8f, rowRect.y + 8f, addButtonWidth, rowRect.height - 16f);
+                if (GUI.Button(addButtonRect, GuiText.Get("gui.pickups.button.add_loadout"), _buttonStyle))
+                {
+                    if (_pickupBrowserMode == PickupBrowserMode.AddToRandomPool)
+                    {
+                        ExecuteLoadoutEditorAddToRandomPool(entry.CatalogEntry, logger);
+                    }
+                    else
+                    {
+                        ExecuteLoadoutEditorAdd(entry.CatalogEntry, logger);
+                    }
+                }
+
+                return;
+            }
+
             Rect grantButtonRect = new Rect(rowRect.x + rowRect.width - PickupGrantButtonWidth - 8f, rowRect.y + 8f, PickupGrantButtonWidth, rowRect.height - 16f);
             if (GUI.Button(grantButtonRect, GuiText.Get("gui.command.button.grant"), _buttonStyle))
             {
                 ExecutePickupBrowserGrant(entry, player, logger);
             }
+        }
+
+        private string GetPickupBrowserTitle()
+        {
+            if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
+            {
+                return GuiText.Get("gui.pickups.title.add_start_items");
+            }
+
+            return _pickupBrowserMode == PickupBrowserMode.AddToRandomPool
+                ? GuiText.Get("gui.pickups.title.add_random_pool")
+                : GuiText.Get("gui.pickups.title");
+        }
+
+        private string GetPickupBrowserActionHint()
+        {
+            if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
+            {
+                return GuiText.Get("gui.pickups.hint.add_start_items");
+            }
+
+            return _pickupBrowserMode == PickupBrowserMode.AddToRandomPool
+                ? GuiText.Get("gui.pickups.hint.add_random_pool")
+                : GuiText.Get("gui.pickups.hint.grant");
         }
 
         private void DrawPickupIcon(Rect iconRect, PickupBrowserEntry entry)
@@ -199,7 +426,12 @@ namespace RandomLoadout
         {
             _cachedPickupEntries = EmptyPickupBrowserEntries;
             _pickupSearchText = string.Empty;
+            _pickupBrowserMode = PickupBrowserMode.Grant;
             _pickupBrowserFilter = PickupBrowserFilter.All;
+            _pickupQualityFilter = PickupQualityFilter.All;
+            _pickupGunClassFilter = PickupGunClassFilter.All;
+            _pickupPassiveSubcategoryFilter = PickupPassiveSubcategoryFilter.All;
+            _pickupActiveCooldownFilter = PickupActiveCooldownFilter.All;
             _pickupScrollPosition = Vector2.zero;
             _focusPickupSearchField = false;
             _pickupIconCache.Clear();
@@ -291,6 +523,26 @@ namespace RandomLoadout
                     continue;
                 }
 
+                if (!MatchesPickupQualityFilter(entry.CatalogEntry.Quality))
+                {
+                    continue;
+                }
+
+                if (!MatchesPickupGunClassFilter(entry.CatalogEntry))
+                {
+                    continue;
+                }
+
+                if (!MatchesPickupPassiveSubcategoryFilter(entry.CatalogEntry))
+                {
+                    continue;
+                }
+
+                if (!MatchesPickupActiveCooldownFilter(entry.CatalogEntry))
+                {
+                    continue;
+                }
+
                 if (!string.IsNullOrEmpty(normalizedSearch) &&
                     entry.SearchText.IndexOf(normalizedSearch, StringComparison.OrdinalIgnoreCase) < 0)
                 {
@@ -315,6 +567,148 @@ namespace RandomLoadout
                     return category == PickupCategory.Passive;
                 case PickupBrowserFilter.Active:
                     return category == PickupCategory.Active;
+                default:
+                    return true;
+            }
+        }
+
+        private bool MatchesPickupQualityFilter(string quality)
+        {
+            if (_pickupQualityFilter == PickupQualityFilter.All)
+            {
+                return true;
+            }
+
+            string normalizedQuality = (quality ?? string.Empty).Trim();
+            switch (_pickupQualityFilter)
+            {
+                case PickupQualityFilter.D:
+                    return string.Equals(normalizedQuality, "D", StringComparison.OrdinalIgnoreCase);
+                case PickupQualityFilter.C:
+                    return string.Equals(normalizedQuality, "C", StringComparison.OrdinalIgnoreCase);
+                case PickupQualityFilter.B:
+                    return string.Equals(normalizedQuality, "B", StringComparison.OrdinalIgnoreCase);
+                case PickupQualityFilter.A:
+                    return string.Equals(normalizedQuality, "A", StringComparison.OrdinalIgnoreCase);
+                case PickupQualityFilter.S:
+                    return string.Equals(normalizedQuality, "S", StringComparison.OrdinalIgnoreCase);
+                case PickupQualityFilter.Special:
+                    return string.Equals(normalizedQuality, "SPECIAL", StringComparison.OrdinalIgnoreCase);
+                case PickupQualityFilter.Excluded:
+                    return string.Equals(normalizedQuality, "EXCLUDED", StringComparison.OrdinalIgnoreCase);
+                default:
+                    return true;
+            }
+        }
+
+        private bool MatchesPickupGunClassFilter(EtgPickupCatalogEntry entry)
+        {
+            if (_pickupGunClassFilter == PickupGunClassFilter.All)
+            {
+                return true;
+            }
+
+            if (entry == null || entry.Category != PickupCategory.Gun)
+            {
+                return false;
+            }
+
+            string gunClass = (entry.GunClass ?? string.Empty).Trim();
+            switch (_pickupGunClassFilter)
+            {
+                case PickupGunClassFilter.Pistol:
+                    return string.Equals(gunClass, "PISTOL", StringComparison.OrdinalIgnoreCase);
+                case PickupGunClassFilter.FullAuto:
+                    return string.Equals(gunClass, "FULLAUTO", StringComparison.OrdinalIgnoreCase);
+                case PickupGunClassFilter.Shotgun:
+                    return string.Equals(gunClass, "SHOTGUN", StringComparison.OrdinalIgnoreCase);
+                case PickupGunClassFilter.Rifle:
+                    return string.Equals(gunClass, "RIFLE", StringComparison.OrdinalIgnoreCase);
+                case PickupGunClassFilter.Beam:
+                    return string.Equals(gunClass, "BEAM", StringComparison.OrdinalIgnoreCase);
+                case PickupGunClassFilter.Charge:
+                    return string.Equals(gunClass, "CHARGE", StringComparison.OrdinalIgnoreCase);
+                case PickupGunClassFilter.Explosive:
+                    return string.Equals(gunClass, "EXPLOSIVE", StringComparison.OrdinalIgnoreCase);
+                case PickupGunClassFilter.Elemental:
+                    return string.Equals(gunClass, "FIRE", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(gunClass, "ICE", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(gunClass, "POISON", StringComparison.OrdinalIgnoreCase);
+                case PickupGunClassFilter.Special:
+                    return string.Equals(gunClass, "SILLY", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(gunClass, "SHITTY", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(gunClass, "CHARM", StringComparison.OrdinalIgnoreCase) ||
+                           string.Equals(gunClass, "NONE", StringComparison.OrdinalIgnoreCase);
+                default:
+                    return true;
+            }
+        }
+
+        private bool MatchesPickupPassiveSubcategoryFilter(EtgPickupCatalogEntry entry)
+        {
+            if (_pickupPassiveSubcategoryFilter == PickupPassiveSubcategoryFilter.All)
+            {
+                return true;
+            }
+
+            if (entry == null || entry.Category != PickupCategory.Passive)
+            {
+                return false;
+            }
+
+            switch (_pickupPassiveSubcategoryFilter)
+            {
+                case PickupPassiveSubcategoryFilter.Bullet:
+                    return IsBulletPassive(entry);
+                default:
+                    return true;
+            }
+        }
+
+        private static bool IsBulletPassive(EtgPickupCatalogEntry entry)
+        {
+            return ContainsBulletPassiveToken(entry.DisplayName) ||
+                   ContainsBulletPassiveToken(entry.InternalName) ||
+                   ContainsBulletPassiveToken(entry.PrimaryDisplayName) ||
+                   ContainsBulletPassiveToken(entry.ShortDescription) ||
+                   ContainsBulletPassiveToken(entry.LongDescription);
+        }
+
+        private static bool ContainsBulletPassiveToken(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return false;
+            }
+
+            string lowerValue = value.ToLowerInvariant();
+            return lowerValue.IndexOf("bullet", StringComparison.Ordinal) >= 0 ||
+                   lowerValue.IndexOf("round", StringComparison.Ordinal) >= 0 ||
+                   lowerValue.IndexOf("lead", StringComparison.Ordinal) >= 0;
+        }
+
+        private bool MatchesPickupActiveCooldownFilter(EtgPickupCatalogEntry entry)
+        {
+            if (_pickupActiveCooldownFilter == PickupActiveCooldownFilter.All)
+            {
+                return true;
+            }
+
+            if (entry == null || entry.Category != PickupCategory.Active)
+            {
+                return false;
+            }
+
+            switch (_pickupActiveCooldownFilter)
+            {
+                case PickupActiveCooldownFilter.Uses:
+                    return entry.ActiveNumberOfUses > 0;
+                case PickupActiveCooldownFilter.Damage:
+                    return entry.ActiveDamageCooldown > 0f;
+                case PickupActiveCooldownFilter.Time:
+                    return entry.ActiveTimeCooldown > 0f;
+                case PickupActiveCooldownFilter.Room:
+                    return entry.ActiveRoomCooldown > 0;
                 default:
                     return true;
             }

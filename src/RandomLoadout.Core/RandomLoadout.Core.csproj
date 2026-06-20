@@ -38,6 +38,7 @@
     <Compile Include="Commands\GrantCommandRequest.cs" />
     <Compile Include="Commands\GrantCommandTarget.cs" />
     <Compile Include="Configuration\LoadoutConfig.cs" />
+    <Compile Include="Configuration\LoadoutPoolEntryConfig.cs" />
     <Compile Include="Configuration\LoadoutRuleConfig.cs" />
     <Compile Include="GrantMode.cs" />
     <Compile Include="PickupCategory.cs" />

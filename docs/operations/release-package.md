@@ -18,13 +18,13 @@ Users should be able to:
 Default release package:
 
 ```powershell
-python .\tools\build_release_package.py
+python .\tools\release\build_release_package.py
 ```
 
 Explicit release configuration:
 
 ```powershell
-python .\tools\build_release_package.py --configuration Release
+python .\tools\release\build_release_package.py --configuration Release
 ```
 
 Override the package version label:
@@ -36,14 +36,14 @@ python .\tools\release\build_release_package.py --version 0.2.3
 Skip the build step and package the current compiled DLL:
 
 ```powershell
-python .\tools\build_release_package.py --skip-build
+python .\tools\release\build_release_package.py --skip-build
 ```
 
 ## Output
 
 The script writes a zip under `dist/`:
 
-* `dist/RandomLoadout-v<version>-ETG.zip`
+* `dist/ETG-Gameplay-Dashboard-v<version>-ETG.zip`
 
 The package root is the game root overlay layout, not a repository layout.
 
@@ -53,6 +53,7 @@ The generated zip includes:
 
 * the official `BepInExPack_EtG` package, redistributed unmodified
 * `BepInEx\plugins\RandomLoadout.dll`
+* `ModTheGungeonAPI` and its runtime dependencies (copied from the repository `lib/` directory)
 * repository default config and catalog files in `BepInEx\config\`
 * `README-INSTALL.txt`
 * `THIRD_PARTY_NOTICES.md`
@@ -65,14 +66,13 @@ The generated zip does not include:
 * repository build helpers
 * repository documentation
 * test outputs
-* local development DLLs from `lib\`
-* game-owned files such as `Assembly-CSharp.dll` or `UnityEngine*.dll`
+* game-owned reference DLLs such as `Assembly-CSharp.dll` or `UnityEngine.dll` (though it does bundle non-game-owned third-party runtime dependencies from `lib\`)
 
 ## Upstream Source And Verification
 
 The packaging script uses pinned metadata from:
 
-* `tools/release_package_metadata.json`
+* `tools/release/release_package_metadata.json`
 
 That metadata defines:
 
@@ -122,7 +122,7 @@ That repository-level notice intentionally separates:
 For this project, that distinction matters because:
 
 * `BepInExPack_EtG` and its bundled components are redistributed in the release zip
-* `ModTheGungeonAPI` is a required runtime dependency for current Boss Rush functionality, but is not bundled by the player-facing release-package workflow described on this page
+* `ModTheGungeonAPI` and its runtime dependencies are bundled in the player-facing release-package to ensure plug-and-play compatibility
 * projects such as `SaveAPI` and `OnceMoreIntoTheBreach` are acknowledged as references, not redistributed package contents
 
 ## Notes

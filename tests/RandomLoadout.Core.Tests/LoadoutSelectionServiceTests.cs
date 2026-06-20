@@ -41,6 +41,26 @@ namespace RandomLoadout.Core.Tests
             AssertEx.SequenceEqual(new[] { 5, 6 }, result.Selections.Select(selection => selection.PickupId), "Duplicate pickup IDs should only be selected once across categories.");
         }
 
+        public static void RandomRuleCanSelectMixedCategoryEntries()
+        {
+            LoadoutConfig config = CreateConfig(
+                LoadoutRuleConfig.CreateRandom(
+                    PickupCategory.Gun,
+                    2,
+                    new[]
+                    {
+                        new LoadoutPoolEntryConfig(PickupCategory.Passive, 118),
+                        new LoadoutPoolEntryConfig(PickupCategory.Gun, 143),
+                    }));
+
+            LoadoutSelectionService service = new LoadoutSelectionService();
+            LoadoutSelectionResult result = service.SelectLoadout(new LoadoutSelectionRequest(1, config, new int[0]));
+
+            AssertEx.Equal(2, result.Selections.Length, "Mixed-category random pools should produce selections.");
+            AssertEx.True(result.Selections.Any(selection => selection.Category == PickupCategory.Passive && selection.PickupId == 118), "The passive pool entry should keep its category.");
+            AssertEx.True(result.Selections.Any(selection => selection.Category == PickupCategory.Gun && selection.PickupId == 143), "The gun pool entry should keep its category.");
+        }
+
         public static void CategoryWithoutCandidatesDoesNotBlockOthers()
         {
             LoadoutConfig config = CreateConfig(

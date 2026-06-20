@@ -25,28 +25,56 @@ To keep files readable and stable, use this style:
 * Keep IDs as integers (no quotes)
 * Keep one rule object per block, and one alias entry per line
 
-## Example: Rules
+## Example: Preset Rules
 
 ```json5
 {
-  // Startup: Casey + 2 random passives from the pool.
-  "rules": [
+  "presets": [
     {
-      "enabled": true,
-      "mode": "specific",
-      "category": "gun",
-      "id": 541,
+      "name": "default",
+      "rules": [
+        {
+          "enabled": true,
+          "mode": "specific",
+          "category": "gun",
+          "id": 541,
+        },
+        {
+          "enabled": true,
+          "mode": "random",
+          "category": "passive",
+          "count": 2,
+          "poolIds": [427, 114, 118],
+        },
+      ],
     },
     {
-      "enabled": true,
-      "mode": "random",
-      "category": "passive",
-      "count": 2,
-      "poolIds": [427, 114, 118],
+      "name": "boss",
+      "rules": [
+        {
+          "enabled": true,
+          "mode": "specific",
+          "category": "active",
+          "id": 108,
+        },
+      ],
     },
   ],
 }
 ```
+
+The active preset is stored in `randomgun.randomloadout.cfg`:
+
+```ini
+[StartItems]
+ActivePreset = default
+```
+
+Legacy files with top-level `"rules"` are still read as the `default` preset. Saving from the in-game Start Items editor writes the newer `"presets"` structure.
+
+For `mode: "random"` rules, `poolIds`, `poolAliases`, and `pool` are resolved across all supported pickup categories.
+This allows one random pool to mix guns, passives, and actives. The rule-level `category` is optional for random
+rules; when present, it is retained for readability and warning context, but it does not restrict random pool entries.
 
 ## Example: Aliases
 
@@ -62,4 +90,5 @@ To keep files readable and stable, use this style:
 ## Notes
 
 * Missing or invalid `rules.json5` falls back to `rules.full-pool.json5`, then to built-in defaults.
+* `StartItems.ActivePreset` chooses which preset is granted and edited in-game.
 * Missing or invalid `aliases.json5` falls back to built-in default aliases.

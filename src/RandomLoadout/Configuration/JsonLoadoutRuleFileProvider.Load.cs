@@ -10,6 +10,7 @@ namespace RandomLoadout
     {
         private readonly string _filePath;
         private readonly string _fallbackFilePath;
+        private string _activePresetName = DefaultPresetName;
 
         public JsonLoadoutRuleFileProvider(string filePath)
             : this(filePath, string.Empty)
@@ -20,6 +21,39 @@ namespace RandomLoadout
         {
             _filePath = filePath;
             _fallbackFilePath = fallbackFilePath ?? string.Empty;
+        }
+
+        public string FilePath
+        {
+            get { return _filePath; }
+        }
+
+        public string ActivePresetName
+        {
+            get { return NormalizePresetName(_activePresetName); }
+            set { _activePresetName = NormalizePresetName(value); }
+        }
+
+        public LoadoutRuleFileModel LoadEditableModel()
+        {
+            if (!File.Exists(_filePath))
+            {
+                return CreateDefaultModel();
+            }
+
+            string rawJson = Json5TextNormalizer.Normalize(File.ReadAllText(_filePath, Encoding.UTF8));
+            return ParseRuleFile(rawJson);
+        }
+
+        public void SaveEditableModel(LoadoutRuleFileModel fileModel)
+        {
+            string directory = Path.GetDirectoryName(_filePath);
+            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            File.WriteAllText(_filePath, SerializeRuleFile(fileModel ?? new LoadoutRuleFileModel()), Encoding.UTF8);
         }
 
         public LoadoutRuleFileLoadResult Load()
@@ -53,6 +87,7 @@ namespace RandomLoadout
                 fileModel = CreateDefaultModel();
             }
 
+            messages.Add("Using start-items preset '" + ActivePresetName + "'.");
             return new LoadoutRuleFileLoadResult(ConvertToDefinitions(fileModel, messages), messages.ToArray(), warnings.ToArray());
         }
 
@@ -86,28 +121,104 @@ namespace RandomLoadout
         {
             return new LoadoutRuleFileModel
             {
-                Rules = new[]
+                Presets = new[]
                 {
-                    new LoadoutRuleFileRuleModel
+                    new LoadoutRuleFilePresetModel
                     {
-                        Enabled = true,
-                        Mode = "specific",
-                        Category = "gun",
-                        Count = 1,
-                        Id = 541,
-                        Pool = new string[0],
-                    },
-                    new LoadoutRuleFileRuleModel
-                    {
-                        Enabled = true,
-                        Mode = "specific",
-                        Category = "passive",
-                        Count = 1,
-                        Id = 118,
-                        Pool = new string[0],
+                        Name = DefaultPresetName,
+                        Rules = CreateDefaultPresetRules(),
                     },
                 },
             };
+        }
+
+        internal static LoadoutRuleFileRuleModel[] CreateDefaultPresetRules()
+        {
+            return new[]
+            {
+                new LoadoutRuleFileRuleModel
+                {
+                    Enabled = true,
+                    Mode = "specific",
+                    Category = "gun",
+                    Count = 1,
+                    Id = 541,
+                    Pool = new string[0],
+                    PoolAliases = new string[0],
+                    PoolIds = new int[0],
+                },
+                new LoadoutRuleFileRuleModel
+                {
+                    Enabled = true,
+                    Mode = "random",
+                    Category = "gun",
+                    Count = 1,
+                    PoolIds = new[]
+                    {
+                        118,
+                        457,
+                        143,
+                        26,
+                    },
+                    PoolAliases = new string[0],
+                    Pool = new string[0],
+                },
+                new LoadoutRuleFileRuleModel
+                {
+                    Enabled = true,
+                    Mode = "random",
+                    Category = "passive",
+                    Count = 1,
+                    PoolIds = new[]
+                    {
+                        111,
+                        113,
+                        172,
+                        277,
+                        278,
+                        284,
+                        286,
+                        288,
+                        323,
+                        352,
+                        373,
+                        374,
+                        375,
+                        410,
+                        434,
+                        521,
+                        523,
+                        528,
+                        530,
+                        531,
+                        532,
+                        533,
+                        538,
+                        568,
+                        569,
+                        571,
+                        579,
+                        627,
+                        630,
+                        640,
+                        655,
+                        661,
+                        815,
+                        817,
+                        822,
+                    },
+                    PoolAliases = new string[0],
+                    Pool = new string[0],
+                },
+            };
+        }
+
+        private const string DefaultPresetName = "default";
+
+        private static string NormalizePresetName(string presetName)
+        {
+            string normalized = (presetName ?? string.Empty).Trim();
+            return !string.IsNullOrEmpty(normalized) ? normalized : DefaultPresetName;
         }
     }
 }
