@@ -25,7 +25,7 @@ If a feature touches ETG runtime behavior and the API is not already used in thi
 | `src/RandomLoadout/` | BepInEx plugin, Unity/ETG integration, runtime services, IMGUI command panel | [Source Guide](../../src/AGENTS.md) |
 | `src/RandomLoadout.Core/` | Pure parsing, config models, selection, warnings, seed behavior | [System Overview](../architecture/system-overview.md) |
 | `tests/RandomLoadout.Core.Tests/` | Core parser, rule, and selection checks | [Testing Matrix](./testing-matrix.md) |
-| `defaults/config/` | Shipped config, localization, catalog baselines | [Config Format](./config-format.md) |
+| `defaults/config/` and `defaults/presets/` | Shipped config, localization, catalog baselines, and built-in preset files | [Config Format](./config-format.md) |
 | `tools/` | Build, deploy, release, generated docs, developer utilities | [Development Setup](../getting-started/development-setup.md) |
 | `docs/` | Project knowledge, workflows, decisions, references | [Docs README](../README.md) |
 
@@ -55,18 +55,21 @@ All in-game command-panel work starts in `src/RandomLoadout/Commands/`.
 | File | Look here for |
 | --- | --- |
 | `InGameCommandController.cs` | controller shell and page dispatch |
-| `InGameCommandController.State.cs` | UI state, selected page/category, dimensions, colors, cached data |
+| `InGameCommandController.State.cs` | UI state, selected page/category, controller-focus state, dimensions, colors, cached data |
 | `InGameCommandController.Styles.cs` | IMGUI styles |
-| `InGameCommandController.CommandPage.cs` | main command page layout and top-level controls |
+| `InGameCommandController.CommandPage.cs` | main command page layout, top-level controls, and first-stage controller navigation routing |
 | `InGameCommandController.CommandActions.cs` | general command button actions |
+| `InGameCommandController.Teleport.cs` | teleport picker UI, floor resolution, and `load_level` runtime handoff |
 | `InGameCommandController.CharacterPage.cs` | character tab layout |
 | `InGameCommandController.CharacterActions.cs` | character-related actions |
 | `InGameCommandController.BossRush.cs` | Boss Rush controls |
 | `InGameCommandController.Currency.cs` | money, keys, blanks, armor, health controls |
+| `InGameCommandController.Room.cs` | room tools such as chest spawning |
 | `InGameCommandController.PlayerStats.cs` | player stat panel |
 | `InGameCommandController.PickupBrowser.cs` | item browser, filters, item cards, add/select modes |
 | `InGameCommandController.LoadoutEditor.cs` | Start Items and preset editor UI |
 | `InGameCommandController.About.cs` | About / Credits page |
+| `InGameCommandController.Settings.cs` | settings page layout, keyboard key config, gamepad preset config, and first-stage controller navigation routing |
 
 Supporting services:
 
@@ -74,15 +77,21 @@ Supporting services:
 | --- | --- |
 | `GrantCommandService*.cs` | command execution, pickup resolution, user-facing result messages |
 | `PlayerDebugCommandService.cs` | player debug operations |
+| `PlayerRuntimeOverrideServiceBase.cs` | shared skeleton for player runtime property override services |
+| `PlayerHealthOverrideService.cs` | runtime max-health override tracking and rollback restoration |
+| `RoomDebugCommandService.cs` | room-level debug operations such as spawning chests |
 | `RapidFireToggleService.cs` | rapid fire toggle |
 | `AutoReloadToggleService.cs` | auto reload toggle |
-| `NoAmmoConsumptionToggleService.cs` | no-ammo-consumption toggle |
+| `AmmoModeToggleService.cs` | ammo mode toggle and locked-ammo behavior |
 | `InvincibilityToggleService.cs` | invincibility toggle |
 | `FoyerCharacterSwitchService*.cs` | foyer character switching and unlock helpers |
+| `src/RandomLoadout/Runtime/EtgFloorSceneResolver.cs` | floor token to ETG scene-name mapping, including special-floor exceptions such as Rat Den |
 
 Read next:
 
 - [Commands](./commands.md)
+- [Localization And Language Switching](./localization.md)
+- [Runtime Property Overrides](../architecture/runtime-property-overrides.md)
 - [Testing Matrix](./testing-matrix.md)
 
 ## Start Items, Config, And Presets
@@ -98,7 +107,8 @@ Use this route for changes to start-item rules, preset selection, add/remove, du
 | `src/RandomLoadout/Configuration/JsonLoadoutRuleFileProvider*.cs` | load, parse, save, convert, and preset persistence |
 | `src/RandomLoadout/Configuration/LoadoutRuleFileModel.cs` | file model for rules/presets |
 | `src/RandomLoadout/Configuration/DefaultLoadoutRuleDefinitionFactory.cs` | default rule fallback |
-| `defaults/config/RandomLoadout.rules.json5` | shipped default rules |
+| `defaults/config/ETG-Gameplay-Dashboard.rules.json5` | shipped Start Items config anchor |
+| `defaults/presets/*.json` | shipped built-in preset files |
 
 Pure core types:
 
@@ -111,8 +121,15 @@ Pure core types:
 Read next:
 
 - [Config Format](./config-format.md)
+- [Localization And Language Switching](./localization.md)
 - [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)
 - [Pickups](./pickups.md)
+
+Config notes:
+
+- Built-in shipped presets now use `id` plus `display_name_key`
+- User-authored presets use `id` plus optional plain `name`
+- See [Config Format](./config-format.md) for the exact Start Items JSON shape
 
 ## Pickup Lookup, Browser, And Granting
 
@@ -127,13 +144,14 @@ Use this route for item names, aliases, pickup cards, quality filters, categorie
 | `src/RandomLoadout/Commands/InGameCommandController.PickupBrowser.cs` | browser filtering and item card display |
 | `src/RandomLoadout/Configuration/JsonPickupAliasFileProvider.cs` | alias file loading |
 | `src/RandomLoadout/Configuration/PickupAliasRegistry.cs` | alias lookup |
-| `defaults/config/RandomLoadout.pickups.json` | shipped pickup catalog |
-| `defaults/config/RandomLoadout.pickups.by-category.json` | shipped grouped pickup catalog |
-| `defaults/config/RandomLoadout.aliases.json5` | shipped aliases |
+| `defaults/catalog/RandomLoadout.pickups.json` | shipped pickup catalog |
+| `defaults/catalog/RandomLoadout.pickups.by-category.json` | shipped grouped pickup catalog |
+| `defaults/config/ETG-Gameplay-Dashboard.aliases.json5` | shipped aliases |
 
 Read next:
 
 - [ModTheGungeonAPI Reference](./modthegungeonapi.md)
+- [Localization And Language Switching](./localization.md)
 - [Pickups](./pickups.md)
 - [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)
 
@@ -145,14 +163,16 @@ Use this route for toggles that change live player, gun, or run behavior.
 | --- | --- |
 | Rapid fire | `src/RandomLoadout/Commands/RapidFireToggleService.cs`, `InGameCommandController.CommandActions.cs` |
 | Auto reload | `src/RandomLoadout/Commands/AutoReloadToggleService.cs`, `InGameCommandController.CommandActions.cs` |
-| No ammo consumption | `src/RandomLoadout/Commands/NoAmmoConsumptionToggleService.cs`, `InGameCommandController.CommandActions.cs` |
+| Ammo mode | `src/RandomLoadout/Commands/AmmoModeToggleService.cs`, `InGameCommandController.CommandActions.cs` |
 | Invincibility | `src/RandomLoadout/Commands/InvincibilityToggleService.cs`, `InGameCommandController.CommandActions.cs` |
+| Runtime property overrides | `src/RandomLoadout/Commands/PlayerRuntimeOverrideServiceBase.cs`, `src/RandomLoadout/Commands/PlayerHealthOverrideService.cs`, `src/RandomLoadout/Plugin.RunLifecycle.cs` |
 | Player stats panel | `src/RandomLoadout/Commands/InGameCommandController.PlayerStats.cs` |
 | Ammonomicon / game UI actions | `src/RandomLoadout/Commands/InGameCommandController.CommandActions.cs` |
 
 Read next:
 
 - [Runtime Hotspots](../architecture/runtime-hotspots.md)
+- [Runtime Property Overrides](../architecture/runtime-property-overrides.md)
 - [Logging](../operations/logging.md)
 
 ## Boss Rush And Character Flow
@@ -174,9 +194,17 @@ Read next:
 | File | Look here for |
 | --- | --- |
 | `src/RandomLoadout/Localization/GuiText.cs` | language setting, lookup, fallback |
-| `defaults/config/RandomLoadout.localization.en.json5` | English UI strings |
-| `defaults/config/RandomLoadout.localization.zh-CN.json5` | Simplified Chinese UI strings |
+| `src/RandomLoadout/Etg/EtgPickupResolver*.cs` | runtime-localized pickup names and English pickup-name fallback |
+| `src/RandomLoadout/Commands/InGameCommandController.cs` | language-change detection and page refresh |
+| `defaults/config/ETG-Gameplay-Dashboard.localization.en.json5` | English UI strings |
+| `defaults/config/ETG-Gameplay-Dashboard.localization.zh-CN.json5` | Simplified Chinese UI strings |
 | `src/RandomLoadout/Commands/InGameCommandController.CommandPage.cs` | language button location |
+
+Read next:
+
+- [Localization And Language Switching](./localization.md)
+- [Commands](./commands.md)
+- [Config Format](./config-format.md)
 
 After editing localization defaults, copy only localization files into the live game config when needed. Do not overwrite all live config.
 

@@ -13,22 +13,29 @@ namespace RandomLoadout
                 return preset.Rules ?? new LoadoutRuleFileRuleModel[0];
             }
 
-            if (fileModel != null && fileModel.Rules != null)
-            {
-                if (!string.Equals(ActivePresetName, DefaultPresetName, StringComparison.OrdinalIgnoreCase) && messages != null)
-                {
-                    messages.Add("Rule file uses legacy top-level rules. Preset '" + ActivePresetName + "' is not available, so legacy rules are used as 'default'.");
-                }
-
-                return fileModel.Rules;
-            }
-
             return new LoadoutRuleFileRuleModel[0];
         }
 
         internal LoadoutRuleFilePresetModel GetActivePreset(LoadoutRuleFileModel fileModel)
         {
-            return GetPreset(fileModel, ActivePresetName);
+            LoadoutRuleFilePresetModel activePreset = GetPreset(fileModel, ActivePresetName);
+            if (activePreset != null)
+            {
+                return activePreset;
+            }
+
+            activePreset = GetPreset(fileModel, DefaultPresetId);
+            if (activePreset != null)
+            {
+                return activePreset;
+            }
+
+            if (fileModel == null || fileModel.Presets == null || fileModel.Presets.Length == 0)
+            {
+                return null;
+            }
+
+            return fileModel.Presets[0];
         }
 
         internal LoadoutRuleFilePresetModel GetPreset(LoadoutRuleFileModel fileModel, string presetName)
@@ -38,11 +45,11 @@ namespace RandomLoadout
                 return null;
             }
 
-            string normalizedName = NormalizePresetName(presetName);
+            string normalizedName = NormalizePresetId(presetName);
             for (int i = 0; i < fileModel.Presets.Length; i++)
             {
                 LoadoutRuleFilePresetModel preset = fileModel.Presets[i];
-                if (preset != null && string.Equals(NormalizePresetName(preset.Name), normalizedName, StringComparison.OrdinalIgnoreCase))
+                if (preset != null && string.Equals(NormalizePresetId(preset.Id), normalizedName, StringComparison.OrdinalIgnoreCase))
                 {
                     return preset;
                 }
@@ -57,11 +64,7 @@ namespace RandomLoadout
             {
                 fileModel.Presets = new[]
                 {
-                    new LoadoutRuleFilePresetModel
-                    {
-                        Name = DefaultPresetName,
-                        Rules = fileModel.Rules ?? new LoadoutRuleFileRuleModel[0],
-                    },
+                    StartItemsPresetNames.CreateBuiltInPreset(DefaultPresetId, fileModel.Rules ?? new LoadoutRuleFileRuleModel[0]),
                 };
                 fileModel.Rules = new LoadoutRuleFileRuleModel[0];
             }
@@ -75,7 +78,9 @@ namespace RandomLoadout
             List<LoadoutRuleFilePresetModel> presets = new List<LoadoutRuleFilePresetModel>(fileModel.Presets);
             activePreset = new LoadoutRuleFilePresetModel
             {
-                Name = ActivePresetName,
+                Id = ActivePresetName,
+                Name = string.Empty,
+                DisplayNameKey = string.Empty,
                 Rules = new LoadoutRuleFileRuleModel[0],
             };
             presets.Add(activePreset);

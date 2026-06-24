@@ -29,34 +29,57 @@ namespace RandomLoadout
                 return;
             }
 
-            GUI.Label(new Rect(panelRect.x + 14f, panelRect.y + 12f, panelRect.width - ButtonWidth - 32f, 24f), GuiText.Get("gui.currency.title"), _titleStyle);
+            GUI.Label(
+                new Rect(panelRect.x + 14f, panelRect.y + 12f, panelRect.width - ButtonWidth - 32f, 24f),
+                GetLocalizedFallback("gui.currency.title", "Player Resources", "人物资源"),
+                _titleStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
-                GuiText.Get("gui.currency.hint.choose"),
+                GetLocalizedFallback("gui.currency.hint.choose", "Choose a player resource to add.", "选择要增加的人物资源。"),
                 _hintStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 58f, panelRect.width - 28f, 20f),
-                GuiText.Get("gui.currency.hint.run_only"),
+                GetLocalizedFallback("gui.currency.hint.run_only", "Applies to the current character or current run only.", "只影响当前角色或当前这一局。"),
                 _hintStyle);
 
-            Rect addKeyButtonRect = new Rect(panelRect.x + 14f, panelRect.y + 92f, CurrencyActionButtonWidth, 34f);
-            Rect addCurrencyButtonRect = new Rect(addKeyButtonRect.xMax + ButtonGap, addKeyButtonRect.y, CurrencyActionButtonWidth, 34f);
-            Rect addMetaCurrencyButtonRect = new Rect(panelRect.x + 14f, addKeyButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
-            if (GUI.Button(addKeyButtonRect, GuiText.Get("gui.currency.button.key"), _buttonStyle))
+            float left = panelRect.x + 14f;
+            float top = panelRect.y + 92f;
+            Rect addKeyButtonRect = new Rect(left, top, CurrencyActionButtonWidth, 34f);
+            Rect addRatKeyButtonRect = new Rect(addKeyButtonRect.xMax + ButtonGap, top, CurrencyActionButtonWidth, 34f);
+            Rect addCurrencyButtonRect = new Rect(left, addKeyButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
+            Rect addMetaCurrencyButtonRect = new Rect(addCurrencyButtonRect.xMax + ButtonGap, addCurrencyButtonRect.y, CurrencyActionButtonWidth, 34f);
+            Rect addBlankButtonRect = new Rect(left, addCurrencyButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
+            Rect addMaxHealthButtonRect = new Rect(addBlankButtonRect.xMax + ButtonGap, addBlankButtonRect.y, CurrencyActionButtonWidth, 34f);
+            if (GUI.Button(addKeyButtonRect, GetLocalizedFallback("gui.currency.button.key", "+1 Key", "+1 钥匙"), _buttonStyle))
             {
                 ExecuteAddKey(player, logger);
             }
 
-            if (GUI.Button(addCurrencyButtonRect, GuiText.Get("gui.currency.button.casings"), _buttonStyle))
+            if (GUI.Button(addRatKeyButtonRect, GetLocalizedFallback("gui.currency.button.rat_key", "+1 Rat Key", "+1 老鼠钥匙"), _buttonStyle))
+            {
+                ExecuteAddRatKey(player, logger);
+            }
+
+            if (GUI.Button(addCurrencyButtonRect, GetLocalizedFallback("gui.currency.button.casings", "+50 Casings", "+50 弹壳"), _buttonStyle))
             {
                 // Dungeon run currency (casings).
                 ExecuteAddCurrency(player, logger);
             }
 
-            if (GUI.Button(addMetaCurrencyButtonRect, GuiText.Get("gui.currency.button.hegemony"), _buttonStyle))
+            if (GUI.Button(addMetaCurrencyButtonRect, GetLocalizedFallback("gui.currency.button.hegemony", "+50 Hegemony", "+50 霸权币"), _buttonStyle))
             {
                 // Breach hub meta currency (hegemony credits).
                 ExecuteAddMetaCurrency(player, logger);
+            }
+
+            if (GUI.Button(addBlankButtonRect, GetLocalizedFallback("gui.currency.button.blank", "+1 Blank", "+1 空包弹"), _buttonStyle))
+            {
+                ExecuteAddBlank(player, logger);
+            }
+
+            if (GUI.Button(addMaxHealthButtonRect, GetLocalizedFallback("gui.currency.button.max_health", "+1 Max HP", "+1 血量上限"), _buttonStyle))
+            {
+                ExecuteAddMaxHealth(player, logger);
             }
         }
     }

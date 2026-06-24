@@ -6,6 +6,8 @@ namespace RandomLoadout
 {
     public sealed partial class Plugin
     {
+        private const int DeferredTeleportRequiredReadyFrames = 90;
+
         private void Update()
         {
             TryExportPickupCatalogOnce();
@@ -27,8 +29,11 @@ namespace RandomLoadout
                 _rapidFireToggleService.Update(player);
             }
 
-            if (_autoReloadToggleService != null)
+            if (_autoReloadToggleService != null &&
+                !(_ammoModeToggleService != null && _ammoModeToggleService.Mode == AmmoMode.NoConsume))
             {
+                // No-consume mode intentionally preserves the current clip state, including "last bullet"
+                // behaviors that some guns use for special effects. Infinite-reserve mode still reloads.
                 _autoReloadToggleService.Update(player);
             }
 
@@ -37,9 +42,19 @@ namespace RandomLoadout
                 _invincibilityToggleService.Update(player);
             }
 
-            if (_noAmmoConsumptionToggleService != null)
+            if (_ammoModeToggleService != null)
             {
-                _noAmmoConsumptionToggleService.Update(player);
+                _ammoModeToggleService.Update(player);
+            }
+
+            if (_playerHealthOverrideService != null)
+            {
+                _playerHealthOverrideService.Update(player);
+            }
+
+            if (_playerActiveItemCapacityOverrideService != null)
+            {
+                _playerActiveItemCapacityOverrideService.Update(player);
             }
 
             if (_sceneWatcher == null || !_sceneWatcher.IsPollDue(Time.unscaledTime))
@@ -114,6 +129,11 @@ namespace RandomLoadout
                 return;
             }
 
+            if (TryProcessPendingTeleport(lifecycle, gameManager, player))
+            {
+                return;
+            }
+
             if (_bossRushService != null && _bossRushService.ShouldSuppressAutomaticLoadout)
             {
                 if (lifecycle.SceneChanged)
@@ -170,14 +190,292 @@ namespace RandomLoadout
             GrantConfiguredLoadout(player, lifecycle.SceneName);
         }
 
+        private bool BeginDeferredTeleportFromFoyer(EtgFloorDefinition floorDefinition, string labelKey, string commandText)
+        {
+            GameManager gameManager = GameManager.Instance;
+            if ((object)gameManager == null || floorDefinition == null)
+            {
+                return false;
+            }
+
+            EtgFloorDefinition keepFloor;
+            if (!EtgFloorSceneResolver.TryGetFloor("keep", out keepFloor) || keepFloor == null || string.IsNullOrEmpty(keepFloor.LoadSceneName))
+            {
+                Logger.LogWarning(RandomLoadoutLog.Command("Deferred teleport could not start because the Keep floor definition is unavailable."));
+                return false;
+            }
+
+            _pendingTeleportFloor = floorDefinition;
+            _pendingTeleportLabelKey = labelKey ?? string.Empty;
+            _pendingTeleportCommandText = commandText ?? string.Empty;
+            _pendingTeleportReadySceneName = string.Empty;
+            _pendingTeleportReadyFrames = 0;
+
+            try
+            {
+                if (gameManager.IsFoyer && (object)Foyer.Instance != null)
+                {
+                    Foyer.Instance.OnDepartedFoyer();
+                }
+
+                Logger.LogInfo(
+                    RandomLoadoutLog.Command(
+                        "Deferred teleport staged from foyer. TargetToken=" +
+                        floorDefinition.CommandToken +
+                        ", TargetLoadScene=" +
+                        floorDefinition.LoadSceneName +
+                        ", BootstrapLoadScene=" +
+                        keepFloor.LoadSceneName +
+                        "."));
+                gameManager.LoadCustomLevel(keepFloor.LoadSceneName);
+                return true;
+            }
+            catch (Exception exception)
+            {
+                Logger.LogWarning(
+                    RandomLoadoutLog.Command(
+                        "Deferred teleport bootstrap failed. TargetToken=" +
+                        floorDefinition.CommandToken +
+                        ", BootstrapLoadScene=" +
+                        keepFloor.LoadSceneName +
+                        ", Exception=" +
+                        exception +
+                        "."));
+                ClearPendingTeleport();
+                return false;
+            }
+        }
+
+        private bool TryProcessPendingTeleport(RunLifecycleObservation lifecycle, GameManager gameManager, PlayerController player)
+        {
+            if (_pendingTeleportFloor == null)
+            {
+                return false;
+            }
+
+            if (gameManager.IsFoyer)
+            {
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(_pendingTeleportReadySceneName))
+            {
+                if (!lifecycle.SceneChanged)
+                {
+                    return true;
+                }
+
+                _pendingTeleportReadySceneName = lifecycle.SceneName;
+                _pendingTeleportReadyFrames = 0;
+                Logger.LogInfo(
+                    RandomLoadoutLog.Run(
+                        "Deferred teleport armed after entering bootstrap floor. Scene=" +
+                        lifecycle.SceneName +
+                        ", TargetToken=" +
+                        _pendingTeleportFloor.CommandToken +
+                        ", TargetLoadScene=" +
+                        _pendingTeleportFloor.LoadSceneName +
+                        "."));
+                return true;
+            }
+
+            if (!string.Equals(_pendingTeleportReadySceneName, lifecycle.SceneName, StringComparison.Ordinal))
+            {
+                Logger.LogInfo(
+                    RandomLoadoutLog.Run(
+                        "Deferred teleport re-armed on new scene. PreviousScene=" +
+                        _pendingTeleportReadySceneName +
+                        ", Scene=" +
+                        lifecycle.SceneName +
+                        ", TargetToken=" +
+                        _pendingTeleportFloor.CommandToken +
+                        "."));
+                _pendingTeleportReadySceneName = lifecycle.SceneName;
+                return true;
+            }
+
+            string readinessSummary;
+            if (!IsDeferredTeleportReady(gameManager, player, out readinessSummary))
+            {
+                if (_pendingTeleportReadyFrames != 0)
+                {
+                    Logger.LogInfo(
+                        RandomLoadoutLog.Run(
+                            "Deferred teleport readiness reset. Scene=" +
+                            lifecycle.SceneName +
+                            ", ReadyFrames=" +
+                            _pendingTeleportReadyFrames +
+                            "/" +
+                            DeferredTeleportRequiredReadyFrames +
+                            ", Reason=" +
+                            readinessSummary +
+                            "."));
+                }
+
+                _pendingTeleportReadyFrames = 0;
+                return true;
+            }
+
+            _pendingTeleportReadyFrames++;
+            if (_pendingTeleportReadyFrames == 1 ||
+                _pendingTeleportReadyFrames % 30 == 0 ||
+                _pendingTeleportReadyFrames == DeferredTeleportRequiredReadyFrames)
+            {
+                Logger.LogInfo(
+                    RandomLoadoutLog.Run(
+                        "Deferred teleport ready check " +
+                        _pendingTeleportReadyFrames +
+                        "/" +
+                        DeferredTeleportRequiredReadyFrames +
+                        ". Scene=" +
+                        lifecycle.SceneName +
+                        ", " +
+                        readinessSummary +
+                        "."));
+            }
+
+            if (_pendingTeleportReadyFrames < DeferredTeleportRequiredReadyFrames)
+            {
+                return true;
+            }
+
+            EtgFloorDefinition pendingFloor = _pendingTeleportFloor;
+            string pendingLabelKey = _pendingTeleportLabelKey;
+            string pendingCommandText = _pendingTeleportCommandText;
+            ClearPendingTeleport();
+
+            try
+            {
+                Logger.LogInfo(
+                    RandomLoadoutLog.Run(
+                        "Executing deferred teleport. Scene=" +
+                        lifecycle.SceneName +
+                        ", TargetToken=" +
+                        pendingFloor.CommandToken +
+                        ", TargetLoadScene=" +
+                        pendingFloor.LoadSceneName +
+                        ", Command=" +
+                        pendingCommandText +
+                        ", LabelKey=" +
+                        pendingLabelKey +
+                        "."));
+                gameManager.LoadCustomLevel(pendingFloor.LoadSceneName);
+            }
+            catch (Exception exception)
+            {
+                Logger.LogWarning(
+                    RandomLoadoutLog.Run(
+                        "Deferred teleport execution failed. Scene=" +
+                        lifecycle.SceneName +
+                        ", TargetToken=" +
+                        pendingFloor.CommandToken +
+                        ", TargetLoadScene=" +
+                        pendingFloor.LoadSceneName +
+                        ", Exception=" +
+                        exception +
+                        "."));
+            }
+
+            return true;
+        }
+
+        private void ClearPendingTeleport()
+        {
+            _pendingTeleportFloor = null;
+            _pendingTeleportLabelKey = string.Empty;
+            _pendingTeleportCommandText = string.Empty;
+            _pendingTeleportReadySceneName = string.Empty;
+            _pendingTeleportReadyFrames = 0;
+        }
+
+        private static bool IsDeferredTeleportReady(GameManager gameManager, PlayerController player, out string readinessSummary)
+        {
+            if ((object)gameManager == null)
+            {
+                readinessSummary = "GameManager is unavailable";
+                return false;
+            }
+
+            if ((object)player == null)
+            {
+                readinessSummary = "PrimaryPlayer is unavailable";
+                return false;
+            }
+
+            if ((object)gameManager.Dungeon == null || gameManager.Dungeon.data == null)
+            {
+                readinessSummary = "Dungeon data is unavailable";
+                return false;
+            }
+
+            if ((object)player.healthHaver == null)
+            {
+                readinessSummary = "Player HealthHaver is unavailable";
+                return false;
+            }
+
+            if ((object)player.CurrentRoom == null || player.CurrentRoom.area == null)
+            {
+                readinessSummary = "Player current room is not ready";
+                return false;
+            }
+
+            if ((object)player.CurrentGun == null)
+            {
+                readinessSummary = "Player current gun is unavailable";
+                return false;
+            }
+
+            if (GameManager.IsBossIntro)
+            {
+                readinessSummary = "Boss intro is active";
+                return false;
+            }
+
+            readinessSummary =
+                "CurrentRoom=" +
+                GetDeferredTeleportRoomLabel(player) +
+                ", CurrentGun=" +
+                GetDeferredTeleportGunLabel(player) +
+                ", InputOverridden=" +
+                player.IsInputOverridden +
+                ", CurrentInputState=" +
+                player.CurrentInputState;
+            return true;
+        }
+
+        private static string GetDeferredTeleportRoomLabel(PlayerController player)
+        {
+            if ((object)player == null || (object)player.CurrentRoom == null || player.CurrentRoom.area == null)
+            {
+                return "<none>";
+            }
+
+            return player.CurrentRoom.GetRoomName() + "@" + player.CurrentRoom.area.basePosition.x + "," + player.CurrentRoom.area.basePosition.y;
+        }
+
+        private static string GetDeferredTeleportGunLabel(PlayerController player)
+        {
+            if ((object)player == null || (object)player.CurrentGun == null)
+            {
+                return "<none>";
+            }
+
+            Gun currentGun = player.CurrentGun;
+            return currentGun.PickupObjectId + ":" + currentGun.name;
+        }
+
         private void GrantConfiguredLoadout(PlayerController player, string sceneName)
         {
             EnsureResolvedLoadoutConfig();
 
             int seed = _seedProvider.CreateSeed();
+            string activePresetName = GetActiveStartItemsPreset();
+            RandomPoolSelectionState[] randomPoolStates = LoadRandomPoolSelectionStates(activePresetName);
             System.Collections.Generic.HashSet<int> ownedPickupIds = _ownedPickupReader.CollectOwnedPickupIds(player);
             LoadoutSelectionResult selectionResult = _selectionService.SelectLoadout(
-                new LoadoutSelectionRequest(seed, _resolvedLoadoutConfig, ownedPickupIds));
+                new LoadoutSelectionRequest(seed, _resolvedLoadoutConfig, ownedPickupIds, randomPoolStates));
+            SaveRandomPoolSelectionStates(activePresetName, selectionResult.RandomPoolStates);
 
             _runState.MarkGranted(selectionResult.Seed);
             int configuredRuleCount = _resolvedLoadoutConfig != null && _resolvedLoadoutConfig.Rules != null
@@ -238,6 +536,51 @@ namespace RandomLoadout
             if (selectionResult.Selections.Length == 0)
             {
                 Logger.LogWarning(RandomLoadoutLog.Grant("No pickups were selected for this run."));
+            }
+        }
+
+        private RandomPoolSelectionState[] LoadRandomPoolSelectionStates(string presetName)
+        {
+            if (_randomPoolSelectionStateProvider == null)
+            {
+                return new RandomPoolSelectionState[0];
+            }
+
+            try
+            {
+                return _randomPoolSelectionStateProvider.Load(presetName);
+            }
+            catch (Exception exception)
+            {
+                Logger.LogWarning(
+                    RandomLoadoutLog.Grant(
+                        "Failed to load random-pool selection state. A new shuffle order will be created. " +
+                        exception.GetType().Name +
+                        ": " +
+                        exception.Message));
+                return new RandomPoolSelectionState[0];
+            }
+        }
+
+        private void SaveRandomPoolSelectionStates(string presetName, RandomPoolSelectionState[] states)
+        {
+            if (_randomPoolSelectionStateProvider == null)
+            {
+                return;
+            }
+
+            try
+            {
+                _randomPoolSelectionStateProvider.Save(presetName, states);
+            }
+            catch (Exception exception)
+            {
+                Logger.LogWarning(
+                    RandomLoadoutLog.Grant(
+                        "Failed to save random-pool selection state. The next run may reuse an older shuffle order. " +
+                        exception.GetType().Name +
+                        ": " +
+                        exception.Message));
             }
         }
     }

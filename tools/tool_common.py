@@ -12,12 +12,15 @@ CONFIGURATION_CHOICES = ("Debug", "Release")
 MSBUILD_PATH = Path(r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe")
 DEFAULT_CONFIG_DIRECTORY = Path("defaults") / "config"
 DEFAULT_CATALOG_DIRECTORY = Path("defaults") / "catalog"
-DEFAULT_CONFIG_FILE_NAMES = (
-    "randomgun.randomloadout.cfg",
-    "RandomLoadout.aliases.json5",
-    "RandomLoadout.localization.en.json5",
-    "RandomLoadout.localization.zh-CN.json5",
-    "RandomLoadout.rules.json5",
+DEFAULT_PRESET_DIRECTORY = Path("defaults") / "presets"
+DEFAULT_CONFIG_RELATIVE_PATHS = (
+    Path("randomgun.randomloadout.cfg"),
+    Path("ETG-Gameplay-Dashboard.aliases.json5"),
+    Path("ETG-Gameplay-Dashboard.localization.en.json5"),
+    Path("ETG-Gameplay-Dashboard.localization.zh-CN.json5"),
+    Path("ETG-Gameplay-Dashboard.rules.json5"),
+    Path("presets") / "preset.default.json",
+    Path("presets") / "preset.casey_synergies.json",
 )
 DEFAULT_CATALOG_FILE_NAMES = (
     "RandomLoadout.pickups.json",
@@ -165,7 +168,30 @@ def get_default_config_dir(repo_root: Path) -> Path:
 
 def get_default_config_paths(repo_root: Path) -> list[Path]:
     config_dir = get_default_config_dir(repo_root)
-    return [config_dir / file_name for file_name in DEFAULT_CONFIG_FILE_NAMES]
+    preset_dir = repo_root / DEFAULT_PRESET_DIRECTORY
+    resolved_paths: list[Path] = []
+    for relative_path in DEFAULT_CONFIG_RELATIVE_PATHS:
+        root_dir = preset_dir if relative_path.parts and relative_path.parts[0] == "presets" else config_dir
+        trimmed_relative_path = Path(*relative_path.parts[1:]) if relative_path.parts and relative_path.parts[0] == "presets" else relative_path
+        resolved_paths.append(root_dir / trimmed_relative_path)
+    return resolved_paths
+
+
+def get_default_config_sync_specs(repo_root: Path) -> list[tuple[Path, Path]]:
+    config_dir = get_default_config_dir(repo_root)
+    preset_dir = repo_root / DEFAULT_PRESET_DIRECTORY
+    specs: list[tuple[Path, Path]] = []
+    for relative_path in DEFAULT_CONFIG_RELATIVE_PATHS:
+        if relative_path.parts and relative_path.parts[0] == "presets":
+            source_path = preset_dir / Path(*relative_path.parts[1:])
+            target_relative_path = relative_path
+        else:
+            source_path = config_dir / relative_path
+            target_relative_path = relative_path
+
+        specs.append((source_path, target_relative_path))
+
+    return specs
 
 
 def get_default_catalog_dir(repo_root: Path) -> Path:
@@ -179,6 +205,14 @@ def get_default_catalog_paths(repo_root: Path) -> list[Path]:
 
 def get_default_sync_paths(repo_root: Path) -> list[Path]:
     return get_default_config_paths(repo_root) + get_default_catalog_paths(repo_root)
+
+
+def get_default_sync_specs(repo_root: Path) -> list[tuple[Path, Path]]:
+    specs = get_default_config_sync_specs(repo_root)
+    for catalog_path in get_default_catalog_paths(repo_root):
+        specs.append((catalog_path, Path(catalog_path.name)))
+
+    return specs
 
 
 def get_test_output_path(repo_root: Path, configuration: str) -> Path:

@@ -9,18 +9,18 @@ namespace RandomLoadout
     internal sealed partial class JsonLoadoutRuleFileProvider
     {
         private readonly string _filePath;
-        private readonly string _fallbackFilePath;
-        private string _activePresetName = DefaultPresetName;
+        private readonly string _presetsDirectoryPath;
+        private string _activePresetName = DefaultPresetId;
 
         public JsonLoadoutRuleFileProvider(string filePath)
-            : this(filePath, string.Empty)
+            : this(filePath, DashboardFileLayout.GetPresetsDirectoryPath(Path.GetDirectoryName(filePath) ?? string.Empty))
         {
         }
 
-        public JsonLoadoutRuleFileProvider(string filePath, string fallbackFilePath)
+        public JsonLoadoutRuleFileProvider(string filePath, string presetsDirectoryPath)
         {
-            _filePath = filePath;
-            _fallbackFilePath = fallbackFilePath ?? string.Empty;
+            _filePath = filePath ?? string.Empty;
+            _presetsDirectoryPath = presetsDirectoryPath ?? string.Empty;
         }
 
         public string FilePath
@@ -30,195 +30,233 @@ namespace RandomLoadout
 
         public string ActivePresetName
         {
-            get { return NormalizePresetName(_activePresetName); }
-            set { _activePresetName = NormalizePresetName(value); }
+            get { return NormalizePresetId(_activePresetName); }
+            set { _activePresetName = NormalizePresetId(value); }
         }
 
         public LoadoutRuleFileModel LoadEditableModel()
         {
-            if (!File.Exists(_filePath))
+            return new LoadoutRuleFileModel
             {
-                return CreateDefaultModel();
-            }
-
-            string rawJson = Json5TextNormalizer.Normalize(File.ReadAllText(_filePath, Encoding.UTF8));
-            return ParseRuleFile(rawJson);
+                Presets = LoadPresetFiles(null, null),
+            };
         }
 
         public void SaveEditableModel(LoadoutRuleFileModel fileModel)
         {
-            string directory = Path.GetDirectoryName(_filePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+            EnsurePresetsDirectoryExists();
+
+            LoadoutRuleFilePresetModel[] presets = fileModel != null && fileModel.Presets != null
+                ? fileModel.Presets
+                : new LoadoutRuleFilePresetModel[0];
+            HashSet<string> expectedPresetPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            for (int i = 0; i < presets.Length; i++)
             {
-                Directory.CreateDirectory(directory);
+                LoadoutRuleFilePresetModel preset = presets[i] ?? new LoadoutRuleFilePresetModel();
+                string targetPath = ResolvePresetFilePath(preset, i + 1);
+                preset.SourcePath = targetPath;
+                File.WriteAllText(targetPath, SerializePresetFile(preset), Encoding.UTF8);
+                expectedPresetPaths.Add(Path.GetFullPath(targetPath));
             }
 
-            File.WriteAllText(_filePath, SerializeRuleFile(fileModel ?? new LoadoutRuleFileModel()), Encoding.UTF8);
+            string[] existingPresetPaths = Directory.Exists(_presetsDirectoryPath)
+                ? Directory.GetFiles(_presetsDirectoryPath, "*.json", SearchOption.TopDirectoryOnly)
+                : new string[0];
+            for (int i = 0; i < existingPresetPaths.Length; i++)
+            {
+                string existingPresetPath = Path.GetFullPath(existingPresetPaths[i]);
+                if (!expectedPresetPaths.Contains(existingPresetPath))
+                {
+                    File.Delete(existingPresetPath);
+                }
+            }
         }
 
         public LoadoutRuleFileLoadResult Load()
         {
             List<string> messages = new List<string>();
             List<string> warnings = new List<string>();
-            LoadoutRuleFileModel fileModel = null;
-
-            if (!File.Exists(_filePath))
+            LoadoutRuleFileModel fileModel = new LoadoutRuleFileModel
             {
-                warnings.Add("Loadout rule file was not found at '" + _filePath + "'.");
-                TryLoadFallback(messages, warnings, "Primary rule file was missing", out fileModel);
+                Presets = LoadPresetFiles(messages, warnings),
+            };
+
+            if (fileModel.Presets == null || fileModel.Presets.Length == 0)
+            {
+                warnings.Add("No Start Items preset files were found in '" + _presetsDirectoryPath + "'.");
+            }
+
+            LoadoutRuleFilePresetModel activePreset = GetActivePreset(fileModel);
+            if (activePreset == null)
+            {
+                warnings.Add("Active start-items preset id '" + ActivePresetName + "' was not found.");
             }
             else
             {
-                try
-                {
-                    string rawJson = Json5TextNormalizer.Normalize(File.ReadAllText(_filePath, Encoding.UTF8));
-                    fileModel = ParseRuleFile(rawJson);
-                }
-                catch (Exception exception)
-                {
-                    warnings.Add("Failed to parse loadout rule file '" + _filePath + "'. " + exception.Message);
-                    TryLoadFallback(messages, warnings, "Primary rule file could not be parsed", out fileModel);
-                }
+                messages.Add(
+                    "Using start-items preset '" +
+                    StartItemsPresetNames.GetEnglishDisplayName(activePreset) +
+                    "' [Id=" +
+                    StartItemsPresetNames.NormalizePresetId(activePreset.Id) +
+                    "].");
             }
 
-            if (fileModel == null)
-            {
-                warnings.Add("Falling back to built-in default rules for this session.");
-                fileModel = CreateDefaultModel();
-            }
-
-            messages.Add("Using start-items preset '" + ActivePresetName + "'.");
             return new LoadoutRuleFileLoadResult(ConvertToDefinitions(fileModel, messages), messages.ToArray(), warnings.ToArray());
         }
 
-        private void TryLoadFallback(List<string> messages, List<string> warnings, string reason, out LoadoutRuleFileModel fileModel)
+        private LoadoutRuleFilePresetModel[] LoadPresetFiles(List<string> messages, List<string> warnings)
         {
-            fileModel = null;
+            if (string.IsNullOrEmpty(_presetsDirectoryPath) || !Directory.Exists(_presetsDirectoryPath))
+            {
+                if (warnings != null)
+                {
+                    warnings.Add("Preset directory was not found at '" + _presetsDirectoryPath + "'.");
+                }
 
-            if (string.IsNullOrEmpty(_fallbackFilePath) || !File.Exists(_fallbackFilePath))
-            {
-                warnings.Add(
-                    "Fallback full-pool rule file was not found at '" + _fallbackFilePath + "'. " +
-                    "Run deploy_mod.py again, or copy the repository default RandomLoadout rules into the game config directory.");
-                return;
+                return new LoadoutRuleFilePresetModel[0];
             }
 
-            try
+            string[] presetPaths = Directory.GetFiles(_presetsDirectoryPath, "*.json", SearchOption.TopDirectoryOnly);
+            Array.Sort(presetPaths, StringComparer.OrdinalIgnoreCase);
+
+            List<LoadoutRuleFilePresetModel> presets = new List<LoadoutRuleFilePresetModel>();
+            for (int i = 0; i < presetPaths.Length; i++)
             {
-                string fallbackRawJson = Json5TextNormalizer.Normalize(File.ReadAllText(_fallbackFilePath, Encoding.UTF8));
-                fileModel = ParseRuleFile(fallbackRawJson);
-                messages.Add(reason + ", so RandomLoadout loaded fallback rules from '" + _fallbackFilePath + "'.");
+                string presetPath = presetPaths[i];
+                try
+                {
+                    string presetJson = Json5TextNormalizer.Normalize(File.ReadAllText(presetPath, Encoding.UTF8));
+                    LoadoutRuleFilePresetModel preset = ParsePresetFile(presetJson, presetPath, i + 1);
+                    if (preset == null)
+                    {
+                        if (warnings != null)
+                        {
+                            warnings.Add("Preset file did not contain a valid preset: '" + presetPath + "'.");
+                        }
+
+                        continue;
+                    }
+
+                    presets.Add(preset);
+                    if (messages != null)
+                    {
+                        messages.Add(
+                            "Loaded preset '" +
+                            StartItemsPresetNames.GetEnglishDisplayName(preset) +
+                            "' [Id=" +
+                            preset.Id +
+                            "] from '" +
+                            presetPath +
+                            "'.");
+                    }
+                }
+                catch (Exception exception)
+                {
+                    if (warnings != null)
+                    {
+                        warnings.Add("Failed to parse preset file '" + presetPath + "'. " + exception.Message);
+                    }
+                }
             }
-            catch (Exception exception)
-            {
-                warnings.Add(
-                    "Failed to parse fallback loadout rule file '" + _fallbackFilePath + "'. Falling back to built-in default. " +
-                    exception.Message);
-            }
+
+            return presets.ToArray();
         }
 
-        private static LoadoutRuleFileModel CreateDefaultModel()
+        private LoadoutRuleFilePresetModel ParsePresetFile(string rawJson, string presetPath, int fallbackIndex)
         {
-            return new LoadoutRuleFileModel
+            if (string.IsNullOrEmpty(rawJson) || string.IsNullOrEmpty(rawJson.Trim()))
             {
-                Presets = new[]
-                {
-                    new LoadoutRuleFilePresetModel
-                    {
-                        Name = DefaultPresetName,
-                        Rules = CreateDefaultPresetRules(),
-                    },
-                },
+                return null;
+            }
+
+            string id = ParseString(rawJson, "id");
+            string displayNameKey = ParseString(rawJson, "display_name_key");
+            string name = ParseString(rawJson, "name");
+            string rulesArrayBody = ExtractPropertyArrayBody(rawJson, "rules");
+            if ((string.IsNullOrEmpty(id) && string.IsNullOrEmpty(name)) ||
+                (string.IsNullOrEmpty(rulesArrayBody) && !RegexContainsRulesArray(rawJson)))
+            {
+                return null;
+            }
+
+            return new LoadoutRuleFilePresetModel
+            {
+                Id = StartItemsPresetNames.CreatePresetId(id, name, fallbackIndex),
+                DisplayNameKey = StartItemsPresetNames.NormalizePresetName(displayNameKey),
+                Name = StartItemsPresetNames.NormalizePresetName(name),
+                SourcePath = presetPath ?? string.Empty,
+                Rules = ParseRulesFromArrayBody(rulesArrayBody),
             };
         }
 
-        internal static LoadoutRuleFileRuleModel[] CreateDefaultPresetRules()
+        private void EnsurePresetsDirectoryExists()
         {
-            return new[]
+            if (!string.IsNullOrEmpty(_presetsDirectoryPath) && !Directory.Exists(_presetsDirectoryPath))
             {
-                new LoadoutRuleFileRuleModel
-                {
-                    Enabled = true,
-                    Mode = "specific",
-                    Category = "gun",
-                    Count = 1,
-                    Id = 541,
-                    Pool = new string[0],
-                    PoolAliases = new string[0],
-                    PoolIds = new int[0],
-                },
-                new LoadoutRuleFileRuleModel
-                {
-                    Enabled = true,
-                    Mode = "random",
-                    Category = "gun",
-                    Count = 1,
-                    PoolIds = new[]
-                    {
-                        118,
-                        457,
-                        143,
-                        26,
-                    },
-                    PoolAliases = new string[0],
-                    Pool = new string[0],
-                },
-                new LoadoutRuleFileRuleModel
-                {
-                    Enabled = true,
-                    Mode = "random",
-                    Category = "passive",
-                    Count = 1,
-                    PoolIds = new[]
-                    {
-                        111,
-                        113,
-                        172,
-                        277,
-                        278,
-                        284,
-                        286,
-                        288,
-                        323,
-                        352,
-                        373,
-                        374,
-                        375,
-                        410,
-                        434,
-                        521,
-                        523,
-                        528,
-                        530,
-                        531,
-                        532,
-                        533,
-                        538,
-                        568,
-                        569,
-                        571,
-                        579,
-                        627,
-                        630,
-                        640,
-                        655,
-                        661,
-                        815,
-                        817,
-                        822,
-                    },
-                    PoolAliases = new string[0],
-                    Pool = new string[0],
-                },
-            };
+                Directory.CreateDirectory(_presetsDirectoryPath);
+            }
         }
 
-        private const string DefaultPresetName = "default";
-
-        private static string NormalizePresetName(string presetName)
+        private string ResolvePresetFilePath(LoadoutRuleFilePresetModel preset, int fallbackIndex)
         {
-            string normalized = (presetName ?? string.Empty).Trim();
-            return !string.IsNullOrEmpty(normalized) ? normalized : DefaultPresetName;
+            if (preset != null && !string.IsNullOrEmpty(preset.SourcePath))
+            {
+                return preset.SourcePath;
+            }
+
+            string presetId = StartItemsPresetNames.CreatePresetId(
+                preset != null ? preset.Id : string.Empty,
+                preset != null ? preset.Name : string.Empty,
+                fallbackIndex);
+            string fileName = BuildPresetFileName(presetId);
+            return Path.Combine(_presetsDirectoryPath, fileName);
+        }
+
+        private static string BuildPresetFileName(string presetId)
+        {
+            string normalizedId = StartItemsPresetNames.NormalizePresetId(presetId);
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < normalizedId.Length; i++)
+            {
+                char current = normalizedId[i];
+                if ((current >= 'a' && current <= 'z') ||
+                    (current >= 'A' && current <= 'Z') ||
+                    (current >= '0' && current <= '9') ||
+                    current == '-' ||
+                    current == '_' ||
+                    current == '.')
+                {
+                    builder.Append(char.ToLowerInvariant(current));
+                }
+                else
+                {
+                    builder.Append("u");
+                    builder.Append(((int)current).ToString("x4", System.Globalization.CultureInfo.InvariantCulture));
+                }
+            }
+
+            string safeId = builder.ToString().Trim('-');
+            if (string.IsNullOrEmpty(safeId))
+            {
+                safeId = "preset";
+            }
+
+            return "preset." + safeId + ".json";
+        }
+
+        private static bool RegexContainsRulesArray(string rawJson)
+        {
+            return System.Text.RegularExpressions.Regex.IsMatch(
+                rawJson ?? string.Empty,
+                GetPropertyPrefixPattern("rules") + "\\[",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+
+        private const string DefaultPresetId = StartItemsPresetNames.DefaultPresetId;
+
+        private static string NormalizePresetId(string presetId)
+        {
+            return StartItemsPresetNames.NormalizePresetId(presetId);
         }
     }
 }

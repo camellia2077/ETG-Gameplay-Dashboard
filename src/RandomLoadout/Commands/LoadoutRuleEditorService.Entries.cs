@@ -54,7 +54,7 @@ namespace RandomLoadout
                         new LoadoutRandomPoolEditorEntry(
                             i,
                             pickupId,
-                            pickup.DisplayName + " (ID " + pickupId + ")",
+                            GetPickupDisplayName(pickup) + " (ID " + pickupId + ")",
                             secondaryText));
                     continue;
                 }
@@ -106,7 +106,9 @@ namespace RandomLoadout
         {
             if (IsUntypedRandomPoolRule(rule))
             {
-                return GuiText.Get("gui.loadout_editor.rule.random_pool_title");
+                return !string.IsNullOrEmpty(rule.Name)
+                    ? rule.Name
+                    : GuiText.Get("gui.loadout_editor.rule.random_pool_title");
             }
 
             string prefix = BuildRulePrefix(rule);
@@ -114,7 +116,7 @@ namespace RandomLoadout
             {
                 if (pickup != null)
                 {
-                    return GuiText.Get("gui.loadout_editor.rule.title_with_value", prefix, pickup.DisplayName + " (ID " + rule.Id.Value + ")");
+                    return GuiText.Get("gui.loadout_editor.rule.title_with_value", prefix, GetPickupDisplayName(pickup) + " (ID " + rule.Id.Value + ")");
                 }
 
                 return GuiText.Get("gui.loadout_editor.rule.title_with_value", prefix, "ID " + rule.Id.Value);
@@ -239,6 +241,32 @@ namespace RandomLoadout
             }
 
             return string.Join(" | ", parts.ToArray());
+        }
+
+        private static string GetPickupDisplayName(EtgPickupCatalogEntry pickup)
+        {
+            if (pickup == null)
+            {
+                return string.Empty;
+            }
+
+            if (string.Equals(GuiText.CurrentLanguageCode, "en", StringComparison.OrdinalIgnoreCase) &&
+                !string.IsNullOrEmpty(pickup.EnglishDisplayName))
+            {
+                return pickup.EnglishDisplayName;
+            }
+
+            if (!string.IsNullOrEmpty(pickup.DisplayName))
+            {
+                return pickup.DisplayName;
+            }
+
+            if (!string.IsNullOrEmpty(pickup.EnglishDisplayName))
+            {
+                return pickup.EnglishDisplayName;
+            }
+
+            return pickup.InternalName ?? string.Empty;
         }
 
         private static string BuildActiveCooldownText(EtgPickupCatalogEntry pickup)

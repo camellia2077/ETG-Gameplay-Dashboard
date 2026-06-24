@@ -42,11 +42,8 @@ Redistributed in the player-facing release package:
 
 - [`BepInEx`](https://github.com/BepInEx/BepInEx)
 - [`HarmonyX`](https://github.com/BepInEx/HarmonyX)
+- [`SpecialAPI/ModTheGungeonAPI`](https://github.com/SpecialAPI/ModTheGungeonAPI) (along with related runtime third-party DLL dependencies)
 - other components bundled through `BepInExPack_EtG`
-
-Required runtime dependency not bundled in the player-facing release package:
-
-- [`SpecialAPI/ModTheGungeonAPI`](https://github.com/SpecialAPI/ModTheGungeonAPI)
 
 Implementation references and community inspiration:
 

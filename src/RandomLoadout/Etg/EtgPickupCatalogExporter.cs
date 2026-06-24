@@ -164,7 +164,7 @@ namespace RandomLoadout
             {
                 writer.WriteLine("{");
                 writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) + "\",");
-                writer.WriteLine("  \"description\": \"Auto-generated full pickup rule pool. Copy the rules you want into RandomLoadout.rules.json5 if you want to activate them.\",");
+                writer.WriteLine("  \"description\": \"Auto-generated full pickup rule pool. Copy the rules you want into ETG-Gameplay-Dashboard.rules.json5 or a preset file in presets/ if you want to activate them.\",");
                 writer.WriteLine("  \"entryCount\": " + entries.Length + ",");
                 writer.WriteLine("  \"categoryCounts\": {");
                 writer.WriteLine("    \"gun\": " + gunCount + ",");

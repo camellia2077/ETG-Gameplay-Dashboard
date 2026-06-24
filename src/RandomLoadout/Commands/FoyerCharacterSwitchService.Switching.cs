@@ -33,7 +33,7 @@ namespace RandomLoadout
             GameManager gameManager = GameManager.Instance;
             if ((object)gameManager == null || (object)gameManager.PrimaryPlayer == null)
             {
-                failureMessage = GuiText.Get("result.common.player_not_ready");
+                failureMessage = GuiText.Get("result.characters.select_character_first");
                 return false;
             }
 

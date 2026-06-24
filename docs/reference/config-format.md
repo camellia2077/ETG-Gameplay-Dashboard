@@ -1,63 +1,137 @@
 # Config Format (JSON5)
 
-`RandomLoadout` configuration now uses `json5` files:
+`RandomLoadout` configuration uses `json5` files:
 
-* `RandomLoadout.rules.json5`
-* `RandomLoadout.aliases.json5`
-* `RandomLoadout.rules.full-pool.json5`
+- `ETG-Gameplay-Dashboard.rules.json5`
+- `ETG-Gameplay-Dashboard.aliases.json5`
+- `ETG-Gameplay-Dashboard.localization.en.json5`
+- `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
+- `RandomLoadout.rules.full-pool.json5`
+
+Start Items presets are stored as one file per preset under `presets/`, for example:
+
+- `presets/preset.default.json`
+- `presets/preset.casey_synergies.json`
+- `presets/preset.border-collie.json`
+
+The mod also maintains `RandomLoadout.selection-state.json5` automatically. This file stores shuffled random-pool
+orders and the next index for each active preset id so random start-item pools cycle through a shuffled order across
+runs. It is runtime state, not a user-authored rules file.
 
 ## Supported JSON5 Features
 
 The loader supports these JSON5 conveniences:
 
-* Line comments: `// ...`
-* Block comments: `/* ... */`
-* Trailing commas in arrays and objects
-* Single-quoted strings: `'value'`
+- Line comments: `// ...`
+- Block comments: `/* ... */`
+- Trailing commas in arrays and objects
+- Single-quoted strings: `'value'`
 
 ## Recommended Style
 
 To keep files readable and stable, use this style:
 
-* Keep property names in double quotes
-* Keep string values in double quotes
-* Use comments for intent and grouping
-* Keep IDs as integers (no quotes)
-* Keep one rule object per block, and one alias entry per line
+- Keep property names in double quotes
+- Keep string values in double quotes
+- Use comments for intent and grouping
+- Keep pickup ids as integers, not strings
+- Keep one rule object per block, and one alias entry per line
 
-## Example: Preset Rules
+## Start Items Preset Structure
+
+Each Start Items preset lives in its own `.json` file under `presets/`. Each preset has two layers:
+
+- Internal identity: `id`
+- Display text: `display_name_key` for built-in localized presets, or `name` for user-authored presets
+
+This separation matters:
+
+- `id` is what the game stores in `randomgun.randomloadout.cfg` as the active preset
+- `display_name_key` lets one shipped preset file show different names in Chinese and English
+- `name` is the plain display text for custom presets such as `边牧` or `Boss Rush Test`
+
+### Preset Fields
+
+Each preset object supports:
+
+- `id`: required stable preset id used internally
+- `display_name_key`: optional localization key for built-in presets
+- `name`: optional plain display name for custom presets
+- `rules`: required array of Start Items rules, which may be empty
+
+Display priority is:
+
+1. `display_name_key`
+2. `name`
+3. `id`
+
+### Built-In Preset Example
+
+Use `display_name_key` when one preset should show different names by UI language:
 
 ```json5
 {
-  "presets": [
+  "id": "casey_synergies",
+  "display_name_key": "preset.casey_synergies",
+  "rules": [
     {
-      "name": "default",
-      "rules": [
-        {
-          "enabled": true,
-          "mode": "specific",
-          "category": "gun",
-          "id": 541,
-        },
-        {
-          "enabled": true,
-          "mode": "random",
-          "category": "passive",
-          "count": 2,
-          "poolIds": [427, 114, 118],
-        },
-      ],
+      "enabled": true,
+      "mode": "specific",
+      "category": "gun",
+      "id": 541,
     },
     {
-      "name": "boss",
-      "rules": [
-        {
-          "enabled": true,
-          "mode": "specific",
-          "category": "active",
-          "id": 108,
-        },
-      ],
+      "enabled": true,
+      "mode": "random",
+      "category": "gun",
+      "count": 1,
+      "poolIds": [118, 457, 143, 26],
+    },
+  ],
+}
+```
+
+With matching localization entries:
+
+```json5
+// ETG-Gameplay-Dashboard.localization.zh-CN.json5
+"preset.casey_synergies": "卡西协同"
+
+// ETG-Gameplay-Dashboard.localization.en.json5
+"preset.casey_synergies": "Casey Synergies"
+```
+
+### Custom Preset Example
+
+Use `name` when the preset should always display exactly what the author typed:
+
+```json5
+{
+  "id": "border-collie",
+  "name": "边牧",
+  "rules": [
+    {
+      "enabled": true,
+      "mode": "specific",
+      "category": "active",
+      "id": 108,
+    },
+  ],
+}
+```
+
+### Full Preset File Example
+
+```json5
+{
+  "id": "border-collie",
+  "name": "边牧",
+  "rules": [
+    {
+      "enabled": true,
+      "mode": "specific",
+      "category": "active",
+      "id": 108,
     },
   ],
 }
@@ -67,14 +141,99 @@ The active preset is stored in `randomgun.randomloadout.cfg`:
 
 ```ini
 [StartItems]
-ActivePreset = default
+ActivePreset = casey_synergies
 ```
 
-Legacy files with top-level `"rules"` are still read as the `default` preset. Saving from the in-game Start Items editor writes the newer `"presets"` structure.
+## Start Items Rule Fields
+
+Each object inside `rules` supports:
+
+- `enabled`: optional bool, defaults to `true`
+- `mode`: required, `specific` or `random`
+- `category`: required for `specific`; optional readability field for `random`
+- `count`: optional for `random`, defaults to `1`
+- `id`: optional specific pickup id
+- `alias`: optional specific pickup alias
+- `name`: optional specific pickup internal/display name
+- `poolIds`: optional random-pool pickup ids
+- `poolAliases`: optional random-pool pickup aliases
+- `pool`: optional random-pool pickup names
+
+### Specific Rule Example
+
+```json5
+{
+  "enabled": true,
+  "mode": "specific",
+  "category": "gun",
+  "id": 541,
+}
+```
+
+### Random Rule Example
+
+```json5
+{
+  "enabled": true,
+  "mode": "random",
+  "category": "passive",
+  "count": 2,
+  "poolIds": [427, 114, 118],
+  "poolAliases": [],
+  "pool": [],
+}
+```
 
 For `mode: "random"` rules, `poolIds`, `poolAliases`, and `pool` are resolved across all supported pickup categories.
 This allows one random pool to mix guns, passives, and actives. The rule-level `category` is optional for random
 rules; when present, it is retained for readability and warning context, but it does not restrict random pool entries.
+Random pools are shuffled once and then consumed by index across runs. When the pool contents change, the stored order is
+discarded and a new shuffled order is created.
+
+## Distributed Default Presets
+
+On a fresh deploy, built-in preset content is read from these shipped files:
+
+- `presets/preset.default.json`
+- `presets/preset.casey_synergies.json`
+
+`ETG-Gameplay-Dashboard.rules.json5` is now only the lightweight Start Items config anchor that ships beside the
+directory-based preset files. The actual default preset content comes from those preset JSON files. Built-in preset
+names come from localization keys in the preset JSON, not from a hard-coded bilingual `name` field.
+
+## Command Panel Config
+
+The command panel language, keyboard toggle key, and gamepad preset are stored in `randomgun.randomloadout.cfg`:
+
+```ini
+[UI]
+Language = auto
+CommandPanelKey = F7
+CommandPanelGamepadPreset = Xbox
+```
+
+Supported language values:
+
+- `auto`
+- `en`
+- `zh-CN`
+
+`auto` is the repository default and follows the game's current language. UI strings come from the localization JSON
+files, while pickup names still come from the runtime pickup catalog. See
+[Localization And Language Switching](./localization.md) for the full implementation notes and troubleshooting flow.
+
+Use a Unity `KeyCode` name such as `F7`, `F8`, `Insert`, or `BackQuote`. Invalid values fall back to `F7`.
+
+Supported gamepad preset values:
+
+- `Xbox`
+- `Legacy`
+
+`Xbox` is the repository default. Both presets keep the same player-facing shortcut text, `Back/Select + Start`, but
+map it to different Unity joystick button numbers:
+
+- `Xbox` -> `JoystickButton6 + JoystickButton7`
+- `Legacy` -> `JoystickButton8 + JoystickButton9`
 
 ## Example: Aliases
 
@@ -89,6 +248,9 @@ rules; when present, it is retained for readability and warning context, but it 
 
 ## Notes
 
-* Missing or invalid `rules.json5` falls back to `rules.full-pool.json5`, then to built-in defaults.
-* `StartItems.ActivePreset` chooses which preset is granted and edited in-game.
-* Missing or invalid `aliases.json5` falls back to built-in default aliases.
+- Missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `RandomLoadout.rules.full-pool.json5`, then to built-in defaults.
+- `UI.Language` accepts `auto`, `en`, or `zh-CN`.
+- `UI.CommandPanelKey` chooses the key that opens and closes the in-game command panel.
+- `UI.CommandPanelGamepadPreset` chooses which Unity joystick-button mapping is used for the fixed `Back/Select + Start` shortcut.
+- `StartItems.ActivePreset` stores the active preset id, not the localized display text.
+- Missing or invalid `ETG-Gameplay-Dashboard.aliases.json5` falls back to built-in default aliases.

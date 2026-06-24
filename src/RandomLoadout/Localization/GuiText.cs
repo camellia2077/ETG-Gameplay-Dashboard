@@ -25,8 +25,8 @@ namespace RandomLoadout
 
         public static void Initialize(string configDirectory)
         {
-            _englishTable = LoadTable(Path.Combine(configDirectory, "RandomLoadout.localization.en.json5"));
-            _simplifiedChineseTable = LoadTable(Path.Combine(configDirectory, "RandomLoadout.localization.zh-CN.json5"));
+            _englishTable = LoadTable(DashboardFileLayout.GetEnglishLocalizationFilePath(configDirectory));
+            _simplifiedChineseTable = LoadTable(DashboardFileLayout.GetSimplifiedChineseLocalizationFilePath(configDirectory));
         }
 
         public static void SetLanguageOverride(string languageCode)

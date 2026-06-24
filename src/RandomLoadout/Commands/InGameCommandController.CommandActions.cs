@@ -82,6 +82,22 @@ namespace RandomLoadout
             }
         }
 
+        private void ExecuteAddMaxHealth(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddMaxHealth(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
         private void ExecuteFullHeal(PlayerController player, ManualLogSource logger)
         {
             GrantCommandExecutionResult executionResult = _playerDebugCommandService.FullHeal(player);
@@ -130,6 +146,22 @@ namespace RandomLoadout
             }
         }
 
+        private void ExecuteAddBlank(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddBlank(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
         private void ExecuteRefillCurrentGunAmmo(PlayerController player, ManualLogSource logger)
         {
             GrantCommandExecutionResult executionResult = _playerDebugCommandService.RefillCurrentGunAmmo(player);
@@ -149,6 +181,22 @@ namespace RandomLoadout
         private void ExecuteAddKey(PlayerController player, ManualLogSource logger)
         {
             GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddKey(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteAddRatKey(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddRatKey(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -293,9 +341,9 @@ namespace RandomLoadout
             }
         }
 
-        private void ExecuteToggleNoAmmoConsumption(ManualLogSource logger)
+        private void ExecuteCycleAmmoMode(ManualLogSource logger)
         {
-            if (_noAmmoConsumptionToggleService == null)
+            if (_ammoModeToggleService == null)
             {
                 string unavailableMessage = GuiText.Get("result.no_ammo_consumption.unavailable");
                 ShowStatus(unavailableMessage, true);
@@ -307,7 +355,7 @@ namespace RandomLoadout
                 return;
             }
 
-            GrantCommandExecutionResult executionResult = _noAmmoConsumptionToggleService.Toggle();
+            GrantCommandExecutionResult executionResult = _ammoModeToggleService.Toggle();
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (logger == null)
@@ -326,9 +374,19 @@ namespace RandomLoadout
             }
         }
 
-        private void ExecuteToggleAmmonomiconOpenAnimation(ManualLogSource logger)
+        private void ExecuteToggleAmmonomiconFastOpen(ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = AmmonomiconAnimationToggleService.Toggle();
+            if (_ammonomiconFastOpenToggleService == null)
+            {
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _ammonomiconFastOpenToggleService.Toggle();
+            if (_ammonomiconFastOpenEnabledSetter != null)
+            {
+                _ammonomiconFastOpenEnabledSetter(AmmonomiconFastOpenToggleService.IsFastOpenEnabled);
+            }
+
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (logger == null)

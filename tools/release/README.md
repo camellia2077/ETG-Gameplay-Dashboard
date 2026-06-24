@@ -13,3 +13,5 @@ Files:
 Typical usage:
 
 - `python .\tools\release\build_release_package.py --configuration Release`
+- `python .\tools\release\build_release_package.py --package standalone`
+- `python .\tools\release\build_release_package.py --package mod-manager`

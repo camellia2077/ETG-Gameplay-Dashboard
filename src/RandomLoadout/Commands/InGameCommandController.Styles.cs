@@ -20,6 +20,16 @@ namespace RandomLoadout
             _panelStyle.border = new RectOffset(2, 2, 2, 2);
             _panelStyle.padding = new RectOffset(12, 12, 12, 12);
 
+            _playerStatsPanelStyle = new GUIStyle(GUI.skin.box);
+            _playerStatsPanelStyle.normal.background = MakeTexture(1, 1, PlayerStatsPanelBackgroundColor);
+            _playerStatsPanelStyle.border = new RectOffset(0, 0, 0, 0);
+            _playerStatsPanelStyle.padding = new RectOffset(12, 12, 12, 12);
+
+            _playerStatsRowStyle = new GUIStyle(GUI.skin.box);
+            _playerStatsRowStyle.normal.background = MakeTexture(1, 1, PlayerStatsRowBackgroundColor);
+            _playerStatsRowStyle.border = new RectOffset(0, 0, 0, 0);
+            _playerStatsRowStyle.padding = new RectOffset(0, 0, 0, 0);
+
             _titleStyle = new GUIStyle(GUI.skin.label);
             _titleStyle.normal.textColor = PrimaryTextColor;
             _titleStyle.fontSize = 18;
@@ -31,7 +41,7 @@ namespace RandomLoadout
 
             _playerStatsTextStyle = new GUIStyle(_hintStyle);
             _playerStatsTextStyle.normal.textColor = PlayerStatsTextColor;
-            _playerStatsTextStyle.fontSize = 15;
+            _playerStatsTextStyle.fontSize = 17;
 
             _wrappedHintStyle = new GUIStyle(_hintStyle);
             _wrappedHintStyle.wordWrap = true;
@@ -55,6 +65,11 @@ namespace RandomLoadout
             _buttonStyle.active.textColor = PrimaryTextColor;
             _buttonStyle.fontStyle = FontStyle.Bold;
             _buttonStyle.fontSize = 14;
+
+            _enabledButtonStyle = new GUIStyle(_buttonStyle);
+            _enabledButtonStyle.normal.background = MakeTexture(1, 1, EnabledButtonBackgroundColor);
+            _enabledButtonStyle.hover.background = MakeTexture(1, 1, EnabledButtonHoverColor);
+            _enabledButtonStyle.active.background = MakeTexture(1, 1, EnabledButtonActiveColor);
 
             _statusStyle = new GUIStyle(GUI.skin.box);
             _statusStyle.normal.textColor = PrimaryTextColor;
@@ -87,6 +102,9 @@ namespace RandomLoadout
             _pickupSecondaryTextStyle.normal.textColor = SecondaryTextColor;
             _pickupSecondaryTextStyle.fontSize = 11;
 
+            _pickupSecondaryActiveTextStyle = new GUIStyle(_pickupSecondaryTextStyle);
+            _pickupSecondaryActiveTextStyle.normal.textColor = Color.white;
+
             _pickupFilterButtonStyle = new GUIStyle(_buttonStyle);
             _pickupFilterButtonStyle.fontSize = 13;
 
@@ -96,11 +114,32 @@ namespace RandomLoadout
             _pickupFilterActiveButtonStyle.active.background = MakeTexture(1, 1, ButtonActiveColor);
             _pickupFilterActiveButtonStyle.fontSize = 13;
 
+            _pickupFilterDisabledButtonStyle = new GUIStyle(_buttonStyle);
+            _pickupFilterDisabledButtonStyle.normal.background = MakeTexture(1, 1, new Color(0.16f, 0.13f, 0.09f, 0.72f));
+            _pickupFilterDisabledButtonStyle.hover.background = _pickupFilterDisabledButtonStyle.normal.background;
+            _pickupFilterDisabledButtonStyle.active.background = _pickupFilterDisabledButtonStyle.normal.background;
+            _pickupFilterDisabledButtonStyle.normal.textColor = new Color(0.60f, 0.57f, 0.50f, 0.92f);
+            _pickupFilterDisabledButtonStyle.hover.textColor = _pickupFilterDisabledButtonStyle.normal.textColor;
+            _pickupFilterDisabledButtonStyle.active.textColor = _pickupFilterDisabledButtonStyle.normal.textColor;
+            _pickupFilterDisabledButtonStyle.fontSize = 13;
+
             _pickupIconFallbackStyle = new GUIStyle(GUI.skin.box);
             _pickupIconFallbackStyle.normal.background = MakeTexture(1, 1, ButtonBackgroundColor);
             _pickupIconFallbackStyle.normal.textColor = PrimaryTextColor;
             _pickupIconFallbackStyle.alignment = TextAnchor.MiddleCenter;
             _pickupIconFallbackStyle.fontStyle = FontStyle.Bold;
+
+            _modalOverlayStyle = new GUIStyle(GUI.skin.box);
+            _modalOverlayStyle.normal.background = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0.56f));
+            _modalOverlayStyle.border = new RectOffset(0, 0, 0, 0);
+
+            _modalPanelStyle = new GUIStyle(GUI.skin.box);
+            _modalPanelStyle.normal.background = MakeBorderedTexture(new Color(0.10f, 0.11f, 0.14f, 0.97f), PanelBorderColor);
+            _modalPanelStyle.border = new RectOffset(2, 2, 2, 2);
+            _modalPanelStyle.padding = new RectOffset(14, 14, 14, 14);
+
+            _modalBodyStyle = new GUIStyle(_hintStyle);
+            _modalBodyStyle.wordWrap = true;
         }
 
         private sealed class PickupBrowserEntry
@@ -108,7 +147,7 @@ namespace RandomLoadout
             public PickupBrowserEntry(EtgPickupCatalogEntry catalogEntry, IList<string> aliases)
             {
                 CatalogEntry = catalogEntry;
-                DisplayName = !string.IsNullOrEmpty(catalogEntry.DisplayName) ? catalogEntry.DisplayName : catalogEntry.InternalName;
+                DisplayName = ResolveDisplayName(catalogEntry);
                 Aliases = aliases != null ? ToArray(aliases) : new string[0];
                 PreferredInput = Aliases.Length > 0
                     ? Aliases[0]
@@ -146,6 +185,29 @@ namespace RandomLoadout
                 }
 
                 return values;
+            }
+
+            private static string ResolveDisplayName(EtgPickupCatalogEntry catalogEntry)
+            {
+                if (catalogEntry == null)
+                {
+                    return string.Empty;
+                }
+
+                if (string.Equals(GuiText.CurrentLanguageCode, "en", StringComparison.OrdinalIgnoreCase) &&
+                    !string.IsNullOrEmpty(catalogEntry.EnglishDisplayName))
+                {
+                    return catalogEntry.EnglishDisplayName;
+                }
+
+                if (!string.IsNullOrEmpty(catalogEntry.DisplayName))
+                {
+                    return catalogEntry.DisplayName;
+                }
+
+                return !string.IsNullOrEmpty(catalogEntry.EnglishDisplayName)
+                    ? catalogEntry.EnglishDisplayName
+                    : catalogEntry.InternalName;
             }
 
             private static string BuildCommandText(PickupCategory category, string preferredInput)
@@ -186,6 +248,7 @@ namespace RandomLoadout
             private static string BuildSearchText(EtgPickupCatalogEntry catalogEntry, string[] aliases, string preferredInput)
             {
                 string combined = catalogEntry.DisplayName + "|" +
+                                  catalogEntry.EnglishDisplayName + "|" +
                                   catalogEntry.InternalName + "|" +
                                   catalogEntry.PickupId + "|" +
                                   preferredInput + "|" +

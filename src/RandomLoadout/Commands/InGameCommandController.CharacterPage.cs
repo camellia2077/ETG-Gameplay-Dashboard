@@ -93,16 +93,12 @@ namespace RandomLoadout
                 return;
             }
 
-            Rect panelRect = new Rect(
-                (Screen.width - PanelWidth) * 0.5f,
-                Screen.height - PanelBottomMargin - panelHeight,
-                PanelWidth,
-                panelHeight);
-            float statusWidth = Mathf.Min(StatusMaxWidth, Screen.width - 24f);
+            Rect panelRect = GetMainPanelRect(panelHeight);
+            float statusWidth = Mathf.Min(StatusMaxWidth, GetScaledScreenWidth() - 24f);
             GUIStyle style = _statusIsError ? _statusErrorStyle : _statusSuccessStyle;
             float statusHeight = Mathf.Max(StatusMinHeight, style.CalcHeight(new GUIContent(_statusMessage), statusWidth));
             Rect statusRect = new Rect(
-                (Screen.width - statusWidth) * 0.5f,
+                (GetScaledScreenWidth() - statusWidth) * 0.5f,
                 panelRect.y - StatusGap - statusHeight,
                 statusWidth,
                 statusHeight);

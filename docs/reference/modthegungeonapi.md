@@ -82,12 +82,14 @@ Why it matters here:
 Relevant upstream behaviors:
 
 - `load_level` calls `Foyer.Instance.OnDepartedFoyer()` before `LoadCustomLevel(...)`
+- special floor mappings can differ from this repository's local naming guesses; for example, upstream `loadlevel ratden` resolves to `ss_resourcefulrat`
 - `charselect` uses `GameManager.Instance.DelayedLoadCharacterSelect(...)`
 
 Why it matters here:
 
 - these flows are safer references than hard custom transitions when leaving or returning to the character-select hub
 - they are directly relevant to Boss Rush floor entry and Boss Rush exit behavior
+- Rat Den / Chamber 3.5 is a known gotcha: if a local implementation assumes `tt_resourcefulrat`, the game can load the wrong destination or fail during transition. Prefer the upstream mapping unless runtime verification proves otherwise.
 
 ## Related External Reference
 
@@ -108,6 +110,8 @@ Current project patterns:
   prefers `pickupId` and `internalName` first, then uses `displayName` only as a compatibility fallback
 - Boss Rush flow:
   uses upstream character-select and level-load behavior as a guide for safer flow transitions
+- Teleport picker flow:
+  uses upstream `load_level` behavior as the reference route and keeps special-floor mappings aligned with upstream scene names
 
 ## Local Code Areas That Commonly Use These Patterns
 

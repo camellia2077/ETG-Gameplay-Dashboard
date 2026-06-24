@@ -3,13 +3,21 @@ namespace RandomLoadout
     internal sealed class PlayerDebugCommandService
     {
         private const float HalfHeartAmount = 0.5f;
+        private const float SingleHeartAmount = 1f;
         private const float SingleArmorAmount = 1f;
         private const int SingleKeyAmount = 1;
+        private const int SingleBlankAmount = 1;
         // Run currency (casings): drops during dungeon runs and is consumed in-run.
         private const int CurrencyBundleAmount = 50;
         // Breach meta currency (hegemony credits): used in the character-select hub economy.
         // META_CURRENCY is applied as a direct 1:1 stat increment in ETG runtime.
         private const float MetaCurrencyBundleAmount = 50f;
+        private readonly PlayerHealthOverrideService _playerHealthOverrideService;
+
+        public PlayerDebugCommandService(PlayerHealthOverrideService playerHealthOverrideService)
+        {
+            _playerHealthOverrideService = playerHealthOverrideService;
+        }
 
         public GrantCommandExecutionResult FullHeal(PlayerController player)
         {
@@ -77,6 +85,35 @@ namespace RandomLoadout
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_armor.success");
         }
 
+        public GrantCommandExecutionResult AddMaxHealth(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
+            }
+
+            HealthHaver healthHaver = player.healthHaver;
+            if ((object)healthHaver == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.health_not_ready");
+            }
+
+            float maxHealth = healthHaver.GetMaxHealth();
+            if (maxHealth <= 0f)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.debug.health_type_invalid");
+            }
+
+            float nextMaxHealth = maxHealth + SingleHeartAmount;
+            healthHaver.SetHealthMaximum(nextMaxHealth, null, false);
+            healthHaver.ApplyHealing(SingleHeartAmount);
+            if (_playerHealthOverrideService != null)
+            {
+                _playerHealthOverrideService.TrackOverride(player, healthHaver);
+            }
+            return GrantCommandExecutionResult.Localized(true, "result.debug.add_max_health.success");
+        }
+
         public GrantCommandExecutionResult ClearCurse(PlayerController player)
         {
             if ((object)player == null)
@@ -135,6 +172,17 @@ namespace RandomLoadout
 
             player.Blanks = targetBlankCount;
             return GrantCommandExecutionResult.Localized(true, "result.debug.refill_blanks.success", targetBlankCount);
+        }
+
+        public GrantCommandExecutionResult AddBlank(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
+            }
+
+            player.Blanks = player.Blanks + SingleBlankAmount;
+            return GrantCommandExecutionResult.Localized(true, "result.debug.add_blank.success");
         }
 
         public GrantCommandExecutionResult RefillCurrentGunAmmo(PlayerController player)
@@ -199,6 +247,23 @@ namespace RandomLoadout
 
             consumables.KeyBullets = consumables.KeyBullets + SingleKeyAmount;
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_key.success");
+        }
+
+        public GrantCommandExecutionResult AddRatKey(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
+            }
+
+            PlayerConsumables consumables = player.carriedConsumables;
+            if ((object)consumables == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.consumables_not_ready");
+            }
+
+            consumables.ResourcefulRatKeys = consumables.ResourcefulRatKeys + SingleKeyAmount;
+            return GrantCommandExecutionResult.Localized(true, "result.debug.add_rat_key.success");
         }
 
         public GrantCommandExecutionResult AddCurrency(PlayerController player)

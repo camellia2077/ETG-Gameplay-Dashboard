@@ -1,6 +1,9 @@
-## Debug
+## Debug 
 
-python .\tools\build\build.py --configuration Debug
+python .\tools\deploy\deploy_mod.py "C:\Game\steam\steamapps\common\Enter the Gungeon" --configuration Debug
+
+覆盖config(包括文本资源)
+python .\tools\deploy\deploy_mod.py "C:\Game\steam\steamapps\common\Enter the Gungeon" --configuration Debug --overwrite-config
 
 ## Release
 

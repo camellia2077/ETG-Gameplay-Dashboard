@@ -61,6 +61,33 @@ namespace RandomLoadout.Core.Tests
             AssertEx.True(result.Selections.Any(selection => selection.Category == PickupCategory.Gun && selection.PickupId == 143), "The gun pool entry should keep its category.");
         }
 
+        public static void RandomRuleUsesPersistedShuffleOrder()
+        {
+            LoadoutConfig config = CreateConfig(LoadoutRuleConfig.CreateRandom(PickupCategory.Gun, 1, new[] { 1, 2, 3 }));
+            LoadoutSelectionService service = new LoadoutSelectionService();
+            RandomPoolSelectionState state = new RandomPoolSelectionState(0, "Gun:1|Gun:2|Gun:3", new[] { 2, 1, 3 }, 0);
+
+            LoadoutSelectionResult result = service.SelectLoadout(new LoadoutSelectionRequest(99, config, new int[0], new[] { state }));
+
+            AssertEx.Equal(1, result.Selections.Length, "The random rule should select one pickup.");
+            AssertEx.Equal(2, result.Selections[0].PickupId, "The selector should use the persisted shuffled order before the seed RNG.");
+            AssertEx.Equal(1, result.RandomPoolStates.Length, "The selector should return updated random-pool state.");
+            AssertEx.SequenceEqual(new[] { 2, 1, 3 }, result.RandomPoolStates[0].ShuffledPickupIds, "The persisted shuffled order should be retained while the pool signature is unchanged.");
+            AssertEx.Equal(1, result.RandomPoolStates[0].NextIndex, "The next index should advance after a pickup is selected.");
+        }
+
+        public static void RandomRuleContinuesPersistedShuffleOrderAcrossSelections()
+        {
+            LoadoutConfig config = CreateConfig(LoadoutRuleConfig.CreateRandom(PickupCategory.Gun, 2, new[] { 1, 2, 3 }));
+            LoadoutSelectionService service = new LoadoutSelectionService();
+            RandomPoolSelectionState state = new RandomPoolSelectionState(0, "Gun:1|Gun:2|Gun:3", new[] { 2, 1, 3 }, 1);
+
+            LoadoutSelectionResult result = service.SelectLoadout(new LoadoutSelectionRequest(99, config, new int[0], new[] { state }));
+
+            AssertEx.SequenceEqual(new[] { 1, 3 }, result.Selections.Select(selection => selection.PickupId), "The selector should continue from the persisted next index.");
+            AssertEx.Equal(3, result.RandomPoolStates[0].NextIndex, "The next index should advance once for each selected pickup.");
+        }
+
         public static void CategoryWithoutCandidatesDoesNotBlockOthers()
         {
             LoadoutConfig config = CreateConfig(

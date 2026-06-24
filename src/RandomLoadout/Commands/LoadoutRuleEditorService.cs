@@ -43,8 +43,8 @@ namespace RandomLoadout
             {
                 return new GrantCommandExecutionResult(
                     false,
-                    GuiText.Get("result.start_items.add.duplicate", pickup.DisplayName, pickup.PickupId),
-                    GuiText.GetEnglish("result.start_items.add.duplicate", pickup.DisplayName, pickup.PickupId) +
+                    GuiText.Get("result.start_items.add.duplicate", GetPickupDisplayName(pickup), pickup.PickupId),
+                    GuiText.GetEnglish("result.start_items.add.duplicate", GetPickupDisplayName(pickup), pickup.PickupId) +
                     " [RuleFile=" + GetRuleFilePath() + "; PickupId=" + pickup.PickupId + "; RuleCount=" + rules.Count + "]");
             }
 
@@ -56,8 +56,8 @@ namespace RandomLoadout
 
             return new GrantCommandExecutionResult(
                 true,
-                GuiText.Get("result.start_items.add.success", pickup.DisplayName, pickup.PickupId),
-                GuiText.GetEnglish("result.start_items.add.success", pickup.DisplayName, pickup.PickupId) +
+                GuiText.Get("result.start_items.add.success", GetPickupDisplayName(pickup), pickup.PickupId),
+                GuiText.GetEnglish("result.start_items.add.success", GetPickupDisplayName(pickup), pickup.PickupId) +
                 " [RuleFile=" + GetRuleFilePath() + "; RuleCount=" + rules.Count + "]");
         }
 
@@ -89,7 +89,8 @@ namespace RandomLoadout
             LoadoutRuleFileModel model = LoadEditableModel();
             LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
-            rules.Add(CreateRandomPoolRule());
+            LoadoutRuleFileRuleModel newRule = CreateRandomPoolRule(CreateUniqueRandomPoolName(rules));
+            rules.Add(newRule);
 
             activePreset.Rules = rules.ToArray();
             SaveEditableModel(model);
@@ -97,9 +98,9 @@ namespace RandomLoadout
 
             return new GrantCommandExecutionResult(
                 true,
-                GuiText.Get("result.start_items.random_pool.created"),
-                GuiText.GetEnglish("result.start_items.random_pool.created") +
-                " [RuleFile=" + GetRuleFilePath() + "; RuleCount=" + rules.Count + "]");
+                GuiText.Get("result.start_items.random_pool.created", GetRandomPoolDisplayName(newRule)),
+                GuiText.GetEnglish("result.start_items.random_pool.created", GetRandomPoolDisplayName(newRule)) +
+                " [RuleFile=" + GetRuleFilePath() + "; RuleCount=" + rules.Count + "; Name=" + GetRandomPoolDisplayName(newRule) + "]");
         }
 
         public GrantCommandExecutionResult AddToRandomPool(int ruleIndex, EtgPickupCatalogEntry pickup)
@@ -123,8 +124,8 @@ namespace RandomLoadout
             {
                 return new GrantCommandExecutionResult(
                     false,
-                    GuiText.Get("result.start_items.random_pool.duplicate", pickup.DisplayName, pickup.PickupId),
-                    GuiText.GetEnglish("result.start_items.random_pool.duplicate", pickup.DisplayName, pickup.PickupId) +
+                    GuiText.Get("result.start_items.random_pool.duplicate", GetPickupDisplayName(pickup), pickup.PickupId),
+                    GuiText.GetEnglish("result.start_items.random_pool.duplicate", GetPickupDisplayName(pickup), pickup.PickupId) +
                     " [RuleFile=" + GetRuleFilePath() + "; RuleIndex=" + ruleIndex + "; PickupId=" + pickup.PickupId + "]");
             }
 
@@ -138,8 +139,8 @@ namespace RandomLoadout
 
             return new GrantCommandExecutionResult(
                 true,
-                GuiText.Get("result.start_items.random_pool.added", pickup.DisplayName, pickup.PickupId),
-                GuiText.GetEnglish("result.start_items.random_pool.added", pickup.DisplayName, pickup.PickupId) +
+                GuiText.Get("result.start_items.random_pool.added", GetPickupDisplayName(pickup), pickup.PickupId),
+                GuiText.GetEnglish("result.start_items.random_pool.added", GetPickupDisplayName(pickup), pickup.PickupId) +
                 " [RuleFile=" + GetRuleFilePath() + "; RuleIndex=" + ruleIndex + "; PickupId=" + pickup.PickupId + "; PoolCount=" + poolIds.Count + "]");
         }
 
@@ -174,6 +175,51 @@ namespace RandomLoadout
                 " [RuleFile=" + GetRuleFilePath() + "; RuleIndex=" + ruleIndex + "; RemovedPickupId=" + removedPickupId + "; PoolCount=" + poolIds.Count + "]");
         }
 
+        public string GetRandomPoolDisplayName(int ruleIndex)
+        {
+            LoadoutRuleFileRuleModel rule = GetActivePresetRuleAt(ruleIndex);
+            return GetRandomPoolDisplayName(rule);
+        }
+
+        public GrantCommandExecutionResult RenameRandomPool(int ruleIndex, string newName)
+        {
+            string normalizedName = StartItemsPresetNames.NormalizePresetName(newName);
+            if (string.IsNullOrEmpty(normalizedName))
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.start_items.random_pool.rename_empty");
+            }
+
+            LoadoutRuleFileModel model = LoadEditableModel();
+            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
+            if (ruleIndex < 0 || ruleIndex >= rules.Count || !IsRandomPoolRule(rules[ruleIndex]))
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.start_items.random_pool.missing");
+            }
+
+            LoadoutRuleFileRuleModel rule = rules[ruleIndex];
+            string oldDisplayName = GetRandomPoolDisplayName(rule);
+            if (string.Equals(oldDisplayName, normalizedName, StringComparison.Ordinal))
+            {
+                return new GrantCommandExecutionResult(
+                    true,
+                    GuiText.Get("result.start_items.random_pool.renamed", oldDisplayName, normalizedName),
+                    GuiText.GetEnglish("result.start_items.random_pool.renamed", oldDisplayName, normalizedName) +
+                    " [RuleFile=" + GetRuleFilePath() + "; RuleIndex=" + ruleIndex + "]");
+            }
+
+            rule.Name = normalizedName;
+            activePreset.Rules = rules.ToArray();
+            SaveEditableModel(model);
+            InvalidateResolvedConfig();
+
+            return new GrantCommandExecutionResult(
+                true,
+                GuiText.Get("result.start_items.random_pool.renamed", oldDisplayName, normalizedName),
+                GuiText.GetEnglish("result.start_items.random_pool.renamed", oldDisplayName, normalizedName) +
+                " [RuleFile=" + GetRuleFilePath() + "; RuleIndex=" + ruleIndex + "; Name=" + normalizedName + "]");
+        }
+
         public GrantCommandExecutionResult Reload()
         {
             LoadoutRuleFileModel model = LoadEditableModel();
@@ -205,7 +251,7 @@ namespace RandomLoadout
             Dictionary<int, EtgPickupCatalogEntry> catalogById = BuildCatalogById();
             LoadoutRuleFileModel model = LoadEditableModel();
             LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
-            string activePresetName = !string.IsNullOrEmpty(activePreset.Name) ? activePreset.Name : GetActivePresetName();
+            string activePresetName = StartItemsPresetNames.GetDisplayName(activePreset);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
             HashSet<int> existingSpecificIds = BuildSpecificPickupIdSet(rules);
             int addedCount = 0;
@@ -262,7 +308,7 @@ namespace RandomLoadout
                 return new LoadoutRuleFileModel();
             }
 
-            _ruleFileProvider.ActivePresetName = GetActivePresetName();
+            _ruleFileProvider.ActivePresetName = GetActivePresetId();
             return _ruleFileProvider.LoadEditableModel();
         }
 
@@ -346,7 +392,7 @@ namespace RandomLoadout
             };
         }
 
-        private static LoadoutRuleFileRuleModel CreateRandomPoolRule()
+        private static LoadoutRuleFileRuleModel CreateRandomPoolRule(string name)
         {
             return new LoadoutRuleFileRuleModel
             {
@@ -354,10 +400,63 @@ namespace RandomLoadout
                 Mode = "random",
                 Category = string.Empty,
                 Count = 1,
+                Name = StartItemsPresetNames.NormalizePresetName(name),
                 Pool = new string[0],
                 PoolAliases = new string[0],
                 PoolIds = new int[0],
             };
+        }
+
+        private static string GetRandomPoolDisplayName(LoadoutRuleFileRuleModel rule)
+        {
+            return !string.IsNullOrEmpty(rule != null ? rule.Name : string.Empty)
+                ? rule.Name
+                : GuiText.Get("gui.loadout_editor.rule.random_pool_title");
+        }
+
+        private static string CreateUniqueRandomPoolName(List<LoadoutRuleFileRuleModel> rules)
+        {
+            string baseName = GuiText.Get("gui.loadout_editor.rule.random_pool_title");
+            if (!RandomPoolDisplayNameExists(rules, baseName))
+            {
+                return baseName;
+            }
+
+            for (int index = 2; index < 1000; index++)
+            {
+                string candidate = baseName + "-" + index.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                if (!RandomPoolDisplayNameExists(rules, candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return baseName + "-" + DateTime.UtcNow.Ticks.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        private static bool RandomPoolDisplayNameExists(List<LoadoutRuleFileRuleModel> rules, string displayName)
+        {
+            if (rules == null)
+            {
+                return false;
+            }
+
+            string normalizedDisplayName = StartItemsPresetNames.NormalizePresetName(displayName);
+            for (int i = 0; i < rules.Count; i++)
+            {
+                LoadoutRuleFileRuleModel rule = rules[i];
+                if (!IsRandomPoolRule(rule))
+                {
+                    continue;
+                }
+
+                if (string.Equals(GetRandomPoolDisplayName(rule), normalizedDisplayName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static string ToRuleCategory(PickupCategory category)

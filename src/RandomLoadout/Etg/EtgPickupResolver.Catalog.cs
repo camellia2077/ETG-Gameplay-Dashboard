@@ -27,6 +27,7 @@ namespace RandomLoadout
                         category.Value,
                         pickup.PickupObjectId,
                         GetPickupLabel(pickup),
+                        GetEnglishPickupLabel(pickup),
                         pickup.name ?? string.Empty,
                         GetEncounterGuid(pickup),
                         GetItemQualityLabel(pickup),
@@ -88,7 +89,7 @@ namespace RandomLoadout
                 return string.Empty;
             }
 
-            return ResolveLocalizedLabel(pickup.encounterTrackable.journalData.PrimaryDisplayName);
+            return ResolveLocalizedLabelForCurrentUiLanguage(pickup.encounterTrackable.journalData.PrimaryDisplayName);
         }
 
         private static string GetNotificationDescription(PickupObject pickup)
@@ -98,7 +99,7 @@ namespace RandomLoadout
                 return string.Empty;
             }
 
-            return ResolveLocalizedLabel(pickup.encounterTrackable.journalData.NotificationPanelDescription);
+            return ResolveLocalizedLabelForCurrentUiLanguage(pickup.encounterTrackable.journalData.NotificationPanelDescription);
         }
 
         private static string GetAmmonomiconFullEntry(PickupObject pickup)
@@ -108,7 +109,7 @@ namespace RandomLoadout
                 return string.Empty;
             }
 
-            return ResolveLocalizedLabel(pickup.encounterTrackable.journalData.AmmonomiconFullEntry);
+            return ResolveLocalizedLabelForCurrentUiLanguage(pickup.encounterTrackable.journalData.AmmonomiconFullEntry);
         }
 
         private static string GetItemQualityLabel(PickupObject pickup)

@@ -50,6 +50,7 @@ It owns:
 - ETG name and ID resolution against live game data
 - pickup grant flow
 - logging and in-game command UI
+- player runtime override services that preserve intentional live-state mutations across ETG-owned rebuilds
 - ETG runtime features such as Boss Rush and character-select-hub behavior
 
 This layer is allowed to depend on Unity, BepInEx, and game assemblies.

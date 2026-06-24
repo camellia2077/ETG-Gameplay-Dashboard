@@ -85,9 +85,12 @@ Game-side config lives under `BepInEx\config\`.
 Important files:
 
 - `randomgun.randomloadout.cfg`
-- `RandomLoadout.aliases.json5`
-- `RandomLoadout.rules.json5`
-- `RandomLoadout.pickups.txt`
+- `ETG-Gameplay-Dashboard.aliases.json5`
+- `ETG-Gameplay-Dashboard.rules.json5`
+- `ETG-Gameplay-Dashboard.localization.en.json5`
+- `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
+- `presets\preset.default.json`
+- `presets\preset.casey_synergies.json`
 - `RandomLoadout.pickups.json`
 - `RandomLoadout.pickups.by-category.json`
 - `RandomLoadout.rules.full-pool.json5`
@@ -100,9 +103,9 @@ Default behavior:
 
 Fallback behavior:
 
-- missing or invalid `RandomLoadout.rules.json5` falls back to `RandomLoadout.rules.full-pool.json5`
+- missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `RandomLoadout.rules.full-pool.json5`
 - if both rule files are unavailable, the plugin falls back to built-in emergency defaults
-- missing `RandomLoadout.aliases.json5` falls back to built-in aliases for that session
+- missing `ETG-Gameplay-Dashboard.aliases.json5` falls back to built-in aliases for that session
 
 ## Common Failure Cases
 

@@ -68,6 +68,30 @@ Must verify:
 - reset behavior when entering character-select hub
 - no early grant during loading scenes
 
+## Runtime Property Overrides
+
+Files:
+
+- `src/RandomLoadout/Commands/PlayerRuntimeOverrideServiceBase.cs`
+- `src/RandomLoadout/Commands/PlayerHealthOverrideService.cs`
+- `src/RandomLoadout/Plugin.RunLifecycle.cs`
+
+Risk:
+
+- ETG may rebuild player-owned runtime state during unrelated actions such as weapon swaps
+- restore logic can cause flicker if it reacts too late
+- over-broad restore conditions can fight vanilla updates that should be allowed
+
+Must verify:
+
+- the intended override survives the rollback trigger
+- restore timing is early enough to avoid visible UI or health-bar flicker
+- normal player state changes still behave normally when no override is active
+
+Read next:
+
+- [Runtime Property Overrides](./runtime-property-overrides.md)
+
 ## Reward Hooks
 
 Files:

@@ -38,8 +38,24 @@ I am changing Boss Rush:
 I am changing command UI or pickup grant behavior:
 
 - [Commands](./reference/commands.md)
+- [Localization And Language Switching](./reference/localization.md)
 - [Pickup Grant Strategy](./decisions/pickup-grant-strategy.md)
 - [Pickups](./reference/pickups.md)
+
+I am changing Start Items presets or JSON config:
+
+- [Code Index](./reference/code-index.md)
+- [Config Format (JSON5)](./reference/config-format.md)
+- [Localization And Language Switching](./reference/localization.md)
+- [Source Guide](../src/AGENTS.md)
+
+I am changing language switching or localization:
+
+- [Localization And Language Switching](./reference/localization.md)
+- [Commands](./reference/commands.md)
+- [Config Format (JSON5)](./reference/config-format.md)
+- [Pickups](./reference/pickups.md)
+- [Code Index](./reference/code-index.md)
 
 I am changing build, deploy, or tools:
 
@@ -78,6 +94,7 @@ I am changing build, deploy, or tools:
 - [Command Notes](./notes/cmd.md)
 - [Code Index](./reference/code-index.md)
 - [Commands](./reference/commands.md)
+- [Localization And Language Switching](./reference/localization.md)
 - [Terminology And Naming](./reference/terminology.md)
 - [Testing Matrix](./reference/testing-matrix.md)
 - [Config Format (JSON5)](./reference/config-format.md)

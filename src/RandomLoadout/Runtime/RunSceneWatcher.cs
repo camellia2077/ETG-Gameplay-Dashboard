@@ -76,7 +76,7 @@ namespace RandomLoadout
                     GameLevelDefinition levelDefinition = gameManager.GetLastLoadedLevelDefinition();
                     if (levelDefinition != null && !string.IsNullOrEmpty(levelDefinition.dungeonSceneName))
                     {
-                        sceneName = levelDefinition.dungeonSceneName;
+                        sceneName = SceneNameNormalizer.Normalize(levelDefinition.dungeonSceneName);
                         return true;
                     }
                 }
@@ -88,7 +88,7 @@ namespace RandomLoadout
             }
 
 #pragma warning disable 618
-            sceneName = Application.loadedLevelName;
+            sceneName = SceneNameNormalizer.Normalize(Application.loadedLevelName);
 #pragma warning restore 618
             return !string.IsNullOrEmpty(sceneName);
         }

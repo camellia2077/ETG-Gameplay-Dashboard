@@ -8,8 +8,7 @@ namespace RandomLoadout
 {
     internal sealed partial class BossRushService
     {
-        private const string CharacterSelectSceneName = "tt_foyer";
-        private const string LegacyCharacterSelectSceneName = "tt_breach";
+        private const string CharacterSelectSceneName = "foyer";
         private const float ReturnToCharacterSelectDelaySeconds = 0.5f;
         private const int MaxTeleportFrames = 180;
         private const int RequiredReadyFrames = 20;
@@ -18,12 +17,12 @@ namespace RandomLoadout
         private static readonly BindingFlags InstanceFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
         private static readonly BossRushEncounter[] Encounters =
         {
-            new BossRushEncounter("keep", "tt_castle"),
-            new BossRushEncounter("proper", "tt5"),
-            new BossRushEncounter("mines", "tt_mines"),
-            new BossRushEncounter("hollow", "tt_catacombs"),
-            new BossRushEncounter("forge", "tt_forge"),
-            new BossRushEncounter("hell", "tt_bullethell"),
+            new BossRushEncounter("keep", "keep"),
+            new BossRushEncounter("proper", "proper"),
+            new BossRushEncounter("mines", "mine"),
+            new BossRushEncounter("hollow", "hollow"),
+            new BossRushEncounter("forge", "forge"),
+            new BossRushEncounter("hell", "heli"),
         };
 
         private readonly ManualLogSource _logger;

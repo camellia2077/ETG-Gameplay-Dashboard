@@ -18,7 +18,6 @@ This directory contains repository-specific development utilities that do not be
 
   The first rule set focuses on ETG runtime terminology that should stay aligned with the project glossary:
   - `CharacterSelectSceneName`
-  - `LegacyCharacterSelectSceneName`
   - `ReturnToCharacterSelect`
   - `BeginReturnToCharacterSelect`
   - `IsInCharacterSelectHub`

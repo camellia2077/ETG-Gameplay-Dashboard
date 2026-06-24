@@ -1,6 +1,6 @@
 # Release Package
 
-This page covers building a player-facing release zip for `RandomLoadout`.
+This page covers building a player-facing release zip for `ETG-Gameplay-Dashboard`.
 
 ## Goal
 
@@ -93,7 +93,7 @@ Downloaded upstream files are cached under:
 
 ## License And Attribution Compliance
 
-The release package is designed to redistribute `BepInExPack_EtG` compliantly while keeping `RandomLoadout` attribution separate from ETG game-owned files and reference-only projects.
+The release package is designed to redistribute `BepInExPack_EtG` compliantly while keeping `ETG-Gameplay-Dashboard` attribution separate from ETG game-owned files and reference-only projects.
 
 It stages:
 

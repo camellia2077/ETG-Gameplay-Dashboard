@@ -1,46 +1,34 @@
 using System;
 using System.Globalization;
-using System.Reflection;
-using BepInEx.Logging;
 using UnityEngine;
 
 namespace RandomLoadout
 {
     internal sealed partial class InGameCommandController
     {
-        private const BindingFlags PlayerIdentityFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
-        private const string PlayerStatsCharacterSelectSceneName = "tt_foyer";
-        private const string PlayerStatsLegacyCharacterSelectSceneName = "tt_breach";
+        private const string PlayerStatsCharacterSelectSceneName = "foyer";
         private const string PlayerStatsLoadingSceneName = "LoadingDungeon";
 
-        private void DrawPlayerStatsPanelIfEnabled(PlayerController player, ManualLogSource logger)
+        private void DrawPlayerStatsPanelIfEnabled(PlayerController player)
         {
-            PlayerStatsVisibilityState visibility = GetPlayerStatsVisibilityState(player);
-            LogPlayerStatsVisibility(visibility, logger);
-            if (!visibility.ShouldDraw)
+            if (!ShouldDrawPlayerStatsPanel(player))
             {
                 return;
             }
 
             Rect panelRect = GetPlayerStatsPanelRect();
-            GUI.Box(panelRect, GUIContent.none, _panelStyle);
-
-            GUI.Label(
-                new Rect(panelRect.x + 12f, panelRect.y + 10f, panelRect.width - 24f, 22f),
-                GuiText.Get("gui.command.stats.title"),
-                _titleStyle);
+            GUI.Box(panelRect, GUIContent.none, _playerStatsPanelStyle);
 
             if ((object)player == null)
             {
                 GUI.Label(
-                    new Rect(panelRect.x + 12f, panelRect.y + 42f, panelRect.width - 24f, 22f),
+                    new Rect(panelRect.x + 12f, panelRect.y + 12f, panelRect.width - 24f, 22f),
                     GuiText.Get("result.common.player_not_ready"),
                     _hintStyle);
                 return;
             }
 
-            float rowY = panelRect.y + 42f;
-            DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.character", GetCharacterDisplayName(player));
+            float rowY = panelRect.y + 12f;
 
             string healthText = "--";
             string armorText = "--";
@@ -75,112 +63,56 @@ namespace RandomLoadout
             DrawCurrentGunStatsRows(panelRect, ref rowY, player);
         }
 
-        private PlayerStatsVisibilityState GetPlayerStatsVisibilityState(PlayerController player)
+        private bool ShouldDrawPlayerStatsPanel(PlayerController player)
         {
+            if (!_showPlayerStatsPanel || (object)player == null)
+            {
+                return false;
+            }
+
             GameManager gameManager = GameManager.Instance;
-            string sceneName = GetLoadedSceneName();
-            bool hasPlayer = (object)player != null;
-            bool hasGameManager = (object)gameManager != null;
-            bool isFoyer = hasGameManager && gameManager.IsFoyer;
-            string currentRoomName = hasPlayer && (object)player.CurrentRoom != null ? GetRoomDebugLabel(player.CurrentRoom) : "<none>";
-            string playerName = hasPlayer ? (player.name ?? string.Empty).Replace("(Clone)", string.Empty).Trim() : "<null>";
-
-            string reason = "Visible";
-            if ((object)player == null)
+            if ((object)gameManager == null || gameManager.IsFoyer)
             {
-                reason = "NoPlayer";
-            }
-            else if ((object)gameManager == null)
-            {
-                reason = "NoGameManager";
-            }
-            else if (gameManager.IsFoyer)
-            {
-                reason = "GameManagerIsFoyer";
-            }
-            else if (IsPlayerStatsBlockedScene(sceneName))
-            {
-                reason = "BlockedScene";
+                return false;
             }
 
-            bool shouldDraw = _showPlayerStatsPanel && string.Equals(reason, "Visible", StringComparison.Ordinal);
-            if (!_showPlayerStatsPanel)
-            {
-                reason = "ToggleOff";
-            }
-
-            return new PlayerStatsVisibilityState(
-                shouldDraw,
-                reason,
-                sceneName,
-                hasGameManager,
-                isFoyer,
-                hasPlayer,
-                playerName,
-                currentRoomName);
-        }
-
-        private void LogPlayerStatsVisibility(PlayerStatsVisibilityState visibility, ManualLogSource logger)
-        {
-            if (logger == null || visibility == null)
-            {
-                return;
-            }
-
-            string summary =
-                "Player stats visibility: Enabled=" +
-                _showPlayerStatsPanel +
-                ", ShouldDraw=" +
-                visibility.ShouldDraw +
-                ", Reason=" +
-                visibility.Reason +
-                ", Scene=" +
-                visibility.SceneName +
-                ", HasGameManager=" +
-                visibility.HasGameManager +
-                ", IsFoyer=" +
-                visibility.IsFoyer +
-                ", HasPlayer=" +
-                visibility.HasPlayer +
-                ", Player=" +
-                visibility.PlayerName +
-                ", CurrentRoom=" +
-                visibility.CurrentRoomName +
-                ".";
-
-            if (string.Equals(summary, _lastPlayerStatsVisibilityLog, StringComparison.Ordinal) &&
-                Time.unscaledTime < _nextPlayerStatsVisibilityLogAt)
-            {
-                return;
-            }
-
-            _lastPlayerStatsVisibilityLog = summary;
-            _nextPlayerStatsVisibilityLogAt = Time.unscaledTime + 3f;
-            logger.LogInfo(RandomLoadoutLog.Command(summary));
+            return !IsPlayerStatsBlockedScene(GetCurrentSceneName(gameManager));
         }
 
         private static bool IsPlayerStatsBlockedScene(string sceneName)
         {
             return string.Equals(sceneName, PlayerStatsCharacterSelectSceneName, StringComparison.Ordinal) ||
-                   string.Equals(sceneName, PlayerStatsLegacyCharacterSelectSceneName, StringComparison.Ordinal) ||
                    string.Equals(sceneName, PlayerStatsLoadingSceneName, StringComparison.Ordinal);
         }
 
-        private static string GetLoadedSceneName()
+        private static string GetCurrentSceneName(GameManager gameManager)
         {
+            if ((object)gameManager != null)
+            {
+                try
+                {
+                    GameLevelDefinition levelDefinition = gameManager.GetLastLoadedLevelDefinition();
+                    if (levelDefinition != null && !string.IsNullOrEmpty(levelDefinition.dungeonSceneName))
+                    {
+                        return SceneNameNormalizer.Normalize(levelDefinition.dungeonSceneName);
+                    }
+                }
+                catch (NullReferenceException)
+                {
+                    // ETG can briefly expose a GameManager before its level definition is stable.
+                }
+            }
+
 #pragma warning disable 618
             string sceneName = Application.loadedLevelName ?? string.Empty;
 #pragma warning restore 618
-            return sceneName;
-        }
-
-        private static string GetRoomDebugLabel(object room)
-        {
-            return room != null ? room.ToString() : "<none>";
+            return SceneNameNormalizer.Normalize(sceneName);
         }
 
         private void DrawPlayerStatsRow(Rect panelRect, ref float rowY, string localizationKey, string value)
         {
+            Rect rowRect = new Rect(panelRect.x + 8f, rowY - 1f, panelRect.width - 16f, PlayerStatsRowHeight + 2f);
+            GUI.Box(rowRect, GUIContent.none, _playerStatsRowStyle);
             GUI.Label(
                 new Rect(panelRect.x + 12f, rowY, panelRect.width - 24f, PlayerStatsRowHeight),
                 GuiText.Get(localizationKey, value),
@@ -202,10 +134,11 @@ namespace RandomLoadout
             DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.gun_reload", FormatNumber(currentGun.AdjustedReloadTime));
         }
 
-        private static Rect GetPlayerStatsPanelRect()
+        private Rect GetPlayerStatsPanelRect()
         {
             float x = 12f;
-            float y = Mathf.Clamp((Screen.height - PlayerStatsPanelHeight) * 0.5f, 12f, Mathf.Max(12f, Screen.height - PlayerStatsPanelHeight - 12f));
+            float scaledScreenHeight = GetScaledScreenHeight();
+            float y = Mathf.Clamp((scaledScreenHeight - PlayerStatsPanelHeight) * 0.5f, 12f, Mathf.Max(12f, scaledScreenHeight - PlayerStatsPanelHeight - 12f));
             return new Rect(x, y, PlayerStatsPanelWidth, PlayerStatsPanelHeight);
         }
 
@@ -274,153 +207,5 @@ namespace RandomLoadout
             return value.ToString("0.##", CultureInfo.InvariantCulture);
         }
 
-        private static string GetCharacterDisplayName(PlayerController player)
-        {
-            string label = NormalizeCharacterLabel(ReadCharacterIdentityToken(player));
-            if (string.IsNullOrEmpty(label))
-            {
-                label = NormalizeCharacterLabel(player.name);
-            }
-
-            if (!string.IsNullOrEmpty(label))
-            {
-                return GuiText.GetCharacterLabel(label);
-            }
-
-            string reflectedName = ReadStringMember(player, "OverrideDisplayName");
-            if (!string.IsNullOrEmpty(reflectedName))
-            {
-                return reflectedName;
-            }
-
-            return !string.IsNullOrEmpty(player.name) ? player.name.Replace("(Clone)", string.Empty).Trim() : string.Empty;
-        }
-
-        private static string ReadCharacterIdentityToken(PlayerController player)
-        {
-            return ReadStringMember(player, "characterIdentity");
-        }
-
-        private static string ReadStringMember(object target, string memberName)
-        {
-            if (target == null || string.IsNullOrEmpty(memberName))
-            {
-                return string.Empty;
-            }
-
-            try
-            {
-                Type targetType = target.GetType();
-                PropertyInfo property = targetType.GetProperty(memberName, PlayerIdentityFlags);
-                if (property != null && property.GetIndexParameters().Length == 0)
-                {
-                    object value = property.GetValue(target, null);
-                    return value != null ? value.ToString() : string.Empty;
-                }
-
-                FieldInfo field = targetType.GetField(memberName, PlayerIdentityFlags);
-                if (field != null)
-                {
-                    object value = field.GetValue(target);
-                    return value != null ? value.ToString() : string.Empty;
-                }
-            }
-            catch
-            {
-            }
-
-            return string.Empty;
-        }
-
-        private static string NormalizeCharacterLabel(string rawValue)
-        {
-            if (string.IsNullOrEmpty(rawValue))
-            {
-                return string.Empty;
-            }
-
-            string value = rawValue.Replace("(Clone)", string.Empty).Trim();
-            string lower = value.ToLowerInvariant();
-            if (lower.IndexOf("marine") >= 0 || lower.IndexOf("soldier") >= 0)
-            {
-                return "Marine";
-            }
-
-            if (lower.IndexOf("hunter") >= 0 || lower.IndexOf("guide") >= 0)
-            {
-                return "Hunter";
-            }
-
-            if (lower.IndexOf("pilot") >= 0 || lower.IndexOf("rogue") >= 0)
-            {
-                return "Pilot";
-            }
-
-            if (lower.IndexOf("convict") >= 0 || lower.IndexOf("ninja") >= 0)
-            {
-                return "Convict";
-            }
-
-            if (lower.IndexOf("robot") >= 0)
-            {
-                return "Robot";
-            }
-
-            if (lower.IndexOf("bullet") >= 0)
-            {
-                return "Bullet";
-            }
-
-            if (lower.IndexOf("eevee") >= 0 || lower.IndexOf("paradox") >= 0)
-            {
-                return "Paradox";
-            }
-
-            if (lower.IndexOf("gunslinger") >= 0)
-            {
-                return "Gunslinger";
-            }
-
-            return string.Empty;
-        }
-
-        private sealed class PlayerStatsVisibilityState
-        {
-            public PlayerStatsVisibilityState(
-                bool shouldDraw,
-                string reason,
-                string sceneName,
-                bool hasGameManager,
-                bool isFoyer,
-                bool hasPlayer,
-                string playerName,
-                string currentRoomName)
-            {
-                ShouldDraw = shouldDraw;
-                Reason = reason ?? string.Empty;
-                SceneName = sceneName ?? string.Empty;
-                HasGameManager = hasGameManager;
-                IsFoyer = isFoyer;
-                HasPlayer = hasPlayer;
-                PlayerName = playerName ?? string.Empty;
-                CurrentRoomName = currentRoomName ?? string.Empty;
-            }
-
-            public bool ShouldDraw { get; private set; }
-
-            public string Reason { get; private set; }
-
-            public string SceneName { get; private set; }
-
-            public bool HasGameManager { get; private set; }
-
-            public bool IsFoyer { get; private set; }
-
-            public bool HasPlayer { get; private set; }
-
-            public string PlayerName { get; private set; }
-
-            public string CurrentRoomName { get; private set; }
-        }
     }
 }

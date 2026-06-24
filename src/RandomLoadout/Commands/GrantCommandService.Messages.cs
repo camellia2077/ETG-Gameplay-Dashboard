@@ -58,25 +58,24 @@ namespace RandomLoadout
         {
             return new GrantCommandExecutionResult(
                 false,
-                GuiText.Get("result.grant.failure", pickupLabel, outcome.FailureReason, outcome.GrantPath, outcome.GrantDetail),
+                BuildGrantFailureDisplayMessage(pickupLabel, outcome, false),
                 GuiText.GetEnglish("result.grant.failure", pickupLabel, outcome.FailureReason, outcome.GrantPath, outcome.GrantDetail));
         }
 
         private static GrantCommandExecutionResult CreateGrantSuccessResult(EtgGrantOutcome outcome, bool includePickupId)
         {
-            string categoryLabel = GuiText.GetCategoryLabel(outcome.Category);
             string englishCategoryLabel = GuiText.GetEnglishCategoryLabel(outcome.Category);
             if (includePickupId)
             {
                 return new GrantCommandExecutionResult(
                     true,
-                    GuiText.Get("result.grant.success_with_id", categoryLabel, outcome.PickupLabel, outcome.PickupId, outcome.GrantPath, outcome.GrantDetail),
+                    BuildGrantSuccessDisplayMessage(outcome, true, false),
                     GuiText.GetEnglish("result.grant.success_with_id", englishCategoryLabel, outcome.PickupLabel, outcome.PickupId, outcome.GrantPath, outcome.GrantDetail));
             }
 
             return new GrantCommandExecutionResult(
                 true,
-                GuiText.Get("result.grant.success", categoryLabel, outcome.PickupLabel, outcome.GrantPath, outcome.GrantDetail),
+                BuildGrantSuccessDisplayMessage(outcome, false, false),
                 GuiText.GetEnglish("result.grant.success", englishCategoryLabel, outcome.PickupLabel, outcome.GrantPath, outcome.GrantDetail));
         }
 
@@ -84,18 +83,65 @@ namespace RandomLoadout
         {
             return new GrantCommandExecutionResult(
                 false,
-                GuiText.Get("result.grant.random_failure", pickupLabel, outcome.FailureReason, outcome.GrantPath, outcome.GrantDetail),
+                BuildGrantFailureDisplayMessage(pickupLabel, outcome, true),
                 GuiText.GetEnglish("result.grant.random_failure", pickupLabel, outcome.FailureReason, outcome.GrantPath, outcome.GrantDetail));
         }
 
         private static GrantCommandExecutionResult CreateRandomGrantSuccessResult(EtgGrantOutcome outcome)
         {
-            string categoryLabel = GuiText.GetCategoryLabel(outcome.Category);
             string englishCategoryLabel = GuiText.GetEnglishCategoryLabel(outcome.Category);
             return new GrantCommandExecutionResult(
                 true,
-                GuiText.Get("result.grant.random_success", categoryLabel, outcome.PickupLabel, outcome.PickupId, outcome.GrantPath, outcome.GrantDetail),
+                BuildGrantSuccessDisplayMessage(outcome, true, true),
                 GuiText.GetEnglish("result.grant.random_success", englishCategoryLabel, outcome.PickupLabel, outcome.PickupId, outcome.GrantPath, outcome.GrantDetail));
+        }
+
+        private static string BuildGrantSuccessDisplayMessage(EtgGrantOutcome outcome, bool includePickupId, bool isRandom)
+        {
+            string categoryLabel = GuiText.GetCategoryLabel(outcome.Category);
+            if (string.Equals(outcome.GrantPath, "spawn_near_player_slots_full", StringComparison.Ordinal))
+            {
+                string key = includePickupId
+                    ? (isRandom ? "result.grant.random_success_with_id.active_drop_due_to_full" : "result.grant.success_with_id.active_drop_due_to_full")
+                    : "result.grant.success.active_drop_due_to_full";
+                return includePickupId
+                    ? GuiText.Get(key, outcome.PickupLabel, outcome.PickupId)
+                    : GuiText.Get(key, outcome.PickupLabel);
+            }
+
+            if (string.Equals(outcome.GrantPath, "spawn_near_player", StringComparison.Ordinal))
+            {
+                string key = includePickupId
+                    ? (isRandom ? "result.grant.random_success_with_id.spawn_near_player" : "result.grant.success_with_id.spawn_near_player")
+                    : "result.grant.success.spawn_near_player";
+                return includePickupId
+                    ? GuiText.Get(key, outcome.PickupLabel, outcome.PickupId)
+                    : GuiText.Get(key, outcome.PickupLabel);
+            }
+
+            string defaultKey = includePickupId
+                ? (isRandom ? "result.grant.random_success.clean" : "result.grant.success_with_id.clean")
+                : "result.grant.success.clean";
+            return includePickupId
+                ? GuiText.Get(defaultKey, categoryLabel, outcome.PickupLabel, outcome.PickupId)
+                : GuiText.Get(defaultKey, categoryLabel, outcome.PickupLabel);
+        }
+
+        private static string BuildGrantFailureDisplayMessage(string pickupLabel, EtgGrantOutcome outcome, bool isRandom)
+        {
+            if (outcome != null && string.Equals(outcome.GrantPath, "spawn_near_player_slots_full_failed", StringComparison.Ordinal))
+            {
+                return GuiText.Get("result.grant.failure.active_drop_due_to_full", pickupLabel);
+            }
+
+            if (outcome != null && string.Equals(outcome.GrantPath, "spawn_near_player_failed", StringComparison.Ordinal))
+            {
+                return GuiText.Get("result.grant.failure.spawn_near_player", pickupLabel);
+            }
+
+            return isRandom
+                ? GuiText.Get("result.grant.random_failure.clean", pickupLabel)
+                : GuiText.Get("result.grant.failure.clean", pickupLabel);
         }
 
         private GrantCommandExecutionResult CreateAmbiguousMatchResult(GrantCommandRequest request, string lookupValue)

@@ -42,11 +42,8 @@
 
 - [`BepInEx`](https://github.com/BepInEx/BepInEx)
 - [`HarmonyX`](https://github.com/BepInEx/HarmonyX)
+- [`SpecialAPI/ModTheGungeonAPI`](https://github.com/SpecialAPI/ModTheGungeonAPI) (以及相关的运行期第三方 DLL 依赖)
 - 其他通过 `BepInExPack_EtG` 捆绑分发的组件
-
-未包含在发布包中但运行时所必需的依赖：
-
-- [`SpecialAPI/ModTheGungeonAPI`](https://github.com/SpecialAPI/ModTheGungeonAPI)
 
 实现参考与社区灵感来源：
 

@@ -20,6 +20,7 @@ from tool_common import get_repo_root, run_cli
 DEFAULT_CONFIGURATION = "Release"
 METADATA_PATH = Path("tools") / "release" / "release_package_metadata.json"
 CACHE_DIRECTORY = Path(".cache") / "release"
+PACKAGE_CHOICES = ("standalone", "mod-manager", "both")
 
 
 def parse_args() -> argparse.Namespace:
@@ -43,6 +44,12 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Skip the pre-package build step. By default packaging builds the selected configuration first.",
     )
+    parser.add_argument(
+        "--package",
+        default="both",
+        choices=PACKAGE_CHOICES,
+        help="Package type to build: standalone, mod-manager, or both. Defaults to both.",
+    )
     return parser.parse_args()
 
 
@@ -50,17 +57,23 @@ def main() -> int:
     args = parse_args()
     repo_root = get_repo_root()
     metadata = load_metadata(repo_root / METADATA_PATH)
-    output_path = build_release_package(
-        repo_root=repo_root,
-        metadata=metadata,
-        configuration=args.configuration,
-        version=args.version,
-        skip_build=args.skip_build,
-        cache_directory=repo_root / CACHE_DIRECTORY,
-    )
+    package_types = ("standalone", "mod-manager") if args.package == "both" else (args.package,)
+    output_paths = []
+    for package_type in package_types:
+        output_path = build_release_package(
+            repo_root=repo_root,
+            metadata=metadata,
+            configuration=args.configuration,
+            version=args.version,
+            skip_build=args.skip_build,
+            cache_directory=repo_root / CACHE_DIRECTORY,
+            package_type=package_type,
+        )
+        output_paths.append(output_path)
 
-    print("Built release package: {0}".format(output_path))
-    print("Package SHA-256: {0}".format(sha256_for_file(output_path)))
+    for output_path in output_paths:
+        print("Built release package: {0}".format(output_path))
+        print("Package SHA-256: {0}".format(sha256_for_file(output_path)))
     return 0
 
 

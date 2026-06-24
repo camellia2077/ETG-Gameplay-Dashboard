@@ -57,7 +57,8 @@ namespace RandomLoadout
                 return GrantCommandExecutionResult.Localized(false, "result.invincible.no_player");
             }
 
-            if ((object)player.healthHaver == null)
+            HealthHaver healthHaver;
+            if (!TryGetHealthHaver(player, out healthHaver) || (object)healthHaver == null)
             {
                 return GrantCommandExecutionResult.Localized(false, "result.invincible.no_health");
             }
@@ -85,7 +86,8 @@ namespace RandomLoadout
 
         private void ApplyToPlayer(PlayerController player)
         {
-            if ((object)player == null || (object)player.healthHaver == null)
+            HealthHaver healthHaver;
+            if (!IsPlayerUsable(player) || !TryGetHealthHaver(player, out healthHaver) || (object)healthHaver == null)
             {
                 return;
             }
@@ -95,15 +97,15 @@ namespace RandomLoadout
                 _playerStates.Add(
                     player,
                     new PlayerInvincibilityState(
-                        player.healthHaver.IsVulnerable,
-                        player.healthHaver.PreventAllDamage,
+                        healthHaver.IsVulnerable,
+                        healthHaver.PreventAllDamage,
                         player.ReceivesTouchDamage,
                         player.ImmuneToAllEffects,
                         player.ImmuneToPits));
             }
 
-            player.healthHaver.IsVulnerable = false;
-            player.healthHaver.PreventAllDamage = true;
+            healthHaver.IsVulnerable = false;
+            healthHaver.PreventAllDamage = true;
             player.ReceivesTouchDamage = false;
             player.ImmuneToAllEffects = true;
             ApplyPitImmunity(player);
@@ -119,17 +121,21 @@ namespace RandomLoadout
             _playerStates.Clear();
         }
 
-        private static void RestorePlayer(PlayerController player, PlayerInvincibilityState state)
+        private void RestorePlayer(PlayerController player, PlayerInvincibilityState state)
         {
-            if ((object)player == null || state == null)
+            // ETG scene transitions can leave tracked player references pointing at destroyed or
+            // partially torn-down Unity objects. Restoring best-effort state is safer than letting
+            // one stale player block invincibility from being disabled for the current run.
+            if (!IsPlayerUsable(player) || state == null)
             {
                 return;
             }
 
-            if ((object)player.healthHaver != null)
+            HealthHaver healthHaver;
+            if (TryGetHealthHaver(player, out healthHaver) && (object)healthHaver != null)
             {
-                player.healthHaver.IsVulnerable = state.OriginalIsVulnerable;
-                player.healthHaver.PreventAllDamage = state.OriginalPreventAllDamage;
+                healthHaver.IsVulnerable = state.OriginalIsVulnerable;
+                healthHaver.PreventAllDamage = state.OriginalPreventAllDamage;
             }
 
             player.ReceivesTouchDamage = state.OriginalReceivesTouchDamage;
@@ -152,6 +158,35 @@ namespace RandomLoadout
             }
 
             player.ImmuneToPits.SetOverride(PitImmunityOverrideKey, true, null);
+        }
+
+        private static bool TryGetHealthHaver(PlayerController player, out HealthHaver healthHaver)
+        {
+            healthHaver = null;
+            if (!IsPlayerUsable(player))
+            {
+                return false;
+            }
+
+            try
+            {
+                healthHaver = player.healthHaver;
+                return true;
+            }
+            catch (System.Exception)
+            {
+                return false;
+            }
+        }
+
+        private static bool IsPlayerUsable(PlayerController player)
+        {
+            return IsUnityObjectAlive(player) && IsUnityObjectAlive(player.gameObject);
+        }
+
+        private static bool IsUnityObjectAlive(UnityEngine.Object unityObject)
+        {
+            return (object)unityObject != null && unityObject != null;
         }
     }
 }

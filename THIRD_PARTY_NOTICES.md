@@ -5,7 +5,7 @@ This repository and its release process use, depend on, or reference third-party
 This file separates:
 
 * components redistributed in the player-facing release package
-* runtime dependencies required by `RandomLoadout` but not bundled in the player-facing release package
+* runtime dependencies required by `ETG-Gameplay-Dashboard`
 * reference projects that informed implementation details but are not redistributed with this repository's release package
 
 ## Redistributed In The Player-Facing Release Package
@@ -26,7 +26,7 @@ The player-facing release package does not redistribute game-owned files such as
 
 ## Required Runtime Dependency Not Bundled In The Player-Facing Release Package
 
-`RandomLoadout` requires:
+`ETG-Gameplay-Dashboard` requires:
 
 * [`SpecialAPI/ModTheGungeonAPI`](https://github.com/SpecialAPI/ModTheGungeonAPI) - `MIT`
 
@@ -38,8 +38,8 @@ Current usage:
 
 Important note:
 
-* local developer deploy flows may copy `ModTheGungeonAPI.dll` and related support files into a test install
-* the player-facing release package described in `docs/operations/release-package.md` does not currently bundle `ModTheGungeonAPI`
+* local developer deploy flows copy `ModTheGungeonAPI.dll` and related support files into a test install
+* the player-facing release package described in `docs/operations/release-package.md` also bundles `ModTheGungeonAPI` and its required support files for plug-and-play installs
 
 License source:
 
@@ -57,7 +57,7 @@ They are acknowledged here for transparency and credit, but are not redistribute
 
 ## Distribution Rules Followed By This Project
 
-When publishing `RandomLoadout`, the project intends to follow these rules:
+When publishing `ETG-Gameplay-Dashboard`, the project intends to follow these rules:
 
 * preserve the original license text for redistributed third-party components
 * separate redistributed dependencies from reference-only acknowledgements

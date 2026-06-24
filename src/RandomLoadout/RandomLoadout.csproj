@@ -119,6 +119,9 @@
     <Compile Include="..\RandomLoadout.Core\Selection\LoadoutSelectionService.cs">
       <Link>Core\Selection\LoadoutSelectionService.cs</Link>
     </Compile>
+    <Compile Include="..\RandomLoadout.Core\Selection\RandomPoolSelectionState.cs">
+      <Link>Core\Selection\RandomPoolSelectionState.cs</Link>
+    </Compile>
     <Compile Include="..\RandomLoadout.Core\Selection\SelectedPickup.cs">
       <Link>Core\Selection\SelectedPickup.cs</Link>
     </Compile>
@@ -128,6 +131,7 @@
     <Compile Include="Configuration\AliasEntryModel.cs" />
     <Compile Include="Configuration\AliasLoadResult.cs" />
     <Compile Include="Configuration\DefaultLoadoutRuleDefinitionFactory.cs" />
+    <Compile Include="Configuration\DashboardFileLayout.cs" />
     <Compile Include="Configuration\Json5TextNormalizer.cs" />
     <Compile Include="Configuration\JsonLoadoutRuleFileProvider.cs" />
     <Compile Include="Configuration\JsonLoadoutRuleFileProvider.Convert.cs" />
@@ -142,11 +146,13 @@
     <Compile Include="Configuration\LoadoutRuleFileModel.cs" />
     <Compile Include="Configuration\PickupAliasEntry.cs" />
     <Compile Include="Configuration\PickupAliasRegistry.cs" />
+    <Compile Include="Configuration\RandomPoolSelectionStateProvider.cs" />
+    <Compile Include="Configuration\StartItemsPresetNames.cs" />
     <Compile Include="Commands\GrantCommandExecutionResult.cs" />
     <Compile Include="Commands\GrantCommandService.cs" />
     <Compile Include="Commands\GrantCommandService.Messages.cs" />
     <Compile Include="Commands\GrantCommandService.Resolve.cs" />
-    <Compile Include="Commands\AmmonomiconAnimationToggleService.cs" />
+    <Compile Include="Commands\AmmonomiconFastOpenToggleService.cs" />
     <Compile Include="Commands\FoyerCharacterOption.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.Helpers.cs" />
@@ -163,10 +169,15 @@
     <Compile Include="Commands\InGameCommandController.LoadoutEditor.cs" />
     <Compile Include="Commands\InGameCommandController.PickupBrowser.cs" />
     <Compile Include="Commands\InGameCommandController.PlayerStats.cs" />
+    <Compile Include="Commands\InGameCommandController.Settings.cs" />
     <Compile Include="Commands\InGameCommandController.State.cs" />
     <Compile Include="Commands\InGameCommandController.Styles.cs" />
     <Compile Include="Commands\InGameCommandController.Teleport.cs" />
     <Compile Include="Commands\PlayerDebugCommandService.cs" />
+    <Compile Include="Commands\PlayerRuntimeOverrideServiceBase.cs" />
+    <Compile Include="Commands\PlayerHealthOverrideService.cs" />
+    <Compile Include="Commands\PlayerActiveItemCapacityOverrideService.cs" />
+    <Compile Include="Commands\RoomDebugCommandService.cs" />
     <Compile Include="Commands\LoadoutPresetEditorEntry.cs" />
     <Compile Include="Commands\LoadoutRandomPoolEditorEntry.cs" />
     <Compile Include="Commands\LoadoutRuleEditorEntry.cs" />
@@ -175,7 +186,7 @@
     <Compile Include="Commands\LoadoutRuleEditorService.Presets.cs" />
     <Compile Include="Commands\AutoReloadToggleService.cs" />
     <Compile Include="Commands\InvincibilityToggleService.cs" />
-    <Compile Include="Commands\NoAmmoConsumptionToggleService.cs" />
+    <Compile Include="Commands\AmmoModeToggleService.cs" />
     <Compile Include="Commands\RapidFireToggleService.cs" />
     <Compile Include="Etg\EtgGrantOutcome.cs" />
     <Compile Include="Etg\EtgPickupCatalogEntry.cs" />
@@ -198,9 +209,13 @@
     <Compile Include="Plugin.CatalogExport.cs" />
     <Compile Include="Plugin.RunLifecycle.cs" />
     <Compile Include="Plugin.State.cs" />
+    <Compile Include="UiScalePresetCatalog.cs" />
     <Compile Include="Runtime\BossRushEncounter.cs" />
+    <Compile Include="Runtime\EtgFloorDefinition.cs" />
+    <Compile Include="Runtime\EtgFloorSceneResolver.cs" />
     <Compile Include="Runtime\AmmonomiconAnimationHooks.cs" />
     <Compile Include="Runtime\BossRushHooks.cs" />
+    <Compile Include="Runtime\LockedAmmoHooks.cs" />
     <Compile Include="Runtime\BossRushService.cs" />
     <Compile Include="Runtime\BossRushService.Flow.cs" />
     <Compile Include="Runtime\BossRushService.Logging.cs" />
@@ -211,6 +226,7 @@
     <Compile Include="Runtime\RunLifecycleObservation.cs" />
     <Compile Include="Runtime\RunLifecycleTracker.cs" />
     <Compile Include="Runtime\RunSceneWatcher.cs" />
+    <Compile Include="Runtime\SceneNameNormalizer.cs" />
   </ItemGroup>
 
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

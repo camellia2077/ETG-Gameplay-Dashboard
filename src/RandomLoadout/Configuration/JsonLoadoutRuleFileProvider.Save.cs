@@ -5,26 +5,29 @@ namespace RandomLoadout
 {
     internal sealed partial class JsonLoadoutRuleFileProvider
     {
-        private static string SerializeRuleFile(LoadoutRuleFileModel fileModel)
+        private static string SerializePresetFile(LoadoutRuleFilePresetModel preset)
         {
-            StringBuilder builder = new StringBuilder();
-            LoadoutRuleFilePresetModel[] presets = fileModel != null && fileModel.Presets != null && fileModel.Presets.Length > 0
-                ? fileModel.Presets
-                : new[]
-                {
-                    new LoadoutRuleFilePresetModel
-                    {
-                        Name = DefaultPresetName,
-                        Rules = fileModel != null && fileModel.Rules != null ? fileModel.Rules : new LoadoutRuleFileRuleModel[0],
-                    },
-                };
+            LoadoutRuleFilePresetModel safePreset = preset ?? new LoadoutRuleFilePresetModel();
+            LoadoutRuleFileRuleModel[] rules = safePreset.Rules ?? new LoadoutRuleFileRuleModel[0];
 
+            StringBuilder builder = new StringBuilder();
             builder.AppendLine("{");
-            builder.AppendLine("  presets: [");
-            for (int i = 0; i < presets.Length; i++)
+            builder.AppendLine("  \"id\": \"" + EscapeJsonString(StartItemsPresetNames.NormalizePresetId(safePreset.Id)) + "\",");
+            if (!string.IsNullOrEmpty(safePreset.DisplayNameKey))
             {
-                AppendPreset(builder, presets[i] ?? new LoadoutRuleFilePresetModel());
-                builder.AppendLine(i < presets.Length - 1 ? "," : string.Empty);
+                builder.AppendLine("  \"display_name_key\": \"" + EscapeJsonString(safePreset.DisplayNameKey) + "\",");
+            }
+
+            if (!string.IsNullOrEmpty(safePreset.Name))
+            {
+                builder.AppendLine("  \"name\": \"" + EscapeJsonString(safePreset.Name) + "\",");
+            }
+
+            builder.AppendLine("  \"rules\": [");
+            for (int i = 0; i < rules.Length; i++)
+            {
+                AppendRule(builder, rules[i] ?? new LoadoutRuleFileRuleModel(), "    ");
+                builder.AppendLine(i < rules.Length - 1 ? "," : string.Empty);
             }
 
             builder.AppendLine("  ]");
@@ -32,52 +35,37 @@ namespace RandomLoadout
             return builder.ToString();
         }
 
-        private static void AppendPreset(StringBuilder builder, LoadoutRuleFilePresetModel preset)
-        {
-            LoadoutRuleFileRuleModel[] rules = preset != null && preset.Rules != null
-                ? preset.Rules
-                : new LoadoutRuleFileRuleModel[0];
-
-            builder.AppendLine("    {");
-            builder.AppendLine("      name: \"" + EscapeJsonString(NormalizePresetName(preset != null ? preset.Name : string.Empty)) + "\",");
-            builder.AppendLine("      rules: [");
-            for (int i = 0; i < rules.Length; i++)
-            {
-                AppendRule(builder, rules[i] ?? new LoadoutRuleFileRuleModel(), "        ");
-                builder.AppendLine(i < rules.Length - 1 ? "," : string.Empty);
-            }
-
-            builder.AppendLine("      ]");
-            builder.Append("    }");
-        }
-
         private static void AppendRule(StringBuilder builder, LoadoutRuleFileRuleModel rule, string indent)
         {
             builder.AppendLine(indent + "{");
-            builder.AppendLine(indent + "  enabled: " + (rule.Enabled ? "true" : "false") + ",");
-            builder.AppendLine(indent + "  mode: \"" + EscapeJsonString(rule.Mode) + "\",");
-            builder.AppendLine(indent + "  category: \"" + EscapeJsonString(rule.Category) + "\",");
-            builder.AppendLine(indent + "  count: " + rule.Count.ToString(CultureInfo.InvariantCulture) + ",");
+            builder.AppendLine(indent + "  \"enabled\": " + (rule.Enabled ? "true" : "false") + ",");
+            builder.AppendLine(indent + "  \"mode\": \"" + EscapeJsonString(rule.Mode) + "\",");
+            builder.AppendLine(indent + "  \"category\": \"" + EscapeJsonString(rule.Category) + "\",");
+            builder.AppendLine(indent + "  \"count\": " + rule.Count.ToString(CultureInfo.InvariantCulture) + ",");
 
-            if (rule.Id.HasValue)
+            if (string.Equals(rule.Mode, "random", System.StringComparison.OrdinalIgnoreCase))
             {
-                builder.AppendLine(indent + "  id: " + rule.Id.Value.ToString(CultureInfo.InvariantCulture));
+                if (!string.IsNullOrEmpty(rule.Name))
+                {
+                    builder.AppendLine(indent + "  \"name\": \"" + EscapeJsonString(rule.Name) + "\",");
+                }
+
+                builder.AppendLine(indent + "  \"poolIds\": " + FormatIntArray(rule.PoolIds) + ",");
+                builder.AppendLine(indent + "  \"poolAliases\": " + FormatStringArray(rule.PoolAliases) + ",");
+                builder.AppendLine(indent + "  \"pool\": " + FormatStringArray(rule.Pool));
+            }
+            else if (rule.Id.HasValue)
+            {
+                builder.AppendLine(indent + "  \"id\": " + rule.Id.Value.ToString(CultureInfo.InvariantCulture));
             }
             else if (!string.IsNullOrEmpty(rule.Alias))
             {
-                builder.AppendLine(indent + "  alias: \"" + EscapeJsonString(rule.Alias) + "\"");
+                builder.AppendLine(indent + "  \"alias\": \"" + EscapeJsonString(rule.Alias) + "\"");
             }
             else if (!string.IsNullOrEmpty(rule.Name))
             {
-                builder.AppendLine(indent + "  name: \"" + EscapeJsonString(rule.Name) + "\"");
+                builder.AppendLine(indent + "  \"name\": \"" + EscapeJsonString(rule.Name) + "\"");
             }
-            else
-            {
-                builder.AppendLine(indent + "  poolIds: " + FormatIntArray(rule.PoolIds) + ",");
-                builder.AppendLine(indent + "  poolAliases: " + FormatStringArray(rule.PoolAliases) + ",");
-                builder.AppendLine(indent + "  pool: " + FormatStringArray(rule.Pool));
-            }
-
             builder.Append(indent + "}");
         }
 

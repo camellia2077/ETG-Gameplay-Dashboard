@@ -49,6 +49,7 @@
     <Compile Include="Selection\LoadoutSelectionRequest.cs" />
     <Compile Include="Selection\LoadoutSelectionResult.cs" />
     <Compile Include="Selection\LoadoutSelectionService.cs" />
+    <Compile Include="Selection\RandomPoolSelectionState.cs" />
     <Compile Include="Selection\SelectedPickup.cs" />
     <Compile Include="Selection\SelectionWarning.cs" />
   </ItemGroup>

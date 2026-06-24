@@ -13,7 +13,7 @@ namespace RandomLoadout
             _loadoutEditorMode = LoadoutEditorMode.PresetList;
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
-            _loadoutPresetRenameText = GetLoadoutEditorActivePresetName();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
 
             if (logger != null)
             {
@@ -153,7 +153,7 @@ namespace RandomLoadout
                 _hintStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 60f, panelRect.width - 28f, 20f),
-                GuiText.Get("gui.loadout_editor.preset", GetLoadoutEditorActivePresetName()),
+                GuiText.Get("gui.loadout_editor.preset", GetLoadoutEditorActivePresetDisplayName()),
                 _hintStyle);
 
             DrawLoadoutEditorRows(new Rect(panelRect.x + 14f, panelRect.y + 122f, panelRect.width - 28f, panelRect.height - 136f), logger);
@@ -179,18 +179,29 @@ namespace RandomLoadout
 
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 12f, addItemButtonRect.x - panelRect.x - 28f, 24f),
-                GuiText.Get("gui.loadout_editor.random_pool_title"),
+                GetLoadoutEditorActiveRandomPoolDisplayName(),
                 _titleStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
                 GuiText.Get("gui.loadout_editor.random_pool_hint"),
                 _hintStyle);
+            const float renameButtonWidth = 92f;
+            Rect renameLabelRect = new Rect(panelRect.x + 14f, panelRect.y + 60f, 92f, 28f);
+            Rect renameButtonRect = new Rect(panelRect.x + panelRect.width - renameButtonWidth - 14f, renameLabelRect.y, renameButtonWidth, 28f);
+            Rect renameFieldRect = new Rect(renameLabelRect.xMax + ButtonGap, renameLabelRect.y, renameButtonRect.x - renameLabelRect.xMax - (ButtonGap * 2f), 28f);
+            GUI.Label(renameLabelRect, GuiText.Get("gui.loadout_editor.rename_label"), _hintStyle);
+            _loadoutRandomPoolRenameText = GUI.TextField(renameFieldRect, _loadoutRandomPoolRenameText, 64, _textFieldStyle);
+            if (GUI.Button(renameButtonRect, GuiText.Get("gui.loadout_editor.button.rename_random_pool"), _buttonStyle))
+            {
+                ExecuteLoadoutEditorRenameRandomPool(logger);
+            }
+
             GUI.Label(
-                new Rect(panelRect.x + 14f, panelRect.y + 60f, panelRect.width - 28f, 20f),
+                new Rect(panelRect.x + 14f, panelRect.y + 94f, panelRect.width - 28f, 20f),
                 GuiText.Get("gui.loadout_editor.random_pool_summary", _cachedLoadoutRandomPoolEntries.Length),
                 _hintStyle);
 
-            DrawLoadoutRandomPoolRows(new Rect(panelRect.x + 14f, panelRect.y + 92f, panelRect.width - 28f, panelRect.height - 106f), logger);
+            DrawLoadoutRandomPoolRows(new Rect(panelRect.x + 14f, panelRect.y + 126f, panelRect.width - 28f, panelRect.height - 140f), logger);
         }
 
         private void DrawLoadoutPresetRows(Rect listRect, ManualLogSource logger)
@@ -231,19 +242,22 @@ namespace RandomLoadout
             }
 
             string primaryText = entry != null && entry.IsActive
-                ? GuiText.Get("gui.loadout_editor.preset_active_name", entry.Name)
-                : (entry != null ? entry.Name : string.Empty);
+                ? GuiText.Get("gui.loadout_editor.preset_active_name", entry.DisplayName)
+                : (entry != null ? entry.DisplayName : string.Empty);
             string secondaryText = entry != null
                 ? GuiText.Get("gui.loadout_editor.preset_summary", entry.RuleCount, entry.SpecificCount, entry.RandomCount)
                 : string.Empty;
+            GUIStyle secondaryTextStyle = entry != null && entry.IsActive
+                ? _pickupSecondaryActiveTextStyle
+                : _pickupSecondaryTextStyle;
             GUI.Label(new Rect(rowRect.x + 10f, rowRect.y + 5f, rowButtonRect.width - 20f, 20f), primaryText, _pickupPrimaryTextStyle);
-            GUI.Label(new Rect(rowRect.x + 10f, rowRect.y + 24f, rowButtonRect.width - 20f, 18f), secondaryText, _pickupSecondaryTextStyle);
+            GUI.Label(new Rect(rowRect.x + 10f, rowRect.y + 24f, rowButtonRect.width - 20f, 18f), secondaryText, secondaryTextStyle);
 
             if (GUI.Button(selectButtonRect, GuiText.Get("gui.loadout_editor.button.select_preset"), _buttonStyle))
             {
                 if (entry != null)
                 {
-                    ExecuteLoadoutEditorSelectPreset(entry.Name, logger);
+                    ExecuteLoadoutEditorSelectPreset(entry.Id, logger);
                 }
             }
 
@@ -398,6 +412,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -414,12 +429,12 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
-            _loadoutPresetRenameText = GetLoadoutEditorActivePresetName();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
 
-        private void ExecuteLoadoutEditorSelectPreset(string presetName, ManualLogSource logger)
+        private void ExecuteLoadoutEditorSelectPreset(string presetId, ManualLogSource logger)
         {
             if (_loadoutRuleEditorService == null)
             {
@@ -427,11 +442,11 @@ namespace RandomLoadout
                 return;
             }
 
-            GrantCommandExecutionResult result = _loadoutRuleEditorService.SelectPreset(presetName);
+            GrantCommandExecutionResult result = _loadoutRuleEditorService.SelectPreset(presetId);
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
-            _loadoutPresetRenameText = GetLoadoutEditorActivePresetName();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -445,7 +460,7 @@ namespace RandomLoadout
 
             if (!entry.IsActive)
             {
-                GrantCommandExecutionResult result = _loadoutRuleEditorService.SelectPreset(entry.Name);
+                GrantCommandExecutionResult result = _loadoutRuleEditorService.SelectPreset(entry.Id);
                 ShowStatus(result.Message, !result.Succeeded);
                 LogLoadoutEditorResult(result, logger);
                 if (!result.Succeeded)
@@ -456,12 +471,12 @@ namespace RandomLoadout
             }
 
             _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
-            _loadoutPresetRenameText = entry.Name;
             _loadoutEditorScrollPosition = Vector2.zero;
             _loadoutRandomPoolRuleIndex = -1;
             _cachedLoadoutRandomPoolEntries = EmptyLoadoutRandomPoolEditorEntries;
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
         }
 
         private void OpenLoadoutRandomPoolDetail(int ruleIndex)
@@ -470,6 +485,7 @@ namespace RandomLoadout
             _loadoutRandomPoolRuleIndex = ruleIndex;
             _loadoutEditorScrollPosition = Vector2.zero;
             RefreshLoadoutRandomPoolEntries();
+            _loadoutRandomPoolRenameText = GetLoadoutEditorActiveRandomPoolDisplayName();
         }
 
         private void ExecuteLoadoutEditorCreatePreset(ManualLogSource logger)
@@ -484,7 +500,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
-            _loadoutPresetRenameText = GetLoadoutEditorActivePresetName();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -501,7 +517,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
-            _loadoutPresetRenameText = GetLoadoutEditorActivePresetName();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -518,7 +534,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
-            _loadoutPresetRenameText = GetLoadoutEditorActivePresetName();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -535,7 +551,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
-            _loadoutPresetRenameText = GetLoadoutEditorActivePresetName();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -589,6 +605,7 @@ namespace RandomLoadout
                 _loadoutEditorMode = LoadoutEditorMode.RandomPoolDetail;
                 _loadoutEditorScrollPosition = Vector2.zero;
                 RefreshLoadoutRandomPoolEntries();
+                _loadoutRandomPoolRenameText = GetLoadoutEditorActiveRandomPoolDisplayName();
             }
 
             ShowStatus(result.Message, !result.Succeeded);
@@ -643,9 +660,35 @@ namespace RandomLoadout
             LogLoadoutEditorResult(result, logger);
         }
 
-        private string GetLoadoutEditorActivePresetName()
+        private void ExecuteLoadoutEditorRenameRandomPool(ManualLogSource logger)
         {
-            return _loadoutRuleEditorService != null ? _loadoutRuleEditorService.GetActivePresetName() : "default";
+            if (_loadoutRuleEditorService == null)
+            {
+                ShowStatus(GuiText.Get("result.loadout_editor.unavailable"), true);
+                return;
+            }
+
+            GrantCommandExecutionResult result = _loadoutRuleEditorService.RenameRandomPool(_loadoutRandomPoolRuleIndex, _loadoutRandomPoolRenameText);
+            RefreshLoadoutPresetEntries();
+            RefreshLoadoutEditorEntries();
+            RefreshLoadoutRandomPoolEntries();
+            _loadoutRandomPoolRenameText = GetLoadoutEditorActiveRandomPoolDisplayName();
+            ShowStatus(result.Message, !result.Succeeded);
+            LogLoadoutEditorResult(result, logger);
+        }
+
+        private string GetLoadoutEditorActivePresetDisplayName()
+        {
+            return _loadoutRuleEditorService != null
+                ? _loadoutRuleEditorService.GetActivePresetDisplayName()
+                : StartItemsPresetNames.GetDisplayName(StartItemsPresetNames.DefaultPresetId, string.Empty, StartItemsPresetNames.DefaultPresetDisplayNameKey);
+        }
+
+        private string GetLoadoutEditorActiveRandomPoolDisplayName()
+        {
+            return _loadoutRuleEditorService != null
+                ? _loadoutRuleEditorService.GetRandomPoolDisplayName(_loadoutRandomPoolRuleIndex)
+                : GuiText.Get("gui.loadout_editor.rule.random_pool_title");
         }
 
         private static void LogLoadoutEditorResult(GrantCommandExecutionResult result, ManualLogSource logger)

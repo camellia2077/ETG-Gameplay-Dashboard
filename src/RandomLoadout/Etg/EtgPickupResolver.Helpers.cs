@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Reflection;
 
 namespace RandomLoadout
@@ -59,22 +60,62 @@ namespace RandomLoadout
                 string modifiedDisplayName = pickup.encounterTrackable.GetModifiedDisplayName();
                 if (!string.IsNullOrEmpty(modifiedDisplayName))
                 {
-                    return ResolveLocalizedLabel(modifiedDisplayName);
+                    return ResolveLocalizedLabelForCurrentUiLanguage(modifiedDisplayName);
                 }
 
                 if (pickup.encounterTrackable.journalData != null &&
                     !string.IsNullOrEmpty(pickup.encounterTrackable.journalData.PrimaryDisplayName))
                 {
-                    return ResolveLocalizedLabel(pickup.encounterTrackable.journalData.PrimaryDisplayName);
+                    return ResolveLocalizedLabelForCurrentUiLanguage(pickup.encounterTrackable.journalData.PrimaryDisplayName);
                 }
             }
 
             if (!string.IsNullOrEmpty(pickup.DisplayName))
             {
-                return ResolveLocalizedLabel(pickup.DisplayName);
+                return ResolveLocalizedLabelForCurrentUiLanguage(pickup.DisplayName);
             }
 
-            return ResolveLocalizedLabel(pickup.name);
+            return ResolveLocalizedLabelForCurrentUiLanguage(pickup.name);
+        }
+
+        private static string GetEnglishPickupLabel(PickupObject pickup)
+        {
+            if ((object)pickup == null)
+            {
+                return string.Empty;
+            }
+
+            string itemName = GetInstanceMemberValue(pickup, "itemName") as string;
+            if (!string.IsNullOrEmpty(itemName))
+            {
+                return itemName;
+            }
+
+            if (pickup.encounterTrackable != null && pickup.encounterTrackable.journalData != null)
+            {
+                string englishPrimaryDisplayName = ResolveLocalizedLabelFromBackupTables(pickup.encounterTrackable.journalData.PrimaryDisplayName);
+                if (!string.IsNullOrEmpty(englishPrimaryDisplayName) &&
+                    !string.Equals(englishPrimaryDisplayName, pickup.encounterTrackable.journalData.PrimaryDisplayName, StringComparison.Ordinal))
+                {
+                    return englishPrimaryDisplayName;
+                }
+            }
+
+            return ResolveLocalizedLabelFromBackupTables(pickup.name);
+        }
+
+        private static string ResolveLocalizedLabelForCurrentUiLanguage(string rawLabel)
+        {
+            if (string.Equals(GuiText.CurrentLanguageCode, "en", StringComparison.OrdinalIgnoreCase))
+            {
+                string englishLabel = ResolveLocalizedLabelFromBackupTables(rawLabel);
+                if (!string.IsNullOrEmpty(englishLabel) && !string.Equals(englishLabel, rawLabel, StringComparison.Ordinal))
+                {
+                    return englishLabel;
+                }
+            }
+
+            return ResolveLocalizedLabel(rawLabel);
         }
 
         private static string ResolveLocalizedLabel(string rawLabel)
@@ -102,6 +143,52 @@ namespace RandomLoadout
             }
 
             return rawLabel;
+        }
+
+        private static string ResolveLocalizedLabelFromBackupTables(string rawLabel)
+        {
+            if (string.IsNullOrEmpty(rawLabel) || !rawLabel.StartsWith("#", StringComparison.Ordinal))
+            {
+                return rawLabel ?? string.Empty;
+            }
+
+            string localized = ResolveLocalizedLabelFromTable("m_backupCoreTable", rawLabel);
+            if (!string.IsNullOrEmpty(localized) && !string.Equals(localized, rawLabel, StringComparison.Ordinal))
+            {
+                return localized;
+            }
+
+            localized = ResolveLocalizedLabelFromTable("m_backupItemsTable", rawLabel);
+            if (!string.IsNullOrEmpty(localized) && !string.Equals(localized, rawLabel, StringComparison.Ordinal))
+            {
+                return localized;
+            }
+
+            return rawLabel;
+        }
+
+        private static string ResolveLocalizedLabelFromTable(string tableFieldName, string rawLabel)
+        {
+            IDictionary table = GetStaticMemberValue(typeof(StringTableManager), tableFieldName) as IDictionary;
+            if (table == null || !table.Contains(rawLabel))
+            {
+                return string.Empty;
+            }
+
+            object entry = table[rawLabel];
+            if (entry == null)
+            {
+                return string.Empty;
+            }
+
+            MethodInfo getExactString = entry.GetType().GetMethod("GetExactString", BindingFlags.Instance | BindingFlags.Public);
+            if (getExactString == null)
+            {
+                return string.Empty;
+            }
+
+            object resolved = getExactString.Invoke(entry, new object[] { 0 });
+            return resolved as string ?? string.Empty;
         }
     }
 }

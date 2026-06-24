@@ -73,7 +73,7 @@ namespace RandomLoadout
             }
         }
 
-        private static bool GrantPickup(PlayerController player, PickupCategory category, PickupObject pickup, out string grantPath, out string grantDetail)
+        private bool GrantPickup(PlayerController player, PickupCategory category, PickupObject pickup, out string grantPath, out string grantDetail)
         {
             grantPath = string.Empty;
             grantDetail = string.Empty;
@@ -119,22 +119,57 @@ namespace RandomLoadout
                         return false;
                     }
 
-                    try
+                    bool activeSlotsFull = AreActiveItemSlotsFull(player);
+                    if (TrySpawnActiveItemNearPlayer(player, component.gameObject, pickup.PickupObjectId, out grantDetail))
                     {
-                        grantPath = "primary";
-                        grantDetail = "Active item requires LootEngine.TryGivePrefabToPlayer.";
-                        return LootEngine.TryGivePrefabToPlayer(component.gameObject, player, false);
+                        grantPath = activeSlotsFull ? "spawn_near_player_slots_full" : "spawn_near_player";
+                        return true;
                     }
-                    catch (Exception exception)
-                    {
-                        grantPath = "primary-exception";
-                        grantDetail = "Active item LootEngine.TryGivePrefabToPlayer threw " + exception.GetType().Name + ": " + exception.Message;
-                        return false;
-                    }
+
+                    grantPath = activeSlotsFull ? "spawn_near_player_slots_full_failed" : "spawn_near_player_failed";
+                    grantDetail = AppendFallbackDetail(grantDetail, DescribeActiveItemState(player, pickup.PickupObjectId));
+                    return false;
                 default:
                     grantPath = "unsupported";
                     grantDetail = "No grant implementation was available for the resolved category.";
                     return false;
+            }
+        }
+
+        private static bool TrySpawnActiveItemNearPlayer(PlayerController player, GameObject prefab, int pickupId, out string grantDetail)
+        {
+            grantDetail = string.Empty;
+            if ((object)player == null || prefab == null)
+            {
+                grantDetail = "Active item fallback requires both a player and prefab GameObject.";
+                return false;
+            }
+
+            try
+            {
+                DebrisObject spawnedItem = LootEngine.SpawnItem(
+                    prefab,
+                    player.CenterPosition,
+                    Vector2.zero,
+                    0f,
+                    false,
+                    true,
+                    false);
+                if ((object)spawnedItem == null)
+                {
+                    grantDetail = "Active item fallback could not spawn the prefab near the player.";
+                    return false;
+                }
+
+                grantDetail = "Primary prefab grant was rejected by ETG; spawned the active item near the player instead. TargetPickupId=" +
+                    pickupId +
+                    ".";
+                return true;
+            }
+            catch (Exception exception)
+            {
+                grantDetail = "Active item fallback LootEngine.SpawnItem threw " + exception.GetType().Name + ": " + exception.Message;
+                return false;
             }
         }
 
@@ -146,6 +181,32 @@ namespace RandomLoadout
             }
 
             return primaryDetail + "; fallback: " + fallbackDetail;
+        }
+
+        private static string DescribeActiveItemState(PlayerController player, int pickupId)
+        {
+            if ((object)player == null)
+            {
+                return "Player was null while describing active-item state.";
+            }
+
+            string currentItemLabel = "<none>";
+            PlayerItem currentItem = player.CurrentItem;
+            if ((object)currentItem != null)
+            {
+                currentItemLabel = GetPickupLabel(currentItem) + " (" + currentItem.PickupObjectId + ")";
+            }
+
+            return "Active-state: CurrentItem=" + currentItemLabel +
+                ", HasTarget=" + player.HasActiveItem(pickupId) +
+                ".";
+        }
+
+        private static bool AreActiveItemSlotsFull(PlayerController player)
+        {
+            return (object)player != null &&
+                player.activeItems != null &&
+                player.activeItems.Count >= player.maxActiveItemsHeld;
         }
 
         private static string GetPickupLabel(PickupObject pickup)

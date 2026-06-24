@@ -36,6 +36,7 @@
     <Compile Include="AssertEx.cs" />
     <Compile Include="AliasRegistryTests.cs" />
     <Compile Include="GrantCommandParserTests.cs" />
+    <Compile Include="GuiTextStub.cs" />
     <Compile Include="RuleFileProviderTests.cs" />
     <Compile Include="LoadoutSelectionServiceTests.cs" />
     <Compile Include="Program.cs" />
@@ -44,6 +45,9 @@
     </Compile>
     <Compile Include="..\..\src\RandomLoadout\Configuration\AliasLoadResult.cs">
       <Link>Plugin\Configuration\AliasLoadResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\RandomLoadout\Configuration\DashboardFileLayout.cs">
+      <Link>Plugin\Configuration\DashboardFileLayout.cs</Link>
     </Compile>
     <Compile Include="..\..\src\RandomLoadout\Configuration\Json5TextNormalizer.cs">
       <Link>Plugin\Configuration\Json5TextNormalizer.cs</Link>
@@ -83,6 +87,9 @@
     </Compile>
     <Compile Include="..\..\src\RandomLoadout\Configuration\PickupAliasRegistry.cs">
       <Link>Plugin\Configuration\PickupAliasRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\RandomLoadout\Configuration\StartItemsPresetNames.cs">
+      <Link>Plugin\Configuration\StartItemsPresetNames.cs</Link>
     </Compile>
   </ItemGroup>
   <ItemGroup>

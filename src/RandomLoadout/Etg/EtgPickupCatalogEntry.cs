@@ -8,6 +8,7 @@ namespace RandomLoadout
             PickupCategory category,
             int pickupId,
             string displayName,
+            string englishDisplayName,
             string internalName,
             string encounterGuid,
             string quality,
@@ -33,6 +34,7 @@ namespace RandomLoadout
             Category = category;
             PickupId = pickupId;
             DisplayName = displayName ?? string.Empty;
+            EnglishDisplayName = englishDisplayName ?? string.Empty;
             InternalName = internalName ?? string.Empty;
             EncounterGuid = encounterGuid ?? string.Empty;
             Quality = quality ?? string.Empty;
@@ -61,6 +63,8 @@ namespace RandomLoadout
         public int PickupId { get; private set; }
 
         public string DisplayName { get; private set; }
+
+        public string EnglishDisplayName { get; private set; }
 
         public string InternalName { get; private set; }
 

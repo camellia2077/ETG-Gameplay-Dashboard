@@ -32,8 +32,16 @@ namespace RandomLoadout
                 Foyer.Instance.OnDepartedFoyer();
             }
 
+            string loadSceneName = EtgFloorSceneResolver.ResolveLoadSceneName(encounter.LoadLevelToken);
+            if (string.IsNullOrEmpty(loadSceneName))
+            {
+                RaiseStatus(GrantCommandExecutionResult.Localized(false, "result.boss_rush.teleport_failed", GetCurrentFloorLabel()));
+                Reset();
+                return;
+            }
+
             LogInfo("Loading Boss Rush floor " + encounter.SceneName + " (" + encounter.FloorKey + ").");
-            GameManager.Instance.LoadCustomLevel(encounter.SceneName);
+            GameManager.Instance.LoadCustomLevel(loadSceneName);
         }
 
         private IEnumerator PrepareFloorAndTeleportToBossRoom_CR()

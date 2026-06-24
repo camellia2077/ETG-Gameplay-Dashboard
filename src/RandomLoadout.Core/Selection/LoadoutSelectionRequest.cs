@@ -7,6 +7,11 @@ namespace RandomLoadout.Core
     public sealed class LoadoutSelectionRequest
     {
         public LoadoutSelectionRequest(int seed, LoadoutConfig config, IEnumerable<int> ownedPickupIds)
+            : this(seed, config, ownedPickupIds, null)
+        {
+        }
+
+        public LoadoutSelectionRequest(int seed, LoadoutConfig config, IEnumerable<int> ownedPickupIds, IEnumerable<RandomPoolSelectionState> randomPoolStates)
         {
             if (config == null)
             {
@@ -16,6 +21,7 @@ namespace RandomLoadout.Core
             Seed = seed;
             Config = config;
             OwnedPickupIds = ownedPickupIds != null ? ownedPickupIds.ToArray() : new int[0];
+            RandomPoolStates = randomPoolStates != null ? randomPoolStates.ToArray() : new RandomPoolSelectionState[0];
         }
 
         public int Seed { get; private set; }
@@ -23,5 +29,7 @@ namespace RandomLoadout.Core
         public LoadoutConfig Config { get; private set; }
 
         public int[] OwnedPickupIds { get; private set; }
+
+        public RandomPoolSelectionState[] RandomPoolStates { get; private set; }
     }
 }

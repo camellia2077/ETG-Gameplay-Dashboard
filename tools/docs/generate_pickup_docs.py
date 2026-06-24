@@ -16,7 +16,7 @@ from tool_common import fail, get_repo_root, run_cli
 
 DEFAULT_INPUT = Path("defaults") / "catalog" / "RandomLoadout.pickups.by-category.json"
 DEFAULT_OUTPUT = Path("docs") / "reference" / "pickups.md"
-DEFAULT_ALIAS_INPUT = Path("defaults") / "config" / "RandomLoadout.aliases.json5"
+DEFAULT_ALIAS_INPUT = Path("defaults") / "config" / "ETG-Gameplay-Dashboard.aliases.json5"
 CATEGORY_ORDER = ("Gun", "Passive", "Active")
 
 
@@ -39,7 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--alias-input",
         default=str(DEFAULT_ALIAS_INPUT),
-        help="Optional alias JSON5 file used to annotate known aliases. Defaults to defaults/config/RandomLoadout.aliases.json5.",
+        help="Optional alias JSON5 file used to annotate known aliases. Defaults to defaults/config/ETG-Gameplay-Dashboard.aliases.json5.",
     )
     return parser.parse_args()
 

@@ -19,6 +19,8 @@ from tool_common import (
     sync_generated_version_files,
 )
 
+LOCALIZATION_CHECK_SCRIPT = Path(__file__).resolve().parents[1] / "devtools" / "check_localization.py"
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
@@ -32,6 +34,13 @@ def main() -> int:
     args = parse_args()
     repo_root = get_repo_root()
     project_path = get_plugin_project_path(repo_root)
+
+    localization_check_result = run_process(
+        [sys.executable, str(LOCALIZATION_CHECK_SCRIPT), "--verbose"],
+        repo_root,
+    )
+    if localization_check_result != 0:
+        return localization_check_result
 
     ensure_required_build_dlls(repo_root)
     sync_generated_version_files(repo_root)

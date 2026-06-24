@@ -58,7 +58,7 @@ Healthy log examples:
 - `[RandomLoadout][Init] Boss Rush startup self-check passed.`
 - `[RandomLoadout][Init] RandomLoadout v... started successfully.`
 
-3. Stay in the character-select hub and press `F7`.
+3. Stay in the character-select hub and press the configured command-panel key (default `F7`).
 
 Expected:
 
@@ -74,12 +74,12 @@ Expected:
 - dungeon loading completes
 - automatic random loadout still works outside Boss Rush
 
-5. Return to the character-select hub (`tt_foyer`, commonly called the Breach) and start Boss Rush from `F7`.
+5. Return to the character-select hub and start Boss Rush from the command panel.
 
 Expected:
 
 - Boss Rush starts only from the character-select hub
-- `tt_castle` loads
+- the first Boss Rush floor loads
 - the player is routed toward the generated boss encounter
 - the boss intro still plays
 
@@ -89,7 +89,7 @@ Expected:
 
 - reward spawn remains vanilla
 - the next floor does not load until the reward is claimed
-- after the claim, the mode transitions to `tt5`
+- after the claim, the mode transitions to the next floor
 
 7. Abort or fail the run.
 

@@ -42,16 +42,20 @@ namespace RandomLoadout
             {
                 string presetBody = presetBodies[i];
                 string rulesArrayBody = ExtractPropertyArrayBody(presetBody, "rules");
-                if (string.IsNullOrEmpty(rulesArrayBody))
+                if (string.IsNullOrEmpty(rulesArrayBody) && !ContainsArrayProperty(presetBody, "rules"))
                 {
                     continue;
                 }
 
+                string id = ParseString(presetBody, "id");
+                string displayNameKey = ParseString(presetBody, "display_name_key");
                 string name = ParseString(presetBody, "name");
                 presets.Add(
                     new LoadoutRuleFilePresetModel
                     {
-                        Name = !string.IsNullOrEmpty(name) ? name : "preset-" + (i + 1).ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        Id = StartItemsPresetNames.CreatePresetId(id, name, i + 1),
+                        DisplayNameKey = StartItemsPresetNames.NormalizePresetName(displayNameKey),
+                        Name = StartItemsPresetNames.NormalizePresetName(name),
                         Rules = ParseRulesFromArrayBody(rulesArrayBody),
                     });
             }
@@ -102,6 +106,11 @@ namespace RandomLoadout
             int arrayStart = match.Index + match.Length - 1;
             int arrayEnd = FindMatchingClose(rawJson, arrayStart, '[', ']');
             return arrayEnd > arrayStart ? rawJson.Substring(arrayStart + 1, arrayEnd - arrayStart - 1) : string.Empty;
+        }
+
+        private static bool ContainsArrayProperty(string rawJson, string propertyName)
+        {
+            return Regex.IsMatch(rawJson ?? string.Empty, GetPropertyPrefixPattern(propertyName) + "\\[", RegexOptions.IgnoreCase);
         }
 
         private static List<string> ExtractObjectBodies(string arrayBody)

@@ -5,16 +5,14 @@ namespace RandomLoadout
     internal sealed class RunLifecycleTracker
     {
         private readonly string _characterSelectSceneName;
-        private readonly string _legacyCharacterSelectSceneName;
         private readonly string _loadingSceneName;
 
         private string _lastObservedSceneName;
         private int _lastObservedPlayerInstanceId;
 
-        public RunLifecycleTracker(string characterSelectSceneName, string legacyCharacterSelectSceneName, string loadingSceneName)
+        public RunLifecycleTracker(string characterSelectSceneName, string loadingSceneName)
         {
             _characterSelectSceneName = characterSelectSceneName;
-            _legacyCharacterSelectSceneName = legacyCharacterSelectSceneName;
             _loadingSceneName = loadingSceneName;
             _lastObservedSceneName = string.Empty;
         }
@@ -57,8 +55,7 @@ namespace RandomLoadout
 
         private bool IsResetScene(string sceneName)
         {
-            return string.Equals(sceneName, _characterSelectSceneName, StringComparison.Ordinal) ||
-                   string.Equals(sceneName, _legacyCharacterSelectSceneName, StringComparison.Ordinal);
+            return string.Equals(sceneName, _characterSelectSceneName, StringComparison.Ordinal);
         }
 
         private bool IsGrantableDungeonScene(string sceneName)

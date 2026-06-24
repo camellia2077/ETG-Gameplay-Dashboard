@@ -419,7 +419,40 @@ namespace RandomLoadout
                 browserEntries.Add(new PickupBrowserEntry(entry, aliases));
             }
 
+            browserEntries.Sort(ComparePickupBrowserEntries);
             _cachedPickupEntries = browserEntries.ToArray();
+        }
+
+        private static int ComparePickupBrowserEntries(PickupBrowserEntry left, PickupBrowserEntry right)
+        {
+            if (left == null && right == null)
+            {
+                return 0;
+            }
+
+            if (left == null)
+            {
+                return 1;
+            }
+
+            if (right == null)
+            {
+                return -1;
+            }
+
+            int categoryComparison = left.CatalogEntry.Category.CompareTo(right.CatalogEntry.Category);
+            if (categoryComparison != 0)
+            {
+                return categoryComparison;
+            }
+
+            int displayNameComparison = string.Compare(left.DisplayName, right.DisplayName, StringComparison.OrdinalIgnoreCase);
+            if (displayNameComparison != 0)
+            {
+                return displayNameComparison;
+            }
+
+            return left.CatalogEntry.PickupId.CompareTo(right.CatalogEntry.PickupId);
         }
 
         private void ResetPickupBrowserState()

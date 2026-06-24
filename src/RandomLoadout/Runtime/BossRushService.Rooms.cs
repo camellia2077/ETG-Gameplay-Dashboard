@@ -313,8 +313,7 @@ namespace RandomLoadout
 
         private static bool IsCharacterSelectScene(string sceneName)
         {
-            return string.Equals(sceneName, CharacterSelectSceneName, StringComparison.Ordinal) ||
-                   string.Equals(sceneName, LegacyCharacterSelectSceneName, StringComparison.Ordinal);
+            return string.Equals(sceneName, CharacterSelectSceneName, StringComparison.Ordinal);
         }
 
         private static string GetRoomDebugLabel(RoomHandler room)

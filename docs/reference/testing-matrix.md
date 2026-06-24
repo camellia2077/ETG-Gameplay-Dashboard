@@ -50,7 +50,7 @@ Run after any ETG runtime integration change:
 Minimum smoke set for runtime changes:
 
 - game boots
-- `F7` panel opens
+- configured command-panel key opens the panel (default `F7`)
 - normal dungeon entry still works
 - automatic loadout still behaves as expected outside Boss Rush
 

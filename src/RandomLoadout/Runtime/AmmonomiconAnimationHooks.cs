@@ -70,7 +70,7 @@ namespace RandomLoadout
             EncounterTrackable targetTrackable,
             ref IEnumerator __result)
         {
-            if (AmmonomiconAnimationToggleService.IsOpenAnimationEnabled || isDeath)
+            if (!AmmonomiconFastOpenToggleService.IsFastOpenEnabled || isDeath)
             {
                 return true;
             }
