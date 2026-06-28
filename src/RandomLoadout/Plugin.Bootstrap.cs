@@ -30,18 +30,17 @@ namespace RandomLoadout
                 "F7",
                 "Command panel keyboard toggle key. Use a Unity KeyCode name such as F7, F8, Insert, or BackQuote.");
             _commandPanelKeyConfig.Value = NormalizeCommandPanelKeyName(_commandPanelKeyConfig.Value);
-            _commandPanelGamepadPresetConfig = Config.Bind(
-                "UI",
-                "CommandPanelGamepadPreset",
-                "Xbox",
-                "Command panel gamepad shortcut preset. Use Xbox for JoystickButton6+7 or Legacy for JoystickButton8+9.");
-            _commandPanelGamepadPresetConfig.Value = NormalizeCommandPanelGamepadPreset(_commandPanelGamepadPresetConfig.Value);
             _uiScalePresetConfig = Config.Bind(
                 "UI",
                 "PanelScalePreset",
                 UiScalePresetCatalog.DefaultPreset,
                 "Command panel UI size preset. Use x-small, small, medium-small, medium, medium-large, large, x-large, or xx-large.");
             _uiScalePresetConfig.Value = NormalizeUiScalePreset(_uiScalePresetConfig.Value);
+            _showPlayerStatsPanelConfig = Config.Bind(
+                "UI",
+                "ShowPlayerStatsPanel",
+                false,
+                "Show or hide the player stats side panel by default.");
             _experimentalModeConfig = Config.Bind(
                 "UI",
                 "ExperimentalMode",
@@ -52,6 +51,26 @@ namespace RandomLoadout
                 "AmmonomiconFastOpen",
                 false,
                 "Enable or disable fast-open for the Ammonomicon. When enabled, the opening animation is skipped.");
+            _mapTeleportVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableMapTeleportVerboseLogs",
+                false,
+                "Enable verbose Reveal Map diagnostic logs, including teleporter-promotion sampling. Keep disabled for normal play and enable only when debugging map or teleporter behavior.");
+            _muncherVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableMuncherVerboseLogs",
+                false,
+                "Enable verbose Gunber / Evil Muncher spawn diagnostic logs. Keep disabled for normal play and enable only when debugging muncher spawn, placement, or room-registration behavior.");
+            _floorTeleportVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableFloorTeleportVerboseLogs",
+                false,
+                "Enable verbose floor teleport diagnostic logs, including foyer bootstrap and deferred readiness checks. Keep disabled for normal play and enable only when debugging floor teleport behavior.");
+            _bossRushVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableBossRushVerboseLogs",
+                false,
+                "Enable verbose Boss Rush flow diagnostic logs, including floor readiness and room handoff tracing. Keep disabled for normal play and enable only when debugging Boss Rush runtime behavior.");
             _activeStartItemsPresetConfig = Config.Bind(
                 "StartItems",
                 "ActivePreset",
@@ -74,16 +93,17 @@ namespace RandomLoadout
             _ammonomiconFastOpenToggleService.SetIsFastOpenEnabled(_ammonomiconFastOpenEnabledConfig.Value);
             _playerHealthOverrideService = new PlayerHealthOverrideService(Logger);
             _playerActiveItemCapacityOverrideService = new PlayerActiveItemCapacityOverrideService(Logger);
+            _playerDebugCommandService = new PlayerDebugCommandService(_playerHealthOverrideService);
             _pickupGranter = new EtgPickupGranter();
-            _bossRushService = new BossRushService(Logger);
+            _bossRushService = new BossRushService(Logger, IsBossRushVerboseLoggingEnabled);
             _ruleFileProvider = new JsonLoadoutRuleFileProvider(
                 DashboardFileLayout.GetRulesFilePath(Paths.ConfigPath),
                 DashboardFileLayout.GetPresetsDirectoryPath(Paths.ConfigPath));
             _ruleFileProvider.ActivePresetName = GetActiveStartItemsPreset();
             _commandController = new InGameCommandController(
                 new GrantCommandService(_pickupResolver, _pickupGranter, GetAliasRegistry),
-                new PlayerDebugCommandService(_playerHealthOverrideService),
-                new RoomDebugCommandService(),
+                _playerDebugCommandService,
+                new RoomDebugCommandService(IsMapTeleportVerboseLoggingEnabled, IsMuncherVerboseLoggingEnabled),
                 new FoyerCharacterSwitchService(),
                 _bossRushService,
                 _rapidFireToggleService,
@@ -100,13 +120,15 @@ namespace RandomLoadout
                 GetCommandPanelKey,
                 GetCommandPanelKeyName,
                 SetCommandPanelKey,
-                GetCommandPanelGamepadPreset,
-                SetCommandPanelGamepadPreset,
                 GetUiScalePreset,
                 SetUiScalePreset,
+                IsPlayerStatsPanelShown,
+                SetPlayerStatsPanelShown,
                 IsExperimentalModeEnabled,
                 SetExperimentalModeEnabled,
                 SetAmmonomiconFastOpenEnabled,
+                IsMapTeleportVerboseLoggingEnabled,
+                IsFloorTeleportVerboseLoggingEnabled,
                 BeginDeferredTeleportFromFoyer);
             _ruleDefinitions = new LoadoutRuleDefinition[0];
             _runState = new RunGrantState();
@@ -118,10 +140,15 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Init("Automatic random loadout is " + (_enableRandomLoadoutConfig.Value ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel language preference is " + GetUiLanguage() + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel keyboard toggle key is " + GetCommandPanelKey() + "."));
-            Logger.LogInfo(RandomLoadoutLog.Init("Command panel gamepad preset is " + GetCommandPanelGamepadPreset() + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Command panel gamepad open input is 360 controller R3 short press."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel UI size preset is " + GetUiScalePreset() + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Player stats side panel is " + (IsPlayerStatsPanelShown() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel experimental mode is " + (IsExperimentalModeEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Ammonomicon fast open is " + (IsAmmonomiconFastOpenEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Reveal Map verbose logs are " + (IsMapTeleportVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Muncher verbose logs are " + (IsMuncherVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Floor teleport verbose logs are " + (IsFloorTeleportVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Boss Rush verbose logs are " + (IsBossRushVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Active start-items preset is " + GetActiveStartItemsPreset() + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Boss Rush service initialized. Startup self-check is running."));
             LogBossRushHookSelfCheck(BossRushHooks.Install(_bossRushHarmony, Logger));
@@ -254,12 +281,15 @@ namespace RandomLoadout
 
             LoadoutRuleFileLoadResult ruleFileLoadResult = _ruleFileProvider.Load();
             _ruleDefinitions = ruleFileLoadResult.Definitions;
+            _activePresetPickups = ruleFileLoadResult.ActivePresetPickups ?? new LoadoutRuleFilePickupModel[0];
             Logger.LogInfo(
                 RandomLoadoutLog.Init(
                     "Loaded start-loadout rules. File=" +
                     _ruleFileProvider.FilePath +
                     ", DefinitionCount=" +
                     (_ruleDefinitions != null ? _ruleDefinitions.Length : 0) +
+                    ", PresetPickupCount=" +
+                    _activePresetPickups.Length +
                     "."));
 
             for (int i = 0; i < ruleFileLoadResult.Messages.Length; i++)
@@ -288,6 +318,7 @@ namespace RandomLoadout
             _hasResolvedLoadoutConfig = false;
             _resolvedLoadoutConfig = null;
             _ruleDefinitions = new LoadoutRuleDefinition[0];
+            _activePresetPickups = new LoadoutRuleFilePickupModel[0];
             Logger.LogInfo(RandomLoadoutLog.Init("Invalidated cached start-loadout config. The next automatic grant will reload rules from disk."));
         }
 
@@ -343,23 +374,6 @@ namespace RandomLoadout
             return keyCode != KeyCode.None ? keyCode : KeyCode.F7;
         }
 
-        private string GetCommandPanelGamepadPreset()
-        {
-            return NormalizeCommandPanelGamepadPreset(_commandPanelGamepadPresetConfig != null ? _commandPanelGamepadPresetConfig.Value : "Xbox");
-        }
-
-        private void SetCommandPanelGamepadPreset(string presetName)
-        {
-            string normalized = NormalizeCommandPanelGamepadPreset(presetName);
-            if (_commandPanelGamepadPresetConfig != null)
-            {
-                _commandPanelGamepadPresetConfig.Value = normalized;
-                Config.Save();
-            }
-
-            Logger.LogInfo(RandomLoadoutLog.Command("Command panel gamepad preset changed to " + normalized + "."));
-        }
-
         private string GetCommandPanelKeyName()
         {
             string keyName = _commandPanelKeyConfig != null ? _commandPanelKeyConfig.Value : "F7";
@@ -400,6 +414,22 @@ namespace RandomLoadout
             return _experimentalModeConfig != null && _experimentalModeConfig.Value;
         }
 
+        private bool IsPlayerStatsPanelShown()
+        {
+            return _showPlayerStatsPanelConfig != null && _showPlayerStatsPanelConfig.Value;
+        }
+
+        private void SetPlayerStatsPanelShown(bool isEnabled)
+        {
+            if (_showPlayerStatsPanelConfig != null)
+            {
+                _showPlayerStatsPanelConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Player stats side panel " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
         private void SetExperimentalModeEnabled(bool isEnabled)
         {
             if (_experimentalModeConfig != null)
@@ -438,6 +468,26 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Command("Ammonomicon fast open " + (isEnabled ? "enabled" : "disabled") + "."));
         }
 
+        private bool IsMapTeleportVerboseLoggingEnabled()
+        {
+            return _mapTeleportVerboseLogsConfig != null && _mapTeleportVerboseLogsConfig.Value;
+        }
+
+        private bool IsMuncherVerboseLoggingEnabled()
+        {
+            return _muncherVerboseLogsConfig != null && _muncherVerboseLogsConfig.Value;
+        }
+
+        private bool IsFloorTeleportVerboseLoggingEnabled()
+        {
+            return _floorTeleportVerboseLogsConfig != null && _floorTeleportVerboseLogsConfig.Value;
+        }
+
+        private bool IsBossRushVerboseLoggingEnabled()
+        {
+            return _bossRushVerboseLogsConfig != null && _bossRushVerboseLogsConfig.Value;
+        }
+
         private string NormalizeUiScalePreset(string presetName)
         {
             string normalized = UiScalePresetCatalog.Normalize(presetName);
@@ -462,22 +512,6 @@ namespace RandomLoadout
             return "F7";
         }
 
-        private string NormalizeCommandPanelGamepadPreset(string presetName)
-        {
-            string normalized = string.IsNullOrEmpty(presetName) ? "Xbox" : presetName.Trim();
-            if (string.Equals(normalized, "Xbox", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return "Xbox";
-            }
-
-            if (string.Equals(normalized, "Legacy", System.StringComparison.OrdinalIgnoreCase))
-            {
-                return "Legacy";
-            }
-
-            Logger.LogWarning(RandomLoadoutLog.Init("Invalid command panel gamepad preset '" + normalized + "'. Falling back to Xbox."));
-            return "Xbox";
-        }
 
         private static KeyCode ParseCommandPanelKey(string keyName)
         {

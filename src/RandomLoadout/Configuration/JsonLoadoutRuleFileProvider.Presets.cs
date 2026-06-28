@@ -16,6 +16,17 @@ namespace RandomLoadout
             return new LoadoutRuleFileRuleModel[0];
         }
 
+        internal LoadoutRuleFilePickupModel[] GetActivePresetPickups(LoadoutRuleFileModel fileModel, List<string> messages)
+        {
+            LoadoutRuleFilePresetModel preset = GetActivePreset(fileModel);
+            if (preset != null)
+            {
+                return StartItemPickupCatalog.MergePickups(preset.Pickups);
+            }
+
+            return new LoadoutRuleFilePickupModel[0];
+        }
+
         internal LoadoutRuleFilePresetModel GetActivePreset(LoadoutRuleFileModel fileModel)
         {
             LoadoutRuleFilePresetModel activePreset = GetPreset(fileModel, ActivePresetName);
@@ -82,6 +93,7 @@ namespace RandomLoadout
                 Name = string.Empty,
                 DisplayNameKey = string.Empty,
                 Rules = new LoadoutRuleFileRuleModel[0],
+                Pickups = new LoadoutRuleFilePickupModel[0],
             };
             presets.Add(activePreset);
             fileModel.Presets = presets.ToArray();

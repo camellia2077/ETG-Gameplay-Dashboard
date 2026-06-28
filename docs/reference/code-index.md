@@ -58,7 +58,7 @@ All in-game command-panel work starts in `src/RandomLoadout/Commands/`.
 | `InGameCommandController.State.cs` | UI state, selected page/category, controller-focus state, dimensions, colors, cached data |
 | `InGameCommandController.Styles.cs` | IMGUI styles |
 | `InGameCommandController.CommandPage.cs` | main command page layout, top-level controls, and first-stage controller navigation routing |
-| `InGameCommandController.CommandActions.cs` | general command button actions |
+| `InGameCommandController.CommandActions.cs` | general command button actions, including `Reveal Map` and its teleporter-promotion path |
 | `InGameCommandController.Teleport.cs` | teleport picker UI, floor resolution, and `load_level` runtime handoff |
 | `InGameCommandController.CharacterPage.cs` | character tab layout |
 | `InGameCommandController.CharacterActions.cs` | character-related actions |
@@ -69,7 +69,7 @@ All in-game command-panel work starts in `src/RandomLoadout/Commands/`.
 | `InGameCommandController.PickupBrowser.cs` | item browser, filters, item cards, add/select modes |
 | `InGameCommandController.LoadoutEditor.cs` | Start Items and preset editor UI |
 | `InGameCommandController.About.cs` | About / Credits page |
-| `InGameCommandController.Settings.cs` | settings page layout, keyboard key config, gamepad preset config, and first-stage controller navigation routing |
+| `InGameCommandController.Settings.cs` | settings page layout, keyboard key config, and first-stage controller navigation routing |
 
 Supporting services:
 
@@ -79,7 +79,7 @@ Supporting services:
 | `PlayerDebugCommandService.cs` | player debug operations |
 | `PlayerRuntimeOverrideServiceBase.cs` | shared skeleton for player runtime property override services |
 | `PlayerHealthOverrideService.cs` | runtime max-health override tracking and rollback restoration |
-| `RoomDebugCommandService.cs` | room-level debug operations such as spawning chests |
+| `RoomDebugCommandService.cs` | room-level debug operations such as spawning chests, Gunber Muncher (常规吃枪怪) / Evil Muncher (邪恶吃枪怪), map reveal, and teleporter-point promotion |
 | `RapidFireToggleService.cs` | rapid fire toggle |
 | `AutoReloadToggleService.cs` | auto reload toggle |
 | `AmmoModeToggleService.cs` | ammo mode toggle and locked-ammo behavior |
@@ -90,6 +90,8 @@ Supporting services:
 Read next:
 
 - [Commands](./commands.md)
+- [Muncher Spawn](./runtime-internals/muncher-spawn.md)
+- [Map Reveal And Teleporter Promotion](./map-teleport.md)
 - [Localization And Language Switching](./localization.md)
 - [Runtime Property Overrides](../architecture/runtime-property-overrides.md)
 - [Testing Matrix](./testing-matrix.md)

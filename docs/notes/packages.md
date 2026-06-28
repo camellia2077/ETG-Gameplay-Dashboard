@@ -9,11 +9,11 @@ python .\tools\release\build_release_package.py
 
 python .\tools\release\build_release_package.py --configuration Release
 
-独立安装包：
+## 独立安装包：
 
 python .\tools\release\build_release_package.py --package standalone
 
-Mod 启动器包：
+## Mod 启动器包：
 
 python .\tools\release\build_release_package.py --package mod-manager
 

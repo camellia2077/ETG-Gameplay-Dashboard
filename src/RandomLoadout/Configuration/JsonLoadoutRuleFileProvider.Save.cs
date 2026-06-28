@@ -9,6 +9,7 @@ namespace RandomLoadout
         {
             LoadoutRuleFilePresetModel safePreset = preset ?? new LoadoutRuleFilePresetModel();
             LoadoutRuleFileRuleModel[] rules = safePreset.Rules ?? new LoadoutRuleFileRuleModel[0];
+            LoadoutRuleFilePickupModel[] pickups = safePreset.Pickups ?? new LoadoutRuleFilePickupModel[0];
 
             StringBuilder builder = new StringBuilder();
             builder.AppendLine("{");
@@ -30,7 +31,8 @@ namespace RandomLoadout
                 builder.AppendLine(i < rules.Length - 1 ? "," : string.Empty);
             }
 
-            builder.AppendLine("  ]");
+            builder.AppendLine("  ],");
+            builder.AppendLine("  \"pickups\": " + FormatPickupArray(pickups));
             builder.AppendLine("}");
             return builder.ToString();
         }
@@ -111,6 +113,42 @@ namespace RandomLoadout
                 builder.Append("\"");
                 builder.Append(EscapeJsonString(values[i]));
                 builder.Append("\"");
+            }
+
+            builder.Append("]");
+            return builder.ToString();
+        }
+
+        private static string FormatPickupArray(LoadoutRuleFilePickupModel[] pickups)
+        {
+            LoadoutRuleFilePickupModel[] mergedPickups = StartItemPickupCatalog.MergePickups(pickups);
+            if (mergedPickups.Length == 0)
+            {
+                return "[]";
+            }
+
+            StringBuilder builder = new StringBuilder();
+            builder.Append("[");
+            bool hasWrittenValue = false;
+            for (int i = 0; i < mergedPickups.Length; i++)
+            {
+                string normalizedType = StartItemPickupCatalog.NormalizeType(mergedPickups[i] != null ? mergedPickups[i].Type : string.Empty);
+                if (string.IsNullOrEmpty(normalizedType))
+                {
+                    continue;
+                }
+
+                if (hasWrittenValue)
+                {
+                    builder.Append(", ");
+                }
+
+                builder.Append("{ \"type\": \"");
+                builder.Append(EscapeJsonString(normalizedType));
+                builder.Append("\", \"count\": ");
+                builder.Append(StartItemPickupCatalog.NormalizeCount(mergedPickups[i] != null ? mergedPickups[i].Count : 1).ToString(CultureInfo.InvariantCulture));
+                builder.Append(" }");
+                hasWrittenValue = true;
             }
 
             builder.Append("]");

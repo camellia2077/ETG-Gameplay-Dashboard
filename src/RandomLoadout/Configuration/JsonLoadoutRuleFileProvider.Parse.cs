@@ -42,7 +42,9 @@ namespace RandomLoadout
             {
                 string presetBody = presetBodies[i];
                 string rulesArrayBody = ExtractPropertyArrayBody(presetBody, "rules");
-                if (string.IsNullOrEmpty(rulesArrayBody) && !ContainsArrayProperty(presetBody, "rules"))
+                if (string.IsNullOrEmpty(rulesArrayBody) &&
+                    !ContainsArrayProperty(presetBody, "rules") &&
+                    !ContainsArrayProperty(presetBody, "pickups"))
                 {
                     continue;
                 }
@@ -57,6 +59,7 @@ namespace RandomLoadout
                         DisplayNameKey = StartItemsPresetNames.NormalizePresetName(displayNameKey),
                         Name = StartItemsPresetNames.NormalizePresetName(name),
                         Rules = ParseRulesFromArrayBody(rulesArrayBody),
+                        Pickups = ParsePresetPickups(presetBody),
                     });
             }
 
@@ -93,6 +96,51 @@ namespace RandomLoadout
             rule.PoolAliases = ParseStringArray(body, "poolAliases");
             rule.Pool = ParseStringArray(body, "pool");
             return rule;
+        }
+
+        private static LoadoutRuleFilePickupModel[] ParsePresetPickups(string body)
+        {
+            List<LoadoutRuleFilePickupModel> pickups = new List<LoadoutRuleFilePickupModel>();
+            string pickupArrayBody = ExtractPropertyArrayBody(body, "pickups");
+            if (string.IsNullOrEmpty(pickupArrayBody) && !ContainsArrayProperty(body, "pickups"))
+            {
+                return pickups.ToArray();
+            }
+
+            List<string> pickupBodies = ExtractObjectBodies(pickupArrayBody);
+            if (pickupBodies.Count == 0)
+            {
+                string[] pickupTypes = ParseStringArray(body, "pickups");
+                for (int i = 0; i < pickupTypes.Length; i++)
+                {
+                    string normalizedType = StartItemPickupCatalog.NormalizeType(pickupTypes[i]);
+                    if (string.IsNullOrEmpty(normalizedType))
+                    {
+                        continue;
+                    }
+
+                    pickups.Add(new LoadoutRuleFilePickupModel { Type = normalizedType, Count = 1 });
+                }
+            }
+
+            for (int i = 0; i < pickupBodies.Count; i++)
+            {
+                string pickupBody = pickupBodies[i];
+                string normalizedType = StartItemPickupCatalog.NormalizeType(ParseString(pickupBody, "type"));
+                if (string.IsNullOrEmpty(normalizedType))
+                {
+                    continue;
+                }
+
+                pickups.Add(
+                    new LoadoutRuleFilePickupModel
+                    {
+                        Type = normalizedType,
+                        Count = StartItemPickupCatalog.NormalizeCount(ParseInt(pickupBody, "count", 1)),
+                    });
+            }
+
+            return StartItemPickupCatalog.MergePickups(pickups.ToArray());
         }
 
         private static string ExtractPropertyArrayBody(string rawJson, string propertyName)

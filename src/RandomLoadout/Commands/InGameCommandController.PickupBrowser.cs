@@ -266,7 +266,7 @@ namespace RandomLoadout
             }
 
             Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (matches.Length * PickupRowHeight) + 4f);
-            _pickupScrollPosition = GUI.BeginScrollView(listRect, _pickupScrollPosition, viewRect);
+            _pickupScrollPosition = BeginCommandScrollView(listRect, _pickupScrollPosition, viewRect);
             for (int i = 0; i < matches.Length; i++)
             {
                 DrawPickupRow(new Rect(0f, 2f + (i * PickupRowHeight), viewRect.width, PickupRowHeight - 4f), matches[i], player, logger);

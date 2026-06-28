@@ -16,8 +16,7 @@ Before changing command UI, pickup grant behavior, Boss Rush entry flow, or char
 ### Command Panel
 
 - Press the configured command-panel key to open or close the command panel. The default is `F7`; change `[UI] CommandPanelKey` in `randomgun.randomloadout.cfg` to another Unity `KeyCode` name such as `F8`, `Insert`, or `BackQuote`.
-- The panel also supports a fixed gamepad shortcut: `Back/Select + Start`.
-- The gamepad shortcut uses a preset-selected Unity joystick mapping. `Xbox` uses `JoystickButton6 + JoystickButton7`; `Legacy` uses `JoystickButton8 + JoystickButton9`.
+- The panel also supports opening from a 360 controller by pressing `R3`.
 - The panel is positioned near the bottom center of the screen to avoid the top-left HUD.
 - The UI uses a darker ETG-friendly color scheme with clearer text sizing.
 - The command page can show a separate side stats panel with current player vitals and combat stats from `HealthHaver` and `PlayerStats`.
@@ -25,14 +24,14 @@ Before changing command UI, pickup grant behavior, Boss Rush entry flow, or char
 
 ### Current Gamepad Support
 
-- Opening and closing the command panel is supported from a gamepad through `Back/Select + Start`.
-- The `Settings` page shows both the fixed shortcut text and the active gamepad preset.
+- Opening the command panel is supported from 360 controller `R3` short press.
+- The `Settings` page no longer exposes a gamepad-open binding selector.
 - Basic gamepad navigation currently exists only on the `Command` and `Settings` pages.
 - On those two pages, the current intended control scheme is:
-  - left stick or d-pad style horizontal/vertical input moves focus
+  - d-pad style horizontal/vertical input moves focus
   - `A` confirms the focused button
   - `B` goes back or closes the current page
-  - `LB` and `RB` switch categories on the main `Command` page
+  - `LB` switches categories on the main `Command` page
 - Text-entry interactions are still keyboard/mouse-first. Opening the panel from a gamepad does not make the command input field or pickup-browser search field practical to use from a controller yet.
 - Subpages that rely on larger lists or more complex layouts, such as pickup browsing and editor-style pages, do not yet have full gamepad navigation support.
 
@@ -90,13 +89,15 @@ Recommended input style:
 - `Lang Auto` / `Lang EN` / `Lang CN`
   Cycles the command panel language preference through `auto`, `en`, and `zh-CN`, then persists it to `randomgun.randomloadout.cfg` under `[UI] Language`.
 - `Settings`
-  Opens panel preferences. The current settings page includes keyboard key selection, a read-only gamepad shortcut label, a gamepad preset selector, UI size, language, and experimental-mode controls.
+  Opens panel preferences. The current settings page includes keyboard key selection, UI size, language, and experimental-mode controls.
 - `Currency`
   Opens the resource-actions submenu.
 - `Room`
   Opens the room-tools submenu.
 - `Teleport`
   Opens a separate left-side floor picker. Each row loads one configured floor through the same vanilla level-load route as the console `load_level` flow.
+- `Reveal Map`
+  Runs the current-floor minimap reveal pass and promotes teleporter-capable rooms toward a usable teleport state. This is not the same thing as reproducing the exact vanilla minimap-discovery visuals for every room.
 
 ### Pickup Browser
 
@@ -161,6 +162,10 @@ In the `Room` submenu:
 
 - `Enemies -> Refresh Room Enemies`
   Replays the current room's predefined enemy setup after the room has been cleared. This v1 behavior is backed by the room reset path and does not guarantee the exact same formation, positions, or reinforcement timing as the first room entry.
+- `Spawn Gunber Muncher`
+  Spawns the vanilla Gunber Muncher (常规吃枪怪) actor directly into the current room. This is a custom runtime spawn path, not a full recreation of the original muncher room.
+- `Spawn Evil Muncher`
+  Spawns the vanilla Evil Muncher (邪恶吃枪怪) actor directly into the current room. This follows the same non-standard runtime integration as Gunber Muncher, but resolves from a different vanilla asset bundle.
 - chest tier buttons
   Selects the chest tier for the next spawn. Current v1 options are `Brown`, `Blue`, `Green`, `Red`, `Black`, `Synergy`, and `Rainbow`.
 - `Spawn Chest`
@@ -196,6 +201,23 @@ Implementation notes:
   `load_level ratden` must resolve to `ss_resourcefulrat`, not `tt_resourcefulrat`.
 - The Rat Den mapping was verified against upstream `Load-Level` / `ETGModConsole` behavior. Using the wrong scene name can appear to "work" while actually loading the wrong floor or failing mid-transition.
 - When changing teleport mappings, always verify the actual destination in-game and re-check the BepInEx log after testing.
+
+### Reveal Map
+
+The `General` page now also exposes `Reveal Map`.
+
+High-level behavior:
+
+- `Reveal Map`
+  Pushes the current floor through the minimap reveal path and also promotes already-registered teleporter rooms toward a usable teleport state.
+
+Important caveat:
+
+- `Reveal Map` reflects the gameplay result more than the exact minimap presentation. A room can become teleport-usable without fully matching the natural "player walked into this room" minimap state.
+
+Implementation reference:
+
+- [Map Reveal And Teleporter Promotion](./map-teleport.md)
 
 ### Boss Rush Page
 
@@ -261,6 +283,7 @@ Resolution priority:
 ### Implementation References
 
 - [ModTheGungeonAPI Reference](./modthegungeonapi.md)
+- [Muncher Spawn](./runtime-internals/muncher-spawn.md)
 - [Localization And Language Switching](./localization.md)
 - [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)
 - [Character Switch Strategy](../decisions/character-switch-strategy.md)

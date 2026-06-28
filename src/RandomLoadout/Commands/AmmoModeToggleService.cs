@@ -23,15 +23,14 @@ namespace RandomLoadout
         {
             if (_mode == AmmoMode.Off)
             {
-                _mode = AmmoMode.NoConsume;
-                return GrantCommandExecutionResult.Localized(true, "result.ammo_mode.no_consume.success");
+                _mode = AmmoMode.InfiniteReserve;
+                return GrantCommandExecutionResult.Localized(true, "result.ammo_mode.infinite_reserve.success");
             }
 
-            if (_mode == AmmoMode.NoConsume)
+            if (_mode == AmmoMode.InfiniteReserve)
             {
-                _mode = AmmoMode.InfiniteReserve;
-                ClearTrackedState();
-                return GrantCommandExecutionResult.Localized(true, "result.ammo_mode.infinite_reserve.success");
+                _mode = AmmoMode.NoConsume;
+                return GrantCommandExecutionResult.Localized(true, "result.ammo_mode.no_consume.success");
             }
 
             _mode = AmmoMode.Off;

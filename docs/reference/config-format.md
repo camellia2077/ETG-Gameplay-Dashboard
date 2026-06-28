@@ -58,6 +58,13 @@ Each preset object supports:
 - `display_name_key`: optional localization key for built-in presets
 - `name`: optional plain display name for custom presets
 - `rules`: required array of Start Items rules, which may be empty
+- `pickups`: optional array of preset pickup objects such as `{ "type": "key", "count": 1 }`
+
+For `pickups`:
+
+- Duplicate pickup `type` entries are merged automatically when loaded and saved
+- `count` is stored by grant units, not always the raw in-game amount
+- `casings` uses fixed bundles where `count: 1` means one grant of `50` casings
 
 Display priority is:
 
@@ -117,6 +124,11 @@ Use `name` when the preset should always display exactly what the author typed:
       "id": 108,
     },
   ],
+  "pickups": [
+    { "type": "key", "count": 1 },
+    { "type": "armor", "count": 2 },
+    { "type": "casings", "count": 1 },
+  ],
 }
 ```
 
@@ -133,6 +145,10 @@ Use `name` when the preset should always display exactly what the author typed:
       "category": "active",
       "id": 108,
     },
+  ],
+  "pickups": [
+    { "type": "key", "count": 1 },
+    { "type": "casings", "count": 2 },
   ],
 }
 ```
@@ -203,13 +219,12 @@ names come from localization keys in the preset JSON, not from a hard-coded bili
 
 ## Command Panel Config
 
-The command panel language, keyboard toggle key, and gamepad preset are stored in `randomgun.randomloadout.cfg`:
+The command panel language and keyboard toggle key are stored in `randomgun.randomloadout.cfg`:
 
 ```ini
 [UI]
 Language = auto
 CommandPanelKey = F7
-CommandPanelGamepadPreset = Xbox
 ```
 
 Supported language values:
@@ -224,16 +239,8 @@ files, while pickup names still come from the runtime pickup catalog. See
 
 Use a Unity `KeyCode` name such as `F7`, `F8`, `Insert`, or `BackQuote`. Invalid values fall back to `F7`.
 
-Supported gamepad preset values:
-
-- `Xbox`
-- `Legacy`
-
-`Xbox` is the repository default. Both presets keep the same player-facing shortcut text, `Back/Select + Start`, but
-map it to different Unity joystick button numbers:
-
-- `Xbox` -> `JoystickButton6 + JoystickButton7`
-- `Legacy` -> `JoystickButton8 + JoystickButton9`
+The gamepad open input is fixed to 360 controller `R3` short press (`JoystickButton9`). The command panel no longer exposes a
+configurable gamepad-open button.
 
 ## Example: Aliases
 
@@ -251,6 +258,6 @@ map it to different Unity joystick button numbers:
 - Missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `RandomLoadout.rules.full-pool.json5`, then to built-in defaults.
 - `UI.Language` accepts `auto`, `en`, or `zh-CN`.
 - `UI.CommandPanelKey` chooses the key that opens and closes the in-game command panel.
-- `UI.CommandPanelGamepadPreset` chooses which Unity joystick-button mapping is used for the fixed `Back/Select + Start` shortcut.
+- The in-game command panel opens from 360 controller `R3` short press and is not configurable.
 - `StartItems.ActivePreset` stores the active preset id, not the localized display text.
 - Missing or invalid `ETG-Gameplay-Dashboard.aliases.json5` falls back to built-in default aliases.

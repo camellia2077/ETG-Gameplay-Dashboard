@@ -46,19 +46,12 @@ namespace RandomLoadout
                 delegate { ExecuteCycleCommandPanelKey(logger); });
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 68f, rowWidth, 34f),
-                "settings.gamepad_shortcut",
-                GuiText.Get("gui.settings.setting.gamepad_shortcut"),
-                GuiText.Get("gui.settings.value.gamepad_shortcut"),
-                string.Empty,
-                null);
-            DrawSettingsActionRow(
-                new Rect(left, rowTop + 108f, rowWidth, 34f),
-                "settings.gamepad_preset",
-                GuiText.Get("gui.settings.setting.gamepad_preset"),
-                GetGamepadPresetDisplayName(GetConfiguredGamepadPreset()),
-                delegate { ExecuteCycleGamepadPreset(logger); });
+                "settings.controller_help",
+                GuiText.Get("gui.settings.setting.controller_help"),
+                GuiText.Get("gui.settings.value.controller_help"),
+                delegate { OpenControllerHelpPage(); });
 
-            rowTop += 174f;
+            rowTop += 134f;
             DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.display"));
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 28f, rowWidth, 34f),
@@ -82,6 +75,38 @@ namespace RandomLoadout
                 GetOnOffStatusLabel(IsExperimentalModeEnabled()),
                 GetExperimentalModeButtonLabel(),
                 delegate { ExecuteExperimentalModeToggle(logger); });
+            GUI.Label(
+                new Rect(left, rowTop + 74f, rowWidth, 20f),
+                GuiText.Get("gui.settings.version", Plugin.VERSION),
+                _settingsInfoTextStyle);
+            GUI.Label(
+                new Rect(left, rowTop + 98f, rowWidth, 20f),
+                GuiText.Get("gui.settings.author"),
+                _settingsInfoTextStyle);
+            GUI.Label(
+                new Rect(left, rowTop + 122f, rowWidth, 20f),
+                GuiText.Get("gui.settings.author_github"),
+                _settingsInfoTextStyle);
+            GUI.Label(
+                new Rect(left, rowTop + 146f, rowWidth, 20f),
+                GuiText.Get("gui.settings.repo"),
+                _settingsInfoTextStyle);
+            GUI.Label(
+                new Rect(left, rowTop + 170f, rowWidth, 20f),
+                GuiText.Get("gui.settings.releases"),
+                _settingsInfoTextStyle);
+            GUI.Label(
+                new Rect(left, rowTop + 194f, rowWidth, 20f),
+                GetProjectDisclaimerText(),
+                _settingsInfoTextStyle);
+        }
+
+        private static string GetProjectDisclaimerText()
+        {
+            return GetLocalizedFallback(
+                string.Empty,
+                "This project is open source, free, and ad-free. Resale is prohibited.",
+                "本项目开源、免费、无广告，禁止倒卖。");
         }
 
         private void DrawSettingsSectionLabel(float left, float top, float width, string text)
@@ -234,22 +259,6 @@ namespace RandomLoadout
             return _toggleKeyNameProvider != null ? _toggleKeyNameProvider() : "F7";
         }
 
-        private void ExecuteCycleGamepadPreset(ManualLogSource logger)
-        {
-            if (_gamepadPresetSetter == null)
-            {
-                return;
-            }
-
-            string nextPreset = GetNextGamepadPresetName(GetConfiguredGamepadPreset());
-            _gamepadPresetSetter(nextPreset);
-            ShowStatus(GuiText.Get("result.command_panel_gamepad_preset.changed", GetGamepadPresetDisplayName(nextPreset)), false);
-            if (logger != null)
-            {
-                logger.LogInfo(RandomLoadoutLog.Command(GuiText.GetEnglish("result.command_panel_gamepad_preset.changed", GetEnglishGamepadPresetDisplayName(nextPreset))));
-            }
-        }
-
         private void ExecuteCycleUiScalePreset(ManualLogSource logger)
         {
             if (_uiScalePresetSetter == null)
@@ -284,20 +293,6 @@ namespace RandomLoadout
         private static string GetEnglishUiScalePresetDisplayName(string presetName)
         {
             return UiScalePresetCatalog.GetEnglishDisplayName(presetName);
-        }
-
-        private static string GetGamepadPresetDisplayName(string presetName)
-        {
-            return string.Equals(GetNormalizedGamepadPresetName(presetName), "Legacy", System.StringComparison.OrdinalIgnoreCase)
-                ? GuiText.Get("gui.settings.gamepad_preset.legacy")
-                : GuiText.Get("gui.settings.gamepad_preset.xbox");
-        }
-
-        private static string GetEnglishGamepadPresetDisplayName(string presetName)
-        {
-            return string.Equals(GetNormalizedGamepadPresetName(presetName), "Legacy", System.StringComparison.OrdinalIgnoreCase)
-                ? GuiText.GetEnglish("gui.settings.gamepad_preset.legacy")
-                : GuiText.GetEnglish("gui.settings.gamepad_preset.xbox");
         }
 
         private static string GetUiScaleChangedMessage(string presetName)
@@ -339,31 +334,9 @@ namespace RandomLoadout
             return CommandPanelKeyOptions[0];
         }
 
-        private static string GetNextGamepadPresetName(string currentPresetName)
-        {
-            string normalized = GetNormalizedGamepadPresetName(currentPresetName);
-            for (int i = 0; i < GamepadPresetOptions.Length; i++)
-            {
-                if (string.Equals(GamepadPresetOptions[i], normalized, System.StringComparison.OrdinalIgnoreCase))
-                {
-                    return GamepadPresetOptions[(i + 1) % GamepadPresetOptions.Length];
-                }
-            }
-
-            return GamepadPresetOptions[0];
-        }
-
         private ControllerFocusEntry[] GetSettingsPageFocusEntries()
         {
-            return new[]
-            {
-                new ControllerFocusEntry("settings.back", 0, 0),
-                new ControllerFocusEntry("settings.toggle_key", 1, 0),
-                new ControllerFocusEntry("settings.gamepad_preset", 2, 0),
-                new ControllerFocusEntry("settings.ui_scale", 3, 0),
-                new ControllerFocusEntry("settings.language", 4, 0),
-                new ControllerFocusEntry("settings.experimental_mode", 5, 0),
-            };
+            return SettingsPageFocusEntries;
         }
 
         private void ExecuteSettingsPageFocusedControl()
@@ -376,8 +349,8 @@ namespace RandomLoadout
                 case "settings.toggle_key":
                     ExecuteCycleCommandPanelKey(null);
                     return;
-                case "settings.gamepad_preset":
-                    ExecuteCycleGamepadPreset(null);
+                case "settings.controller_help":
+                    OpenControllerHelpPage();
                     return;
                 case "settings.ui_scale":
                     ExecuteCycleUiScalePreset(null);

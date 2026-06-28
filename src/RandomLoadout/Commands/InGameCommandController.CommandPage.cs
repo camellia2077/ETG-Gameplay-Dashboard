@@ -95,10 +95,6 @@ namespace RandomLoadout
                 Submit(player, logger);
             }
 
-            GUI.Label(
-                new Rect(panelRect.x + 14f, panelRect.y + panelRect.height - 28f, panelRect.width - 28f, 20f),
-                GuiText.Get("gui.command.hint.submit"),
-                _hintStyle);
         }
 
         private float GetCommandPanelHeight()
@@ -120,7 +116,7 @@ namespace RandomLoadout
                 case CommandMenuCategory.Player:
                     return 3;
                 case CommandMenuCategory.Room:
-                    return 4;
+                    return 5;
                 case CommandMenuCategory.General:
                 default:
                     return 2;
@@ -166,7 +162,7 @@ namespace RandomLoadout
 
                 if (DrawControllerButton(new Rect(fourthColumnX, firstRowY, buttonWidth, controlHeight), "cmd.general.teleport", GuiText.Get("gui.command.button.teleport"), _buttonStyle))
                 {
-                    _showTeleportPanel = !_showTeleportPanel;
+                    ToggleTeleportPanel();
                 }
 
                 if (DrawControllerButton(new Rect(contentRect.x, secondRowY, buttonWidth, controlHeight), "cmd.general.characters", GuiText.Get("gui.command.button.characters"), _buttonStyle))
@@ -177,6 +173,12 @@ namespace RandomLoadout
                 if (DrawControllerButton(new Rect(secondColumnX, secondRowY, buttonWidth, controlHeight), "cmd.general.boss_rush", GuiText.Get("gui.command.button.boss_rush"), _buttonStyle))
                 {
                     OpenBossRushPage(logger);
+                }
+
+                GUIStyle revealMapButtonStyle = IsRevealMapActive() ? _enabledButtonStyle : _buttonStyle;
+                if (DrawControllerButton(new Rect(thirdColumnX, secondRowY, buttonWidth, controlHeight), "cmd.general.reveal_map", GetLocalizedFallback("gui.command.button.reveal_map", "Reveal Map", "地图全开"), revealMapButtonStyle))
+                {
+                    ExecuteRevealCurrentFloorMap(player, logger);
                 }
 
                 return;
@@ -233,9 +235,10 @@ namespace RandomLoadout
             string statsButtonLabel = _showPlayerStatsPanel
                 ? GuiText.Get("gui.command.button.stats_on")
                 : GuiText.Get("gui.command.button.stats_off");
-            if (DrawControllerButton(new Rect(secondColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.player.stats", statsButtonLabel, _buttonStyle))
+            GUIStyle statsButtonStyle = _showPlayerStatsPanel ? _enabledButtonStyle : _buttonStyle;
+            if (DrawControllerButton(new Rect(secondColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.player.stats", statsButtonLabel, statsButtonStyle))
             {
-                _showPlayerStatsPanel = !_showPlayerStatsPanel;
+                SetPlayerStatsPanelShown(!_showPlayerStatsPanel);
             }
         }
 
@@ -249,50 +252,29 @@ namespace RandomLoadout
             float secondRowY = firstRowY + controlHeight + ButtonGap;
             float thirdRowY = secondRowY + controlHeight + ButtonGap;
 
-            DrawCombatSettingRow(
-                new Rect(contentRect.x, firstRowY, settingColumnWidth, controlHeight),
-                "cmd.combat.rapid",
-                GetLocalizedFallback("gui.command.setting.rapid", "Hold Rapid", "\u6309\u4f4f\u8fde\u53d1"),
-                GetOnOffStatusLabel(_rapidFireToggleService != null && _rapidFireToggleService.IsEnabledFor(player)),
+            DrawCombatSettingRows(
+                new[]
+                {
+                    CreateRapidFireCombatSetting(
+                        new Rect(contentRect.x, firstRowY, settingColumnWidth, controlHeight),
+                        player,
+                        logger),
+                    CreateAutoReloadCombatSetting(
+                        new Rect(secondSettingColumnX, firstRowY, settingColumnWidth, controlHeight),
+                        logger),
+                    CreateAmmoModeCombatSetting(
+                        new Rect(contentRect.x, secondRowY, settingColumnWidth, controlHeight),
+                        logger),
+                    CreateInvincibilityCombatSetting(
+                        new Rect(secondSettingColumnX, secondRowY, settingColumnWidth, controlHeight),
+                        player,
+                        logger),
+                    CreateAmmonomiconCombatSetting(
+                        new Rect(contentRect.x, thirdRowY, settingColumnWidth, controlHeight),
+                        logger),
+                },
                 settingLabelWidth,
-                settingButtonWidth,
-                delegate { ExecuteToggleRapidFire(player, logger); });
-
-            DrawCombatSettingRow(
-                new Rect(secondSettingColumnX, firstRowY, settingColumnWidth, controlHeight),
-                "cmd.combat.auto_reload",
-                GetLocalizedFallback("gui.command.setting.auto_reload", "Auto Reload", "\u81ea\u52a8\u6362\u5f39"),
-                GetAutoReloadStatusLabel(),
-                settingLabelWidth,
-                settingButtonWidth,
-                delegate { ExecuteToggleAutoReload(logger); });
-
-            DrawCombatSettingRow(
-                new Rect(contentRect.x, secondRowY, settingColumnWidth, controlHeight),
-                "cmd.combat.ammo_mode",
-                GetLocalizedFallback("gui.command.setting.ammo_mode", "Ammo Mode", "\u5f39\u836f\u6a21\u5f0f"),
-                GetAmmoModeStatusLabel(),
-                settingLabelWidth,
-                settingButtonWidth,
-                delegate { ExecuteCycleAmmoMode(logger); });
-
-            DrawCombatSettingRow(
-                new Rect(secondSettingColumnX, secondRowY, settingColumnWidth, controlHeight),
-                "cmd.combat.invincible",
-                GetLocalizedFallback("gui.command.setting.invincible", "Invincibility", "\u65e0\u654c"),
-                GetOnOffStatusLabel(_invincibilityToggleService != null && _invincibilityToggleService.IsEnabled),
-                settingLabelWidth,
-                settingButtonWidth,
-                delegate { ExecuteToggleInvincibility(player, logger); });
-
-            DrawCombatSettingRow(
-                new Rect(contentRect.x, thirdRowY, settingColumnWidth, controlHeight),
-                "cmd.combat.ammonomicon",
-                GetLocalizedFallback("gui.command.setting.ammonomicon", "Ammo Book", "\u56fe\u9274"),
-                GetAmmonomiconFastOpenStatusLabel(),
-                settingLabelWidth,
-                settingButtonWidth,
-                delegate { ExecuteToggleAmmonomiconFastOpen(logger); });
+                settingButtonWidth);
 
             if (DrawControllerButton(new Rect(secondSettingColumnX + settingLabelWidth, thirdRowY, settingButtonWidth, controlHeight), "cmd.combat.full_ammo", GuiText.Get("gui.command.button.full_ammo"), _buttonStyle))
             {
@@ -300,15 +282,81 @@ namespace RandomLoadout
             }
         }
 
-        private void DrawCombatSettingRow(Rect rowRect, string controlId, string label, string status, float labelWidth, float buttonWidth, System.Action onClick)
+        private CombatSettingRow CreateRapidFireCombatSetting(Rect rect, PlayerController player, ManualLogSource logger)
         {
-            GUI.Label(new Rect(rowRect.x, rowRect.y + 7f, labelWidth, 20f), label, _hintStyle);
-            GUIStyle buttonStyle = IsEnabledStatusLabel(status) ? _enabledButtonStyle : _buttonStyle;
-            if (DrawControllerButton(new Rect(rowRect.x + labelWidth, rowRect.y, buttonWidth, rowRect.height), controlId, status, buttonStyle))
+            bool isEnabled = IsRapidFireEnabledFor(player);
+            return new CombatSettingRow(
+                rect,
+                "cmd.combat.rapid",
+                GetLocalizedFallback("gui.command.setting.rapid", "Hold Rapid", "\u6309\u4f4f\u8fde\u53d1"),
+                GetOnOffStatusLabel(isEnabled),
+                isEnabled,
+                delegate { ExecuteToggleRapidFire(player, logger); });
+        }
+
+        private CombatSettingRow CreateAutoReloadCombatSetting(Rect rect, ManualLogSource logger)
+        {
+            return new CombatSettingRow(
+                rect,
+                "cmd.combat.auto_reload",
+                GetLocalizedFallback("gui.command.setting.auto_reload", "Auto Reload", "\u81ea\u52a8\u6362\u5f39"),
+                GetAutoReloadStatusLabel(),
+                IsAutoReloadEnabled(),
+                delegate { ExecuteToggleAutoReload(logger); });
+        }
+
+        private CombatSettingRow CreateAmmoModeCombatSetting(Rect rect, ManualLogSource logger)
+        {
+            return new CombatSettingRow(
+                rect,
+                "cmd.combat.ammo_mode",
+                GetLocalizedFallback("gui.command.setting.ammo_mode", "Ammo Mode", "\u5f39\u836f\u6a21\u5f0f"),
+                GetAmmoModeStatusLabel(),
+                IsAmmoModeEnabled(),
+                delegate { ExecuteCycleAmmoMode(logger); });
+        }
+
+        private CombatSettingRow CreateInvincibilityCombatSetting(Rect rect, PlayerController player, ManualLogSource logger)
+        {
+            bool isEnabled = IsInvincibilityEnabled();
+            return new CombatSettingRow(
+                rect,
+                "cmd.combat.invincible",
+                GetLocalizedFallback("gui.command.setting.invincible", "Invincibility", "\u65e0\u654c"),
+                GetOnOffStatusLabel(isEnabled),
+                isEnabled,
+                delegate { ExecuteToggleInvincibility(player, logger); });
+        }
+
+        private CombatSettingRow CreateAmmonomiconCombatSetting(Rect rect, ManualLogSource logger)
+        {
+            bool isEnabled = IsAmmonomiconFastOpenEnabled();
+            return new CombatSettingRow(
+                rect,
+                "cmd.combat.ammonomicon",
+                GetLocalizedFallback("gui.command.setting.ammonomicon", "Ammo Book", "\u56fe\u9274"),
+                GetAmmonomiconFastOpenStatusLabel(),
+                isEnabled,
+                delegate { ExecuteToggleAmmonomiconFastOpen(logger); });
+        }
+
+        private void DrawCombatSettingRows(CombatSettingRow[] rows, float labelWidth, float buttonWidth)
+        {
+            for (int index = 0; index < rows.Length; index++)
             {
-                if (onClick != null)
+                DrawCombatSettingRow(rows[index], labelWidth, buttonWidth);
+            }
+        }
+
+        private void DrawCombatSettingRow(CombatSettingRow row, float labelWidth, float buttonWidth)
+        {
+            GUI.Label(new Rect(row.Rect.x, row.Rect.y + 7f, labelWidth, 20f), row.Label, _hintStyle);
+            GUIStyle buttonStyle = row.IsActive ? _enabledButtonStyle : _buttonStyle;
+            if (DrawControllerButton(new Rect(row.Rect.x + labelWidth, row.Rect.y, buttonWidth, row.Rect.height), row.ControlId, row.Status, buttonStyle))
+            {
+                if (row.OnClick != null)
                 {
-                    onClick();
+                    row.OnClick();
                 }
             }
         }
@@ -348,203 +396,19 @@ namespace RandomLoadout
             return false;
         }
 
-        private void DrawRoomContent(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
-        {
-            const float sectionButtonWidth = 92f;
-            const float sectionButtonHeight = 28f;
-            bool experimentalModeEnabled = IsExperimentalModeEnabled();
-            Rect chestSectionRect = new Rect(contentRect.x, contentRect.y, sectionButtonWidth, sectionButtonHeight);
-            Rect enemiesSectionRect = new Rect(chestSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
-            Rect stateSectionRect = new Rect(enemiesSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
-            DrawRoomSectionButton(chestSectionRect, RoomMenuSection.Chest, GetLocalizedFallback("gui.room.section.chest", "Chest", "宝箱"));
-            DrawRoomSectionButton(enemiesSectionRect, RoomMenuSection.Enemies, GetLocalizedFallback("gui.room.section.enemies", "Enemies", "怪物"), experimentalModeEnabled);
-            DrawRoomSectionButton(stateSectionRect, RoomMenuSection.State, GetLocalizedFallback("gui.room.section.state", "State", "状态"), experimentalModeEnabled);
-
-            Rect sectionContentRect = new Rect(contentRect.x, contentRect.y + sectionButtonHeight + 12f, contentRect.width, contentRect.height - sectionButtonHeight - 12f);
-            if (!experimentalModeEnabled && _roomMenuSection != RoomMenuSection.Chest)
-            {
-                _roomMenuSection = RoomMenuSection.Chest;
-            }
-
-            switch (_roomMenuSection)
-            {
-                case RoomMenuSection.Enemies:
-                    DrawRoomEnemiesSection(sectionContentRect, buttonWidth, controlHeight, player, logger);
-                    return;
-                case RoomMenuSection.State:
-                    DrawRoomPlaceholderSection(
-                        sectionContentRect,
-                        GetLocalizedFallback("gui.room.section.state", "State", "状态"),
-                        GetLocalizedFallback("gui.room.placeholder.state", "Room-state tools will go here next.", "后续会在这里加入房间状态相关功能。"));
-                    return;
-                case RoomMenuSection.Chest:
-                default:
-                    DrawRoomChestSection(sectionContentRect, buttonWidth, controlHeight, player, logger);
-                    return;
-            }
-        }
-
-        private void DrawRoomEnemiesSection(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
-        {
-            float firstRowY = contentRect.y;
-            float secondRowY = firstRowY + 24f + controlHeight + ButtonGap;
-
-            GUI.Label(
-                new Rect(contentRect.x, firstRowY, contentRect.width, 20f),
-                GetLocalizedFallback("gui.room.enemies.title", "Refresh Current Room", "刷新当前房间"),
-                _hintStyle);
-
-            GUI.Label(
-                new Rect(contentRect.x, firstRowY + 24f, contentRect.width, 36f),
-                GetLocalizedFallback(
-                    "gui.room.enemies.hint",
-                    "Respawns the room's predefined enemies after the room has been cleared. The exact spawn pattern may differ from the first entry.",
-                    "在清空当前房间后，重新刷出该房间的预定义敌人。不保证与第一次进房时的站位和波次完全一致。"),
-                _wrappedHintStyle);
-
-            if (GUI.Button(
-                new Rect(contentRect.x, secondRowY + 18f, buttonWidth * 2f + ButtonGap, controlHeight),
-                GetLocalizedFallback("gui.room.button.refresh_enemies", "Refresh Room Enemies", "刷新房间怪物"),
-                _buttonStyle))
-            {
-                ExecuteRefreshRoomEnemies(player, logger);
-            }
-        }
-
-        private void DrawRoomChestSection(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
-        {
-            float secondColumnX = contentRect.x + buttonWidth + ButtonGap;
-            float thirdColumnX = secondColumnX + buttonWidth + ButtonGap;
-            float fourthColumnX = thirdColumnX + buttonWidth + ButtonGap;
-            float firstRowY = contentRect.y;
-            float secondRowY = firstRowY + controlHeight + ButtonGap;
-            float thirdRowY = secondRowY + controlHeight + ButtonGap;
-
-            GUI.Label(
-                new Rect(contentRect.x, firstRowY, contentRect.width, 20f),
-                GetLocalizedFallback("gui.room.chest_tier.title", "Chest Tier", "宝箱等级"),
-                _hintStyle);
-
-            float optionsTop = firstRowY + 24f;
-            float optionsSecondRowY = optionsTop + controlHeight + ButtonGap;
-            DrawRoomChestTierButton(new Rect(contentRect.x, optionsTop, buttonWidth, controlHeight), RoomChestTier.Brown);
-            DrawRoomChestTierButton(new Rect(secondColumnX, optionsTop, buttonWidth, controlHeight), RoomChestTier.Blue);
-            DrawRoomChestTierButton(new Rect(thirdColumnX, optionsTop, buttonWidth, controlHeight), RoomChestTier.Green);
-            DrawRoomChestTierButton(new Rect(fourthColumnX, optionsTop, buttonWidth, controlHeight), RoomChestTier.Red);
-
-            DrawRoomChestTierButton(new Rect(contentRect.x, optionsSecondRowY, buttonWidth, controlHeight), RoomChestTier.Black);
-            DrawRoomChestTierButton(new Rect(secondColumnX, optionsSecondRowY, buttonWidth, controlHeight), RoomChestTier.Synergy);
-            DrawRoomChestTierButton(new Rect(thirdColumnX, optionsSecondRowY, buttonWidth, controlHeight), RoomChestTier.Rainbow);
-
-            GUI.Label(
-                new Rect(contentRect.x, thirdRowY + 24f, contentRect.width, 20f),
-                GetLocalizedFormattedFallback("gui.room.selected_tier", "Selected tier: {0}", "当前等级：{0}", GetRoomChestTierLabel(_selectedRoomChestTier)),
-                _hintStyle);
-
-            string spawnButtonLabel = GetLocalizedFallback("gui.room.button.spawn_chest", "Spawn Chest", "生成宝箱");
-            if (GUI.Button(new Rect(fourthColumnX, thirdRowY + 14f, buttonWidth, controlHeight), spawnButtonLabel, _buttonStyle))
-            {
-                ExecuteSpawnChest(player, logger);
-            }
-        }
-
-        private void DrawRoomSectionButton(Rect rect, RoomMenuSection section, string label)
-        {
-            DrawRoomSectionButton(rect, section, label, true);
-        }
-
-        private void DrawRoomSectionButton(Rect rect, RoomMenuSection section, string label, bool isEnabled)
-        {
-            GUIStyle style = !isEnabled
-                ? _pickupFilterDisabledButtonStyle
-                : (_roomMenuSection == section ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle);
-            if (GUI.Button(rect, label, style) && isEnabled)
-            {
-                _roomMenuSection = section;
-            }
-        }
-
-        private void DrawRoomPlaceholderSection(Rect contentRect, string title, string hint)
-        {
-            GUI.Label(
-                new Rect(contentRect.x, contentRect.y, contentRect.width, 20f),
-                title,
-                _titleStyle);
-            GUI.Label(
-                new Rect(contentRect.x, contentRect.y + 28f, contentRect.width, 20f),
-                hint,
-                _hintStyle);
-        }
-
         private ControllerFocusEntry[] GetCommandPageFocusEntries()
         {
             switch (_commandMenuCategory)
             {
                 case CommandMenuCategory.Combat:
-                    return new[]
-                    {
-                        new ControllerFocusEntry("cmd.about", 0, 0),
-                        new ControllerFocusEntry("cmd.settings", 0, 1),
-                        new ControllerFocusEntry("cmd.language", 0, 2),
-                        new ControllerFocusEntry("cmd.category.general", 1, 0),
-                        new ControllerFocusEntry("cmd.category.combat", 1, 1),
-                        new ControllerFocusEntry("cmd.category.player", 1, 2),
-                        new ControllerFocusEntry("cmd.category.room", 1, 3),
-                        new ControllerFocusEntry("cmd.combat.rapid", 2, 0),
-                        new ControllerFocusEntry("cmd.combat.auto_reload", 2, 1),
-                        new ControllerFocusEntry("cmd.combat.ammo_mode", 3, 0),
-                        new ControllerFocusEntry("cmd.combat.invincible", 3, 1),
-                        new ControllerFocusEntry("cmd.combat.ammonomicon", 4, 0),
-                        new ControllerFocusEntry("cmd.combat.full_ammo", 4, 1),
-                    };
+                    return BuildCommandPageFocusEntries(CombatCommandPageFocusEntries);
                 case CommandMenuCategory.Player:
-                    return new[]
-                    {
-                        new ControllerFocusEntry("cmd.about", 0, 0),
-                        new ControllerFocusEntry("cmd.settings", 0, 1),
-                        new ControllerFocusEntry("cmd.language", 0, 2),
-                        new ControllerFocusEntry("cmd.category.general", 1, 0),
-                        new ControllerFocusEntry("cmd.category.combat", 1, 1),
-                        new ControllerFocusEntry("cmd.category.player", 1, 2),
-                        new ControllerFocusEntry("cmd.category.room", 1, 3),
-                        new ControllerFocusEntry("cmd.player.heal_half", 2, 0),
-                        new ControllerFocusEntry("cmd.player.full_heal", 2, 1),
-                        new ControllerFocusEntry("cmd.player.add_max_health", 2, 2),
-                        new ControllerFocusEntry("cmd.player.add_armor", 2, 3),
-                        new ControllerFocusEntry("cmd.player.add_blank", 3, 0),
-                        new ControllerFocusEntry("cmd.player.refill_blanks", 3, 1),
-                        new ControllerFocusEntry("cmd.player.clear_curse", 4, 0),
-                        new ControllerFocusEntry("cmd.player.stats", 4, 1),
-                    };
+                    return BuildCommandPageFocusEntries(PlayerCommandPageFocusEntries);
                 case CommandMenuCategory.Room:
-                    return new[]
-                    {
-                        new ControllerFocusEntry("cmd.about", 0, 0),
-                        new ControllerFocusEntry("cmd.settings", 0, 1),
-                        new ControllerFocusEntry("cmd.language", 0, 2),
-                        new ControllerFocusEntry("cmd.category.general", 1, 0),
-                        new ControllerFocusEntry("cmd.category.combat", 1, 1),
-                        new ControllerFocusEntry("cmd.category.player", 1, 2),
-                        new ControllerFocusEntry("cmd.category.room", 1, 3),
-                    };
+                    return GetRoomCommandPageFocusEntries();
                 case CommandMenuCategory.General:
                 default:
-                    return new[]
-                    {
-                        new ControllerFocusEntry("cmd.about", 0, 0),
-                        new ControllerFocusEntry("cmd.settings", 0, 1),
-                        new ControllerFocusEntry("cmd.language", 0, 2),
-                        new ControllerFocusEntry("cmd.category.general", 1, 0),
-                        new ControllerFocusEntry("cmd.category.combat", 1, 1),
-                        new ControllerFocusEntry("cmd.category.player", 1, 2),
-                        new ControllerFocusEntry("cmd.category.room", 1, 3),
-                        new ControllerFocusEntry("cmd.general.pickups", 2, 0),
-                        new ControllerFocusEntry("cmd.general.loadout", 2, 1),
-                        new ControllerFocusEntry("cmd.general.currency", 2, 2),
-                        new ControllerFocusEntry("cmd.general.teleport", 2, 3),
-                        new ControllerFocusEntry("cmd.general.characters", 3, 0),
-                        new ControllerFocusEntry("cmd.general.boss_rush", 3, 1),
-                    };
+                    return BuildCommandPageFocusEntries(GeneralCommandPageFocusEntries);
             }
         }
 
@@ -563,16 +427,64 @@ namespace RandomLoadout
                     ExecuteToggleLanguage(null);
                     return;
                 case "cmd.category.general":
-                    _commandMenuCategory = CommandMenuCategory.General;
+                    SetCommandMenuCategory(CommandMenuCategory.General);
                     return;
                 case "cmd.category.combat":
-                    _commandMenuCategory = CommandMenuCategory.Combat;
+                    SetCommandMenuCategory(CommandMenuCategory.Combat);
                     return;
                 case "cmd.category.player":
-                    _commandMenuCategory = CommandMenuCategory.Player;
+                    SetCommandMenuCategory(CommandMenuCategory.Player);
                     return;
                 case "cmd.category.room":
-                    _commandMenuCategory = CommandMenuCategory.Room;
+                    SetCommandMenuCategory(CommandMenuCategory.Room);
+                    return;
+                case "cmd.room.section.chest":
+                    _roomMenuSection = RoomMenuSection.Chest;
+                    return;
+                case "cmd.room.section.neutral":
+                    _roomMenuSection = RoomMenuSection.Neutral;
+                    return;
+                case "cmd.room.section.enemies":
+                    if (IsExperimentalModeEnabled())
+                    {
+                        _roomMenuSection = RoomMenuSection.Enemies;
+                    }
+                    return;
+                case "cmd.room.section.state":
+                    if (IsExperimentalModeEnabled())
+                    {
+                        _roomMenuSection = RoomMenuSection.State;
+                    }
+                    return;
+                case "cmd.room.chest_tier.brown":
+                    ExecuteSpawnChest(player, null, RoomChestTier.Brown);
+                    return;
+                case "cmd.room.chest_tier.blue":
+                    ExecuteSpawnChest(player, null, RoomChestTier.Blue);
+                    return;
+                case "cmd.room.chest_tier.green":
+                    ExecuteSpawnChest(player, null, RoomChestTier.Green);
+                    return;
+                case "cmd.room.chest_tier.red":
+                    ExecuteSpawnChest(player, null, RoomChestTier.Red);
+                    return;
+                case "cmd.room.chest_tier.black":
+                    ExecuteSpawnChest(player, null, RoomChestTier.Black);
+                    return;
+                case "cmd.room.chest_tier.synergy":
+                    ExecuteSpawnChest(player, null, RoomChestTier.Synergy);
+                    return;
+                case "cmd.room.chest_tier.rainbow":
+                    ExecuteSpawnChest(player, null, RoomChestTier.Rainbow);
+                    return;
+                case "cmd.room.refresh_enemies":
+                    ExecuteRefreshRoomEnemies(player, null);
+                    return;
+                case "cmd.room.spawn_gunber_muncher":
+                    ExecuteSpawnGunberMuncher(player, null);
+                    return;
+                case "cmd.room.spawn_evil_muncher":
+                    ExecuteSpawnEvilMuncher(player, null);
                     return;
                 case "cmd.general.pickups":
                     OpenPickupPage(null);
@@ -584,13 +496,16 @@ namespace RandomLoadout
                     OpenCurrencyPage(null);
                     return;
                 case "cmd.general.teleport":
-                    _showTeleportPanel = !_showTeleportPanel;
+                    ToggleTeleportPanel();
                     return;
                 case "cmd.general.characters":
                     OpenCharacterPage(null);
                     return;
                 case "cmd.general.boss_rush":
                     OpenBossRushPage(null);
+                    return;
+                case "cmd.general.reveal_map":
+                    ExecuteRevealCurrentFloorMap(player, null);
                     return;
                 case "cmd.combat.rapid":
                     ExecuteToggleRapidFire(player, null);
@@ -632,7 +547,7 @@ namespace RandomLoadout
                     ExecuteClearCurse(player, null);
                     return;
                 case "cmd.player.stats":
-                    _showPlayerStatsPanel = !_showPlayerStatsPanel;
+                    SetPlayerStatsPanelShown(!_showPlayerStatsPanel);
                     return;
                 default:
                     return;
@@ -641,41 +556,39 @@ namespace RandomLoadout
 
         private void CycleCommandCategory(int direction)
         {
-            CommandMenuCategory[] categories =
-            {
-                CommandMenuCategory.General,
-                CommandMenuCategory.Combat,
-                CommandMenuCategory.Player,
-                CommandMenuCategory.Room,
-            };
-
             int currentIndex = 0;
-            for (int i = 0; i < categories.Length; i++)
+            for (int i = 0; i < CommandMenuCategoryOrder.Length; i++)
             {
-                if (categories[i] == _commandMenuCategory)
+                if (CommandMenuCategoryOrder[i] == _commandMenuCategory)
                 {
                     currentIndex = i;
                     break;
                 }
             }
 
-            int nextIndex = (currentIndex + direction + categories.Length) % categories.Length;
-            _commandMenuCategory = categories[nextIndex];
-            switch (_commandMenuCategory)
+            int nextIndex = (currentIndex + direction + CommandMenuCategoryOrder.Length) % CommandMenuCategoryOrder.Length;
+            SetCommandMenuCategory(CommandMenuCategoryOrder[nextIndex]);
+            _commandPageFocusedControlId = GetDefaultCommandFocusForCategory(_commandMenuCategory);
+        }
+
+        private void SetCommandMenuCategory(CommandMenuCategory category)
+        {
+            _commandMenuCategory = category;
+        }
+
+        private static string GetDefaultCommandFocusForCategory(CommandMenuCategory category)
+        {
+            switch (category)
             {
                 case CommandMenuCategory.Combat:
-                    _commandPageFocusedControlId = "cmd.combat.rapid";
-                    return;
+                    return "cmd.combat.rapid";
                 case CommandMenuCategory.Player:
-                    _commandPageFocusedControlId = "cmd.player.heal_half";
-                    return;
+                    return "cmd.player.heal_half";
                 case CommandMenuCategory.Room:
-                    _commandPageFocusedControlId = "cmd.category.room";
-                    return;
+                    return "cmd.category.room";
                 case CommandMenuCategory.General:
                 default:
-                    _commandPageFocusedControlId = "cmd.general.pickups";
-                    return;
+                    return "cmd.general.pickups";
             }
         }
 
@@ -685,118 +598,33 @@ namespace RandomLoadout
             return (object)gameManager != null ? gameManager.PrimaryPlayer : null;
         }
 
-        private void DrawRoomChestTierButton(Rect rect, RoomChestTier chestTier)
+        private static ControllerFocusEntry[] BuildCommandPageFocusEntries(params ControllerFocusEntry[][] contentGroups)
         {
-            GUIStyle style = _selectedRoomChestTier == chestTier ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle;
-            if (GUI.Button(rect, GetRoomChestTierLabel(chestTier), style))
+            int entryCount = CommandPageSharedFocusEntries.Length;
+            for (int groupIndex = 0; groupIndex < contentGroups.Length; groupIndex++)
             {
-                _selectedRoomChestTier = chestTier;
+                entryCount += contentGroups[groupIndex].Length;
             }
+
+            ControllerFocusEntry[] entries = new ControllerFocusEntry[entryCount];
+            int writeIndex = CopyFocusEntries(CommandPageSharedFocusEntries, entries, 0);
+            for (int groupIndex = 0; groupIndex < contentGroups.Length; groupIndex++)
+            {
+                writeIndex = CopyFocusEntries(contentGroups[groupIndex], entries, writeIndex);
+            }
+
+            return entries;
         }
 
-        private string GetRoomChestTierLabel(RoomChestTier chestTier)
+        private static int CopyFocusEntries(ControllerFocusEntry[] source, ControllerFocusEntry[] destination, int writeIndex)
         {
-            switch (chestTier)
+            for (int index = 0; index < source.Length; index++)
             {
-                case RoomChestTier.Brown:
-                    return GetLocalizedFallback("label.room.chest_tier.brown", "Brown", "棕箱");
-                case RoomChestTier.Blue:
-                    return GetLocalizedFallback("label.room.chest_tier.blue", "Blue", "蓝箱");
-                case RoomChestTier.Green:
-                    return GetLocalizedFallback("label.room.chest_tier.green", "Green", "绿箱");
-                case RoomChestTier.Red:
-                    return GetLocalizedFallback("label.room.chest_tier.red", "Red", "红箱");
-                case RoomChestTier.Black:
-                    return GetLocalizedFallback("label.room.chest_tier.black", "Black", "黑箱");
-                case RoomChestTier.Synergy:
-                    return GetLocalizedFallback("label.room.chest_tier.synergy", "Synergy", "协同箱");
-                case RoomChestTier.Rainbow:
-                    return GetLocalizedFallback("label.room.chest_tier.rainbow", "Rainbow", "彩虹箱");
-                default:
-                    return GetLocalizedFallback("label.room.chest_tier.brown", "Brown", "棕箱");
-            }
-        }
-
-        private void ExecuteSpawnChest(PlayerController player, ManualLogSource logger)
-        {
-            GrantCommandExecutionResult executionResult = _roomDebugCommandService.SpawnChest(player, _selectedRoomChestTier);
-            ShowStatus(executionResult.Message, !executionResult.Succeeded);
-
-            if (logger == null)
-            {
-                return;
+                destination[writeIndex] = source[index];
+                writeIndex++;
             }
 
-            if (executionResult.Succeeded)
-            {
-                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
-                _focusInputField = true;
-            }
-            else
-            {
-                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
-            }
-        }
-
-        private void ExecuteRefreshRoomEnemies(PlayerController player, ManualLogSource logger)
-        {
-            GrantCommandExecutionResult executionResult = _roomDebugCommandService.RefreshCurrentRoomEnemies(player, logger);
-            ShowStatus(executionResult.Message, !executionResult.Succeeded);
-
-            if (logger == null)
-            {
-                return;
-            }
-
-            if (executionResult.Succeeded)
-            {
-                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
-                _focusInputField = true;
-            }
-            else
-            {
-                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
-            }
-        }
-
-        private void DrawCombatSettingRow(Rect rowRect, string label, string statusLabel, float labelWidth, float buttonWidth, System.Action onClick)
-        {
-            GUI.Label(new Rect(rowRect.x, rowRect.y + 7f, labelWidth, 20f), label, _hintStyle);
-            if (GUI.Button(new Rect(rowRect.x + labelWidth, rowRect.y, buttonWidth, rowRect.height), statusLabel, GetCombatStatusButtonStyle(statusLabel)) && onClick != null)
-            {
-                onClick();
-            }
-        }
-
-        private GUIStyle GetCombatStatusButtonStyle(string statusLabel)
-        {
-            if (string.IsNullOrEmpty(statusLabel))
-            {
-                return _buttonStyle;
-            }
-
-            string offLabel = GetLocalizedFallback("gui.command.status.off", "OFF", "\u5173");
-            return string.Equals(statusLabel, offLabel, System.StringComparison.OrdinalIgnoreCase)
-                ? _buttonStyle
-                : _enabledButtonStyle;
-        }
-
-        private string GetAutoReloadButtonLabel()
-        {
-            if (_autoReloadToggleService == null)
-            {
-                return GuiText.Get("gui.command.button.auto_reload_off");
-            }
-
-            switch (_autoReloadToggleService.Mode)
-            {
-                case AutoReloadMode.Instant:
-                    return GuiText.Get("gui.command.button.auto_reload_instant");
-                case AutoReloadMode.Animated:
-                    return GuiText.Get("gui.command.button.auto_reload_animated");
-                default:
-                    return GuiText.Get("gui.command.button.auto_reload_off");
-            }
+            return writeIndex;
         }
 
         private string GetAutoReloadStatusLabel()
@@ -850,9 +678,54 @@ namespace RandomLoadout
                 : GetLocalizedFallback("gui.command.status.animated", "Animated", "\u52a8\u753b");
         }
 
+        private bool IsRapidFireEnabledFor(PlayerController player)
+        {
+            return _rapidFireToggleService != null && _rapidFireToggleService.IsEnabledFor(player);
+        }
+
+        private bool IsAutoReloadEnabled()
+        {
+            return _autoReloadToggleService != null && _autoReloadToggleService.Mode != AutoReloadMode.Off;
+        }
+
+        private bool IsAmmoModeEnabled()
+        {
+            return _ammoModeToggleService != null && _ammoModeToggleService.Mode != AmmoMode.Off;
+        }
+
+        private bool IsInvincibilityEnabled()
+        {
+            return _invincibilityToggleService != null && _invincibilityToggleService.IsEnabled;
+        }
+
         private bool IsAmmonomiconFastOpenEnabled()
         {
             return _ammonomiconFastOpenToggleService != null && AmmonomiconFastOpenToggleService.IsFastOpenEnabled;
+        }
+
+        private struct CombatSettingRow
+        {
+            public CombatSettingRow(Rect rect, string controlId, string label, string status, bool isActive, System.Action onClick)
+            {
+                Rect = rect;
+                ControlId = controlId ?? string.Empty;
+                Label = label ?? string.Empty;
+                Status = status ?? string.Empty;
+                IsActive = isActive;
+                OnClick = onClick;
+            }
+
+            public Rect Rect;
+
+            public string ControlId;
+
+            public string Label;
+
+            public string Status;
+
+            public bool IsActive;
+
+            public System.Action OnClick;
         }
 
         private static string GetLocalizedFallback(string key, string englishFallback, string simplifiedChineseFallback)
@@ -884,6 +757,15 @@ namespace RandomLoadout
         private bool IsExperimentalModeEnabled()
         {
             return _experimentalModeProvider != null && _experimentalModeProvider();
+        }
+
+        private void SetPlayerStatsPanelShown(bool isEnabled)
+        {
+            _showPlayerStatsPanel = isEnabled;
+            if (_playerStatsPanelShownSetter != null)
+            {
+                _playerStatsPanelShownSetter(isEnabled);
+            }
         }
 
         private string GetLanguageButtonLabel()

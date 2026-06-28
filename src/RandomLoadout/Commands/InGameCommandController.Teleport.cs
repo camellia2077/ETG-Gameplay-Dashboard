@@ -25,7 +25,7 @@ namespace RandomLoadout
             Rect closeButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             if (GUI.Button(closeButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
             {
-                _showTeleportPanel = false;
+                CloseTeleportPanel();
                 return;
             }
 
@@ -37,19 +37,25 @@ namespace RandomLoadout
                 new Rect(panelRect.x + 14f, panelRect.y + 42f, panelRect.width - 28f, 20f),
                 GuiText.Get("gui.teleport.hint"),
                 _hintStyle);
+            GUI.Label(
+                new Rect(panelRect.x + 14f, panelRect.y + 60f, panelRect.width - 28f, 20f),
+                GuiText.Get("gui.teleport.controller_hint"),
+                _hintStyle);
 
-            float rowY = panelRect.y + 72f;
+            float rowY = panelRect.y + 90f;
             for (int i = 0; i < TeleportOptions.Length; i++)
             {
-                DrawTeleportOptionButton(panelRect, ref rowY, TeleportOptions[i], logger);
+                DrawTeleportOptionButton(panelRect, ref rowY, TeleportOptions[i], i, logger);
             }
         }
 
-        private void DrawTeleportOptionButton(Rect panelRect, ref float rowY, TeleportOption option, ManualLogSource logger)
+        private void DrawTeleportOptionButton(Rect panelRect, ref float rowY, TeleportOption option, int optionIndex, ManualLogSource logger)
         {
             Rect buttonRect = new Rect(panelRect.x + 14f, rowY, panelRect.width - 28f, 28f);
-            if (GUI.Button(buttonRect, GuiText.Get(option.LabelKey), _buttonStyle))
+            GUIStyle buttonStyle = optionIndex == _teleportSelectedIndex ? _enabledButtonStyle : _buttonStyle;
+            if (GUI.Button(buttonRect, GuiText.Get(option.LabelKey), buttonStyle))
             {
+                _teleportSelectedIndex = optionIndex;
                 ExecuteTeleport(option, logger);
             }
 
@@ -73,7 +79,7 @@ namespace RandomLoadout
             if (executionResult.Succeeded)
             {
                 _inputText = option.CommandText;
-                _showTeleportPanel = false;
+                CloseTeleportPanel();
                 _focusInputField = true;
             }
 
@@ -225,7 +231,7 @@ namespace RandomLoadout
             }
         }
 
-        private static EtgFloorDefinition ResolveTeleportFloorDefinition(GameManager gameManager, TeleportOption option, ManualLogSource logger)
+        private EtgFloorDefinition ResolveTeleportFloorDefinition(GameManager gameManager, TeleportOption option, ManualLogSource logger)
         {
             string levelToken = option.CommandToken.Trim();
             EtgFloorDefinition floorDefinition;
@@ -321,8 +327,13 @@ namespace RandomLoadout
             return basePosition.x + "," + basePosition.y;
         }
 
-        private static void LogTeleportInfo(ManualLogSource logger, string message)
+        private void LogTeleportInfo(ManualLogSource logger, string message)
         {
+            if (!ShouldLogFloorTeleportVerbose())
+            {
+                return;
+            }
+
             if (logger != null)
             {
                 logger.LogInfo(RandomLoadoutLog.Command(message));
@@ -335,6 +346,39 @@ namespace RandomLoadout
             {
                 logger.LogWarning(RandomLoadoutLog.Command(message));
             }
+        }
+
+        private void ToggleTeleportPanel()
+        {
+            if (_showTeleportPanel)
+            {
+                LogGamepadShortcutState("Closing teleport panel.");
+                CloseTeleportPanel();
+                return;
+            }
+
+            OpenTeleportPanel();
+        }
+
+        private void OpenTeleportPanel()
+        {
+            _showTeleportPanel = true;
+            _teleportSelectedIndex = 0;
+            RequestGuiFocusRelease();
+            LogGamepadShortcutState("Opened teleport panel. SelectedIndex=0.");
+        }
+
+        private void CloseTeleportPanel()
+        {
+            if (_showTeleportPanel)
+            {
+                LogGamepadShortcutState("Teleport panel closed. SelectedIndex=" + _teleportSelectedIndex + ".");
+            }
+
+            _showTeleportPanel = false;
+            _teleportSelectedIndex = 0;
+            ResetControllerNavigationAxes();
+            RequestGuiFocusRelease();
         }
     }
 }

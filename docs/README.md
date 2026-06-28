@@ -38,6 +38,8 @@ I am changing Boss Rush:
 I am changing command UI or pickup grant behavior:
 
 - [Commands](./reference/commands.md)
+- [Muncher Spawn](./reference/runtime-internals/muncher-spawn.md)
+- [Map Reveal And Teleporter Promotion](./reference/map-teleport.md)
 - [Localization And Language Switching](./reference/localization.md)
 - [Pickup Grant Strategy](./decisions/pickup-grant-strategy.md)
 - [Pickups](./reference/pickups.md)
@@ -69,6 +71,8 @@ I am changing build, deploy, or tools:
   Day-1 and development entry docs
 - `reference/`
   Stable command and generated reference material
+- `reference/runtime-internals/`
+  Reverse-engineered runtime facts and non-standard ETG integration notes that depend on asset tracing, decompilation, or deep log-driven verification
 - `architecture/`
   Responsibility map and implementation research
 - `operations/`
@@ -90,10 +94,16 @@ I am changing build, deploy, or tools:
 - [Deploy](./operations/deploy.md)
 - [Release Package](./operations/release-package.md)
 - [Logging](./operations/logging.md)
+- [Map Reveal Logging](./operations/logging-map-teleport.md)
+- [Muncher Spawn Logging](./operations/logging-muncher-spawn.md)
+- [Floor Teleport Logging](./operations/logging-floor-teleport.md)
+- [Boss Rush Logging](./operations/logging-boss-rush.md)
 - [Smoke Checklist](./operations/smoke-checklist.md)
 - [Command Notes](./notes/cmd.md)
 - [Code Index](./reference/code-index.md)
 - [Commands](./reference/commands.md)
+- [Muncher Spawn](./reference/runtime-internals/muncher-spawn.md)
+- [Map Reveal And Teleporter Promotion](./reference/map-teleport.md)
 - [Localization And Language Switching](./reference/localization.md)
 - [Terminology And Naming](./reference/terminology.md)
 - [Testing Matrix](./reference/testing-matrix.md)

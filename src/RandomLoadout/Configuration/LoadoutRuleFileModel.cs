@@ -18,6 +18,7 @@ namespace RandomLoadout
         public LoadoutRuleFilePresetModel()
         {
             Rules = new LoadoutRuleFileRuleModel[0];
+            Pickups = new LoadoutRuleFilePickupModel[0];
         }
 
         public string Id { get; set; }
@@ -29,6 +30,15 @@ namespace RandomLoadout
         public string SourcePath { get; set; }
 
         public LoadoutRuleFileRuleModel[] Rules { get; set; }
+
+        public LoadoutRuleFilePickupModel[] Pickups { get; set; }
+    }
+
+    internal sealed class LoadoutRuleFilePickupModel
+    {
+        public string Type { get; set; }
+
+        public int Count { get; set; }
     }
 
     internal sealed class LoadoutRuleFileRuleModel

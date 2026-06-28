@@ -297,5 +297,26 @@ namespace RandomLoadout
             GameStatsManager.Save();
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_meta_currency.success");
         }
+
+        public GrantCommandExecutionResult GrantStartItemPickup(PlayerController player, string pickupType)
+        {
+            switch (StartItemPickupCatalog.NormalizeType(pickupType))
+            {
+                case StartItemPickupCatalog.KeyType:
+                    return AddKey(player);
+                case StartItemPickupCatalog.RatKeyType:
+                    return AddRatKey(player);
+                case StartItemPickupCatalog.MaxHealthType:
+                    return AddMaxHealth(player);
+                case StartItemPickupCatalog.ArmorType:
+                    return AddArmor(player);
+                case StartItemPickupCatalog.CasingsType:
+                    return AddCurrency(player);
+                case StartItemPickupCatalog.BlankType:
+                    return AddBlank(player);
+                default:
+                    return GrantCommandExecutionResult.Localized(false, "result.start_items.pickups.invalid");
+            }
+        }
     }
 }

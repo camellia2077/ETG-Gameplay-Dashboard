@@ -2,7 +2,7 @@ namespace RandomLoadout
 {
     internal sealed class LoadoutPresetEditorEntry
     {
-        public LoadoutPresetEditorEntry(string id, string displayName, bool isActive, int ruleCount, int specificCount, int randomCount)
+        public LoadoutPresetEditorEntry(string id, string displayName, bool isActive, int ruleCount, int specificCount, int randomCount, int pickupCount)
         {
             Id = id ?? string.Empty;
             DisplayName = displayName ?? string.Empty;
@@ -10,6 +10,7 @@ namespace RandomLoadout
             RuleCount = ruleCount;
             SpecificCount = specificCount;
             RandomCount = randomCount;
+            PickupCount = pickupCount;
         }
 
         public string Id { get; private set; }
@@ -23,5 +24,7 @@ namespace RandomLoadout
         public int SpecificCount { get; private set; }
 
         public int RandomCount { get; private set; }
+
+        public int PickupCount { get; private set; }
     }
 }

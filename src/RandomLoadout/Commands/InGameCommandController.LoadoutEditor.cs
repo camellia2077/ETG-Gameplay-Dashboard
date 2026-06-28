@@ -29,6 +29,12 @@ namespace RandomLoadout
                 return;
             }
 
+            if (_loadoutEditorMode == LoadoutEditorMode.PresetPickupsDetail)
+            {
+                DrawLoadoutPresetPickupsDetailPage(panelRect, logger);
+                return;
+            }
+
             if (_loadoutEditorMode == LoadoutEditorMode.PresetDetail)
             {
                 DrawLoadoutPresetDetailPage(panelRect, player, logger);
@@ -111,10 +117,12 @@ namespace RandomLoadout
             Rect reloadButtonRect = new Rect(backButtonRect.x - ButtonGap - reloadConfigButtonWidth, backButtonRect.y, reloadConfigButtonWidth, 30f);
             const float addItemButtonWidth = 112f;
             const float addRandomPoolButtonWidth = 112f;
+            const float addPresetPickupsButtonWidth = 112f;
             const float fillCurrentPresetButtonWidth = 124f;
             Rect addItemButtonRect = new Rect(panelRect.x + 14f, panelRect.y + 84f, addItemButtonWidth, 28f);
             Rect addRandomPoolButtonRect = new Rect(addItemButtonRect.xMax + ButtonGap, addItemButtonRect.y, addRandomPoolButtonWidth, 28f);
-            Rect fillCurrentPresetButtonRect = new Rect(addRandomPoolButtonRect.xMax + ButtonGap, addItemButtonRect.y, fillCurrentPresetButtonWidth, 28f);
+            Rect addPresetPickupsButtonRect = new Rect(addRandomPoolButtonRect.xMax + ButtonGap, addItemButtonRect.y, addPresetPickupsButtonWidth, 28f);
+            Rect fillCurrentPresetButtonRect = new Rect(addPresetPickupsButtonRect.xMax + ButtonGap, addItemButtonRect.y, fillCurrentPresetButtonWidth, 28f);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
             {
                 _loadoutEditorMode = LoadoutEditorMode.PresetList;
@@ -131,6 +139,11 @@ namespace RandomLoadout
             if (GUI.Button(addRandomPoolButtonRect, GuiText.Get("gui.loadout_editor.button.add_random_pool"), _buttonStyle))
             {
                 ExecuteLoadoutEditorCreateRandomPool(logger);
+            }
+
+            if (GUI.Button(addPresetPickupsButtonRect, GuiText.Get("gui.loadout_editor.button.pickups"), _buttonStyle))
+            {
+                OpenLoadoutPresetPickupsDetail();
             }
 
             if (GUI.Button(fillCurrentPresetButtonRect, GuiText.Get("gui.loadout_editor.button.fill_current_preset"), _buttonStyle))
@@ -217,7 +230,7 @@ namespace RandomLoadout
             }
 
             Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (_cachedLoadoutPresetEntries.Length * PickupRowHeight) + 4f);
-            _loadoutPresetScrollPosition = GUI.BeginScrollView(listRect, _loadoutPresetScrollPosition, viewRect);
+            _loadoutPresetScrollPosition = BeginCommandScrollView(listRect, _loadoutPresetScrollPosition, viewRect);
             for (int i = 0; i < _cachedLoadoutPresetEntries.Length; i++)
             {
                 DrawLoadoutPresetRow(new Rect(0f, 2f + (i * PickupRowHeight), viewRect.width, PickupRowHeight - 4f), _cachedLoadoutPresetEntries[i], logger);
@@ -245,7 +258,7 @@ namespace RandomLoadout
                 ? GuiText.Get("gui.loadout_editor.preset_active_name", entry.DisplayName)
                 : (entry != null ? entry.DisplayName : string.Empty);
             string secondaryText = entry != null
-                ? GuiText.Get("gui.loadout_editor.preset_summary", entry.RuleCount, entry.SpecificCount, entry.RandomCount)
+                ? GuiText.Get("gui.loadout_editor.preset_summary", entry.RuleCount, entry.SpecificCount, entry.RandomCount, entry.PickupCount)
                 : string.Empty;
             GUIStyle secondaryTextStyle = entry != null && entry.IsActive
                 ? _pickupSecondaryActiveTextStyle
@@ -280,7 +293,7 @@ namespace RandomLoadout
             }
 
             Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (_cachedLoadoutRuleEntries.Length * LoadoutRuleRowHeight) + 4f);
-            _loadoutEditorScrollPosition = GUI.BeginScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
+            _loadoutEditorScrollPosition = BeginCommandScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
             for (int i = 0; i < _cachedLoadoutRuleEntries.Length; i++)
             {
                 DrawLoadoutEditorRow(new Rect(0f, 2f + (i * LoadoutRuleRowHeight), viewRect.width, LoadoutRuleRowHeight - 4f), _cachedLoadoutRuleEntries[i], logger);
@@ -301,7 +314,8 @@ namespace RandomLoadout
             DrawLoadoutEditorIcon(iconRect, entry);
 
             float textLeft = iconRect.xMax + 8f;
-            float actionWidth = removeWidth + (entry != null && entry.IsRandomPool ? editWidth + ButtonGap : 0f);
+            bool hasEditButton = entry != null && (entry.IsRandomPool || entry.IsPresetPickupCollection || !string.IsNullOrEmpty(entry.PickupType));
+            float actionWidth = removeWidth + (hasEditButton ? editWidth + ButtonGap : 0f);
             float textWidth = rowRect.width - actionWidth - PickupIconSize - 44f;
             GUI.Label(new Rect(textLeft, rowRect.y + 8f, textWidth, 22f), entry.PrimaryText, _pickupPrimaryTextStyle);
             GUI.Label(new Rect(textLeft, rowRect.y + 32f, textWidth, 20f), entry.SecondaryText, _pickupSecondaryTextStyle);
@@ -311,9 +325,28 @@ namespace RandomLoadout
                 OpenLoadoutRandomPoolDetail(entry.Index);
             }
 
+            if (entry != null &&
+                !entry.IsRandomPool &&
+                (entry.IsPresetPickupCollection || !string.IsNullOrEmpty(entry.PickupType)) &&
+                GUI.Button(editButtonRect, GuiText.Get("gui.loadout_editor.button.edit"), _buttonStyle))
+            {
+                OpenLoadoutPresetPickupsDetail();
+            }
+
             if (GUI.Button(removeButtonRect, GuiText.Get("gui.loadout_editor.button.remove"), _buttonStyle))
             {
-                ExecuteLoadoutEditorRemove(entry.Index, logger);
+                if (entry != null && entry.IsPresetPickupCollection)
+                {
+                    ExecuteLoadoutEditorClearPresetPickups(logger);
+                }
+                else if (entry != null && !string.IsNullOrEmpty(entry.PickupType))
+                {
+                    ExecuteLoadoutEditorRemovePresetPickup(entry.Index, logger);
+                }
+                else
+                {
+                    ExecuteLoadoutEditorRemove(entry.Index, logger);
+                }
             }
         }
 
@@ -330,7 +363,7 @@ namespace RandomLoadout
             }
 
             Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (_cachedLoadoutRandomPoolEntries.Length * PickupRowHeight) + 4f);
-            _loadoutEditorScrollPosition = GUI.BeginScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
+            _loadoutEditorScrollPosition = BeginCommandScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
             for (int i = 0; i < _cachedLoadoutRandomPoolEntries.Length; i++)
             {
                 DrawLoadoutRandomPoolRow(new Rect(0f, 2f + (i * PickupRowHeight), viewRect.width, PickupRowHeight - 4f), _cachedLoadoutRandomPoolEntries[i], logger);
@@ -412,6 +445,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
@@ -429,6 +463,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
@@ -446,6 +481,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
@@ -473,9 +509,13 @@ namespace RandomLoadout
             _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
             _loadoutEditorScrollPosition = Vector2.zero;
             _loadoutRandomPoolRuleIndex = -1;
+            _loadoutPickupCountEditIndex = -1;
+            _loadoutPickupCountEditText = string.Empty;
             _cachedLoadoutRandomPoolEntries = EmptyLoadoutRandomPoolEditorEntries;
+            _cachedLoadoutPickupEntries = EmptyLoadoutPickupEditorEntries;
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
         }
 
@@ -500,6 +540,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
@@ -517,6 +558,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
@@ -534,6 +576,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
@@ -551,6 +594,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
@@ -568,6 +612,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -584,6 +629,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -607,6 +653,7 @@ namespace RandomLoadout
                 RefreshLoadoutRandomPoolEntries();
                 _loadoutRandomPoolRenameText = GetLoadoutEditorActiveRandomPoolDisplayName();
             }
+            RefreshLoadoutPickupEntries();
 
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
@@ -624,6 +671,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -640,6 +688,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -656,6 +705,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);
         }
@@ -672,6 +722,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
             _loadoutRandomPoolRenameText = GetLoadoutEditorActiveRandomPoolDisplayName();
             ShowStatus(result.Message, !result.Succeeded);
             LogLoadoutEditorResult(result, logger);

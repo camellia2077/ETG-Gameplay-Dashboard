@@ -1,4 +1,5 @@
 using UnityEngine;
+using Dungeonator;
 
 namespace RandomLoadout
 {
@@ -24,13 +25,15 @@ namespace RandomLoadout
             System.Func<KeyCode> toggleKeyProvider,
             System.Func<string> toggleKeyNameProvider,
             System.Action<string> toggleKeySetter,
-            System.Func<string> gamepadPresetProvider,
-            System.Action<string> gamepadPresetSetter,
             System.Func<string> uiScalePresetProvider,
             System.Action<string> uiScalePresetSetter,
+            System.Func<bool> playerStatsPanelShownProvider,
+            System.Action<bool> playerStatsPanelShownSetter,
             System.Func<bool> experimentalModeProvider,
             System.Action<bool> experimentalModeSetter,
             System.Action<bool> ammonomiconFastOpenEnabledSetter,
+            System.Func<bool> mapTeleportVerboseLoggingEnabledProvider,
+            System.Func<bool> floorTeleportVerboseLoggingEnabledProvider,
             System.Func<EtgFloorDefinition, string, string, bool> deferredTeleportRequestHandler)
         {
             _commandService = commandService;
@@ -52,14 +55,17 @@ namespace RandomLoadout
             _toggleKeyProvider = toggleKeyProvider;
             _toggleKeyNameProvider = toggleKeyNameProvider;
             _toggleKeySetter = toggleKeySetter;
-            _gamepadPresetProvider = gamepadPresetProvider;
-            _gamepadPresetSetter = gamepadPresetSetter;
             _uiScalePresetProvider = uiScalePresetProvider;
             _uiScalePresetSetter = uiScalePresetSetter;
+            _playerStatsPanelShownProvider = playerStatsPanelShownProvider;
+            _playerStatsPanelShownSetter = playerStatsPanelShownSetter;
             _experimentalModeProvider = experimentalModeProvider;
             _experimentalModeSetter = experimentalModeSetter;
             _ammonomiconFastOpenEnabledSetter = ammonomiconFastOpenEnabledSetter;
+            _mapTeleportVerboseLoggingEnabledProvider = mapTeleportVerboseLoggingEnabledProvider;
+            _floorTeleportVerboseLoggingEnabledProvider = floorTeleportVerboseLoggingEnabledProvider;
             _deferredTeleportRequestHandler = deferredTeleportRequestHandler;
+            _showPlayerStatsPanel = _playerStatsPanelShownProvider != null && _playerStatsPanelShownProvider();
             if (_bossRushService != null)
             {
                 _bossRushService.StatusRaised += OnBossRushStatusRaised;
@@ -69,6 +75,9 @@ namespace RandomLoadout
         public void Update()
         {
             LogJoystickButtonStateChanges();
+            UpdateMapFeatureActivationState();
+            LogMapDirectTeleportRoomTransitionIfNeeded();
+            LogMapDirectTeleportRuntimeStateIfNeeded();
 
             HandleControllerNavigation();
 
@@ -129,6 +138,10 @@ namespace RandomLoadout
             {
                 panelHeight = SettingsPanelHeight;
             }
+            else if (_isVisible && _currentPage == PanelPage.ControllerHelp)
+            {
+                panelHeight = ControllerHelpPanelHeight;
+            }
 
             Matrix4x4 previousGuiMatrix = GUI.matrix;
             GUI.matrix = GetAutoScaledGuiMatrix();
@@ -180,6 +193,12 @@ namespace RandomLoadout
                     return;
                 }
 
+                if (_currentPage == PanelPage.ControllerHelp)
+                {
+                    DrawControllerHelpPage(panelRect);
+                    return;
+                }
+
                 if (_currentPage == PanelPage.Settings)
                 {
                     DrawSettingsPage(panelRect, logger);
@@ -219,10 +238,26 @@ namespace RandomLoadout
                 return;
             }
 
+            bool isControllerBackPressed = IsControllerBackPressed();
+            if (isControllerBackPressed)
+            {
+                LogGamepadShortcutState(
+                    "Detected controller back press. Page=" +
+                    _currentPage +
+                    ", CommandFocus=" +
+                    _commandPageFocusedControlId +
+                    ", SettingsFocus=" +
+                    _settingsPageFocusedControlId +
+                    ", ExperimentalDialog=" +
+                    _showExperimentalModeConfirmDialog +
+                    ".");
+            }
+
             if (_showExperimentalModeConfirmDialog && _currentPage == PanelPage.Settings)
             {
-                if (IsControllerBackPressed())
+                if (isControllerBackPressed)
                 {
+                    LogGamepadShortcutState("Controller back press dismissed the experimental mode confirmation dialog.");
                     _showExperimentalModeConfirmDialog = false;
                 }
 
@@ -235,24 +270,48 @@ namespace RandomLoadout
                 return;
             }
 
+            if (_showTeleportPanel)
+            {
+                HandleTeleportPanelControllerNavigation(isControllerBackPressed);
+                return;
+            }
+
             switch (_currentPage)
             {
                 case PanelPage.Command:
-                    HandleCommandPageControllerNavigation();
+                    HandleCommandPageControllerNavigation(isControllerBackPressed);
                     return;
                 case PanelPage.Settings:
-                    HandleSettingsPageControllerNavigation();
+                    HandleSettingsPageControllerNavigation(isControllerBackPressed);
+                    return;
+                case PanelPage.ControllerHelp:
+                    HandleControllerHelpPageControllerNavigation(isControllerBackPressed);
+                    return;
+                case PanelPage.Pickups:
+                    HandlePickupPageControllerNavigation(isControllerBackPressed);
+                    return;
+                case PanelPage.LoadoutEditor:
+                    HandleLoadoutEditorPageControllerNavigation(isControllerBackPressed);
                     return;
                 default:
+                    if (isControllerBackPressed)
+                    {
+                        LogGamepadShortcutState(
+                            "Controller back press detected on a page without controller back handling. Page=" +
+                            _currentPage +
+                            ".");
+                    }
+
                     ResetControllerNavigationAxes();
                     return;
             }
         }
 
-        private void HandleCommandPageControllerNavigation()
+        private void HandleCommandPageControllerNavigation(bool isControllerBackPressed)
         {
-            if (IsControllerBackPressed())
+            if (isControllerBackPressed)
             {
+                LogGamepadShortcutState("Controller back press is closing the command page.");
                 Close();
                 return;
             }
@@ -261,15 +320,20 @@ namespace RandomLoadout
             {
                 CycleCommandCategory(-1);
             }
-            else if (Input.GetKeyDown(GetJoystickButtonKeyCode(5)))
-            {
-                CycleCommandCategory(1);
-            }
 
             ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
             if (navigationDirection.HasValue)
             {
+                string previousControlId = _commandPageFocusedControlId;
                 _commandPageFocusedControlId = MoveControllerFocus(GetCommandPageFocusEntries(), _commandPageFocusedControlId, navigationDirection.Value);
+                LogGamepadShortcutState(
+                    "Command page controller navigation moved focus. Direction=" +
+                    navigationDirection.Value +
+                    ", From=" +
+                    previousControlId +
+                    ", To=" +
+                    _commandPageFocusedControlId +
+                    ".");
             }
 
             if (IsControllerConfirmPressed())
@@ -278,10 +342,11 @@ namespace RandomLoadout
             }
         }
 
-        private void HandleSettingsPageControllerNavigation()
+        private void HandleSettingsPageControllerNavigation(bool isControllerBackPressed)
         {
-            if (IsControllerBackPressed())
+            if (isControllerBackPressed)
             {
+                LogGamepadShortcutState("Controller back press is returning from settings to the command page.");
                 _currentPage = PanelPage.Command;
                 return;
             }
@@ -289,7 +354,16 @@ namespace RandomLoadout
             ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
             if (navigationDirection.HasValue)
             {
+                string previousControlId = _settingsPageFocusedControlId;
                 _settingsPageFocusedControlId = MoveControllerFocus(GetSettingsPageFocusEntries(), _settingsPageFocusedControlId, navigationDirection.Value);
+                LogGamepadShortcutState(
+                    "Settings page controller navigation moved focus. Direction=" +
+                    navigationDirection.Value +
+                    ", From=" +
+                    previousControlId +
+                    ", To=" +
+                    _settingsPageFocusedControlId +
+                    ".");
             }
 
             if (IsControllerConfirmPressed())
@@ -298,9 +372,161 @@ namespace RandomLoadout
             }
         }
 
+        private void HandleControllerHelpPageControllerNavigation(bool isControllerBackPressed)
+        {
+            if (isControllerBackPressed || IsControllerConfirmPressed())
+            {
+                LogGamepadShortcutState("Controller navigation is returning from controller help to settings.");
+                OpenSettingsPage();
+                return;
+            }
+
+            ResetControllerNavigationAxes();
+        }
+
+        private void HandlePickupPageControllerNavigation(bool isControllerBackPressed)
+        {
+            if (!isControllerBackPressed)
+            {
+                ResetControllerNavigationAxes();
+                return;
+            }
+
+            if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
+            {
+                LogGamepadShortcutState("Controller back press is returning from pickup browser to loadout editor preset detail.");
+                _currentPage = PanelPage.LoadoutEditor;
+                _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
+                RefreshLoadoutEditorEntries();
+            }
+            else if (_pickupBrowserMode == PickupBrowserMode.AddToRandomPool)
+            {
+                LogGamepadShortcutState("Controller back press is returning from pickup browser to loadout editor random pool detail.");
+                _currentPage = PanelPage.LoadoutEditor;
+                _loadoutEditorMode = LoadoutEditorMode.RandomPoolDetail;
+                RefreshLoadoutEditorEntries();
+                RefreshLoadoutRandomPoolEntries();
+            }
+            else
+            {
+                LogGamepadShortcutState("Controller back press is returning from pickup browser to the command page.");
+                _currentPage = PanelPage.Command;
+                _focusInputField = true;
+            }
+
+            _focusPickupSearchField = false;
+            RequestGuiFocusRelease();
+            ResetControllerNavigationAxes();
+        }
+
+        private void HandleLoadoutEditorPageControllerNavigation(bool isControllerBackPressed)
+        {
+            if (!isControllerBackPressed)
+            {
+                ResetControllerNavigationAxes();
+                return;
+            }
+
+            switch (_loadoutEditorMode)
+            {
+                case LoadoutEditorMode.RandomPoolDetail:
+                    LogGamepadShortcutState("Controller back press is returning from loadout random pool detail to preset detail.");
+                    _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
+                    RefreshLoadoutEditorEntries();
+                    break;
+                case LoadoutEditorMode.PresetPickupsDetail:
+                    LogGamepadShortcutState("Controller back press is returning from loadout preset pickups detail to preset detail.");
+                    _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
+                    _loadoutPickupCountEditIndex = -1;
+                    _loadoutPickupCountEditText = string.Empty;
+                    RefreshLoadoutEditorEntries();
+                    break;
+                case LoadoutEditorMode.PresetDetail:
+                    LogGamepadShortcutState("Controller back press is returning from loadout preset detail to preset list.");
+                    _loadoutEditorMode = LoadoutEditorMode.PresetList;
+                    RefreshLoadoutPresetEntries();
+                    break;
+                case LoadoutEditorMode.PresetList:
+                default:
+                    LogGamepadShortcutState("Controller back press is returning from loadout editor to the command page.");
+                    _currentPage = PanelPage.Command;
+                    _focusInputField = true;
+                    break;
+            }
+
+            RequestGuiFocusRelease();
+            ResetControllerNavigationAxes();
+        }
+
+        private void HandleTeleportPanelControllerNavigation(bool isControllerBackPressed)
+        {
+            if (isControllerBackPressed)
+            {
+                LogGamepadShortcutState("Controller back press is closing the teleport panel.");
+                CloseTeleportPanel();
+                return;
+            }
+
+            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
+            if (navigationDirection.HasValue)
+            {
+                int previousIndex = _teleportSelectedIndex;
+                switch (navigationDirection.Value)
+                {
+                    case ControllerNavDirection.Up:
+                        _teleportSelectedIndex = (_teleportSelectedIndex + TeleportOptions.Length - 1) % TeleportOptions.Length;
+                        break;
+                    case ControllerNavDirection.Down:
+                        _teleportSelectedIndex = (_teleportSelectedIndex + 1) % TeleportOptions.Length;
+                        break;
+                    default:
+                        LogGamepadShortcutState(
+                            "Ignored teleport panel horizontal navigation. Direction=" +
+                            navigationDirection.Value +
+                            ", SelectedIndex=" +
+                            _teleportSelectedIndex +
+                            ".");
+                        return;
+                }
+
+                LogGamepadShortcutState(
+                    "Teleport panel selection changed. Direction=" +
+                    navigationDirection.Value +
+                    ", FromIndex=" +
+                    previousIndex +
+                    ", ToIndex=" +
+                    _teleportSelectedIndex +
+                    ", Token=" +
+                    TeleportOptions[_teleportSelectedIndex].CommandToken +
+                    ".");
+                return;
+            }
+
+            if (IsControllerConfirmPressed())
+            {
+                TeleportOption selectedOption = TeleportOptions[_teleportSelectedIndex];
+                LogGamepadShortcutState(
+                    "Controller confirm is activating teleport option. SelectedIndex=" +
+                    _teleportSelectedIndex +
+                    ", Token=" +
+                    selectedOption.CommandToken +
+                    ".");
+                ExecuteTeleport(selectedOption, null);
+            }
+        }
+
         private ControllerNavDirection? GetControllerNavigationDirection()
         {
+            ControllerNavDirection? braveInputDirection = GetBraveInputNavigationDirection();
+            if (braveInputDirection.HasValue)
+            {
+                return braveInputDirection;
+            }
+
             float horizontal = Input.GetAxisRaw("Horizontal");
+            float vertical = Input.GetAxisRaw("Vertical");
+            LogControllerNavigationAxisState(horizontal, vertical);
+
             if (Mathf.Abs(horizontal) < 0.5f)
             {
                 _wasControllerHorizontalNavigationActive = false;
@@ -308,10 +534,15 @@ namespace RandomLoadout
             else if (!_wasControllerHorizontalNavigationActive)
             {
                 _wasControllerHorizontalNavigationActive = true;
+                LogGamepadShortcutState(
+                    "Controller navigation direction detected from horizontal axis. Horizontal=" +
+                    horizontal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                    ", Vertical=" +
+                    vertical.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                    ".");
                 return horizontal > 0f ? ControllerNavDirection.Right : ControllerNavDirection.Left;
             }
 
-            float vertical = Input.GetAxisRaw("Vertical");
             if (Mathf.Abs(vertical) < 0.5f)
             {
                 _wasControllerVerticalNavigationActive = false;
@@ -319,14 +550,80 @@ namespace RandomLoadout
             else if (!_wasControllerVerticalNavigationActive)
             {
                 _wasControllerVerticalNavigationActive = true;
+                LogGamepadShortcutState(
+                    "Controller navigation direction detected from vertical axis. Horizontal=" +
+                    horizontal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                    ", Vertical=" +
+                    vertical.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                    ".");
                 return vertical > 0f ? ControllerNavDirection.Up : ControllerNavDirection.Down;
             }
 
             return null;
         }
 
+        private ControllerNavDirection? GetBraveInputNavigationDirection()
+        {
+            BraveInput braveInput = BraveInput.PrimaryPlayerInstance;
+            if ((object)braveInput == null)
+            {
+                braveInput = BraveInput.PlayerlessInstance;
+            }
+
+            if ((object)braveInput == null || braveInput.ActiveActions == null)
+            {
+                return null;
+            }
+
+            GungeonActions actions = braveInput.ActiveActions;
+            if (WasNavigationActionPressed(actions.SelectLeft))
+            {
+                LogGamepadShortcutState("Detected controller navigation from BraveInput.SelectLeft.");
+                return ControllerNavDirection.Left;
+            }
+
+            if (WasNavigationActionPressed(actions.SelectRight))
+            {
+                LogGamepadShortcutState("Detected controller navigation from BraveInput.SelectRight.");
+                return ControllerNavDirection.Right;
+            }
+
+            if (WasNavigationActionPressed(actions.SelectUp))
+            {
+                LogGamepadShortcutState("Detected controller navigation from BraveInput.SelectUp.");
+                return ControllerNavDirection.Up;
+            }
+
+            if (WasNavigationActionPressed(actions.SelectDown))
+            {
+                LogGamepadShortcutState("Detected controller navigation from BraveInput.SelectDown.");
+                return ControllerNavDirection.Down;
+            }
+
+            return null;
+        }
+
+        private static bool WasNavigationActionPressed(InControl.PlayerAction action)
+        {
+            return action != null &&
+                   (action.WasPressed ||
+                    action.WasPressedRepeating ||
+                    action.WasPressedAsDpad ||
+                    action.WasPressedAsDpadRepeating);
+        }
+
         private void ResetControllerNavigationAxes()
         {
+            if (_wasControllerHorizontalNavigationActive || _wasControllerVerticalNavigationActive)
+            {
+                LogGamepadShortcutState(
+                    "Reset controller navigation axis latch state. HorizontalActive=" +
+                    _wasControllerHorizontalNavigationActive +
+                    ", VerticalActive=" +
+                    _wasControllerVerticalNavigationActive +
+                    ".");
+            }
+
             _wasControllerHorizontalNavigationActive = false;
             _wasControllerVerticalNavigationActive = false;
         }
@@ -432,46 +729,32 @@ namespace RandomLoadout
 
         private bool IsGamepadToggleShortcutPressed()
         {
-            KeyCode backButtonKeyCode;
-            KeyCode startButtonKeyCode;
-            GetGamepadShortcutKeyCodes(out backButtonKeyCode, out startButtonKeyCode);
-            bool isBackPressed = Input.GetKey(backButtonKeyCode);
-            bool isStartPressed = Input.GetKey(startButtonKeyCode);
-            bool didBackChange = isBackPressed != _wasGamepadBackPressed;
-            bool didStartChange = isStartPressed != _wasGamepadStartPressed;
+            const int leftStickButtonIndex = 8;
+            const int rightStickButtonIndex = 9;
+            KeyCode leftStickButtonKeyCode = GetJoystickButtonKeyCode(leftStickButtonIndex);
+            KeyCode rightStickButtonKeyCode = GetJoystickButtonKeyCode(rightStickButtonIndex);
+            bool isLeftStickPressed = Input.GetKey(leftStickButtonKeyCode);
+            bool isRightStickPressed = Input.GetKeyDown(rightStickButtonKeyCode);
 
-            if (didBackChange || didStartChange)
+            if (_isVisible || isLeftStickPressed || !isRightStickPressed)
             {
-                LogGamepadShortcutState(
-                    "Observed gamepad shortcut state change. BackOrSelect=" +
-                    isBackPressed +
-                    ", Start=" +
-                    isStartPressed +
-                    ", BackDown=" +
-                    Input.GetKeyDown(backButtonKeyCode) +
-                    ", StartDown=" +
-                    Input.GetKeyDown(startButtonKeyCode) +
-                    ", BackUp=" +
-                    Input.GetKeyUp(backButtonKeyCode) +
-                    ", StartUp=" +
-                    Input.GetKeyUp(startButtonKeyCode) +
-                    ", Preset=" +
-                    GetConfiguredGamepadPreset() +
-                    ".");
+                if (isRightStickPressed)
+                {
+                    LogGamepadShortcutState(
+                        "Ignored command panel R3 short press. Visible=" +
+                        _isVisible +
+                        ", L3Pressed=" +
+                        isLeftStickPressed +
+                        ", R3Down=" +
+                        isRightStickPressed +
+                        ".");
+                }
+
+                return false;
             }
 
-            _wasGamepadBackPressed = isBackPressed;
-            _wasGamepadStartPressed = isStartPressed;
-
-            bool isShortcutPressed =
-                (isBackPressed && Input.GetKeyDown(startButtonKeyCode)) ||
-                (isStartPressed && Input.GetKeyDown(backButtonKeyCode));
-            if (isShortcutPressed)
-            {
-                LogGamepadShortcutState("Detected gamepad shortcut press. Toggling command panel.");
-            }
-
-            return isShortcutPressed;
+            LogGamepadShortcutState("Detected command panel R3 short press. Opening command panel.");
+            return true;
         }
 
         private void LogJoystickButtonStateChanges()
@@ -504,22 +787,35 @@ namespace RandomLoadout
             return KeyCode.JoystickButton0 + buttonIndex;
         }
 
-        private void GetGamepadShortcutKeyCodes(out KeyCode backButtonKeyCode, out KeyCode startButtonKeyCode)
+        private void LogControllerNavigationAxisState(float horizontal, float vertical)
         {
-            if (string.Equals(GetConfiguredGamepadPreset(), "Legacy", System.StringComparison.OrdinalIgnoreCase))
+            bool didHorizontalChange =
+                float.IsNaN(_lastLoggedControllerHorizontalAxis) ||
+                Mathf.Abs(horizontal - _lastLoggedControllerHorizontalAxis) > 0.01f;
+            bool didVerticalChange =
+                float.IsNaN(_lastLoggedControllerVerticalAxis) ||
+                Mathf.Abs(vertical - _lastLoggedControllerVerticalAxis) > 0.01f;
+            if (!didHorizontalChange && !didVerticalChange)
             {
-                backButtonKeyCode = KeyCode.JoystickButton8;
-                startButtonKeyCode = KeyCode.JoystickButton9;
                 return;
             }
 
-            backButtonKeyCode = KeyCode.JoystickButton6;
-            startButtonKeyCode = KeyCode.JoystickButton7;
-        }
-
-        private string GetConfiguredGamepadPreset()
-        {
-            return _gamepadPresetProvider != null ? GetNormalizedGamepadPresetName(_gamepadPresetProvider()) : "Xbox";
+            _lastLoggedControllerHorizontalAxis = horizontal;
+            _lastLoggedControllerVerticalAxis = vertical;
+            LogGamepadShortcutState(
+                "Observed controller navigation axis change. Horizontal=" +
+                horizontal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", Vertical=" +
+                vertical.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", Visible=" +
+                _isVisible +
+                ", Page=" +
+                _currentPage +
+                ", HorizontalLatched=" +
+                _wasControllerHorizontalNavigationActive +
+                ", VerticalLatched=" +
+                _wasControllerVerticalNavigationActive +
+                ".");
         }
 
         private void LogGamepadShortcutState(string message)
@@ -528,13 +824,6 @@ namespace RandomLoadout
             {
                 _inputLogHandler(message);
             }
-        }
-
-        private static string GetNormalizedGamepadPresetName(string presetName)
-        {
-            return string.Equals(presetName, "Legacy", System.StringComparison.OrdinalIgnoreCase)
-                ? "Legacy"
-                : "Xbox";
         }
 
         private void Close()
@@ -555,6 +844,7 @@ namespace RandomLoadout
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
 
             if (_loadoutEditorMode != LoadoutEditorMode.RandomPoolDetail)
             {
@@ -575,7 +865,7 @@ namespace RandomLoadout
             _commandPageFocusedControlId = "cmd.settings";
             _settingsPageFocusedControlId = "settings.toggle_key";
             _inputText = string.Empty;
-            _showTeleportPanel = false;
+            CloseTeleportPanel();
             ResetPickupBrowserState();
             ResetCharacterPageCache();
             ResetControllerNavigationAxes();
@@ -585,6 +875,265 @@ namespace RandomLoadout
         private void RequestGuiFocusRelease()
         {
             _releaseGuiFocusPending = true;
+        }
+
+        private void UpdateMapFeatureActivationState()
+        {
+            if (string.IsNullOrEmpty(_revealMapActivatedSceneName) && string.IsNullOrEmpty(_mapDirectTeleportActivatedSceneName))
+            {
+                return;
+            }
+
+            string currentSceneName = GetCurrentMapFeatureActivationKey();
+            bool isRevealMapStillActive =
+                !string.IsNullOrEmpty(_revealMapActivatedSceneName) &&
+                string.Equals(_revealMapActivatedSceneName, currentSceneName, System.StringComparison.Ordinal);
+            bool isMapDirectTeleportStillActive =
+                !string.IsNullOrEmpty(_mapDirectTeleportActivatedSceneName) &&
+                string.Equals(_mapDirectTeleportActivatedSceneName, currentSceneName, System.StringComparison.Ordinal);
+            if (isRevealMapStillActive || isMapDirectTeleportStillActive)
+            {
+                return;
+            }
+
+            if (ShouldLogMapTeleportVerbose())
+            {
+                LogGamepadShortcutState(
+                    "Map feature activation reset. " +
+                    "PreviousRevealMapScene=" +
+                    _revealMapActivatedSceneName +
+                    ", PreviousMapDirectTeleportScene=" +
+                    _mapDirectTeleportActivatedSceneName +
+                    ", CurrentScene=" +
+                    currentSceneName +
+                    ".");
+            }
+            _revealMapActivatedSceneName = string.Empty;
+            _mapDirectTeleportActivatedSceneName = string.Empty;
+            _lastMapDirectTeleportRoomKey = string.Empty;
+        }
+
+        private bool IsRevealMapActive()
+        {
+            return
+                !string.IsNullOrEmpty(_revealMapActivatedSceneName) &&
+                string.Equals(_revealMapActivatedSceneName, GetCurrentMapFeatureActivationKey(), System.StringComparison.Ordinal);
+        }
+
+        private void MarkRevealMapActivatedForCurrentScene()
+        {
+            _revealMapActivatedSceneName = GetCurrentMapFeatureActivationKey();
+        }
+
+        private bool IsMapDirectTeleportActive()
+        {
+            return
+                !string.IsNullOrEmpty(_mapDirectTeleportActivatedSceneName) &&
+                string.Equals(_mapDirectTeleportActivatedSceneName, GetCurrentMapFeatureActivationKey(), System.StringComparison.Ordinal);
+        }
+
+        private void MarkMapDirectTeleportActivatedForCurrentScene()
+        {
+            _mapDirectTeleportActivatedSceneName = GetCurrentMapFeatureActivationKey();
+            _nextMapDirectTeleportDebugLogAt = 0f;
+            _lastMapDirectTeleportRoomKey = string.Empty;
+        }
+
+        private static string GetCurrentMapFeatureActivationKey()
+        {
+            GameManager gameManager = GameManager.Instance;
+            string dungeonSceneName = GetLastLoadedDungeonSceneName(gameManager);
+            if (!string.IsNullOrEmpty(dungeonSceneName) &&
+                !string.Equals(dungeonSceneName, "<unknown>", System.StringComparison.Ordinal) &&
+                !string.Equals(dungeonSceneName, "<no_game_manager>", System.StringComparison.Ordinal) &&
+                !dungeonSceneName.StartsWith("<exception:", System.StringComparison.Ordinal))
+            {
+                return dungeonSceneName;
+            }
+
+            return GetLoadedUnitySceneName();
+        }
+
+        private void LogMapDirectTeleportRoomTransitionIfNeeded()
+        {
+            if (!IsMapDirectTeleportActive() || !ShouldLogMapTeleportVerbose())
+            {
+                return;
+            }
+
+            GameManager gameManager = GameManager.Instance;
+            PlayerController player = gameManager != null ? gameManager.PrimaryPlayer : null;
+            RoomHandler currentRoom = player != null ? player.CurrentRoom : null;
+            string currentRoomKey = GetMapDirectTeleportRoomKey(currentRoom);
+            if (string.Equals(currentRoomKey, _lastMapDirectTeleportRoomKey, System.StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _lastMapDirectTeleportRoomKey = currentRoomKey;
+            Minimap minimap = Minimap.HasInstance ? Minimap.Instance : null;
+            int minimapTeleportEntryCount = minimap != null && minimap.RoomToTeleportMap != null ? minimap.RoomToTeleportMap.Count : -1;
+            LogGamepadShortcutState(
+                "Map direct teleport room transition. " +
+                "UnityScene=" +
+                GetLoadedUnitySceneName() +
+                ", LastLoadedDungeonScene=" +
+                GetLastLoadedDungeonSceneName(gameManager) +
+                ", CurrentRoom=" +
+                DescribeMapDirectTeleportRoom(currentRoom) +
+                ", CurrentRoomCanTeleportFrom=" +
+                (currentRoom != null ? currentRoom.CanTeleportFromRoom().ToString() : "<unknown>") +
+                ", CurrentRoomCanTeleportTo=" +
+                (currentRoom != null ? currentRoom.CanTeleportToRoom().ToString() : "<unknown>") +
+                ", CurrentRoomTeleportersActive=" +
+                (currentRoom != null ? currentRoom.TeleportersActive.ToString() : "<unknown>") +
+                ", CurrentRoomRevealedOnMap=" +
+                (currentRoom != null ? currentRoom.RevealedOnMap.ToString() : "<unknown>") +
+                ", CurrentRoomMinimapTeleportRegistered=" +
+                IsMapDirectTeleportRoomRegistered(minimap, currentRoom) +
+                ", MinimapTeleportEntries=" +
+                minimapTeleportEntryCount +
+                ", ConnectedRooms=[" +
+                DescribeConnectedMapDirectTeleportRooms(currentRoom, minimap) +
+                "].");
+        }
+
+        private void LogMapDirectTeleportRuntimeStateIfNeeded()
+        {
+            if (!IsMapDirectTeleportActive() || !ShouldLogMapTeleportVerbose() || Time.unscaledTime < _nextMapDirectTeleportDebugLogAt)
+            {
+                return;
+            }
+
+            _nextMapDirectTeleportDebugLogAt = Time.unscaledTime + 1f;
+            GameManager gameManager = GameManager.Instance;
+            PlayerController player = gameManager != null ? gameManager.PrimaryPlayer : null;
+            RoomHandler currentRoom = player != null ? player.CurrentRoom : null;
+            Minimap minimap = Minimap.HasInstance ? Minimap.Instance : null;
+            string currentRoomLabel = currentRoom != null ? DescribeMapDirectTeleportRoom(currentRoom) : "<none>";
+            string currentRoomCanTeleportFrom = currentRoom != null ? currentRoom.CanTeleportFromRoom().ToString() : "<unknown>";
+            string currentRoomCanTeleportTo = currentRoom != null ? currentRoom.CanTeleportToRoom().ToString() : "<unknown>";
+            string currentRoomTeleportersActive = currentRoom != null ? currentRoom.TeleportersActive.ToString() : "<unknown>";
+            int minimapTeleportEntryCount = minimap != null && minimap.RoomToTeleportMap != null ? minimap.RoomToTeleportMap.Count : -1;
+            string lastLoadedDungeonScene = GetLastLoadedDungeonSceneName(gameManager);
+            LogGamepadShortcutState(
+                "Map direct teleport runtime sample. " +
+                "UnityScene=" +
+                GetLoadedUnitySceneName() +
+                ", LastLoadedDungeonScene=" +
+                lastLoadedDungeonScene +
+                ", ActiveSceneBinding=" +
+                _mapDirectTeleportActivatedSceneName +
+                ", MinimapHasInstance=" +
+                Minimap.HasInstance +
+                ", MinimapTeleportEntries=" +
+                minimapTeleportEntryCount +
+                ", CurrentRoom=" +
+                currentRoomLabel +
+                ", CurrentRoomCanTeleportFrom=" +
+                currentRoomCanTeleportFrom +
+                ", CurrentRoomCanTeleportTo=" +
+                currentRoomCanTeleportTo +
+                ", CurrentRoomTeleportersActive=" +
+                currentRoomTeleportersActive +
+                ", PlayerReady=" +
+                ((object)player != null) +
+                ", DungeonReady=" +
+                ((object)gameManager != null && (object)gameManager.Dungeon != null && gameManager.Dungeon.data != null) +
+                ".");
+        }
+
+        private static string DescribeMapDirectTeleportRoom(RoomHandler room)
+        {
+            if ((object)room == null)
+            {
+                return "<null>";
+            }
+
+            string roomName = room.GetRoomName();
+            IntVector2 basePosition = room.area != null ? room.area.basePosition : IntVector2.Zero;
+            string category = room.area != null ? room.area.PrototypeRoomCategory.ToString() : "<unknown>";
+            return
+                (string.IsNullOrEmpty(roomName) ? "<unnamed>" : roomName) +
+                "@" +
+                basePosition.x +
+                "," +
+                basePosition.y +
+                "#" +
+                category;
+        }
+
+        private static bool IsMapDirectTeleportRoomRegistered(Minimap minimap, RoomHandler room)
+        {
+            return minimap != null &&
+                minimap.RoomToTeleportMap != null &&
+                room != null &&
+                minimap.RoomToTeleportMap.ContainsKey(room);
+        }
+
+        private static string GetMapDirectTeleportRoomKey(RoomHandler room)
+        {
+            return room != null ? DescribeMapDirectTeleportRoom(room) : "<none>";
+        }
+
+        private static string DescribeConnectedMapDirectTeleportRooms(RoomHandler room, Minimap minimap)
+        {
+            if (room == null || room.connectedRooms == null || room.connectedRooms.Count == 0)
+            {
+                return string.Empty;
+            }
+
+            System.Collections.Generic.List<string> roomLabels = new System.Collections.Generic.List<string>();
+            for (int index = 0; index < room.connectedRooms.Count; index++)
+            {
+                RoomHandler connectedRoom = room.connectedRooms[index];
+                roomLabels.Add(
+                    DescribeMapDirectTeleportRoom(connectedRoom) +
+                    "{CanTo=" +
+                    (connectedRoom != null ? connectedRoom.CanTeleportToRoom().ToString() : "<unknown>") +
+                    ", TeleActive=" +
+                    (connectedRoom != null ? connectedRoom.TeleportersActive.ToString() : "<unknown>") +
+                    ", Revealed=" +
+                    (connectedRoom != null ? connectedRoom.RevealedOnMap.ToString() : "<unknown>") +
+                    ", Registered=" +
+                    IsMapDirectTeleportRoomRegistered(minimap, connectedRoom) +
+                    "}");
+            }
+
+            return string.Join("; ", roomLabels.ToArray());
+        }
+
+        private static string GetLastLoadedDungeonSceneName(GameManager gameManager)
+        {
+            if ((object)gameManager == null)
+            {
+                return "<no_game_manager>";
+            }
+
+            try
+            {
+                GameLevelDefinition levelDefinition = gameManager.GetLastLoadedLevelDefinition();
+                if (levelDefinition == null || string.IsNullOrEmpty(levelDefinition.dungeonSceneName))
+                {
+                    return "<unknown>";
+                }
+
+                return levelDefinition.dungeonSceneName;
+            }
+            catch (System.Exception exception)
+            {
+                return "<exception:" + exception.GetType().Name + ">";
+            }
+        }
+
+        private bool ShouldLogMapTeleportVerbose()
+        {
+            return _mapTeleportVerboseLoggingEnabledProvider != null && _mapTeleportVerboseLoggingEnabledProvider();
+        }
+
+        private bool ShouldLogFloorTeleportVerbose()
+        {
+            return _floorTeleportVerboseLoggingEnabledProvider != null && _floorTeleportVerboseLoggingEnabledProvider();
         }
 
         private void ReleaseGuiFocusIfPending()

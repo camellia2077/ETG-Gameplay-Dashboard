@@ -1,6 +1,6 @@
 # Logging
 
-Use this page when you need to inspect BepInEx output, triage ETG runtime regressions, or verify hook-related changes.
+Use this page when you need to inspect `BepInEx` output, choose the right debug log switch, or jump to a feature-specific logging guide.
 
 If your change touches ETG runtime behavior, log review is not optional.
 
@@ -44,6 +44,33 @@ RandomLoadout-written log lines use structured prefixes such as:
 
 These prefixes separate plugin logs from Unity, ETG, BepInEx, and other mods.
 
+## Feature Log Switches
+
+High-volume diagnostics are now split by feature and disabled by default.
+
+Config file location:
+
+- `BepInEx\config\ETG-Gameplay-Dashboard.cfg`
+
+Available optional switches:
+
+```ini
+[Debug]
+EnableMapTeleportVerboseLogs = false
+EnableMuncherVerboseLogs = false
+EnableFloorTeleportVerboseLogs = false
+EnableBossRushVerboseLogs = false
+```
+
+Use them only while actively reproducing an issue. Leave them off for normal play.
+
+Feature guides:
+
+- [Map Reveal Logging](./logging-map-teleport.md)
+- [Muncher Spawn Logging](./logging-muncher-spawn.md)
+- [Floor Teleport Logging](./logging-floor-teleport.md)
+- [Boss Rush Logging](./logging-boss-rush.md)
+
 ## Startup Self-Check
 
 Startup emits a Boss Rush self-check summary under `[RandomLoadout][Init]`.
@@ -64,13 +91,14 @@ If a hook signature no longer matches the game assembly, the plugin now logs and
 
 ## What To Check After Runtime Changes
 
-After any hook, scene, Boss Rush, character-select-hub, reward, or pause-flow change, check for:
+After any hook, scene, Boss Rush, character-select-hub, reward, pause-flow, or custom room-object change, check for:
 
 - hook install failures
 - null references during scene transition
 - unexpected startup warnings
 - Boss Rush state progression logs
 - return-to-character-select logs
+- feature-specific warnings from `[RandomLoadout][Command]`
 
 Use [Testing Matrix](../reference/testing-matrix.md) to decide the rest of the validation set.
 
@@ -98,6 +126,14 @@ python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common
 
 ## Read Next
 
+- Map reveal diagnostics:
+  [./logging-map-teleport.md](./logging-map-teleport.md)
+- Muncher diagnostics:
+  [./logging-muncher-spawn.md](./logging-muncher-spawn.md)
+- Floor teleport diagnostics:
+  [./logging-floor-teleport.md](./logging-floor-teleport.md)
+- Boss Rush diagnostics:
+  [./logging-boss-rush.md](./logging-boss-rush.md)
 - Smoke checklist:
   [./smoke-checklist.md](./smoke-checklist.md)
 - Runtime risk areas:

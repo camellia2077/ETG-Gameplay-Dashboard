@@ -10,6 +10,7 @@ namespace RandomLoadout
         {
             LoadoutRuleFileModel model = LoadEditableModel();
             LoadoutRuleFileRuleModel[] rules = _ruleFileProvider.GetActivePresetRules(model, null);
+            LoadoutRuleFilePickupModel[] presetPickups = _ruleFileProvider.GetActivePresetPickups(model, null);
             Dictionary<int, EtgPickupCatalogEntry> catalogById = BuildCatalogById();
             List<LoadoutRuleEditorEntry> entries = new List<LoadoutRuleEditorEntry>();
 
@@ -19,8 +20,23 @@ namespace RandomLoadout
                 if (rule != null)
                 {
                     EtgPickupCatalogEntry pickup = GetRulePickup(rule, catalogById);
-                    entries.Add(new LoadoutRuleEditorEntry(i, BuildPrimaryText(rule, pickup), BuildSecondaryText(rule, pickup), GetRulePickupId(rule, pickup), IsRandomPoolRule(rule)));
+                    entries.Add(new LoadoutRuleEditorEntry(i, BuildPrimaryText(rule, pickup), BuildSecondaryText(rule, pickup), GetRuleRepresentativePickupId(rule, pickup), IsRandomPoolRule(rule)));
                 }
+            }
+
+            if (presetPickups.Length > 0)
+            {
+                int? representativePickupId = StartItemPickupCatalog.GetFirstRepresentativePickupId(presetPickups);
+                entries.Add(
+                    new LoadoutRuleEditorEntry(
+                        -1,
+                        GuiText.Get("gui.loadout_editor.pickups_title"),
+                        GuiText.Get("gui.loadout_editor.pickups_collection_summary", presetPickups.Length),
+                        representativePickupId,
+                        false,
+                        string.Empty,
+                        presetPickups.Length,
+                        true));
             }
 
             return entries.ToArray();
@@ -65,6 +81,33 @@ namespace RandomLoadout
             return entries.ToArray();
         }
 
+        public LoadoutRuleEditorEntry[] GetPresetPickupEntries()
+        {
+            LoadoutRuleFileModel model = LoadEditableModel();
+            LoadoutRuleFilePickupModel[] pickups = _ruleFileProvider.GetActivePresetPickups(model, null);
+            List<LoadoutRuleEditorEntry> entries = new List<LoadoutRuleEditorEntry>();
+            for (int i = 0; i < pickups.Length; i++)
+            {
+                string normalizedType = StartItemPickupCatalog.NormalizeType(pickups[i] != null ? pickups[i].Type : string.Empty);
+                if (string.IsNullOrEmpty(normalizedType))
+                {
+                    continue;
+                }
+
+                entries.Add(
+                    new LoadoutRuleEditorEntry(
+                        i,
+                        StartItemPickupCatalog.GetDisplayName(normalizedType),
+                        GuiText.Get("gui.loadout_editor.pickups_entry_hint", StartItemPickupCatalog.GetDisplayCount(normalizedType, pickups[i].Count)),
+                        null,
+                        false,
+                        normalizedType,
+                        StartItemPickupCatalog.GetDisplayCount(normalizedType, pickups[i].Count)));
+            }
+
+            return entries.ToArray();
+        }
+
         private Dictionary<int, EtgPickupCatalogEntry> BuildCatalogById()
         {
             Dictionary<int, EtgPickupCatalogEntry> catalogById = new Dictionary<int, EtgPickupCatalogEntry>();
@@ -92,11 +135,20 @@ namespace RandomLoadout
             return catalogById.TryGetValue(rule.Id.Value, out pickup) ? pickup : null;
         }
 
-        private static int? GetRulePickupId(LoadoutRuleFileRuleModel rule, EtgPickupCatalogEntry pickup)
+        private static int? GetRuleRepresentativePickupId(LoadoutRuleFileRuleModel rule, EtgPickupCatalogEntry pickup)
         {
             if (pickup != null)
             {
                 return pickup.PickupId;
+            }
+
+            if (IsRandomPoolRule(rule))
+            {
+                int[] poolIds = rule != null ? rule.PoolIds : null;
+                if (poolIds != null && poolIds.Length > 0)
+                {
+                    return poolIds[0];
+                }
             }
 
             return rule != null ? rule.Id : null;

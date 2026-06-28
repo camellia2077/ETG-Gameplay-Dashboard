@@ -92,6 +92,12 @@ namespace RandomLoadout
             _reloadRequestedGuns.Clear();
         }
 
+        public void Disable()
+        {
+            _mode = AutoReloadMode.Off;
+            _reloadRequestedGuns.Clear();
+        }
+
         private static bool ShouldReload(Gun gun)
         {
             if ((object)gun == null || gun.ClipCapacity <= 0)

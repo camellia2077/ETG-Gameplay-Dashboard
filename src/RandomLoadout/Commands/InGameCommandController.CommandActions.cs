@@ -89,6 +89,7 @@ namespace RandomLoadout
 
             if (executionResult.Succeeded)
             {
+                MarkRevealMapActivatedForCurrentScene();
                 logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
                 _focusInputField = true;
             }
@@ -289,6 +290,21 @@ namespace RandomLoadout
                 return;
             }
 
+            if (_ammoModeToggleService != null && _ammoModeToggleService.Mode == AmmoMode.NoConsume)
+            {
+                string disabledMessage = GetLocalizedFallback(
+                    "result.auto_reload.disabled_by_no_consume",
+                    "Auto Reload is disabled because ammo is not consumed, so reload will not trigger. To avoid unknown bugs, it stays disabled.",
+                    "自动换弹已禁用：因为子弹不消耗，不会触发换弹。为了避免未知 bug，这里保持禁用。");
+                ShowStatus(disabledMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command("Auto Reload is disabled because ammo is not consumed, so reload will not trigger. To avoid unknown bugs, it stays disabled."));
+                }
+
+                return;
+            }
+
             GrantCommandExecutionResult executionResult = _autoReloadToggleService.Toggle();
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
@@ -356,6 +372,14 @@ namespace RandomLoadout
             }
 
             GrantCommandExecutionResult executionResult = _ammoModeToggleService.Toggle();
+            if (_ammoModeToggleService.Mode == AmmoMode.NoConsume && _autoReloadToggleService != null)
+            {
+                // No Consume prevents ammo from decreasing naturally, so the gun never reaches the
+                // normal "empty clip then reload" flow. Disable Auto Reload here to avoid bugs
+                // caused by combining it with a state that does not naturally consume bullets.
+                _autoReloadToggleService.Disable();
+            }
+
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (logger == null)
@@ -396,6 +420,41 @@ namespace RandomLoadout
 
             if (executionResult.Succeeded)
             {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteRevealCurrentFloorMap(PlayerController player, ManualLogSource logger)
+        {
+            if (logger != null && ShouldLogMapTeleportVerbose())
+            {
+                logger.LogInfo(
+                    RandomLoadoutLog.Command(
+                        "Reveal map button pressed. " +
+                        "Scene=" +
+                        GetLoadedUnitySceneName() +
+                        ", RevealMapActive=" +
+                        IsRevealMapActive() +
+                        "."));
+            }
+
+            GrantCommandExecutionResult executionResult = _roomDebugCommandService.RevealCurrentFloorMap(player, logger);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                MarkRevealMapActivatedForCurrentScene();
+                MarkMapDirectTeleportActivatedForCurrentScene();
                 logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
                 _focusInputField = true;
             }

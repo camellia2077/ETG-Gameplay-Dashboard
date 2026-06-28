@@ -165,8 +165,11 @@
     <Compile Include="Commands\InGameCommandController.CharacterPage.cs" />
     <Compile Include="Commands\InGameCommandController.CommandPage.cs" />
     <Compile Include="Commands\InGameCommandController.CommandActions.cs" />
+    <Compile Include="Commands\InGameCommandController.ControllerHelp.cs" />
     <Compile Include="Commands\InGameCommandController.Currency.cs" />
+    <Compile Include="Commands\InGameCommandController.Room.cs" />
     <Compile Include="Commands\InGameCommandController.LoadoutEditor.cs" />
+    <Compile Include="Commands\InGameCommandController.LoadoutPickups.cs" />
     <Compile Include="Commands\InGameCommandController.PickupBrowser.cs" />
     <Compile Include="Commands\InGameCommandController.PlayerStats.cs" />
     <Compile Include="Commands\InGameCommandController.Settings.cs" />
@@ -183,6 +186,7 @@
     <Compile Include="Commands\LoadoutRuleEditorEntry.cs" />
     <Compile Include="Commands\LoadoutRuleEditorService.cs" />
     <Compile Include="Commands\LoadoutRuleEditorService.Entries.cs" />
+    <Compile Include="Commands\LoadoutRuleEditorService.Pickups.cs" />
     <Compile Include="Commands\LoadoutRuleEditorService.Presets.cs" />
     <Compile Include="Commands\AutoReloadToggleService.cs" />
     <Compile Include="Commands\InvincibilityToggleService.cs" />

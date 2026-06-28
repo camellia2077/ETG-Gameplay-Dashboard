@@ -40,19 +40,28 @@ namespace RandomLoadout
 
             GUI.Label(
                 new Rect(left, top + 116f, width, 20f),
+                GetLocalizedFallback(string.Empty, "Project statement", "项目声明"),
+                _pickupPrimaryTextStyle);
+            GUI.Label(
+                new Rect(left, top + 140f, width, 42f),
+                GetProjectDisclaimerText(),
+                _wrappedHintStyle);
+
+            GUI.Label(
+                new Rect(left, top + 188f, width, 20f),
                 GuiText.Get("gui.about.dependencies_title"),
                 _pickupPrimaryTextStyle);
             GUI.Label(
-                new Rect(left, top + 140f, width, 58f),
+                new Rect(left, top + 212f, width, 58f),
                 GuiText.Get("gui.about.dependencies"),
                 _wrappedHintStyle);
 
             GUI.Label(
-                new Rect(left, top + 204f, width, 20f),
+                new Rect(left, top + 276f, width, 20f),
                 GuiText.Get("gui.about.references_title"),
                 _pickupPrimaryTextStyle);
             GUI.Label(
-                new Rect(left, top + 228f, width, 42f),
+                new Rect(left, top + 300f, width, 42f),
                 GuiText.Get("gui.about.references"),
                 _wrappedHintStyle);
         }

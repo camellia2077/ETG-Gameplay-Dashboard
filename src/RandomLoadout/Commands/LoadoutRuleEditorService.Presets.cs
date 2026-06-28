@@ -136,6 +136,7 @@ namespace RandomLoadout
                 Name = newPresetName,
                 DisplayNameKey = string.Empty,
                 Rules = new LoadoutRuleFileRuleModel[0],
+                Pickups = new LoadoutRuleFilePickupModel[0],
             };
             presets.Add(preset);
 
@@ -164,6 +165,7 @@ namespace RandomLoadout
                 Name = newPresetName,
                 DisplayNameKey = string.Empty,
                 Rules = CloneRules(activePreset.Rules),
+                Pickups = ClonePickups(activePreset.Pickups),
             };
             presets.Add(duplicatedPreset);
 
@@ -277,6 +279,7 @@ namespace RandomLoadout
                 : new LoadoutRuleFileRuleModel[0];
             int specificCount = 0;
             int randomCount = 0;
+            int pickupCount = StartItemPickupCatalog.MergePickups(preset != null ? preset.Pickups : null).Length;
             for (int i = 0; i < safeRules.Length; i++)
             {
                 LoadoutRuleFileRuleModel rule = safeRules[i];
@@ -302,7 +305,8 @@ namespace RandomLoadout
                 string.Equals(presetId, activePresetId, StringComparison.OrdinalIgnoreCase),
                 safeRules.Length,
                 specificCount,
-                randomCount);
+                randomCount,
+                pickupCount);
         }
 
         private static int FindPresetIndex(List<LoadoutRuleFilePresetModel> presets, string presetId)
@@ -506,6 +510,26 @@ namespace RandomLoadout
             string[] clone = new string[values.Length];
             Array.Copy(values, clone, values.Length);
             return clone;
+        }
+
+        private static LoadoutRuleFilePickupModel[] ClonePickups(LoadoutRuleFilePickupModel[] pickups)
+        {
+            if (pickups == null || pickups.Length == 0)
+            {
+                return new LoadoutRuleFilePickupModel[0];
+            }
+
+            LoadoutRuleFilePickupModel[] clones = new LoadoutRuleFilePickupModel[pickups.Length];
+            for (int i = 0; i < pickups.Length; i++)
+            {
+                clones[i] = new LoadoutRuleFilePickupModel
+                {
+                    Type = StartItemPickupCatalog.NormalizeType(pickups[i] != null ? pickups[i].Type : string.Empty),
+                    Count = StartItemPickupCatalog.NormalizeCount(pickups[i] != null ? pickups[i].Count : 1),
+                };
+            }
+
+            return clones;
         }
     }
 }

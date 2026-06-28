@@ -18,6 +18,8 @@ namespace RandomLoadout.Core.Tests
                 new KeyValuePair<string, Action>("UnsupportedPickupIdIsRejected", AliasRegistryTests.UnsupportedPickupIdIsRejected),
                 new KeyValuePair<string, Action>("ParsesSpecificAliasRule", RuleFileProviderTests.ParsesSpecificAliasRule),
                 new KeyValuePair<string, Action>("ParsesRandomPoolAliasesAlongsideIdsAndNames", RuleFileProviderTests.ParsesRandomPoolAliasesAlongsideIdsAndNames),
+                new KeyValuePair<string, Action>("ParsesPresetPickupsFromPresetFile", RuleFileProviderTests.ParsesPresetPickupsFromPresetFile),
+                new KeyValuePair<string, Action>("MergesDuplicatePresetPickupsFromPresetFile", RuleFileProviderTests.MergesDuplicatePresetPickupsFromPresetFile),
                 new KeyValuePair<string, Action>("MissingAliasFileFallsBackToBuiltInDefaults", RuleFileProviderTests.MissingAliasFileFallsBackToBuiltInDefaults),
                 new KeyValuePair<string, Action>("MissingPrimaryRuleFileFallsBackToFullPoolFile", RuleFileProviderTests.MissingPrimaryRuleFileFallsBackToFullPoolFile),
                 new KeyValuePair<string, Action>("InvalidPrimaryRuleFileFallsBackToFullPoolFile", RuleFileProviderTests.InvalidPrimaryRuleFileFallsBackToFullPoolFile),

@@ -218,15 +218,14 @@ namespace RandomLoadout
                     Foyer.Instance.OnDepartedFoyer();
                 }
 
-                Logger.LogInfo(
-                    RandomLoadoutLog.Command(
-                        "Deferred teleport staged from foyer. TargetToken=" +
-                        floorDefinition.CommandToken +
-                        ", TargetLoadScene=" +
-                        floorDefinition.LoadSceneName +
-                        ", BootstrapLoadScene=" +
-                        keepFloor.LoadSceneName +
-                        "."));
+                LogFloorTeleportInfo(
+                    "Deferred teleport staged from foyer. TargetToken=" +
+                    floorDefinition.CommandToken +
+                    ", TargetLoadScene=" +
+                    floorDefinition.LoadSceneName +
+                    ", BootstrapLoadScene=" +
+                    keepFloor.LoadSceneName +
+                    ".");
                 gameManager.LoadCustomLevel(keepFloor.LoadSceneName);
                 return true;
             }
@@ -267,29 +266,27 @@ namespace RandomLoadout
 
                 _pendingTeleportReadySceneName = lifecycle.SceneName;
                 _pendingTeleportReadyFrames = 0;
-                Logger.LogInfo(
-                    RandomLoadoutLog.Run(
-                        "Deferred teleport armed after entering bootstrap floor. Scene=" +
-                        lifecycle.SceneName +
-                        ", TargetToken=" +
-                        _pendingTeleportFloor.CommandToken +
-                        ", TargetLoadScene=" +
-                        _pendingTeleportFloor.LoadSceneName +
-                        "."));
+                LogFloorTeleportRunInfo(
+                    "Deferred teleport armed after entering bootstrap floor. Scene=" +
+                    lifecycle.SceneName +
+                    ", TargetToken=" +
+                    _pendingTeleportFloor.CommandToken +
+                    ", TargetLoadScene=" +
+                    _pendingTeleportFloor.LoadSceneName +
+                    ".");
                 return true;
             }
 
             if (!string.Equals(_pendingTeleportReadySceneName, lifecycle.SceneName, StringComparison.Ordinal))
             {
-                Logger.LogInfo(
-                    RandomLoadoutLog.Run(
-                        "Deferred teleport re-armed on new scene. PreviousScene=" +
-                        _pendingTeleportReadySceneName +
-                        ", Scene=" +
-                        lifecycle.SceneName +
-                        ", TargetToken=" +
-                        _pendingTeleportFloor.CommandToken +
-                        "."));
+                LogFloorTeleportRunInfo(
+                    "Deferred teleport re-armed on new scene. PreviousScene=" +
+                    _pendingTeleportReadySceneName +
+                    ", Scene=" +
+                    lifecycle.SceneName +
+                    ", TargetToken=" +
+                    _pendingTeleportFloor.CommandToken +
+                    ".");
                 _pendingTeleportReadySceneName = lifecycle.SceneName;
                 return true;
             }
@@ -299,17 +296,16 @@ namespace RandomLoadout
             {
                 if (_pendingTeleportReadyFrames != 0)
                 {
-                    Logger.LogInfo(
-                        RandomLoadoutLog.Run(
-                            "Deferred teleport readiness reset. Scene=" +
-                            lifecycle.SceneName +
-                            ", ReadyFrames=" +
-                            _pendingTeleportReadyFrames +
-                            "/" +
-                            DeferredTeleportRequiredReadyFrames +
-                            ", Reason=" +
-                            readinessSummary +
-                            "."));
+                    LogFloorTeleportRunInfo(
+                        "Deferred teleport readiness reset. Scene=" +
+                        lifecycle.SceneName +
+                        ", ReadyFrames=" +
+                        _pendingTeleportReadyFrames +
+                        "/" +
+                        DeferredTeleportRequiredReadyFrames +
+                        ", Reason=" +
+                        readinessSummary +
+                        ".");
                 }
 
                 _pendingTeleportReadyFrames = 0;
@@ -321,17 +317,16 @@ namespace RandomLoadout
                 _pendingTeleportReadyFrames % 30 == 0 ||
                 _pendingTeleportReadyFrames == DeferredTeleportRequiredReadyFrames)
             {
-                Logger.LogInfo(
-                    RandomLoadoutLog.Run(
-                        "Deferred teleport ready check " +
-                        _pendingTeleportReadyFrames +
-                        "/" +
-                        DeferredTeleportRequiredReadyFrames +
-                        ". Scene=" +
-                        lifecycle.SceneName +
-                        ", " +
-                        readinessSummary +
-                        "."));
+                LogFloorTeleportRunInfo(
+                    "Deferred teleport ready check " +
+                    _pendingTeleportReadyFrames +
+                    "/" +
+                    DeferredTeleportRequiredReadyFrames +
+                    ". Scene=" +
+                    lifecycle.SceneName +
+                    ", " +
+                    readinessSummary +
+                    ".");
             }
 
             if (_pendingTeleportReadyFrames < DeferredTeleportRequiredReadyFrames)
@@ -346,19 +341,18 @@ namespace RandomLoadout
 
             try
             {
-                Logger.LogInfo(
-                    RandomLoadoutLog.Run(
-                        "Executing deferred teleport. Scene=" +
-                        lifecycle.SceneName +
-                        ", TargetToken=" +
-                        pendingFloor.CommandToken +
-                        ", TargetLoadScene=" +
-                        pendingFloor.LoadSceneName +
-                        ", Command=" +
-                        pendingCommandText +
-                        ", LabelKey=" +
-                        pendingLabelKey +
-                        "."));
+                LogFloorTeleportRunInfo(
+                    "Executing deferred teleport. Scene=" +
+                    lifecycle.SceneName +
+                    ", TargetToken=" +
+                    pendingFloor.CommandToken +
+                    ", TargetLoadScene=" +
+                    pendingFloor.LoadSceneName +
+                    ", Command=" +
+                    pendingCommandText +
+                    ", LabelKey=" +
+                    pendingLabelKey +
+                    ".");
                 gameManager.LoadCustomLevel(pendingFloor.LoadSceneName);
             }
             catch (Exception exception)
@@ -386,6 +380,26 @@ namespace RandomLoadout
             _pendingTeleportCommandText = string.Empty;
             _pendingTeleportReadySceneName = string.Empty;
             _pendingTeleportReadyFrames = 0;
+        }
+
+        private void LogFloorTeleportInfo(string message)
+        {
+            if (!IsFloorTeleportVerboseLoggingEnabled())
+            {
+                return;
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command(message));
+        }
+
+        private void LogFloorTeleportRunInfo(string message)
+        {
+            if (!IsFloorTeleportVerboseLoggingEnabled())
+            {
+                return;
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Run(message));
         }
 
         private static bool IsDeferredTeleportReady(GameManager gameManager, PlayerController player, out string readinessSummary)
@@ -468,6 +482,7 @@ namespace RandomLoadout
         private void GrantConfiguredLoadout(PlayerController player, string sceneName)
         {
             EnsureResolvedLoadoutConfig();
+            RefreshActivePresetPickupsForGrant();
 
             int seed = _seedProvider.CreateSeed();
             string activePresetName = GetActiveStartItemsPreset();
@@ -536,6 +551,90 @@ namespace RandomLoadout
             if (selectionResult.Selections.Length == 0)
             {
                 Logger.LogWarning(RandomLoadoutLog.Grant("No pickups were selected for this run."));
+            }
+
+            GrantConfiguredPresetPickups(player);
+        }
+
+        private void RefreshActivePresetPickupsForGrant()
+        {
+            if (_ruleFileProvider == null)
+            {
+                return;
+            }
+
+            try
+            {
+                _ruleFileProvider.ActivePresetName = GetActiveStartItemsPreset();
+                LoadoutRuleFileModel model = _ruleFileProvider.LoadEditableModel();
+                _activePresetPickups = _ruleFileProvider.GetActivePresetPickups(model, null);
+            }
+            catch (Exception exception)
+            {
+                Logger.LogWarning(
+                    RandomLoadoutLog.Grant(
+                        "Failed to refresh preset pickups before grant. " +
+                        exception.GetType().Name +
+                        ": " +
+                        exception.Message));
+            }
+        }
+
+        private void GrantConfiguredPresetPickups(PlayerController player)
+        {
+            if (_playerDebugCommandService == null || _activePresetPickups == null || _activePresetPickups.Length == 0)
+            {
+                return;
+            }
+
+            for (int i = 0; i < _activePresetPickups.Length; i++)
+            {
+                string pickupType = StartItemPickupCatalog.NormalizeType(_activePresetPickups[i] != null ? _activePresetPickups[i].Type : string.Empty);
+                if (string.IsNullOrEmpty(pickupType))
+                {
+                    continue;
+                }
+
+                int grantCount = StartItemPickupCatalog.NormalizeCount(_activePresetPickups[i] != null ? _activePresetPickups[i].Count : 1);
+                bool succeeded = true;
+                string failureDetail = string.Empty;
+                for (int grantIndex = 0; grantIndex < grantCount; grantIndex++)
+                {
+                    GrantCommandExecutionResult result = _playerDebugCommandService.GrantStartItemPickup(player, pickupType);
+                    if (!result.Succeeded)
+                    {
+                        succeeded = false;
+                        failureDetail = result.LogMessage;
+                        break;
+                    }
+                }
+
+                if (succeeded)
+                {
+                    Logger.LogInfo(
+                        RandomLoadoutLog.Grant(
+                            "Granted preset pickup: " +
+                            StartItemPickupCatalog.GetEnglishDisplayName(pickupType) +
+                            " [Type=" +
+                            pickupType +
+                            "; Count=" +
+                            grantCount +
+                            "]."));
+                }
+                else
+                {
+                    Logger.LogWarning(
+                        RandomLoadoutLog.Grant(
+                            "Failed to grant preset pickup: " +
+                            StartItemPickupCatalog.GetEnglishDisplayName(pickupType) +
+                            " [Type=" +
+                            pickupType +
+                            "; Count=" +
+                            grantCount +
+                            "; Detail=" +
+                            failureDetail +
+                            "]."));
+                }
             }
         }
 

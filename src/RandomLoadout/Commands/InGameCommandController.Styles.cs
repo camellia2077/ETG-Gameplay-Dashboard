@@ -140,6 +140,101 @@ namespace RandomLoadout
 
             _modalBodyStyle = new GUIStyle(_hintStyle);
             _modalBodyStyle.wordWrap = true;
+
+            _settingsInfoTextStyle = new GUIStyle(_hintStyle);
+            _settingsInfoTextStyle.normal.textColor = Color.white;
+
+            _controllerHelpTitleStyle = new GUIStyle(_titleStyle);
+            _controllerHelpTitleStyle.normal.textColor = Color.white;
+
+            _controllerHelpTextStyle = new GUIStyle(_hintStyle);
+            _controllerHelpTextStyle.normal.textColor = Color.white;
+
+            _scrollViewStyle = new GUIStyle(GUI.skin.scrollView);
+            _scrollViewStyle.normal.background = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0f));
+            _scrollViewStyle.border = new RectOffset(0, 0, 0, 0);
+            _scrollViewStyle.padding = new RectOffset(0, 0, 0, 0);
+
+            Texture2D transparentScrollbarTexture = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0f));
+            Texture2D selectedScrollbarTexture = MakeTexture(1, 1, EnabledButtonBackgroundColor);
+
+            _scrollbarBackgroundStyle = new GUIStyle(GUI.skin.verticalScrollbar);
+            _scrollbarBackgroundStyle.normal.background = transparentScrollbarTexture;
+            _scrollbarBackgroundStyle.hover.background = _scrollbarBackgroundStyle.normal.background;
+            _scrollbarBackgroundStyle.active.background = _scrollbarBackgroundStyle.normal.background;
+            _scrollbarBackgroundStyle.border = new RectOffset(0, 0, 0, 0);
+            _scrollbarBackgroundStyle.fixedWidth = 14f;
+            _scrollbarBackgroundStyle.fixedHeight = 14f;
+
+            _verticalScrollbarThumbStyle = new GUIStyle(GUI.skin.verticalScrollbarThumb);
+            _verticalScrollbarThumbStyle.normal.background = selectedScrollbarTexture;
+            _verticalScrollbarThumbStyle.hover.background = _verticalScrollbarThumbStyle.normal.background;
+            _verticalScrollbarThumbStyle.active.background = _verticalScrollbarThumbStyle.normal.background;
+            _verticalScrollbarThumbStyle.border = new RectOffset(0, 0, 0, 0);
+            _verticalScrollbarThumbStyle.fixedWidth = 14f;
+
+            _horizontalScrollbarThumbStyle = new GUIStyle(GUI.skin.horizontalScrollbarThumb);
+            _horizontalScrollbarThumbStyle.normal.background = selectedScrollbarTexture;
+            _horizontalScrollbarThumbStyle.hover.background = _horizontalScrollbarThumbStyle.normal.background;
+            _horizontalScrollbarThumbStyle.active.background = _horizontalScrollbarThumbStyle.normal.background;
+            _horizontalScrollbarThumbStyle.border = new RectOffset(0, 0, 0, 0);
+            _horizontalScrollbarThumbStyle.fixedHeight = 14f;
+
+            _verticalScrollbarButtonStyle = new GUIStyle(GUIStyle.none);
+            _verticalScrollbarButtonStyle.normal.background = transparentScrollbarTexture;
+            _verticalScrollbarButtonStyle.hover.background = transparentScrollbarTexture;
+            _verticalScrollbarButtonStyle.active.background = transparentScrollbarTexture;
+            _verticalScrollbarButtonStyle.border = new RectOffset(0, 0, 0, 0);
+            _verticalScrollbarButtonStyle.fixedWidth = 14f;
+            _verticalScrollbarButtonStyle.fixedHeight = 0f;
+
+            _horizontalScrollbarButtonStyle = new GUIStyle(GUIStyle.none);
+            _horizontalScrollbarButtonStyle.normal.background = transparentScrollbarTexture;
+            _horizontalScrollbarButtonStyle.hover.background = transparentScrollbarTexture;
+            _horizontalScrollbarButtonStyle.active.background = transparentScrollbarTexture;
+            _horizontalScrollbarButtonStyle.border = new RectOffset(0, 0, 0, 0);
+            _horizontalScrollbarButtonStyle.fixedWidth = 0f;
+            _horizontalScrollbarButtonStyle.fixedHeight = 14f;
+        }
+
+        private Vector2 BeginCommandScrollView(Rect position, Vector2 scrollPosition, Rect viewRect)
+        {
+            GUISkin skin = GUI.skin;
+            GUIStyle originalScrollView = skin.scrollView;
+            GUIStyle originalVerticalScrollbar = skin.verticalScrollbar;
+            GUIStyle originalVerticalScrollbarThumb = skin.verticalScrollbarThumb;
+            GUIStyle originalHorizontalScrollbar = skin.horizontalScrollbar;
+            GUIStyle originalHorizontalScrollbarThumb = skin.horizontalScrollbarThumb;
+            GUIStyle originalVerticalScrollbarUpButton = skin.verticalScrollbarUpButton;
+            GUIStyle originalVerticalScrollbarDownButton = skin.verticalScrollbarDownButton;
+            GUIStyle originalHorizontalScrollbarLeftButton = skin.horizontalScrollbarLeftButton;
+            GUIStyle originalHorizontalScrollbarRightButton = skin.horizontalScrollbarRightButton;
+
+            skin.scrollView = _scrollViewStyle;
+            skin.verticalScrollbar = _scrollbarBackgroundStyle;
+            skin.verticalScrollbarThumb = _verticalScrollbarThumbStyle;
+            skin.horizontalScrollbar = _scrollbarBackgroundStyle;
+            skin.horizontalScrollbarThumb = _horizontalScrollbarThumbStyle;
+            skin.verticalScrollbarUpButton = _verticalScrollbarButtonStyle;
+            skin.verticalScrollbarDownButton = _verticalScrollbarButtonStyle;
+            skin.horizontalScrollbarLeftButton = _horizontalScrollbarButtonStyle;
+            skin.horizontalScrollbarRightButton = _horizontalScrollbarButtonStyle;
+            try
+            {
+                return GUI.BeginScrollView(position, scrollPosition, viewRect);
+            }
+            finally
+            {
+                skin.scrollView = originalScrollView;
+                skin.verticalScrollbar = originalVerticalScrollbar;
+                skin.verticalScrollbarThumb = originalVerticalScrollbarThumb;
+                skin.horizontalScrollbar = originalHorizontalScrollbar;
+                skin.horizontalScrollbarThumb = originalHorizontalScrollbarThumb;
+                skin.verticalScrollbarUpButton = originalVerticalScrollbarUpButton;
+                skin.verticalScrollbarDownButton = originalVerticalScrollbarDownButton;
+                skin.horizontalScrollbarLeftButton = originalHorizontalScrollbarLeftButton;
+                skin.horizontalScrollbarRightButton = originalHorizontalScrollbarRightButton;
+            }
         }
 
         private sealed class PickupBrowserEntry

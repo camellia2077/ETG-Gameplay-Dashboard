@@ -66,6 +66,95 @@ namespace RandomLoadout.Core.Tests
             }
         }
 
+        public static void ParsesPresetPickupsFromPresetFile()
+        {
+            string presetDirectory = Path.Combine(Path.GetTempPath(), "RandomLoadout.presets.tests." + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(presetDirectory);
+            string presetPath = Path.Combine(presetDirectory, "preset.with-pickups.json");
+            File.WriteAllText(
+                presetPath,
+                "{\n" +
+                "  \"id\": \"with-pickups\",\n" +
+                "  \"name\": \"With Pickups\",\n" +
+                "  \"rules\": [],\n" +
+                "  \"pickups\": [\n" +
+                "    { \"type\": \"key\", \"count\": 3 },\n" +
+                "    { \"type\": \"armor\", \"count\": 2 },\n" +
+                "    { \"type\": \"invalid_type\", \"count\": 9 }\n" +
+                "  ]\n" +
+                "}\n");
+
+            try
+            {
+                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(Path.Combine(presetDirectory, "anchor.json"), presetDirectory);
+                provider.ActivePresetName = "with-pickups";
+                LoadoutRuleFileLoadResult result = provider.Load();
+
+                AssertEx.Equal(2, result.ActivePresetPickups.Length, "The preset should preserve only supported preset pickups.");
+                AssertEx.Equal("key", result.ActivePresetPickups[0].Type, "The first preset pickup should be preserved.");
+                AssertEx.Equal(3, result.ActivePresetPickups[0].Count, "The first preset pickup count should be preserved.");
+                AssertEx.Equal("armor", result.ActivePresetPickups[1].Type, "The second preset pickup should be preserved.");
+                AssertEx.Equal(2, result.ActivePresetPickups[1].Count, "The second preset pickup count should be preserved.");
+            }
+            finally
+            {
+                if (File.Exists(presetPath))
+                {
+                    File.Delete(presetPath);
+                }
+
+                if (Directory.Exists(presetDirectory))
+                {
+                    Directory.Delete(presetDirectory);
+                }
+            }
+        }
+
+        public static void MergesDuplicatePresetPickupsFromPresetFile()
+        {
+            string presetDirectory = Path.Combine(Path.GetTempPath(), "RandomLoadout.presets.tests." + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(presetDirectory);
+            string presetPath = Path.Combine(presetDirectory, "preset.with-duplicate-pickups.json");
+            File.WriteAllText(
+                presetPath,
+                "{\n" +
+                "  \"id\": \"with-duplicate-pickups\",\n" +
+                "  \"name\": \"With Duplicate Pickups\",\n" +
+                "  \"rules\": [],\n" +
+                "  \"pickups\": [\n" +
+                "    { \"type\": \"key\", \"count\": 1 },\n" +
+                "    { \"type\": \"casings\", \"count\": 1 },\n" +
+                "    { \"type\": \"key\", \"count\": 2 },\n" +
+                "    { \"type\": \"casings\", \"count\": 3 }\n" +
+                "  ]\n" +
+                "}\n");
+
+            try
+            {
+                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(Path.Combine(presetDirectory, "anchor.json"), presetDirectory);
+                provider.ActivePresetName = "with-duplicate-pickups";
+                LoadoutRuleFileLoadResult result = provider.Load();
+
+                AssertEx.Equal(2, result.ActivePresetPickups.Length, "Duplicate preset pickups should be merged by type.");
+                AssertEx.Equal("key", result.ActivePresetPickups[0].Type, "Merged key pickup should keep its type.");
+                AssertEx.Equal(3, result.ActivePresetPickups[0].Count, "Merged key pickup should add counts together.");
+                AssertEx.Equal("casings", result.ActivePresetPickups[1].Type, "Merged casings pickup should keep its type.");
+                AssertEx.Equal(4, result.ActivePresetPickups[1].Count, "Merged casings pickup should add bundle counts together.");
+            }
+            finally
+            {
+                if (File.Exists(presetPath))
+                {
+                    File.Delete(presetPath);
+                }
+
+                if (Directory.Exists(presetDirectory))
+                {
+                    Directory.Delete(presetDirectory);
+                }
+            }
+        }
+
         public static void MissingAliasFileFallsBackToBuiltInDefaults()
         {
             string filePath = Path.Combine(Path.GetTempPath(), "RandomLoadout.aliases.tests." + Guid.NewGuid().ToString("N") + ".json");

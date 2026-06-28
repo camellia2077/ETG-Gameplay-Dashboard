@@ -17,6 +17,7 @@ namespace RandomLoadout
             LoadoutEditor,
             About,
             Settings,
+            ControllerHelp,
         }
 
         private enum CharacterActionMode
@@ -86,6 +87,7 @@ namespace RandomLoadout
             PresetList,
             PresetDetail,
             RandomPoolDetail,
+            PresetPickupsDetail,
         }
 
         private enum CommandMenuCategory
@@ -99,6 +101,7 @@ namespace RandomLoadout
         private enum RoomMenuSection
         {
             Chest,
+            Neutral,
             Enemies,
             State,
         }
@@ -128,8 +131,9 @@ namespace RandomLoadout
         private const float PlayerStatsRowGap = 3f;
         private const float PickupBrowserPanelHeight = 496f;
         private const float LoadoutEditorPanelHeight = 440f;
-        private const float AboutPanelHeight = 326f;
-        private const float SettingsPanelHeight = 448f;
+        private const float AboutPanelHeight = 404f;
+        private const float SettingsPanelHeight = 608f;
+        private const float ControllerHelpPanelHeight = 332f;
         private const float CharacterPanelBaseHeaderHeight = 126f;
         private const float CharacterPanelFooterHeight = 26f;
         private const float CurrencyPanelHeight = 252f;
@@ -167,9 +171,9 @@ namespace RandomLoadout
         private static readonly Color ButtonBackgroundColor = new Color(0.19f, 0.14f, 0.08f, 0.96f);
         private static readonly Color ButtonHoverColor = new Color(0.40f, 0.27f, 0.08f, 0.98f);
         private static readonly Color ButtonActiveColor = new Color(0.78f, 0.50f, 0.10f, 1f);
-        private static readonly Color EnabledButtonBackgroundColor = new Color(0.52f, 0.34f, 0.09f, 0.98f);
-        private static readonly Color EnabledButtonHoverColor = new Color(0.64f, 0.42f, 0.11f, 1f);
-        private static readonly Color EnabledButtonActiveColor = new Color(0.78f, 0.50f, 0.10f, 1f);
+        private static readonly Color EnabledButtonBackgroundColor = new Color(0.69f, 0.45f, 0.10f, 0.98f);
+        private static readonly Color EnabledButtonHoverColor = new Color(0.84f, 0.55f, 0.10f, 1f);
+        private static readonly Color EnabledButtonActiveColor = new Color(0.97f, 0.63f, 0.10f, 1f);
         private static readonly Color PrimaryTextColor = new Color(0.90f, 0.87f, 0.79f, 1f);
         private static readonly Color PlayerStatsTextColor = Color.white;
         private static readonly Color SecondaryTextColor = new Color(0.65f, 0.62f, 0.54f, 1f);
@@ -181,6 +185,7 @@ namespace RandomLoadout
         private static readonly LoadoutRuleEditorEntry[] EmptyLoadoutRuleEditorEntries = new LoadoutRuleEditorEntry[0];
         private static readonly LoadoutPresetEditorEntry[] EmptyLoadoutPresetEditorEntries = new LoadoutPresetEditorEntry[0];
         private static readonly LoadoutRandomPoolEditorEntry[] EmptyLoadoutRandomPoolEditorEntries = new LoadoutRandomPoolEditorEntry[0];
+        private static readonly LoadoutRuleEditorEntry[] EmptyLoadoutPickupEditorEntries = new LoadoutRuleEditorEntry[0];
         private static readonly TeleportOption[] TeleportOptions =
         {
             new TeleportOption("keep", "label.teleport.floor.keep", "load_level keep"),
@@ -193,6 +198,104 @@ namespace RandomLoadout
             new TeleportOption("R&G_Dept", "label.teleport.floor.rng_dept", "load_level R&G_Dept"),
             new TeleportOption("forge", "label.teleport.floor.forge", "load_level forge"),
             new TeleportOption("heli", "label.teleport.floor.heli", "load_level heli"),
+        };
+
+        private static readonly CommandMenuCategory[] CommandMenuCategoryOrder =
+        {
+            CommandMenuCategory.General,
+            CommandMenuCategory.Combat,
+            CommandMenuCategory.Player,
+            CommandMenuCategory.Room,
+        };
+
+        private static readonly ControllerFocusEntry[] CommandPageSharedFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.about", 0, 0),
+            new ControllerFocusEntry("cmd.settings", 0, 1),
+            new ControllerFocusEntry("cmd.language", 0, 2),
+            new ControllerFocusEntry("cmd.category.general", 1, 0),
+            new ControllerFocusEntry("cmd.category.combat", 1, 1),
+            new ControllerFocusEntry("cmd.category.player", 1, 2),
+            new ControllerFocusEntry("cmd.category.room", 1, 3),
+        };
+
+        private static readonly ControllerFocusEntry[] GeneralCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.general.pickups", 2, 0),
+            new ControllerFocusEntry("cmd.general.loadout", 2, 1),
+            new ControllerFocusEntry("cmd.general.currency", 2, 2),
+            new ControllerFocusEntry("cmd.general.teleport", 2, 3),
+            new ControllerFocusEntry("cmd.general.characters", 3, 0),
+            new ControllerFocusEntry("cmd.general.boss_rush", 3, 1),
+            new ControllerFocusEntry("cmd.general.reveal_map", 3, 2),
+        };
+
+        private static readonly ControllerFocusEntry[] CombatCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.combat.rapid", 2, 0),
+            new ControllerFocusEntry("cmd.combat.auto_reload", 2, 1),
+            new ControllerFocusEntry("cmd.combat.ammo_mode", 3, 0),
+            new ControllerFocusEntry("cmd.combat.invincible", 3, 1),
+            new ControllerFocusEntry("cmd.combat.ammonomicon", 4, 0),
+            new ControllerFocusEntry("cmd.combat.full_ammo", 4, 1),
+        };
+
+        private static readonly ControllerFocusEntry[] PlayerCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.player.heal_half", 2, 0),
+            new ControllerFocusEntry("cmd.player.full_heal", 2, 1),
+            new ControllerFocusEntry("cmd.player.add_max_health", 2, 2),
+            new ControllerFocusEntry("cmd.player.add_armor", 2, 3),
+            new ControllerFocusEntry("cmd.player.add_blank", 3, 0),
+            new ControllerFocusEntry("cmd.player.refill_blanks", 3, 1),
+            new ControllerFocusEntry("cmd.player.clear_curse", 4, 0),
+            new ControllerFocusEntry("cmd.player.stats", 4, 1),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomSectionCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.section.chest", 2, 0),
+            new ControllerFocusEntry("cmd.room.section.neutral", 2, 1),
+            new ControllerFocusEntry("cmd.room.section.enemies", 2, 2),
+            new ControllerFocusEntry("cmd.room.section.state", 2, 3),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomChestOnlySectionCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.section.chest", 2, 0),
+            new ControllerFocusEntry("cmd.room.section.neutral", 2, 1),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomChestCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.chest_tier.brown", 3, 0),
+            new ControllerFocusEntry("cmd.room.chest_tier.blue", 3, 1),
+            new ControllerFocusEntry("cmd.room.chest_tier.green", 3, 2),
+            new ControllerFocusEntry("cmd.room.chest_tier.red", 3, 3),
+            new ControllerFocusEntry("cmd.room.chest_tier.black", 4, 0),
+            new ControllerFocusEntry("cmd.room.chest_tier.synergy", 4, 1),
+            new ControllerFocusEntry("cmd.room.chest_tier.rainbow", 4, 2),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomNeutralCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.spawn_gunber_muncher", 3, 0),
+            new ControllerFocusEntry("cmd.room.spawn_evil_muncher", 3, 1),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomEnemiesCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.refresh_enemies", 3, 0),
+        };
+
+        private static readonly ControllerFocusEntry[] SettingsPageFocusEntries =
+        {
+            new ControllerFocusEntry("settings.back", 0, 0),
+            new ControllerFocusEntry("settings.toggle_key", 1, 0),
+            new ControllerFocusEntry("settings.controller_help", 2, 0),
+            new ControllerFocusEntry("settings.ui_scale", 3, 0),
+            new ControllerFocusEntry("settings.language", 4, 0),
+            new ControllerFocusEntry("settings.experimental_mode", 5, 0),
         };
 
         private readonly GrantCommandParser _parser = new GrantCommandParser();
@@ -214,13 +317,15 @@ namespace RandomLoadout
         private readonly Func<KeyCode> _toggleKeyProvider;
         private readonly Func<string> _toggleKeyNameProvider;
         private readonly Action<string> _toggleKeySetter;
-        private readonly Func<string> _gamepadPresetProvider;
-        private readonly Action<string> _gamepadPresetSetter;
         private readonly Func<string> _uiScalePresetProvider;
         private readonly Action<string> _uiScalePresetSetter;
+        private readonly Func<bool> _playerStatsPanelShownProvider;
+        private readonly Action<bool> _playerStatsPanelShownSetter;
         private readonly Func<bool> _experimentalModeProvider;
         private readonly Action<bool> _experimentalModeSetter;
         private readonly Action<bool> _ammonomiconFastOpenEnabledSetter;
+        private readonly Func<bool> _mapTeleportVerboseLoggingEnabledProvider;
+        private readonly Func<bool> _floorTeleportVerboseLoggingEnabledProvider;
         private readonly Func<EtgFloorDefinition, string, string, bool> _deferredTeleportRequestHandler;
 
         private GUIStyle _panelStyle;
@@ -248,10 +353,19 @@ namespace RandomLoadout
         private GUIStyle _modalOverlayStyle;
         private GUIStyle _modalPanelStyle;
         private GUIStyle _modalBodyStyle;
+        private GUIStyle _settingsInfoTextStyle;
+        private GUIStyle _controllerHelpTitleStyle;
+        private GUIStyle _controllerHelpTextStyle;
+        private GUIStyle _scrollViewStyle;
+        private GUIStyle _scrollbarBackgroundStyle;
+        private GUIStyle _verticalScrollbarThumbStyle;
+        private GUIStyle _horizontalScrollbarThumbStyle;
+        private GUIStyle _verticalScrollbarButtonStyle;
+        private GUIStyle _horizontalScrollbarButtonStyle;
 
         private bool _isVisible;
         private bool _showTeleportPanel;
-        private bool _showPlayerStatsPanel = true;
+        private bool _showPlayerStatsPanel;
         private bool _showExperimentalModeConfirmDialog;
         private bool _focusInputField;
         private bool _focusPickupSearchField;
@@ -260,6 +374,10 @@ namespace RandomLoadout
         private string _commandPageFocusedControlId = "cmd.settings";
         private string _settingsPageFocusedControlId = "settings.toggle_key";
         private string _lastGuiLanguageCode = string.Empty;
+        private string _revealMapActivatedSceneName = string.Empty;
+        private string _mapDirectTeleportActivatedSceneName = string.Empty;
+        private float _nextMapDirectTeleportDebugLogAt;
+        private string _lastMapDirectTeleportRoomKey = string.Empty;
         private string _inputText = string.Empty;
         private string _statusMessage = string.Empty;
         private bool _statusIsError;
@@ -275,11 +393,14 @@ namespace RandomLoadout
         private LoadoutRuleEditorEntry[] _cachedLoadoutRuleEntries = EmptyLoadoutRuleEditorEntries;
         private LoadoutPresetEditorEntry[] _cachedLoadoutPresetEntries = EmptyLoadoutPresetEditorEntries;
         private LoadoutRandomPoolEditorEntry[] _cachedLoadoutRandomPoolEntries = EmptyLoadoutRandomPoolEditorEntries;
+        private LoadoutRuleEditorEntry[] _cachedLoadoutPickupEntries = EmptyLoadoutPickupEditorEntries;
         private LoadoutEditorMode _loadoutEditorMode = LoadoutEditorMode.PresetList;
         private CommandMenuCategory _commandMenuCategory = CommandMenuCategory.General;
         private string _loadoutPresetRenameText = string.Empty;
         private string _loadoutRandomPoolRenameText = string.Empty;
+        private string _loadoutPickupCountEditText = string.Empty;
         private int _loadoutRandomPoolRuleIndex = -1;
+        private int _loadoutPickupCountEditIndex = -1;
         private PickupBrowserFilter _pickupBrowserFilter = PickupBrowserFilter.All;
         private PickupBrowserMode _pickupBrowserMode = PickupBrowserMode.Grant;
         private PickupQualityFilter _pickupQualityFilter = PickupQualityFilter.All;
@@ -290,8 +411,9 @@ namespace RandomLoadout
         private Vector2 _pickupScrollPosition = Vector2.zero;
         private Vector2 _loadoutEditorScrollPosition = Vector2.zero;
         private Vector2 _loadoutPresetScrollPosition = Vector2.zero;
-        private bool _wasGamepadBackPressed;
-        private bool _wasGamepadStartPressed;
+        private int _teleportSelectedIndex;
+        private float _lastLoggedControllerHorizontalAxis = float.NaN;
+        private float _lastLoggedControllerVerticalAxis = float.NaN;
         private bool _wasControllerHorizontalNavigationActive;
         private bool _wasControllerVerticalNavigationActive;
         private readonly bool[] _wasJoystickButtonPressed = new bool[20];
@@ -303,11 +425,6 @@ namespace RandomLoadout
             "F9",
             "Insert",
             "BackQuote",
-        };
-        private static readonly string[] GamepadPresetOptions =
-        {
-            "Xbox",
-            "Legacy",
         };
         private sealed class TeleportOption
         {

@@ -101,7 +101,11 @@ namespace RandomLoadout
                     "].");
             }
 
-            return new LoadoutRuleFileLoadResult(ConvertToDefinitions(fileModel, messages), messages.ToArray(), warnings.ToArray());
+            return new LoadoutRuleFileLoadResult(
+                ConvertToDefinitions(fileModel, messages),
+                GetActivePresetPickups(fileModel, messages),
+                messages.ToArray(),
+                warnings.ToArray());
         }
 
         private LoadoutRuleFilePresetModel[] LoadPresetFiles(List<string> messages, List<string> warnings)
@@ -174,7 +178,8 @@ namespace RandomLoadout
             string name = ParseString(rawJson, "name");
             string rulesArrayBody = ExtractPropertyArrayBody(rawJson, "rules");
             if ((string.IsNullOrEmpty(id) && string.IsNullOrEmpty(name)) ||
-                (string.IsNullOrEmpty(rulesArrayBody) && !RegexContainsRulesArray(rawJson)))
+                ((string.IsNullOrEmpty(rulesArrayBody) && !RegexContainsRulesArray(rawJson)) &&
+                 !RegexContainsPickupsArray(rawJson)))
             {
                 return null;
             }
@@ -186,6 +191,7 @@ namespace RandomLoadout
                 Name = StartItemsPresetNames.NormalizePresetName(name),
                 SourcePath = presetPath ?? string.Empty,
                 Rules = ParseRulesFromArrayBody(rulesArrayBody),
+                Pickups = ParsePresetPickups(rawJson),
             };
         }
 
@@ -249,6 +255,14 @@ namespace RandomLoadout
             return System.Text.RegularExpressions.Regex.IsMatch(
                 rawJson ?? string.Empty,
                 GetPropertyPrefixPattern("rules") + "\\[",
+                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        }
+
+        private static bool RegexContainsPickupsArray(string rawJson)
+        {
+            return System.Text.RegularExpressions.Regex.IsMatch(
+                rawJson ?? string.Empty,
+                GetPropertyPrefixPattern("pickups") + "\\[",
                 System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
 

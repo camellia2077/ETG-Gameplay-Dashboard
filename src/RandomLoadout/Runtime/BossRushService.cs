@@ -26,6 +26,7 @@ namespace RandomLoadout
         };
 
         private readonly ManualLogSource _logger;
+        private readonly Func<bool> _verboseLoggingEnabledProvider;
         private BossRushState _state;
         private int _currentEncounterIndex;
         private RoomHandler _currentBossRoom;
@@ -36,9 +37,10 @@ namespace RandomLoadout
         private GameObject _selectedPlayerPrefab;
         private string _selectedCharacterLabel;
 
-        public BossRushService(ManualLogSource logger)
+        public BossRushService(ManualLogSource logger, Func<bool> verboseLoggingEnabledProvider)
         {
             _logger = logger;
+            _verboseLoggingEnabledProvider = verboseLoggingEnabledProvider;
             _state = BossRushState.Idle;
             _currentEncounterIndex = -1;
             Instance = this;

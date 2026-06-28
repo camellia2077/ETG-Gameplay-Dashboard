@@ -62,6 +62,11 @@ namespace RandomLoadout
 
         private void LogInfo(string message)
         {
+            if (_verboseLoggingEnabledProvider != null && !_verboseLoggingEnabledProvider())
+            {
+                return;
+            }
+
             if (_logger != null)
             {
                 _logger.LogInfo(RandomLoadoutLog.BossRush(message));

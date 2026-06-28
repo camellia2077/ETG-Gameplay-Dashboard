@@ -23,13 +23,18 @@ namespace RandomLoadout
         private ConfigEntry<bool> _enableRandomLoadoutConfig;
         private ConfigEntry<string> _uiLanguageConfig;
         private ConfigEntry<string> _commandPanelKeyConfig;
-        private ConfigEntry<string> _commandPanelGamepadPresetConfig;
         private ConfigEntry<string> _uiScalePresetConfig;
+        private ConfigEntry<bool> _showPlayerStatsPanelConfig;
         private ConfigEntry<bool> _experimentalModeConfig;
         private ConfigEntry<bool> _ammonomiconFastOpenEnabledConfig;
+        private ConfigEntry<bool> _mapTeleportVerboseLogsConfig;
+        private ConfigEntry<bool> _muncherVerboseLogsConfig;
+        private ConfigEntry<bool> _floorTeleportVerboseLogsConfig;
+        private ConfigEntry<bool> _bossRushVerboseLogsConfig;
         private ConfigEntry<string> _activeStartItemsPresetConfig;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
+        private LoadoutRuleFilePickupModel[] _activePresetPickups;
         private PickupAliasRegistry _aliasRegistry;
         private bool _hasLoadedAliasRegistry;
         private bool _hasResolvedLoadoutConfig;
@@ -46,6 +51,7 @@ namespace RandomLoadout
         private AmmonomiconFastOpenToggleService _ammonomiconFastOpenToggleService;
         private PlayerHealthOverrideService _playerHealthOverrideService;
         private PlayerActiveItemCapacityOverrideService _playerActiveItemCapacityOverrideService;
+        private PlayerDebugCommandService _playerDebugCommandService;
         private EtgPickupGranter _pickupGranter;
         private BossRushService _bossRushService;
         private Harmony _bossRushHarmony;
