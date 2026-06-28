@@ -17,7 +17,9 @@ namespace RandomLoadout
             LoadoutEditor,
             About,
             Settings,
+            AdvancedTools,
             ControllerHelp,
+            KeyboardHelp,
         }
 
         private enum CharacterActionMode
@@ -117,6 +119,8 @@ namespace RandomLoadout
         private const string InputControlName = "RandomLoadoutCommandInput";
         private const string PickupSearchControlName = "RandomLoadoutPickupSearch";
         private const float StatusDurationSeconds = 4f;
+        private const float KeyboardNavigationRepeatDelaySeconds = 0.35f;
+        private const float KeyboardNavigationRepeatIntervalSeconds = 0.08f;
         private const float ReferenceScreenWidth = 1920f;
         private const float ReferenceScreenHeight = 1080f;
         private const float MinimumUiScale = 0.70f;
@@ -132,8 +136,10 @@ namespace RandomLoadout
         private const float PickupBrowserPanelHeight = 496f;
         private const float LoadoutEditorPanelHeight = 440f;
         private const float AboutPanelHeight = 404f;
-        private const float SettingsPanelHeight = 608f;
+        private const float SettingsPanelHeight = 692f;
+        private const float AdvancedToolsPanelHeight = 254f;
         private const float ControllerHelpPanelHeight = 332f;
+        private const float KeyboardHelpPanelHeight = 356f;
         private const float CharacterPanelBaseHeaderHeight = 126f;
         private const float CharacterPanelFooterHeight = 26f;
         private const float CurrencyPanelHeight = 252f;
@@ -228,6 +234,7 @@ namespace RandomLoadout
             new ControllerFocusEntry("cmd.general.characters", 3, 0),
             new ControllerFocusEntry("cmd.general.boss_rush", 3, 1),
             new ControllerFocusEntry("cmd.general.reveal_map", 3, 2),
+            new ControllerFocusEntry("cmd.general.random_item", 3, 3),
         };
 
         private static readonly ControllerFocusEntry[] CombatCommandPageFocusEntries =
@@ -293,9 +300,11 @@ namespace RandomLoadout
             new ControllerFocusEntry("settings.back", 0, 0),
             new ControllerFocusEntry("settings.toggle_key", 1, 0),
             new ControllerFocusEntry("settings.controller_help", 2, 0),
-            new ControllerFocusEntry("settings.ui_scale", 3, 0),
-            new ControllerFocusEntry("settings.language", 4, 0),
-            new ControllerFocusEntry("settings.experimental_mode", 5, 0),
+            new ControllerFocusEntry("settings.keyboard_help", 3, 0),
+            new ControllerFocusEntry("settings.advanced_tools", 4, 0),
+            new ControllerFocusEntry("settings.ui_scale", 5, 0),
+            new ControllerFocusEntry("settings.language", 6, 0),
+            new ControllerFocusEntry("settings.experimental_mode", 7, 0),
         };
 
         private readonly GrantCommandParser _parser = new GrantCommandParser();
@@ -373,6 +382,10 @@ namespace RandomLoadout
         private PanelPage _currentPage;
         private string _commandPageFocusedControlId = "cmd.settings";
         private string _settingsPageFocusedControlId = "settings.toggle_key";
+        private string _characterPageFocusedControlId = "characters.mode";
+        private string _loadoutEditorFocusedControlId = "loadout.back";
+        private string _pickupPageFocusedControlId = "pickups.back";
+        private ControllerNavDirection? _heldKeyboardNavigationDirection;
         private string _lastGuiLanguageCode = string.Empty;
         private string _revealMapActivatedSceneName = string.Empty;
         private string _mapDirectTeleportActivatedSceneName = string.Empty;
@@ -389,6 +402,7 @@ namespace RandomLoadout
         private FoyerCharacterOption[] _cachedCharacterOptions = EmptyCharacterOptions;
         private string _cachedCharacterAvailability = string.Empty;
         private float _nextCharacterPageRefreshAt;
+        private float _nextKeyboardNavigationRepeatAt;
         private PickupBrowserEntry[] _cachedPickupEntries = EmptyPickupBrowserEntries;
         private LoadoutRuleEditorEntry[] _cachedLoadoutRuleEntries = EmptyLoadoutRuleEditorEntries;
         private LoadoutPresetEditorEntry[] _cachedLoadoutPresetEntries = EmptyLoadoutPresetEditorEntries;
@@ -414,6 +428,12 @@ namespace RandomLoadout
         private int _teleportSelectedIndex;
         private float _lastLoggedControllerHorizontalAxis = float.NaN;
         private float _lastLoggedControllerVerticalAxis = float.NaN;
+        private float _lastLoggedControllerDpadHorizontalAxis = float.NaN;
+        private float _lastLoggedControllerDpadVerticalAxis = float.NaN;
+        private float _lastLoggedControllerLeftStickHorizontalAxis = float.NaN;
+        private float _lastLoggedControllerLeftStickVerticalAxis = float.NaN;
+        private float _lastLoggedControllerRightStickHorizontalAxis = float.NaN;
+        private float _lastLoggedControllerRightStickVerticalAxis = float.NaN;
         private bool _wasControllerHorizontalNavigationActive;
         private bool _wasControllerVerticalNavigationActive;
         private readonly bool[] _wasJoystickButtonPressed = new bool[20];

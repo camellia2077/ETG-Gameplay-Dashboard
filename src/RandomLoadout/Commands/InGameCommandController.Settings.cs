@@ -50,8 +50,20 @@ namespace RandomLoadout
                 GuiText.Get("gui.settings.setting.controller_help"),
                 GuiText.Get("gui.settings.value.controller_help"),
                 delegate { OpenControllerHelpPage(); });
+            DrawSettingsActionRow(
+                new Rect(left, rowTop + 108f, rowWidth, 34f),
+                "settings.keyboard_help",
+                GuiText.Get("gui.settings.setting.keyboard_help"),
+                GuiText.Get("gui.settings.value.keyboard_help"),
+                delegate { OpenKeyboardHelpPage(); });
+            DrawSettingsActionRow(
+                new Rect(left, rowTop + 148f, rowWidth, 34f),
+                "settings.advanced_tools",
+                GuiText.Get("gui.settings.setting.advanced_tools"),
+                GuiText.Get("gui.settings.value.advanced_tools"),
+                delegate { OpenAdvancedToolsPage(); });
 
-            rowTop += 134f;
+            rowTop += 214f;
             DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.display"));
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 28f, rowWidth, 34f),
@@ -351,6 +363,12 @@ namespace RandomLoadout
                     return;
                 case "settings.controller_help":
                     OpenControllerHelpPage();
+                    return;
+                case "settings.keyboard_help":
+                    OpenKeyboardHelpPage();
+                    return;
+                case "settings.advanced_tools":
+                    OpenAdvancedToolsPage();
                     return;
                 case "settings.ui_scale":
                     ExecuteCycleUiScalePreset(null);

@@ -28,7 +28,7 @@ It is primarily designed to improve the gameplay workflow rather than only act a
    > **Copy all subfiles and folders inside the extracted folder!**
    > **Copy all subfiles and folders inside the extracted folder!**
    > (Do not copy the single extracted folder itself).
-4. Launch the game and press `F7` to open or close the control panel.
+4. Launch the game and press `F7` or controller `R3` to open or close the control panel.
 
 ## Development
 

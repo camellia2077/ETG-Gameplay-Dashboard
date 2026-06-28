@@ -349,7 +349,7 @@ namespace RandomLoadout
                 return normalizedBaseId;
             }
 
-            for (int index = 2; index < 1000; index++)
+            for (int index = 1; index < 1000; index++)
             {
                 string candidate = normalizedBaseId + "-" + index.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 if (!PresetIdExists(model, candidate))
@@ -364,21 +364,49 @@ namespace RandomLoadout
         private static string CreateUniquePresetName(LoadoutRuleFileModel model, string baseName)
         {
             string normalizedBaseName = !string.IsNullOrEmpty(baseName) ? baseName.Trim() : "preset";
-            if (!PresetDisplayNameExists(model, normalizedBaseName, string.Empty))
+            if (!PresetDisplayNameExistsOrReserved(model, normalizedBaseName, string.Empty))
             {
                 return normalizedBaseName;
             }
 
-            for (int index = 2; index < 1000; index++)
+            // The built-in default preset already occupies the base Preset / 预设 name,
+            // so new user-created presets should start trying from Preset-1 / 预设-1.
+            for (int index = 1; index < 1000; index++)
             {
                 string candidate = normalizedBaseName + "-" + index.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                if (!PresetDisplayNameExists(model, candidate, string.Empty))
+                if (!PresetDisplayNameExistsOrReserved(model, candidate, string.Empty))
                 {
                     return candidate;
                 }
             }
 
             return normalizedBaseName + "-" + DateTime.UtcNow.Ticks.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        private static bool PresetDisplayNameExistsOrReserved(LoadoutRuleFileModel model, string presetDisplayName, string excludePresetId)
+        {
+            if (PresetDisplayNameExists(model, presetDisplayName, excludePresetId))
+            {
+                return true;
+            }
+
+            string normalizedDisplayName = StartItemsPresetNames.NormalizePresetName(presetDisplayName);
+            if (string.IsNullOrEmpty(normalizedDisplayName))
+            {
+                return false;
+            }
+
+            if (string.Equals(normalizedDisplayName, StartItemsPresetNames.GetDisplayName(StartItemsPresetNames.DefaultPresetId, string.Empty, StartItemsPresetNames.DefaultPresetDisplayNameKey), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (string.Equals(normalizedDisplayName, StartItemsPresetNames.GetEnglishDisplayName(StartItemsPresetNames.DefaultPresetId, string.Empty, StartItemsPresetNames.DefaultPresetDisplayNameKey), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private static string GetNewPresetBaseName()

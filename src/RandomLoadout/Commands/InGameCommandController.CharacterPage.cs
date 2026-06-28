@@ -12,16 +12,14 @@ namespace RandomLoadout
         {
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             Rect modeButtonRect = new Rect(backButtonRect.x - ButtonGap - CharacterModeButtonWidth, panelRect.y + 12f, CharacterModeButtonWidth, 30f);
-            if (GUI.Button(modeButtonRect, GetCharacterModeButtonLabel(), _buttonStyle))
+            if (GUI.Button(modeButtonRect, GetCharacterModeButtonLabel(), GetControllerButtonStyle("characters.mode", _buttonStyle)))
             {
                 ToggleCharacterActionMode(logger);
             }
 
-            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
+            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("characters.back", _buttonStyle)))
             {
-                _currentPage = PanelPage.Command;
-                _focusInputField = true;
-                ResetCharacterPageCache();
+                CloseCharacterPage();
                 return;
             }
 
@@ -77,7 +75,7 @@ namespace RandomLoadout
                     buttonLabel = localizedLabel + " ...";
                 }
 
-                if (GUI.Button(buttonRect, buttonLabel, _buttonStyle))
+                if (GUI.Button(buttonRect, buttonLabel, GetControllerButtonStyle(GetCharacterOptionControlId(i), _buttonStyle)))
                 {
                     ExecuteSwitchCharacter(option, logger);
                 }
@@ -130,6 +128,77 @@ namespace RandomLoadout
             return _wrappedHintStyle != null
                 ? _wrappedHintStyle.CalcHeight(new GUIContent(availabilityMessage ?? string.Empty), panelWidth - 28f)
                 : 40f;
+        }
+
+        private void CloseCharacterPage()
+        {
+            _currentPage = PanelPage.Command;
+            _focusInputField = true;
+            ResetCharacterPageCache();
+        }
+
+        private ControllerFocusEntry[] GetCharacterPageFocusEntries(FoyerCharacterOption[] characterOptions)
+        {
+            int optionCount = characterOptions != null ? characterOptions.Length : 0;
+            ControllerFocusEntry[] entries = new ControllerFocusEntry[2 + optionCount];
+            entries[0] = new ControllerFocusEntry("characters.mode", 0, 0);
+            entries[1] = new ControllerFocusEntry("characters.back", 0, 1);
+
+            for (int index = 0; index < optionCount; index++)
+            {
+                entries[index + 2] = new ControllerFocusEntry(
+                    GetCharacterOptionControlId(index),
+                    1 + (index / CharacterButtonsPerRow),
+                    index % CharacterButtonsPerRow);
+            }
+
+            return entries;
+        }
+
+        private void ExecuteCharacterPageFocusedControl(ManualLogSource logger)
+        {
+            if (string.Equals(_characterPageFocusedControlId, "characters.mode", StringComparison.Ordinal))
+            {
+                ToggleCharacterActionMode(logger);
+                return;
+            }
+
+            if (string.Equals(_characterPageFocusedControlId, "characters.back", StringComparison.Ordinal))
+            {
+                CloseCharacterPage();
+                return;
+            }
+
+            int optionIndex = GetCharacterOptionIndexFromControlId(_characterPageFocusedControlId);
+            if (optionIndex < 0 || optionIndex >= _cachedCharacterOptions.Length)
+            {
+                return;
+            }
+
+            FoyerCharacterOption option = _cachedCharacterOptions[optionIndex];
+            if (option.IsPending)
+            {
+                return;
+            }
+
+            ExecuteSwitchCharacter(option, logger);
+        }
+
+        private static string GetCharacterOptionControlId(int optionIndex)
+        {
+            return "characters.option." + optionIndex.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        private static int GetCharacterOptionIndexFromControlId(string controlId)
+        {
+            const string prefix = "characters.option.";
+            if (string.IsNullOrEmpty(controlId) || !controlId.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                return -1;
+            }
+
+            int optionIndex;
+            return int.TryParse(controlId.Substring(prefix.Length), out optionIndex) ? optionIndex : -1;
         }
     }
 }

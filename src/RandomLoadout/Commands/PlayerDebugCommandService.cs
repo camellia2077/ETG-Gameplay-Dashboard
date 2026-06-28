@@ -240,11 +240,6 @@ namespace RandomLoadout
                 return GrantCommandExecutionResult.Localized(false, "result.common.consumables_not_ready");
             }
 
-            if (consumables.InfiniteKeys)
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.debug.keys_infinite");
-            }
-
             consumables.KeyBullets = consumables.KeyBullets + SingleKeyAmount;
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_key.success");
         }

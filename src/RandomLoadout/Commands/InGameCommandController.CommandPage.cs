@@ -36,47 +36,10 @@ namespace RandomLoadout
 
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
-                GuiText.Get("gui.command.hint.input"),
-                _hintStyle);
-            GUI.Label(
-                new Rect(panelRect.x + 14f, panelRect.y + 58f, panelRect.width - 28f, 20f),
                 GuiText.Get("gui.command.hint.toggle"),
                 _hintStyle);
 
-            GUI.SetNextControlName(InputControlName);
-            float textFieldWidth = panelRect.width - 54f - (ButtonWidth * 2f) - ButtonGap - 12f;
-            Rect textFieldRect = new Rect(panelRect.x + 14f, panelRect.y + 86f, textFieldWidth, controlHeight);
-            Rect grantButtonRect = new Rect(textFieldRect.xMax + 12f, textFieldRect.y, ButtonWidth, controlHeight);
-            Rect randomButtonRect = new Rect(grantButtonRect.xMax + ButtonGap, textFieldRect.y, ButtonWidth, controlHeight);
-            _inputText = GUI.TextField(textFieldRect, _inputText, 256, _textFieldStyle);
-
-            if (_focusInputField)
-            {
-                GUI.FocusControl(InputControlName);
-                _focusInputField = false;
-            }
-
-            bool shouldSubmit = false;
-            Event currentEvent = Event.current;
-            if (currentEvent != null &&
-                currentEvent.type == EventType.KeyDown &&
-                (currentEvent.keyCode == KeyCode.Return || currentEvent.keyCode == KeyCode.KeypadEnter))
-            {
-                shouldSubmit = true;
-                currentEvent.Use();
-            }
-
-            if (GUI.Button(grantButtonRect, GuiText.Get("gui.command.button.grant"), _buttonStyle))
-            {
-                shouldSubmit = true;
-            }
-
-            if (GUI.Button(randomButtonRect, GuiText.Get("gui.command.button.random"), _buttonStyle))
-            {
-                ExecuteRandom(player, logger);
-            }
-
-            float categoryTop = panelRect.y + 132f;
+            float categoryTop = panelRect.y + 72f;
             float segmentLeft = panelRect.x + 14f;
             Rect generalCategoryButtonRect = new Rect(segmentLeft, categoryTop, categoryButtonWidth, categoryButtonHeight);
             Rect combatCategoryButtonRect = new Rect(generalCategoryButtonRect.xMax + 2f, categoryTop, categoryButtonWidth, categoryButtonHeight);
@@ -90,16 +53,11 @@ namespace RandomLoadout
             Rect contentRect = new Rect(panelRect.x + 14f, generalCategoryButtonRect.yMax + 14f, panelRect.width - 28f, panelRect.height - (generalCategoryButtonRect.yMax - panelRect.y) - 56f);
             DrawCommandCategoryContent(contentRect, contentButtonWidth, controlHeight, player, logger);
 
-            if (shouldSubmit)
-            {
-                Submit(player, logger);
-            }
-
         }
 
         private float GetCommandPanelHeight()
         {
-            const float contentTopOffset = 174f;
+            const float contentTopOffset = 114f;
             const float controlHeight = 34f;
             const float footerReserveHeight = 42f;
             int rowCount = GetCommandCategoryRowCount();
@@ -179,6 +137,11 @@ namespace RandomLoadout
                 if (DrawControllerButton(new Rect(thirdColumnX, secondRowY, buttonWidth, controlHeight), "cmd.general.reveal_map", GetLocalizedFallback("gui.command.button.reveal_map", "Reveal Map", "地图全开"), revealMapButtonStyle))
                 {
                     ExecuteRevealCurrentFloorMap(player, logger);
+                }
+
+                if (DrawControllerButton(new Rect(fourthColumnX, secondRowY, buttonWidth, controlHeight), "cmd.general.random_item", GuiText.Get("gui.command.button.random"), _buttonStyle))
+                {
+                    ExecuteRandom(player, logger);
                 }
 
                 return;
@@ -368,7 +331,11 @@ namespace RandomLoadout
 
         private GUIStyle GetControllerButtonStyle(string controlId, GUIStyle normalStyle)
         {
-            if (!IsControllerFocusActive("cmd", controlId) && !IsControllerFocusActive("settings", controlId))
+            if (!IsControllerFocusActive("cmd", controlId) &&
+                !IsControllerFocusActive("settings", controlId) &&
+                !IsControllerFocusActive("characters", controlId) &&
+                !IsControllerFocusActive("loadout", controlId) &&
+                !IsControllerFocusActive("pickups", controlId))
             {
                 return normalStyle;
             }
@@ -391,6 +358,21 @@ namespace RandomLoadout
             if (_currentPage == PanelPage.Settings && string.Equals(pagePrefix, "settings", System.StringComparison.Ordinal))
             {
                 return string.Equals(_settingsPageFocusedControlId, controlId, System.StringComparison.Ordinal);
+            }
+
+            if (_currentPage == PanelPage.Characters && string.Equals(pagePrefix, "characters", System.StringComparison.Ordinal))
+            {
+                return string.Equals(_characterPageFocusedControlId, controlId, System.StringComparison.Ordinal);
+            }
+
+            if (_currentPage == PanelPage.LoadoutEditor && string.Equals(pagePrefix, "loadout", System.StringComparison.Ordinal))
+            {
+                return string.Equals(_loadoutEditorFocusedControlId, controlId, System.StringComparison.Ordinal);
+            }
+
+            if (_currentPage == PanelPage.Pickups && string.Equals(pagePrefix, "pickups", System.StringComparison.Ordinal))
+            {
+                return string.Equals(_pickupPageFocusedControlId, controlId, System.StringComparison.Ordinal);
             }
 
             return false;
@@ -506,6 +488,9 @@ namespace RandomLoadout
                     return;
                 case "cmd.general.reveal_map":
                     ExecuteRevealCurrentFloorMap(player, null);
+                    return;
+                case "cmd.general.random_item":
+                    ExecuteRandom(player, null);
                     return;
                 case "cmd.combat.rapid":
                     ExecuteToggleRapidFire(player, null);

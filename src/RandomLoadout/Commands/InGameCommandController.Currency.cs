@@ -15,7 +15,7 @@ namespace RandomLoadout
 
             if (logger != null)
             {
-                logger.LogInfo(RandomLoadoutLog.Command("Currency menu opened."));
+                logger.LogInfo(RandomLoadoutLog.Command("Pickups menu opened."));
             }
         }
 
@@ -31,11 +31,11 @@ namespace RandomLoadout
 
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 12f, panelRect.width - ButtonWidth - 32f, 24f),
-                GetLocalizedFallback("gui.currency.title", "Player Resources", "人物资源"),
+                GetLocalizedFallback("gui.currency.title", "Pickups", "拾取物"),
                 _titleStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
-                GetLocalizedFallback("gui.currency.hint.choose", "Choose a player resource to add.", "选择要增加的人物资源。"),
+                GetLocalizedFallback("gui.currency.hint.choose", "Choose a pickup to add.", "选择要增加的拾取物。"),
                 _hintStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 58f, panelRect.width - 28f, 20f),
@@ -49,7 +49,8 @@ namespace RandomLoadout
             Rect addCurrencyButtonRect = new Rect(left, addKeyButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
             Rect addMetaCurrencyButtonRect = new Rect(addCurrencyButtonRect.xMax + ButtonGap, addCurrencyButtonRect.y, CurrencyActionButtonWidth, 34f);
             Rect addBlankButtonRect = new Rect(left, addCurrencyButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
-            Rect addMaxHealthButtonRect = new Rect(addBlankButtonRect.xMax + ButtonGap, addBlankButtonRect.y, CurrencyActionButtonWidth, 34f);
+            Rect addArmorButtonRect = new Rect(addBlankButtonRect.xMax + ButtonGap, addBlankButtonRect.y, CurrencyActionButtonWidth, 34f);
+            Rect addMaxHealthButtonRect = new Rect(left, addBlankButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
             if (GUI.Button(addKeyButtonRect, GetLocalizedFallback("gui.currency.button.key", "+1 Key", "+1 钥匙"), _buttonStyle))
             {
                 ExecuteAddKey(player, logger);
@@ -75,6 +76,11 @@ namespace RandomLoadout
             if (GUI.Button(addBlankButtonRect, GetLocalizedFallback("gui.currency.button.blank", "+1 Blank", "+1 空包弹"), _buttonStyle))
             {
                 ExecuteAddBlank(player, logger);
+            }
+
+            if (GUI.Button(addArmorButtonRect, GetLocalizedFallback("gui.currency.button.armor", "+1 Armor", "+1 护甲"), _buttonStyle))
+            {
+                ExecuteAddArmor(player, logger);
             }
 
             if (GUI.Button(addMaxHealthButtonRect, GetLocalizedFallback("gui.currency.button.max_health", "+1 Max HP", "+1 血量上限"), _buttonStyle))

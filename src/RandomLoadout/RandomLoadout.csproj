@@ -159,6 +159,7 @@
     <Compile Include="Commands\FoyerCharacterSwitchService.Switching.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.Unlocking.cs" />
     <Compile Include="Commands\InGameCommandController.cs" />
+    <Compile Include="Commands\InGameCommandController.AdvancedTools.cs" />
     <Compile Include="Commands\InGameCommandController.About.cs" />
     <Compile Include="Commands\InGameCommandController.BossRush.cs" />
     <Compile Include="Commands\InGameCommandController.CharacterActions.cs" />

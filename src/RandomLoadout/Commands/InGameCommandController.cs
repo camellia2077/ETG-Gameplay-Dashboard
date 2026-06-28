@@ -75,6 +75,7 @@ namespace RandomLoadout
         public void Update()
         {
             LogJoystickButtonStateChanges();
+            LogControllerStickStateChanges();
             UpdateMapFeatureActivationState();
             LogMapDirectTeleportRoomTransitionIfNeeded();
             LogMapDirectTeleportRuntimeStateIfNeeded();
@@ -90,6 +91,9 @@ namespace RandomLoadout
             {
                 return;
             }
+
+            LogMouseButtonAttempts();
+            LogDisabledKeyboardNavigationKeyAttempts();
         }
 
         public void OnGUI(PlayerController player, BepInEx.Logging.ManualLogSource logger)
@@ -138,9 +142,17 @@ namespace RandomLoadout
             {
                 panelHeight = SettingsPanelHeight;
             }
+            else if (_isVisible && _currentPage == PanelPage.AdvancedTools)
+            {
+                panelHeight = AdvancedToolsPanelHeight;
+            }
             else if (_isVisible && _currentPage == PanelPage.ControllerHelp)
             {
                 panelHeight = ControllerHelpPanelHeight;
+            }
+            else if (_isVisible && _currentPage == PanelPage.KeyboardHelp)
+            {
+                panelHeight = KeyboardHelpPanelHeight;
             }
 
             Matrix4x4 previousGuiMatrix = GUI.matrix;
@@ -193,9 +205,21 @@ namespace RandomLoadout
                     return;
                 }
 
+                if (_currentPage == PanelPage.AdvancedTools)
+                {
+                    DrawAdvancedToolsPage(panelRect, player, logger);
+                    return;
+                }
+
                 if (_currentPage == PanelPage.ControllerHelp)
                 {
                     DrawControllerHelpPage(panelRect);
+                    return;
+                }
+
+                if (_currentPage == PanelPage.KeyboardHelp)
+                {
+                    DrawKeyboardHelpPage(panelRect);
                     return;
                 }
 
@@ -238,7 +262,7 @@ namespace RandomLoadout
                 return;
             }
 
-            bool isControllerBackPressed = IsControllerBackPressed();
+            bool isControllerBackPressed = IsPanelBackPressed();
             if (isControllerBackPressed)
             {
                 LogGamepadShortcutState(
@@ -261,7 +285,7 @@ namespace RandomLoadout
                     _showExperimentalModeConfirmDialog = false;
                 }
 
-                if (IsControllerConfirmPressed())
+                if (IsPanelConfirmPressed())
                 {
                     SetExperimentalModeEnabled(true, null);
                 }
@@ -284,8 +308,17 @@ namespace RandomLoadout
                 case PanelPage.Settings:
                     HandleSettingsPageControllerNavigation(isControllerBackPressed);
                     return;
+                case PanelPage.Characters:
+                    HandleCharacterPageControllerNavigation(isControllerBackPressed);
+                    return;
+                case PanelPage.AdvancedTools:
+                    HandleAdvancedToolsPageControllerNavigation(isControllerBackPressed);
+                    return;
                 case PanelPage.ControllerHelp:
                     HandleControllerHelpPageControllerNavigation(isControllerBackPressed);
+                    return;
+                case PanelPage.KeyboardHelp:
+                    HandleKeyboardHelpPageControllerNavigation(isControllerBackPressed);
                     return;
                 case PanelPage.Pickups:
                     HandlePickupPageControllerNavigation(isControllerBackPressed);
@@ -336,7 +369,7 @@ namespace RandomLoadout
                     ".");
             }
 
-            if (IsControllerConfirmPressed())
+            if (IsPanelConfirmPressed())
             {
                 ExecuteCommandPageFocusedControl();
             }
@@ -366,15 +399,48 @@ namespace RandomLoadout
                     ".");
             }
 
-            if (IsControllerConfirmPressed())
+            if (IsPanelConfirmPressed())
             {
                 ExecuteSettingsPageFocusedControl();
             }
         }
 
+        private void HandleCharacterPageControllerNavigation(bool isControllerBackPressed)
+        {
+            if (isControllerBackPressed)
+            {
+                LogGamepadShortcutState("Controller back press is returning from characters to the command page.");
+                CloseCharacterPage();
+                return;
+            }
+
+            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
+            if (navigationDirection.HasValue)
+            {
+                string previousControlId = _characterPageFocusedControlId;
+                _characterPageFocusedControlId = MoveControllerFocus(
+                    GetCharacterPageFocusEntries(_cachedCharacterOptions),
+                    _characterPageFocusedControlId,
+                    navigationDirection.Value);
+                LogGamepadShortcutState(
+                    "Character page controller navigation moved focus. Direction=" +
+                    navigationDirection.Value +
+                    ", From=" +
+                    previousControlId +
+                    ", To=" +
+                    _characterPageFocusedControlId +
+                    ".");
+            }
+
+            if (IsPanelConfirmPressed())
+            {
+                ExecuteCharacterPageFocusedControl(null);
+            }
+        }
+
         private void HandleControllerHelpPageControllerNavigation(bool isControllerBackPressed)
         {
-            if (isControllerBackPressed || IsControllerConfirmPressed())
+            if (isControllerBackPressed || IsPanelConfirmPressed())
             {
                 LogGamepadShortcutState("Controller navigation is returning from controller help to settings.");
                 OpenSettingsPage();
@@ -384,78 +450,96 @@ namespace RandomLoadout
             ResetControllerNavigationAxes();
         }
 
-        private void HandlePickupPageControllerNavigation(bool isControllerBackPressed)
+        private void HandleKeyboardHelpPageControllerNavigation(bool isControllerBackPressed)
         {
-            if (!isControllerBackPressed)
+            if (isControllerBackPressed || IsPanelConfirmPressed())
             {
-                ResetControllerNavigationAxes();
+                LogGamepadShortcutState("Keyboard navigation is returning from keyboard help to settings.");
+                OpenSettingsPage();
                 return;
             }
 
-            if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
+            ResetControllerNavigationAxes();
+        }
+
+        private void HandlePickupPageControllerNavigation(bool isControllerBackPressed)
+        {
+            if (isControllerBackPressed)
             {
-                LogGamepadShortcutState("Controller back press is returning from pickup browser to loadout editor preset detail.");
-                _currentPage = PanelPage.LoadoutEditor;
-                _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
-                RefreshLoadoutEditorEntries();
-            }
-            else if (_pickupBrowserMode == PickupBrowserMode.AddToRandomPool)
-            {
-                LogGamepadShortcutState("Controller back press is returning from pickup browser to loadout editor random pool detail.");
-                _currentPage = PanelPage.LoadoutEditor;
-                _loadoutEditorMode = LoadoutEditorMode.RandomPoolDetail;
-                RefreshLoadoutEditorEntries();
-                RefreshLoadoutRandomPoolEntries();
-            }
-            else
-            {
-                LogGamepadShortcutState("Controller back press is returning from pickup browser to the command page.");
-                _currentPage = PanelPage.Command;
-                _focusInputField = true;
+                LogGamepadShortcutState(
+                    "Controller back press detected on pickup browser. Mode=" +
+                    _pickupBrowserMode +
+                    ", Focus=" +
+                    _pickupPageFocusedControlId +
+                    ".");
+                ClosePickupPage();
+                return;
             }
 
-            _focusPickupSearchField = false;
-            RequestGuiFocusRelease();
-            ResetControllerNavigationAxes();
+            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
+            if (navigationDirection.HasValue)
+            {
+                string previousControlId = _pickupPageFocusedControlId;
+                _pickupPageFocusedControlId = MoveControllerFocus(
+                    GetPickupPageFocusEntries(),
+                    _pickupPageFocusedControlId,
+                    navigationDirection.Value);
+                LogGamepadShortcutState(
+                    "Pickup browser controller navigation moved focus. Mode=" +
+                    _pickupBrowserMode +
+                    ", Direction=" +
+                    navigationDirection.Value +
+                    ", From=" +
+                    previousControlId +
+                    ", To=" +
+                    _pickupPageFocusedControlId +
+                    ".");
+            }
+
+            if (IsPanelConfirmPressed())
+            {
+                ExecutePickupPageFocusedControl(GetCurrentPlayer(), null);
+            }
         }
 
         private void HandleLoadoutEditorPageControllerNavigation(bool isControllerBackPressed)
         {
-            if (!isControllerBackPressed)
+            if (isControllerBackPressed)
             {
-                ResetControllerNavigationAxes();
+                LogGamepadShortcutState(
+                    "Controller back press detected on loadout editor. Mode=" +
+                    _loadoutEditorMode +
+                    ", Focus=" +
+                    _loadoutEditorFocusedControlId +
+                    ".");
+                HandleLoadoutEditorBackNavigation();
                 return;
             }
 
-            switch (_loadoutEditorMode)
+            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
+            if (navigationDirection.HasValue)
             {
-                case LoadoutEditorMode.RandomPoolDetail:
-                    LogGamepadShortcutState("Controller back press is returning from loadout random pool detail to preset detail.");
-                    _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
-                    RefreshLoadoutEditorEntries();
-                    break;
-                case LoadoutEditorMode.PresetPickupsDetail:
-                    LogGamepadShortcutState("Controller back press is returning from loadout preset pickups detail to preset detail.");
-                    _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
-                    _loadoutPickupCountEditIndex = -1;
-                    _loadoutPickupCountEditText = string.Empty;
-                    RefreshLoadoutEditorEntries();
-                    break;
-                case LoadoutEditorMode.PresetDetail:
-                    LogGamepadShortcutState("Controller back press is returning from loadout preset detail to preset list.");
-                    _loadoutEditorMode = LoadoutEditorMode.PresetList;
-                    RefreshLoadoutPresetEntries();
-                    break;
-                case LoadoutEditorMode.PresetList:
-                default:
-                    LogGamepadShortcutState("Controller back press is returning from loadout editor to the command page.");
-                    _currentPage = PanelPage.Command;
-                    _focusInputField = true;
-                    break;
+                string previousControlId = _loadoutEditorFocusedControlId;
+                _loadoutEditorFocusedControlId = MoveControllerFocus(
+                    GetLoadoutEditorFocusEntries(),
+                    _loadoutEditorFocusedControlId,
+                    navigationDirection.Value);
+                LogGamepadShortcutState(
+                    "Loadout editor controller navigation moved focus. Mode=" +
+                    _loadoutEditorMode +
+                    ", Direction=" +
+                    navigationDirection.Value +
+                    ", From=" +
+                    previousControlId +
+                    ", To=" +
+                    _loadoutEditorFocusedControlId +
+                    ".");
             }
 
-            RequestGuiFocusRelease();
-            ResetControllerNavigationAxes();
+            if (IsPanelConfirmPressed())
+            {
+                ExecuteLoadoutEditorFocusedControl(GetCurrentPlayer(), null);
+            }
         }
 
         private void HandleTeleportPanelControllerNavigation(bool isControllerBackPressed)
@@ -502,7 +586,7 @@ namespace RandomLoadout
                 return;
             }
 
-            if (IsControllerConfirmPressed())
+            if (IsPanelConfirmPressed())
             {
                 TeleportOption selectedOption = TeleportOptions[_teleportSelectedIndex];
                 LogGamepadShortcutState(
@@ -517,14 +601,21 @@ namespace RandomLoadout
 
         private ControllerNavDirection? GetControllerNavigationDirection()
         {
-            ControllerNavDirection? braveInputDirection = GetBraveInputNavigationDirection();
-            if (braveInputDirection.HasValue)
+            ControllerNavDirection? keyboardDirection = GetKeyboardNavigationDirection();
+            if (keyboardDirection.HasValue)
             {
-                return braveInputDirection;
+                return keyboardDirection;
             }
 
-            float horizontal = Input.GetAxisRaw("Horizontal");
-            float vertical = Input.GetAxisRaw("Vertical");
+            BraveInput braveInput = BraveInput.PrimaryPlayerInstance;
+            if ((object)braveInput == null)
+            {
+                braveInput = BraveInput.PlayerlessInstance;
+            }
+
+            float horizontal;
+            float vertical;
+            GetControllerNavigationAxes(braveInput, out horizontal, out vertical);
             LogControllerNavigationAxisState(horizontal, vertical);
 
             if (Mathf.Abs(horizontal) < 0.5f)
@@ -562,54 +653,107 @@ namespace RandomLoadout
             return null;
         }
 
-        private ControllerNavDirection? GetBraveInputNavigationDirection()
+        private static void GetControllerNavigationAxes(BraveInput braveInput, out float horizontal, out float vertical)
         {
-            BraveInput braveInput = BraveInput.PrimaryPlayerInstance;
-            if ((object)braveInput == null)
-            {
-                braveInput = BraveInput.PlayerlessInstance;
-            }
+            horizontal = 0f;
+            vertical = 0f;
 
             if ((object)braveInput == null || braveInput.ActiveActions == null)
             {
+                return;
+            }
+
+            InControl.InputDevice activeDevice = braveInput.ActiveActions.Device;
+            if (activeDevice == null || activeDevice.DeviceClass != InControl.InputDeviceClass.Controller)
+            {
+                return;
+            }
+
+            float dpadX = activeDevice.DPadX != null ? activeDevice.DPadX.Value : 0f;
+            float dpadY = activeDevice.DPadY != null ? activeDevice.DPadY.Value : 0f;
+            horizontal = dpadX;
+            vertical = dpadY;
+        }
+
+        private ControllerNavDirection? GetKeyboardNavigationDirection()
+        {
+            ControllerNavDirection? heldDirection = GetHeldKeyboardNavigationDirection();
+            if (!heldDirection.HasValue)
+            {
+                _heldKeyboardNavigationDirection = null;
+                _nextKeyboardNavigationRepeatAt = 0f;
                 return null;
             }
 
-            GungeonActions actions = braveInput.ActiveActions;
-            if (WasNavigationActionPressed(actions.SelectLeft))
+            if (Input.GetKeyDown(GetKeyboardNavigationKeyCode(heldDirection.Value)))
             {
-                LogGamepadShortcutState("Detected controller navigation from BraveInput.SelectLeft.");
+                _heldKeyboardNavigationDirection = heldDirection.Value;
+                _nextKeyboardNavigationRepeatAt = Time.unscaledTime + KeyboardNavigationRepeatDelaySeconds;
+                return heldDirection.Value;
+            }
+
+            if (_heldKeyboardNavigationDirection.HasValue && _heldKeyboardNavigationDirection.Value != heldDirection.Value)
+            {
+                _heldKeyboardNavigationDirection = heldDirection.Value;
+                _nextKeyboardNavigationRepeatAt = Time.unscaledTime + KeyboardNavigationRepeatDelaySeconds;
+                return heldDirection.Value;
+            }
+
+            if (!_heldKeyboardNavigationDirection.HasValue)
+            {
+                _heldKeyboardNavigationDirection = heldDirection.Value;
+                _nextKeyboardNavigationRepeatAt = Time.unscaledTime + KeyboardNavigationRepeatDelaySeconds;
+                return heldDirection.Value;
+            }
+
+            if (Time.unscaledTime >= _nextKeyboardNavigationRepeatAt)
+            {
+                _nextKeyboardNavigationRepeatAt = Time.unscaledTime + KeyboardNavigationRepeatIntervalSeconds;
+                return heldDirection.Value;
+            }
+
+            return null;
+        }
+
+        private static ControllerNavDirection? GetHeldKeyboardNavigationDirection()
+        {
+            if (Input.GetKey(KeyCode.LeftArrow))
+            {
                 return ControllerNavDirection.Left;
             }
 
-            if (WasNavigationActionPressed(actions.SelectRight))
+            if (Input.GetKey(KeyCode.RightArrow))
             {
-                LogGamepadShortcutState("Detected controller navigation from BraveInput.SelectRight.");
                 return ControllerNavDirection.Right;
             }
 
-            if (WasNavigationActionPressed(actions.SelectUp))
+            if (Input.GetKey(KeyCode.UpArrow))
             {
-                LogGamepadShortcutState("Detected controller navigation from BraveInput.SelectUp.");
                 return ControllerNavDirection.Up;
             }
 
-            if (WasNavigationActionPressed(actions.SelectDown))
+            if (Input.GetKey(KeyCode.DownArrow))
             {
-                LogGamepadShortcutState("Detected controller navigation from BraveInput.SelectDown.");
                 return ControllerNavDirection.Down;
             }
 
             return null;
         }
 
-        private static bool WasNavigationActionPressed(InControl.PlayerAction action)
+        private static KeyCode GetKeyboardNavigationKeyCode(ControllerNavDirection direction)
         {
-            return action != null &&
-                   (action.WasPressed ||
-                    action.WasPressedRepeating ||
-                    action.WasPressedAsDpad ||
-                    action.WasPressedAsDpadRepeating);
+            switch (direction)
+            {
+                case ControllerNavDirection.Left:
+                    return KeyCode.LeftArrow;
+                case ControllerNavDirection.Right:
+                    return KeyCode.RightArrow;
+                case ControllerNavDirection.Up:
+                    return KeyCode.UpArrow;
+                case ControllerNavDirection.Down:
+                default:
+                    return KeyCode.DownArrow;
+            }
         }
 
         private void ResetControllerNavigationAxes()
@@ -626,6 +770,8 @@ namespace RandomLoadout
 
             _wasControllerHorizontalNavigationActive = false;
             _wasControllerVerticalNavigationActive = false;
+            _heldKeyboardNavigationDirection = null;
+            _nextKeyboardNavigationRepeatAt = 0f;
         }
 
         private static string MoveControllerFocus(ControllerFocusEntry[] entries, string currentControlId, ControllerNavDirection direction)
@@ -717,14 +863,28 @@ namespace RandomLoadout
             }
         }
 
-        private bool IsControllerConfirmPressed()
+        private bool IsPanelConfirmPressed()
         {
-            return Input.GetKeyDown(GetJoystickButtonKeyCode(0));
+            bool isControllerConfirmPressed = Input.GetKeyDown(GetJoystickButtonKeyCode(0));
+            bool isKeyboardConfirmPressed = Input.GetKeyDown(KeyCode.Insert);
+            if (isKeyboardConfirmPressed)
+            {
+                LogGamepadShortcutState("Detected keyboard confirm press. Key=Insert.");
+            }
+
+            return isControllerConfirmPressed || isKeyboardConfirmPressed;
         }
 
-        private bool IsControllerBackPressed()
+        private bool IsPanelBackPressed()
         {
-            return Input.GetKeyDown(GetJoystickButtonKeyCode(1));
+            bool isControllerBackPressed = Input.GetKeyDown(GetJoystickButtonKeyCode(1));
+            bool isKeyboardBackPressed = Input.GetKeyDown(KeyCode.Delete);
+            if (isKeyboardBackPressed)
+            {
+                LogGamepadShortcutState("Detected keyboard back press. Key=Delete.");
+            }
+
+            return isControllerBackPressed || isKeyboardBackPressed;
         }
 
         private bool IsGamepadToggleShortcutPressed()
@@ -782,9 +942,156 @@ namespace RandomLoadout
             }
         }
 
+        private void LogControllerStickStateChanges()
+        {
+            BraveInput braveInput = BraveInput.PrimaryPlayerInstance;
+            if ((object)braveInput == null)
+            {
+                braveInput = BraveInput.PlayerlessInstance;
+            }
+
+            InControl.InputDevice activeDevice =
+                (object)braveInput != null && braveInput.ActiveActions != null
+                    ? braveInput.ActiveActions.Device
+                    : null;
+            if (activeDevice == null || activeDevice.DeviceClass != InControl.InputDeviceClass.Controller)
+            {
+                return;
+            }
+
+            float dpadX = activeDevice.DPadX != null ? activeDevice.DPadX.Value : 0f;
+            float dpadY = activeDevice.DPadY != null ? activeDevice.DPadY.Value : 0f;
+            float leftStickX = activeDevice.LeftStickX != null ? activeDevice.LeftStickX.Value : 0f;
+            float leftStickY = activeDevice.LeftStickY != null ? activeDevice.LeftStickY.Value : 0f;
+            float rightStickX = activeDevice.RightStickX != null ? activeDevice.RightStickX.Value : 0f;
+            float rightStickY = activeDevice.RightStickY != null ? activeDevice.RightStickY.Value : 0f;
+
+            LogNamedControllerAxisStateChange(
+                "DPad",
+                dpadX,
+                dpadY,
+                ref _lastLoggedControllerDpadHorizontalAxis,
+                ref _lastLoggedControllerDpadVerticalAxis);
+            LogNamedControllerAxisStateChange(
+                "LeftStick",
+                leftStickX,
+                leftStickY,
+                ref _lastLoggedControllerLeftStickHorizontalAxis,
+                ref _lastLoggedControllerLeftStickVerticalAxis);
+            LogNamedControllerAxisStateChange(
+                "RightStick",
+                rightStickX,
+                rightStickY,
+                ref _lastLoggedControllerRightStickHorizontalAxis,
+                ref _lastLoggedControllerRightStickVerticalAxis);
+        }
+
+        private void LogDisabledKeyboardNavigationKeyAttempts()
+        {
+            if (Input.GetKeyDown(KeyCode.W))
+            {
+                LogDisabledKeyboardNavigationKeyAttempt(KeyCode.W, "Up");
+            }
+
+            if (Input.GetKeyDown(KeyCode.A))
+            {
+                LogDisabledKeyboardNavigationKeyAttempt(KeyCode.A, "Left");
+            }
+
+            if (Input.GetKeyDown(KeyCode.S))
+            {
+                LogDisabledKeyboardNavigationKeyAttempt(KeyCode.S, "Down");
+            }
+
+            if (Input.GetKeyDown(KeyCode.D))
+            {
+                LogDisabledKeyboardNavigationKeyAttempt(KeyCode.D, "Right");
+            }
+        }
+
+        private void LogDisabledKeyboardNavigationKeyAttempt(KeyCode keyCode, string mappedDirection)
+        {
+            LogGamepadShortcutState(
+                "Observed disabled keyboard navigation key press. Key=" +
+                keyCode +
+                ", MappedDirection=" +
+                mappedDirection +
+                ", Visible=" +
+                _isVisible +
+                ", Page=" +
+                _currentPage +
+                ".");
+        }
+
+        private void LogMouseButtonAttempts()
+        {
+            if (Input.GetMouseButtonDown(0))
+            {
+                LogMouseButtonAttempt(0, "Left");
+            }
+
+            if (Input.GetMouseButtonDown(1))
+            {
+                LogMouseButtonAttempt(1, "Right");
+            }
+        }
+
+        private void LogMouseButtonAttempt(int buttonIndex, string buttonName)
+        {
+            Vector3 mousePosition = Input.mousePosition;
+            LogGamepadShortcutState(
+                "Observed mouse button press. Button=" +
+                buttonName +
+                ", ButtonIndex=" +
+                buttonIndex +
+                ", MouseX=" +
+                mousePosition.x.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", MouseY=" +
+                mousePosition.y.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", Visible=" +
+                _isVisible +
+                ", Page=" +
+                _currentPage +
+                ".");
+        }
+
         private static KeyCode GetJoystickButtonKeyCode(int buttonIndex)
         {
             return KeyCode.JoystickButton0 + buttonIndex;
+        }
+
+        private void LogNamedControllerAxisStateChange(
+            string inputName,
+            float horizontal,
+            float vertical,
+            ref float lastHorizontal,
+            ref float lastVertical)
+        {
+            bool didHorizontalChange =
+                float.IsNaN(lastHorizontal) ||
+                Mathf.Abs(horizontal - lastHorizontal) > 0.01f;
+            bool didVerticalChange =
+                float.IsNaN(lastVertical) ||
+                Mathf.Abs(vertical - lastVertical) > 0.01f;
+            if (!didHorizontalChange && !didVerticalChange)
+            {
+                return;
+            }
+
+            lastHorizontal = horizontal;
+            lastVertical = vertical;
+            LogGamepadShortcutState(
+                "Observed controller input axis change. Input=" +
+                inputName +
+                ", Horizontal=" +
+                horizontal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", Vertical=" +
+                vertical.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", Visible=" +
+                _isVisible +
+                ", Page=" +
+                _currentPage +
+                ".");
         }
 
         private void LogControllerNavigationAxisState(float horizontal, float vertical)
@@ -864,6 +1171,8 @@ namespace RandomLoadout
             _currentPage = PanelPage.Command;
             _commandPageFocusedControlId = "cmd.settings";
             _settingsPageFocusedControlId = "settings.toggle_key";
+            _characterPageFocusedControlId = "characters.mode";
+            _loadoutEditorFocusedControlId = "loadout.back";
             _inputText = string.Empty;
             CloseTeleportPanel();
             ResetPickupBrowserState();

@@ -12,6 +12,7 @@ namespace RandomLoadout
         {
             _currentPage = PanelPage.Characters;
             _focusInputField = false;
+            _characterPageFocusedControlId = "characters.mode";
             RefreshCharacterPageData(true);
 
             if (logger == null)
@@ -136,6 +137,7 @@ namespace RandomLoadout
             _cachedCharacterOptions = EmptyCharacterOptions;
             _cachedCharacterAvailability = GuiText.Get("gui.characters.availability.breach_only");
             _nextCharacterPageRefreshAt = 0f;
+            _characterPageFocusedControlId = "characters.mode";
         }
     }
 }

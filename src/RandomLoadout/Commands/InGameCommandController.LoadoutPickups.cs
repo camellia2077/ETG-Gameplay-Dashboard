@@ -16,40 +16,41 @@ namespace RandomLoadout
             Rect addArmorButtonRect = new Rect(panelRect.x + 14f, addKeyButtonRect.yMax + ButtonGap, actionButtonWidth, actionButtonHeight);
             Rect addBlankButtonRect = new Rect(addArmorButtonRect.xMax + ButtonGap, addArmorButtonRect.y, actionButtonWidth, actionButtonHeight);
             Rect addCasingsButtonRect = new Rect(addBlankButtonRect.xMax + ButtonGap, addArmorButtonRect.y, actionButtonWidth, actionButtonHeight);
-            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
+            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("loadout.back", _buttonStyle)))
             {
                 _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
+                _loadoutEditorFocusedControlId = "loadout.preset_detail.pickups";
                 ResetLoadoutPresetPickupCountEdit();
                 RefreshLoadoutEditorEntries();
                 return;
             }
 
-            if (GUI.Button(addKeyButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_key"), _buttonStyle))
+            if (GUI.Button(addKeyButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_key"), GetControllerButtonStyle("loadout.pickups.add_key", _buttonStyle)))
             {
                 ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.KeyType, logger);
             }
 
-            if (GUI.Button(addRatKeyButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_rat_key"), _buttonStyle))
+            if (GUI.Button(addRatKeyButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_rat_key"), GetControllerButtonStyle("loadout.pickups.add_rat_key", _buttonStyle)))
             {
                 ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.RatKeyType, logger);
             }
 
-            if (GUI.Button(addMaxHealthButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_max_health"), _buttonStyle))
+            if (GUI.Button(addMaxHealthButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_max_health"), GetControllerButtonStyle("loadout.pickups.add_max_health", _buttonStyle)))
             {
                 ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.MaxHealthType, logger);
             }
 
-            if (GUI.Button(addArmorButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_armor"), _buttonStyle))
+            if (GUI.Button(addArmorButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_armor"), GetControllerButtonStyle("loadout.pickups.add_armor", _buttonStyle)))
             {
                 ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.ArmorType, logger);
             }
 
-            if (GUI.Button(addBlankButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_blank"), _buttonStyle))
+            if (GUI.Button(addBlankButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_blank"), GetControllerButtonStyle("loadout.pickups.add_blank", _buttonStyle)))
             {
                 ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.BlankType, logger);
             }
 
-            if (GUI.Button(addCasingsButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_casings"), _buttonStyle))
+            if (GUI.Button(addCasingsButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_casings"), GetControllerButtonStyle("loadout.pickups.add_casings", _buttonStyle)))
             {
                 ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.CasingsType, logger);
             }
@@ -113,31 +114,31 @@ namespace RandomLoadout
             if (isEditingCount)
             {
                 _loadoutPickupCountEditText = GUI.TextField(countLabelRect, _loadoutPickupCountEditText, 6, _textFieldStyle);
-                if (GUI.Button(countConfirmRect, "OK", _buttonStyle))
+                if (GUI.Button(countConfirmRect, "OK", GetControllerButtonStyle(GetLoadoutPickupConfirmControlId(entry), _buttonStyle)))
                 {
                     ExecuteLoadoutEditorSetPresetPickupCount(entry.Index, _loadoutPickupCountEditText, logger);
                 }
             }
             else
             {
-                if (GUI.Button(countLabelRect, entry != null ? entry.Count.ToString() : "1", _buttonStyle))
+                if (GUI.Button(countLabelRect, entry != null ? entry.Count.ToString() : "1", GetControllerButtonStyle(GetLoadoutPickupCountControlId(entry), _buttonStyle)))
                 {
                     _loadoutPickupCountEditIndex = entry != null ? entry.Index : -1;
                     _loadoutPickupCountEditText = entry != null ? entry.Count.ToString() : "1";
                 }
             }
 
-            if (GUI.Button(minusButtonRect, "-", _buttonStyle))
+            if (GUI.Button(minusButtonRect, "-", GetControllerButtonStyle(GetLoadoutPickupMinusControlId(entry), _buttonStyle)))
             {
                 ExecuteLoadoutEditorChangePresetPickupCount(entry != null ? entry.Index : -1, -1, logger);
             }
 
-            if (GUI.Button(plusButtonRect, "+", _buttonStyle))
+            if (GUI.Button(plusButtonRect, "+", GetControllerButtonStyle(GetLoadoutPickupPlusControlId(entry), _buttonStyle)))
             {
                 ExecuteLoadoutEditorChangePresetPickupCount(entry != null ? entry.Index : -1, 1, logger);
             }
 
-            if (GUI.Button(removeButtonRect, GuiText.Get("gui.loadout_editor.button.remove"), _buttonStyle))
+            if (GUI.Button(removeButtonRect, GuiText.Get("gui.loadout_editor.button.remove"), GetControllerButtonStyle(GetLoadoutPickupRemoveControlId(entry), _buttonStyle)))
             {
                 ExecuteLoadoutEditorRemovePresetPickup(entry != null ? entry.Index : -1, logger);
             }
@@ -153,6 +154,7 @@ namespace RandomLoadout
         private void OpenLoadoutPresetPickupsDetail()
         {
             _loadoutEditorMode = LoadoutEditorMode.PresetPickupsDetail;
+            _loadoutEditorFocusedControlId = "loadout.pickups.add_key";
             _loadoutEditorScrollPosition = Vector2.zero;
             ResetLoadoutPresetPickupCountEdit();
             RefreshLoadoutPickupEntries();
