@@ -9,6 +9,22 @@ namespace RandomLoadout
 {
     internal sealed partial class InGameCommandController
     {
+        private void LogCommandExecutionResult(ManualLogSource logger, GrantCommandExecutionResult executionResult)
+        {
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                return;
+            }
+
+            logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+        }
+
         private void Submit(PlayerController player, ManualLogSource logger)
         {
             GrantCommandParseResult parseResult = _parser.Parse(_inputText);
@@ -68,34 +84,78 @@ namespace RandomLoadout
 
         private void ExecuteAddArmor(PlayerController player, ManualLogSource logger)
         {
+            LogCommandPanelHealthDiagnostic("Executing add armor command. Before=" + DescribePlayerVitals(player) + ".");
             GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddArmor(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            LogCommandPanelHealthDiagnostic("Finished add armor command. Result=" + executionResult.Succeeded + ", After=" + DescribePlayerVitals(player) + ".");
+
+            if (executionResult.Succeeded)
+            {
+                LogCommandExecutionResult(logger, executionResult);
+                _focusInputField = true;
+            }
+            else
+            {
+                LogCommandExecutionResult(logger, executionResult);
+            }
+        }
+
+        private void ExecuteToggleArmorNoConsume(PlayerController player, ManualLogSource logger)
+        {
+            if (_armorNoConsumeToggleService == null)
+            {
+                string unavailableMessage = GetLocalizedFallback(
+                    "result.armor_no_consume.unavailable",
+                    "Armor no-consume service is unavailable.",
+                    "护甲不消耗服务当前不可用。");
+                ShowStatus(unavailableMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(GetLocalizedFallback(
+                        "result.armor_no_consume.unavailable",
+                        "Armor no-consume service is unavailable.",
+                        "护甲不消耗服务当前不可用。")));
+                }
+
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _armorNoConsumeToggleService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
 
             if (executionResult.Succeeded)
             {
                 logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
-                _focusInputField = true;
             }
             else
             {
                 logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
             }
+
+            _focusInputField = true;
         }
 
         private void ExecuteAddMaxHealth(PlayerController player, ManualLogSource logger)
         {
+            LogCommandPanelHealthDiagnostic("Executing add max health command. Before=" + DescribePlayerVitals(player) + ".");
             GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddMaxHealth(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            LogCommandPanelHealthDiagnostic("Finished add max health command. Result=" + executionResult.Succeeded + ", After=" + DescribePlayerVitals(player) + ".");
 
             if (executionResult.Succeeded)
             {
                 MarkRevealMapActivatedForCurrentScene();
-                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
                 _focusInputField = true;
             }
             else
             {
-                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
             }
         }
 
@@ -131,20 +191,44 @@ namespace RandomLoadout
             }
         }
 
-        private void ExecuteRefillBlanks(PlayerController player, ManualLogSource logger)
+        private void ExecuteToggleBlankNoConsume(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.RefillBlanks(player);
+            if (_blankNoConsumeToggleService == null)
+            {
+                string unavailableMessage = GetLocalizedFallback(
+                    "result.blank_no_consume.unavailable",
+                    "Blank no-consume service is unavailable.",
+                    "空包弹不消耗服务当前不可用。");
+                ShowStatus(unavailableMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(GetLocalizedFallback(
+                        "result.blank_no_consume.unavailable",
+                        "Blank no-consume service is unavailable.",
+                        "空包弹不消耗服务当前不可用。")));
+                }
+
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _blankNoConsumeToggleService.Toggle(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
 
             if (executionResult.Succeeded)
             {
                 logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
-                _focusInputField = true;
             }
             else
             {
                 logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
             }
+
+            _focusInputField = true;
         }
 
         private void ExecuteAddBlank(PlayerController player, ManualLogSource logger)
@@ -154,12 +238,12 @@ namespace RandomLoadout
 
             if (executionResult.Succeeded)
             {
-                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
                 _focusInputField = true;
             }
             else
             {
-                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
             }
         }
 
@@ -186,13 +270,53 @@ namespace RandomLoadout
 
             if (executionResult.Succeeded)
             {
-                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
                 _focusInputField = true;
+            }
+            else
+            {
+                LogCommandExecutionResult(logger, executionResult);
+            }
+        }
+
+        private void ExecuteToggleKeyNoConsume(PlayerController player, ManualLogSource logger)
+        {
+            if (_keyNoConsumeToggleService == null)
+            {
+                string unavailableMessage = GetLocalizedFallback(
+                    "result.key_no_consume.unavailable",
+                    "Key no-consume service is unavailable.",
+                    "钥匙不消耗服务当前不可用。");
+                ShowStatus(unavailableMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(GetLocalizedFallback(
+                        "result.key_no_consume.unavailable",
+                        "Key no-consume service is unavailable.",
+                        "钥匙不消耗服务当前不可用。")));
+                }
+
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _keyNoConsumeToggleService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
             }
             else
             {
                 logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
             }
+
+            _focusInputField = true;
         }
 
         private void ExecuteAddRatKey(PlayerController player, ManualLogSource logger)
@@ -202,12 +326,12 @@ namespace RandomLoadout
 
             if (executionResult.Succeeded)
             {
-                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
                 _focusInputField = true;
             }
             else
             {
-                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
             }
         }
 
@@ -218,18 +342,18 @@ namespace RandomLoadout
 
             if (executionResult.Succeeded)
             {
-                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
                 _focusInputField = true;
             }
             else
             {
-                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+                LogCommandExecutionResult(logger, executionResult);
             }
         }
 
-        private void ExecuteAddMetaCurrency(PlayerController player, ManualLogSource logger)
+        private void ExecuteAddLargeCurrency(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddMetaCurrency(player);
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddLargeCurrency(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -240,6 +364,62 @@ namespace RandomLoadout
             else
             {
                 logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleCurrencyNoConsume(PlayerController player, ManualLogSource logger)
+        {
+            if (_currencyNoConsumeToggleService == null)
+            {
+                string unavailableMessage = GetLocalizedFallback(
+                    "result.currency_no_consume.unavailable",
+                    "Casings no-consume service is unavailable.",
+                    "弹壳不消耗服务当前不可用。");
+                ShowStatus(unavailableMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(GetLocalizedFallback(
+                        "result.currency_no_consume.unavailable",
+                        "Casings no-consume service is unavailable.",
+                        "弹壳不消耗服务当前不可用。")));
+                }
+
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _currencyNoConsumeToggleService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+
+            _focusInputField = true;
+        }
+
+        private void ExecuteAddMetaCurrency(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddMetaCurrency(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (executionResult.Succeeded)
+            {
+                LogCommandExecutionResult(logger, executionResult);
+                _focusInputField = true;
+            }
+            else
+            {
+                LogCommandExecutionResult(logger, executionResult);
             }
         }
 

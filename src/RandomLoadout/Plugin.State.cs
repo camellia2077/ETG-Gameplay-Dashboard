@@ -1,5 +1,4 @@
 using BepInEx.Configuration;
-using HarmonyLib;
 using RandomLoadout.Core;
 
 namespace RandomLoadout
@@ -31,6 +30,8 @@ namespace RandomLoadout
         private ConfigEntry<bool> _muncherVerboseLogsConfig;
         private ConfigEntry<bool> _floorTeleportVerboseLogsConfig;
         private ConfigEntry<bool> _bossRushVerboseLogsConfig;
+        private ConfigEntry<bool> _commandPanelHealthVerboseLogsConfig;
+        private ConfigEntry<bool> _commandPanelCursorVerboseLogsConfig;
         private ConfigEntry<string> _activeStartItemsPresetConfig;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
@@ -46,6 +47,10 @@ namespace RandomLoadout
         private InGameCommandController _commandController;
         private RapidFireToggleService _rapidFireToggleService;
         private AutoReloadToggleService _autoReloadToggleService;
+        private ArmorNoConsumeToggleService _armorNoConsumeToggleService;
+        private BlankNoConsumeToggleService _blankNoConsumeToggleService;
+        private KeyNoConsumeToggleService _keyNoConsumeToggleService;
+        private CurrencyNoConsumeToggleService _currencyNoConsumeToggleService;
         private InvincibilityToggleService _invincibilityToggleService;
         private AmmoModeToggleService _ammoModeToggleService;
         private AmmonomiconFastOpenToggleService _ammonomiconFastOpenToggleService;
@@ -54,8 +59,7 @@ namespace RandomLoadout
         private PlayerDebugCommandService _playerDebugCommandService;
         private EtgPickupGranter _pickupGranter;
         private BossRushService _bossRushService;
-        private Harmony _bossRushHarmony;
-        private Harmony _ammonomiconAnimationHarmony;
+        private RuntimeHookRegistry _runtimeHookRegistry;
         private bool _hasExportedPickupCatalog;
         private string _lastPickupCatalogExportFailure;
         private RunGrantState _runState;

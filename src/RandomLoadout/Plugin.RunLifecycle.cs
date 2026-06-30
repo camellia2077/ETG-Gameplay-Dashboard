@@ -37,6 +37,26 @@ namespace RandomLoadout
                 _autoReloadToggleService.Update(player);
             }
 
+            if (_blankNoConsumeToggleService != null)
+            {
+                _blankNoConsumeToggleService.Update(player);
+            }
+
+            if (_armorNoConsumeToggleService != null)
+            {
+                _armorNoConsumeToggleService.Update(player);
+            }
+
+            if (_keyNoConsumeToggleService != null)
+            {
+                _keyNoConsumeToggleService.Update(player);
+            }
+
+            if (_currencyNoConsumeToggleService != null)
+            {
+                _currencyNoConsumeToggleService.Update(player);
+            }
+
             if (_invincibilityToggleService != null)
             {
                 _invincibilityToggleService.Update(player);

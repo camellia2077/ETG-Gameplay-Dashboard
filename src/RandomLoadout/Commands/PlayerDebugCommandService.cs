@@ -8,7 +8,8 @@ namespace RandomLoadout
         private const int SingleKeyAmount = 1;
         private const int SingleBlankAmount = 1;
         // Run currency (casings): drops during dungeon runs and is consumed in-run.
-        private const int CurrencyBundleAmount = 50;
+        private const int CurrencyBundleAmount = 100;
+        private const int LargeCurrencyBundleAmount = 100;
         // Breach meta currency (hegemony credits): used in the character-select hub economy.
         // META_CURRENCY is applied as a direct 1:1 stat increment in ETG runtime.
         private const float MetaCurrencyBundleAmount = 50f;
@@ -146,34 +147,6 @@ namespace RandomLoadout
             return GrantCommandExecutionResult.Localized(true, "result.debug.clear_curse.success");
         }
 
-        public GrantCommandExecutionResult RefillBlanks(PlayerController player)
-        {
-            if ((object)player == null)
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
-            }
-
-            PlayerStats stats = player.stats;
-            if ((object)stats == null)
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.common.stats_not_ready");
-            }
-
-            int targetBlankCount = stats.NumBlanksPerFloor;
-            if (targetBlankCount <= 0)
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.debug.no_blank_allotment");
-            }
-
-            if (player.Blanks >= targetBlankCount)
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.debug.blanks_already_full");
-            }
-
-            player.Blanks = targetBlankCount;
-            return GrantCommandExecutionResult.Localized(true, "result.debug.refill_blanks.success", targetBlankCount);
-        }
-
         public GrantCommandExecutionResult AddBlank(PlayerController player)
         {
             if ((object)player == null)
@@ -275,6 +248,23 @@ namespace RandomLoadout
             }
 
             consumables.Currency = consumables.Currency + CurrencyBundleAmount;
+            return GrantCommandExecutionResult.Localized(true, "result.debug.add_currency.success");
+        }
+
+        public GrantCommandExecutionResult AddLargeCurrency(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
+            }
+
+            PlayerConsumables consumables = player.carriedConsumables;
+            if ((object)consumables == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.consumables_not_ready");
+            }
+
+            consumables.Currency = consumables.Currency + LargeCurrencyBundleAmount;
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_currency.success");
         }
 

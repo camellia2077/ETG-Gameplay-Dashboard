@@ -13,6 +13,10 @@ namespace RandomLoadout
             BossRushService bossRushService,
             RapidFireToggleService rapidFireToggleService,
             AutoReloadToggleService autoReloadToggleService,
+            ArmorNoConsumeToggleService armorNoConsumeToggleService,
+            BlankNoConsumeToggleService blankNoConsumeToggleService,
+            KeyNoConsumeToggleService keyNoConsumeToggleService,
+            CurrencyNoConsumeToggleService currencyNoConsumeToggleService,
             InvincibilityToggleService invincibilityToggleService,
             AmmoModeToggleService ammoModeToggleService,
             AmmonomiconFastOpenToggleService ammonomiconFastOpenToggleService,
@@ -34,6 +38,8 @@ namespace RandomLoadout
             System.Action<bool> ammonomiconFastOpenEnabledSetter,
             System.Func<bool> mapTeleportVerboseLoggingEnabledProvider,
             System.Func<bool> floorTeleportVerboseLoggingEnabledProvider,
+            System.Func<bool> commandPanelHealthVerboseLoggingEnabledProvider,
+            System.Func<bool> commandPanelCursorVerboseLoggingEnabledProvider,
             System.Func<EtgFloorDefinition, string, string, bool> deferredTeleportRequestHandler)
         {
             _commandService = commandService;
@@ -43,6 +49,10 @@ namespace RandomLoadout
             _bossRushService = bossRushService;
             _rapidFireToggleService = rapidFireToggleService;
             _autoReloadToggleService = autoReloadToggleService;
+            _armorNoConsumeToggleService = armorNoConsumeToggleService;
+            _blankNoConsumeToggleService = blankNoConsumeToggleService;
+            _keyNoConsumeToggleService = keyNoConsumeToggleService;
+            _currencyNoConsumeToggleService = currencyNoConsumeToggleService;
             _invincibilityToggleService = invincibilityToggleService;
             _ammoModeToggleService = ammoModeToggleService;
             _ammonomiconFastOpenToggleService = ammonomiconFastOpenToggleService;
@@ -64,6 +74,8 @@ namespace RandomLoadout
             _ammonomiconFastOpenEnabledSetter = ammonomiconFastOpenEnabledSetter;
             _mapTeleportVerboseLoggingEnabledProvider = mapTeleportVerboseLoggingEnabledProvider;
             _floorTeleportVerboseLoggingEnabledProvider = floorTeleportVerboseLoggingEnabledProvider;
+            _commandPanelHealthVerboseLoggingEnabledProvider = commandPanelHealthVerboseLoggingEnabledProvider;
+            _commandPanelCursorVerboseLoggingEnabledProvider = commandPanelCursorVerboseLoggingEnabledProvider;
             _deferredTeleportRequestHandler = deferredTeleportRequestHandler;
             _showPlayerStatsPanel = _playerStatsPanelShownProvider != null && _playerStatsPanelShownProvider();
             if (_bossRushService != null)
@@ -74,8 +86,10 @@ namespace RandomLoadout
 
         public void Update()
         {
+            SyncPanelInputOverride();
             LogJoystickButtonStateChanges();
             LogControllerStickStateChanges();
+            LogCursorVisibilityStateChanges();
             UpdateMapFeatureActivationState();
             LogMapDirectTeleportRoomTransitionIfNeeded();
             LogMapDirectTeleportRuntimeStateIfNeeded();
@@ -245,6 +259,7 @@ namespace RandomLoadout
             _isVisible = !_isVisible;
             if (_isVisible)
             {
+                SyncPanelInputOverride();
                 _focusInputField = false;
                 _focusPickupSearchField = false;
                 RequestGuiFocusRelease();
@@ -323,6 +338,9 @@ namespace RandomLoadout
                 case PanelPage.Pickups:
                     HandlePickupPageControllerNavigation(isControllerBackPressed);
                     return;
+                case PanelPage.Currency:
+                    HandleCurrencyPageControllerNavigation(isControllerBackPressed);
+                    return;
                 case PanelPage.LoadoutEditor:
                     HandleLoadoutEditorPageControllerNavigation(isControllerBackPressed);
                     return;
@@ -359,14 +377,19 @@ namespace RandomLoadout
             {
                 string previousControlId = _commandPageFocusedControlId;
                 _commandPageFocusedControlId = MoveControllerFocus(GetCommandPageFocusEntries(), _commandPageFocusedControlId, navigationDirection.Value);
-                LogGamepadShortcutState(
-                    "Command page controller navigation moved focus. Direction=" +
-                    navigationDirection.Value +
-                    ", From=" +
-                    previousControlId +
-                    ", To=" +
-                    _commandPageFocusedControlId +
-                    ".");
+                if (IsCommandPanelHealthVerboseLoggingEnabled())
+                {
+                    LogGamepadShortcutState(
+                        "Command page controller navigation moved focus. Direction=" +
+                        navigationDirection.Value +
+                        ", From=" +
+                        previousControlId +
+                        ", To=" +
+                        _commandPageFocusedControlId +
+                        ", PlayerVitals=" +
+                        DescribePlayerVitals(GetCurrentPlayer()) +
+                        ".");
+                }
             }
 
             if (IsPanelConfirmPressed())
@@ -499,6 +522,51 @@ namespace RandomLoadout
             if (IsPanelConfirmPressed())
             {
                 ExecutePickupPageFocusedControl(GetCurrentPlayer(), null);
+            }
+        }
+
+        private void HandleCurrencyPageControllerNavigation(bool isControllerBackPressed)
+        {
+            if (isControllerBackPressed)
+            {
+                LogGamepadShortcutState(
+                    "Controller back press detected on currency page. Focus=" +
+                    _currencyPageFocusedControlId +
+                    ".");
+                CloseCurrencyPage();
+                return;
+            }
+
+            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
+            if (navigationDirection.HasValue)
+            {
+                string previousControlId = _currencyPageFocusedControlId;
+                _currencyPageFocusedControlId = MoveControllerFocus(
+                    GetCurrencyPageFocusEntries(),
+                    _currencyPageFocusedControlId,
+                    navigationDirection.Value);
+                if (IsCommandPanelHealthVerboseLoggingEnabled())
+                {
+                    LogGamepadShortcutState(
+                        "Currency page controller navigation moved focus. Direction=" +
+                        navigationDirection.Value +
+                        ", From=" +
+                        previousControlId +
+                        ", To=" +
+                        _currencyPageFocusedControlId +
+                        ", PlayerVitals=" +
+                        DescribePlayerVitals(GetCurrentPlayer()) +
+                        ".");
+                }
+            }
+
+            if (IsPanelConfirmPressed())
+            {
+                LogGamepadShortcutState(
+                    "Controller confirm is activating currency page control. Focus=" +
+                    _currencyPageFocusedControlId +
+                    ".");
+                ExecuteCurrencyPageFocusedControl(GetCurrentPlayer(), null);
             }
         }
 
@@ -1025,6 +1093,11 @@ namespace RandomLoadout
 
         private void LogMouseButtonAttempts()
         {
+            if (!IsCommandPanelCursorVerboseLoggingEnabled())
+            {
+                return;
+            }
+
             if (Input.GetMouseButtonDown(0))
             {
                 LogMouseButtonAttempt(0, "Left");
@@ -1058,6 +1131,30 @@ namespace RandomLoadout
         private static KeyCode GetJoystickButtonKeyCode(int buttonIndex)
         {
             return KeyCode.JoystickButton0 + buttonIndex;
+        }
+
+        private static string DescribePlayerVitals(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return "<player:null>";
+            }
+
+            HealthHaver healthHaver = player.healthHaver;
+            if ((object)healthHaver == null)
+            {
+                return "<health:null>";
+            }
+
+            return
+                "CurrentHealth=" +
+                healthHaver.GetCurrentHealth().ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
+                ", MaxHealth=" +
+                healthHaver.GetMaxHealth().ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
+                ", Armor=" +
+                healthHaver.Armor.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
+                ", Blanks=" +
+                player.Blanks.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
 
         private void LogNamedControllerAxisStateChange(
@@ -1139,6 +1236,90 @@ namespace RandomLoadout
             ResetClosedPanelState();
         }
 
+        private void SyncPanelInputOverride()
+        {
+            PlayerController currentPlayer = GetCurrentPlayer();
+            if (!_isVisible)
+            {
+                ClearPanelInputOverride();
+                return;
+            }
+
+            if ((object)_panelInputOverridePlayer != null && !ReferenceEquals(_panelInputOverridePlayer, currentPlayer))
+            {
+                _panelInputOverridePlayer.ClearInputOverride(PanelInputOverrideReason);
+                LogCommandPanelHealthDiagnostic(
+                    "Cleared command panel input override from stale player instance. PreviousPlayerId=" +
+                    _panelInputOverridePlayer.GetInstanceID() +
+                    ".");
+                _panelInputOverridePlayer = null;
+            }
+
+            if ((object)currentPlayer == null || ReferenceEquals(_panelInputOverridePlayer, currentPlayer))
+            {
+                return;
+            }
+
+            // While the command panel is open, controller and keyboard navigation must not also reach
+            // ETG gameplay input. If the same D-pad / left-right input leaks through to gun switching,
+            // ETG can briefly rebuild the player's runtime health state from the newly selected gun and
+            // roll max health back to the vanilla baseline. Our health-override service then restores it,
+            // which makes the HUD replay the "heart gained" / "armor gained" animation even though the
+            // visible values end up unchanged. The input override keeps panel navigation isolated so the
+            // menu can move focus without also causing hidden gameplay-side gun changes.
+            currentPlayer.SetInputOverride(PanelInputOverrideReason);
+            _panelInputOverridePlayer = currentPlayer;
+            LogCommandPanelHealthDiagnostic(
+                "Applied command panel input override. PlayerId=" +
+                currentPlayer.GetInstanceID() +
+                ", CurrentInputState=" +
+                currentPlayer.CurrentInputState +
+                ", IsInputOverridden=" +
+                currentPlayer.IsInputOverridden +
+                ".");
+        }
+
+        private void ClearPanelInputOverride()
+        {
+            if ((object)_panelInputOverridePlayer == null)
+            {
+                return;
+            }
+
+            _panelInputOverridePlayer.ClearInputOverride(PanelInputOverrideReason);
+            LogCommandPanelHealthDiagnostic(
+                "Cleared command panel input override. PlayerId=" +
+                _panelInputOverridePlayer.GetInstanceID() +
+                ", CurrentInputState=" +
+                _panelInputOverridePlayer.CurrentInputState +
+                ", IsInputOverridden=" +
+                _panelInputOverridePlayer.IsInputOverridden +
+                ".");
+            _panelInputOverridePlayer = null;
+        }
+
+        private bool IsCommandPanelHealthVerboseLoggingEnabled()
+        {
+            return _commandPanelHealthVerboseLoggingEnabledProvider != null &&
+                _commandPanelHealthVerboseLoggingEnabledProvider();
+        }
+
+        private bool IsCommandPanelCursorVerboseLoggingEnabled()
+        {
+            return _commandPanelCursorVerboseLoggingEnabledProvider != null &&
+                _commandPanelCursorVerboseLoggingEnabledProvider();
+        }
+
+        private void LogCommandPanelHealthDiagnostic(string message)
+        {
+            if (!IsCommandPanelHealthVerboseLoggingEnabled())
+            {
+                return;
+            }
+
+            LogGamepadShortcutState(message);
+        }
+
         private void HandleLanguageChanged()
         {
             ResetPickupBrowserState();
@@ -1166,6 +1347,7 @@ namespace RandomLoadout
 
         private void ResetClosedPanelState()
         {
+            ClearPanelInputOverride();
             _focusInputField = false;
             _focusPickupSearchField = false;
             _currentPage = PanelPage.Command;
@@ -1183,6 +1365,16 @@ namespace RandomLoadout
 
         private void RequestGuiFocusRelease()
         {
+            LogGamepadShortcutState(
+                "Queued GUI focus release. Visible=" +
+                _isVisible +
+                ", Page=" +
+                _currentPage +
+                ", KeyboardControl=" +
+                GUIUtility.keyboardControl +
+                ", HotControl=" +
+                GUIUtility.hotControl +
+                ".");
             _releaseGuiFocusPending = true;
         }
 
@@ -1453,6 +1645,16 @@ namespace RandomLoadout
             }
 
             _releaseGuiFocusPending = false;
+            LogGamepadShortcutState(
+                "Releasing GUI focus. Visible=" +
+                _isVisible +
+                ", Page=" +
+                _currentPage +
+                ", KeyboardControlBefore=" +
+                GUIUtility.keyboardControl +
+                ", HotControlBefore=" +
+                GUIUtility.hotControl +
+                ".");
             ReleaseGuiFocus();
         }
 
@@ -1461,6 +1663,68 @@ namespace RandomLoadout
             GUI.FocusControl(null);
             GUIUtility.keyboardControl = 0;
             GUIUtility.hotControl = 0;
+        }
+
+        private void LogCursorVisibilityStateChanges()
+        {
+            if (!IsCommandPanelCursorVerboseLoggingEnabled())
+            {
+                return;
+            }
+
+            bool cursorVisible = Cursor.visible;
+            CursorLockMode cursorLockMode = Cursor.lockState;
+            if (!_hasLoggedCursorVisibilityState ||
+                _lastLoggedCursorVisible != cursorVisible ||
+                _lastLoggedCursorLockMode != cursorLockMode)
+            {
+                _hasLoggedCursorVisibilityState = true;
+                _lastLoggedCursorVisible = cursorVisible;
+                _lastLoggedCursorLockMode = cursorLockMode;
+                LogGamepadShortcutState(
+                    "Observed cursor visibility state change. CursorVisible=" +
+                    cursorVisible +
+                    ", CursorLockMode=" +
+                    cursorLockMode +
+                    ", Visible=" +
+                    _isVisible +
+                    ", Page=" +
+                    _currentPage +
+                    ", KeyboardControl=" +
+                    GUIUtility.keyboardControl +
+                    ", HotControl=" +
+                    GUIUtility.hotControl +
+                    ".");
+            }
+
+            BraveInput braveInput = BraveInput.PrimaryPlayerInstance;
+            if ((object)braveInput == null)
+            {
+                braveInput = BraveInput.PlayerlessInstance;
+            }
+
+            InControl.InputDevice activeDevice =
+                (object)braveInput != null && braveInput.ActiveActions != null
+                    ? braveInput.ActiveActions.Device
+                    : null;
+            string deviceName = activeDevice != null ? activeDevice.Name ?? "<unnamed>" : "<none>";
+            string deviceClass = activeDevice != null ? activeDevice.DeviceClass.ToString() : "<none>";
+            if (!string.Equals(_lastLoggedActiveInputDeviceName, deviceName, System.StringComparison.Ordinal) ||
+                !string.Equals(_lastLoggedActiveInputDeviceClass, deviceClass, System.StringComparison.Ordinal))
+            {
+                _lastLoggedActiveInputDeviceName = deviceName;
+                _lastLoggedActiveInputDeviceClass = deviceClass;
+                LogGamepadShortcutState(
+                    "Observed active input device change. DeviceName=" +
+                    deviceName +
+                    ", DeviceClass=" +
+                    deviceClass +
+                    ", Visible=" +
+                    _isVisible +
+                    ", Page=" +
+                    _currentPage +
+                    ".");
+            }
         }
 
         private KeyCode GetToggleKey()

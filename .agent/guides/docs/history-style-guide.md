@@ -49,6 +49,8 @@ description: Agent 专用发布历史模板
 - 同类改动尽量合并表达
 - 涉及目录迁移时，明确写出路径
 - 若涉及版本号、配置格式、构建方式变化，应明确写出旧口径与新口径
+- 若正文中出现游戏内特殊名词、专有术语或固定界面名称，中文后面应补充英文并放在括号内
+  - 示例：`设置(settings)`、`拾取物(pickups)`、`复仇老鼠(Resourceful Rat)`、`霸权币(Hegemony Credit)`
 
 ## Generic Example
 

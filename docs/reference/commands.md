@@ -113,6 +113,7 @@ Recommended input style:
 - clicking `Add` writes the selected pickup as a `specific` ID rule in the current start-items rules file
 - duplicate `specific` ID rules are blocked by the in-game editor
 - icons are reused from the game's live pickup sprites
+- implementation details for pickup-browser icons and preset resource icons live in [UI Icon Reuse](./ui-icon-reuse.md)
 
 ### Start Items Editor
 
@@ -142,6 +143,7 @@ The Start Items editor opens on a preset preview list:
   `display_name_key`, while item rows are resolved from the live pickup catalog
 - `Add` and `Remove` automatically invalidate the cached config and refresh the in-game editor list; the manual reload button is kept for edits made outside the game
 - changes affect the next automatic start-of-run grant; they do not immediately grant or remove items in the current run
+- preset pickup resource rows such as health, key, rat key, blank, and casings reuse ETG UI atlas sprites at runtime; see [UI Icon Reuse](./ui-icon-reuse.md)
 
 ### Currency Menu
 

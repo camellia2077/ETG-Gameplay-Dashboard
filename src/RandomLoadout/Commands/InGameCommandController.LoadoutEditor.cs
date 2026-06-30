@@ -408,13 +408,13 @@ namespace RandomLoadout
         private void DrawLoadoutEditorIcon(Rect iconRect, LoadoutRuleEditorEntry entry)
         {
             PickupIconData iconData;
-            if (entry != null && entry.PickupId.HasValue && TryGetPickupIcon(entry.PickupId.Value, out iconData))
+            if (TryGetLoadoutEntryIcon(entry, out iconData))
             {
                 GUI.DrawTextureWithTexCoords(iconRect, iconData.Texture, iconData.TextureCoords, true);
                 return;
             }
 
-            GUI.Box(iconRect, "?", _pickupIconFallbackStyle);
+            GUI.Box(iconRect, GetStartItemPickupFallbackLabel(entry != null ? entry.PickupType : string.Empty), _pickupIconFallbackStyle);
         }
 
         private void RefreshLoadoutEditorEntries()
@@ -831,17 +831,17 @@ namespace RandomLoadout
 
                 ControllerFocusEntry[] entries = new ControllerFocusEntry[7 + dynamicCount];
                 entries[0] = new ControllerFocusEntry("loadout.back", 0, 0);
-                entries[1] = new ControllerFocusEntry("loadout.pickups.add_key", 1, 0);
-                entries[2] = new ControllerFocusEntry("loadout.pickups.add_rat_key", 1, 1);
-                entries[3] = new ControllerFocusEntry("loadout.pickups.add_max_health", 1, 2);
-                entries[4] = new ControllerFocusEntry("loadout.pickups.add_armor", 2, 0);
-                entries[5] = new ControllerFocusEntry("loadout.pickups.add_blank", 2, 1);
-                entries[6] = new ControllerFocusEntry("loadout.pickups.add_casings", 2, 2);
+                entries[1] = new ControllerFocusEntry("loadout.pickups.add_max_health", 1, 0);
+                entries[2] = new ControllerFocusEntry("loadout.pickups.add_armor", 2, 0);
+                entries[3] = new ControllerFocusEntry("loadout.pickups.add_key", 3, 0);
+                entries[4] = new ControllerFocusEntry("loadout.pickups.add_rat_key", 4, 0);
+                entries[5] = new ControllerFocusEntry("loadout.pickups.add_blank", 5, 0);
+                entries[6] = new ControllerFocusEntry("loadout.pickups.add_casings", 6, 0);
                 int writeIndex = 7;
                 for (int index = 0; index < _cachedLoadoutPickupEntries.Length; index++)
                 {
                     LoadoutRuleEditorEntry entry = _cachedLoadoutPickupEntries[index];
-                    int row = 3 + index;
+                    int row = 7 + index;
                     entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupMinusControlId(entry), row, 0);
                     entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupCountControlId(entry), row, 1);
                     if (entry != null && entry.Index == _loadoutPickupCountEditIndex)
@@ -877,6 +877,114 @@ namespace RandomLoadout
             }
 
             return presetListEntries;
+        }
+
+        private bool TryGetLoadoutEntryIcon(LoadoutRuleEditorEntry entry, out PickupIconData iconData)
+        {
+            iconData = PickupIconData.Empty;
+            if (entry == null)
+            {
+                return false;
+            }
+
+            if (entry.PickupId.HasValue && TryGetPickupIcon(entry.PickupId.Value, out iconData))
+            {
+                return true;
+            }
+
+            return TryGetStartItemPickupIcon(entry.PickupType, out iconData);
+        }
+
+        private bool TryGetStartItemPickupIcon(string pickupType, out PickupIconData iconData)
+        {
+            iconData = PickupIconData.Empty;
+            string spriteName = GetStartItemPickupSpriteName(pickupType);
+            if (string.IsNullOrEmpty(spriteName) ||
+                !TryGetGameUiAtlasIcon(spriteName, out iconData))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool TryGetGameUiAtlasIcon(string spriteName, out PickupIconData iconData)
+        {
+            iconData = PickupIconData.Empty;
+            dfAtlas atlas;
+            if (string.IsNullOrEmpty(spriteName) || !TryGetGameUiAtlas(out atlas) || atlas == null)
+            {
+                return false;
+            }
+
+            dfAtlas.ItemInfo item = atlas[spriteName];
+            Texture texture = atlas.Texture;
+            if (item == null || texture == null)
+            {
+                return false;
+            }
+
+            // Use the atlas' own runtime region data so sprite-name changes do not get out of sync with hand-written UVs.
+            Rect region = item.region;
+            Rect textureCoords = Rect.MinMaxRect(region.xMin, region.yMin, region.xMax, region.yMax);
+            iconData = new PickupIconData(texture, textureCoords);
+            return true;
+        }
+
+        private bool TryGetGameUiAtlas(out dfAtlas atlas)
+        {
+            atlas = _gameUiAtlas;
+            if (_hasResolvedGameUiAtlas)
+            {
+                return atlas != null;
+            }
+
+            _hasResolvedGameUiAtlas = true;
+            UnityEngine.Object[] atlases = Resources.FindObjectsOfTypeAll(typeof(dfAtlas));
+            if (atlases == null)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < atlases.Length; index++)
+            {
+                dfAtlas candidate = atlases[index] as dfAtlas;
+                if (candidate == null || candidate.Texture == null)
+                {
+                    continue;
+                }
+
+                if (string.Equals(candidate.Texture.name, "GameUIAtlas", System.StringComparison.Ordinal) ||
+                    string.Equals(candidate.gameObject.name, "GameUIAtlas", System.StringComparison.Ordinal))
+                {
+                    _gameUiAtlas = candidate;
+                    atlas = candidate;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string GetStartItemPickupFallbackLabel(string pickupType)
+        {
+            switch (StartItemPickupCatalog.NormalizeType(pickupType))
+            {
+                case StartItemPickupCatalog.KeyType:
+                    return "K";
+                case StartItemPickupCatalog.RatKeyType:
+                    return "R";
+                case StartItemPickupCatalog.MaxHealthType:
+                    return "H";
+                case StartItemPickupCatalog.ArmorType:
+                    return "A";
+                case StartItemPickupCatalog.CasingsType:
+                    return "C";
+                case StartItemPickupCatalog.BlankType:
+                    return "B";
+                default:
+                    return "?";
+            }
         }
 
         private void ExecuteLoadoutEditorFocusedControl(PlayerController player, ManualLogSource logger)

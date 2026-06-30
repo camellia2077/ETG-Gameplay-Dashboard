@@ -60,6 +60,8 @@ EnableMapTeleportVerboseLogs = false
 EnableMuncherVerboseLogs = false
 EnableFloorTeleportVerboseLogs = false
 EnableBossRushVerboseLogs = false
+EnableCommandPanelHealthVerboseLogs = false
+EnableCommandPanelCursorVerboseLogs = false
 ```
 
 Use them only while actively reproducing an issue. Leave them off for normal play.
@@ -70,6 +72,8 @@ Feature guides:
 - [Muncher Spawn Logging](./logging-muncher-spawn.md)
 - [Floor Teleport Logging](./logging-floor-teleport.md)
 - [Boss Rush Logging](./logging-boss-rush.md)
+- [Command-Panel Health Logging](./logging-command-panel-health.md)
+- [Command-Panel Cursor Logging](./logging-command-panel-cursor.md)
 
 ## Startup Self-Check
 
@@ -99,6 +103,8 @@ After any hook, scene, Boss Rush, character-select-hub, reward, pause-flow, or c
 - Boss Rush state progression logs
 - return-to-character-select logs
 - feature-specific warnings from `[RandomLoadout][Command]`
+- command-panel health rollback diagnostics when heart or armor HUD animations replay unexpectedly
+- command-panel cursor diagnostics when controller-to-mouse handoff makes the in-game cursor disappear or flicker
 
 Use [Testing Matrix](../reference/testing-matrix.md) to decide the rest of the validation set.
 
@@ -134,6 +140,10 @@ python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common
   [./logging-floor-teleport.md](./logging-floor-teleport.md)
 - Boss Rush diagnostics:
   [./logging-boss-rush.md](./logging-boss-rush.md)
+- Command-panel health diagnostics:
+  [./logging-command-panel-health.md](./logging-command-panel-health.md)
+- Command-panel cursor diagnostics:
+  [./logging-command-panel-cursor.md](./logging-command-panel-cursor.md)
 - Smoke checklist:
   [./smoke-checklist.md](./smoke-checklist.md)
 - Runtime risk areas:

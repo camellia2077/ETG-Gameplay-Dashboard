@@ -90,6 +90,7 @@ Supporting services:
 Read next:
 
 - [Commands](./commands.md)
+- [UI Icon Reuse](./ui-icon-reuse.md)
 - [Muncher Spawn](./runtime-internals/muncher-spawn.md)
 - [Map Reveal And Teleporter Promotion](./map-teleport.md)
 - [Localization And Language Switching](./localization.md)
@@ -123,6 +124,7 @@ Pure core types:
 Read next:
 
 - [Config Format](./config-format.md)
+- [UI Icon Reuse](./ui-icon-reuse.md)
 - [Localization And Language Switching](./localization.md)
 - [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)
 - [Pickups](./pickups.md)
@@ -153,6 +155,7 @@ Use this route for item names, aliases, pickup cards, quality filters, categorie
 Read next:
 
 - [ModTheGungeonAPI Reference](./modthegungeonapi.md)
+- [UI Icon Reuse](./ui-icon-reuse.md)
 - [Localization And Language Switching](./localization.md)
 - [Pickups](./pickups.md)
 - [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)

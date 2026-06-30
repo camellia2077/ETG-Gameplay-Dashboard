@@ -130,6 +130,7 @@ ETG-owned runtime resources:
 - pickup display names
 - pickup journal-derived labels
 - pickup icons reused by the Pickup Browser
+- preset resource icons reused from ETG UI atlases
 - other live game-facing labels that come from ETG objects instead of mod JSON
 
 These are localized by reading live ETG data and ETG string tables, not by adding entries to the mod's localization

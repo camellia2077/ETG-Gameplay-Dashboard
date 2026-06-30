@@ -5,6 +5,42 @@ namespace RandomLoadout
 {
     internal sealed partial class InGameCommandController
     {
+        private static readonly ControllerFocusEntry[] RoomSectionCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.section.chest", 2, 0),
+            new ControllerFocusEntry("cmd.room.section.neutral", 2, 1),
+            new ControllerFocusEntry("cmd.room.section.enemies", 2, 2),
+            new ControllerFocusEntry("cmd.room.section.state", 2, 3),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomChestOnlySectionCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.section.chest", 2, 0),
+            new ControllerFocusEntry("cmd.room.section.neutral", 2, 1),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomChestCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.chest_tier.brown", 3, 0),
+            new ControllerFocusEntry("cmd.room.chest_tier.blue", 3, 1),
+            new ControllerFocusEntry("cmd.room.chest_tier.green", 3, 2),
+            new ControllerFocusEntry("cmd.room.chest_tier.red", 3, 3),
+            new ControllerFocusEntry("cmd.room.chest_tier.black", 4, 0),
+            new ControllerFocusEntry("cmd.room.chest_tier.synergy", 4, 1),
+            new ControllerFocusEntry("cmd.room.chest_tier.rainbow", 4, 2),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomNeutralCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.spawn_gunber_muncher", 3, 0),
+            new ControllerFocusEntry("cmd.room.spawn_evil_muncher", 3, 1),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomEnemiesCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.refresh_enemies", 3, 0),
+        };
+
         private void DrawRoomContent(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
         {
             const float sectionButtonWidth = 92f;
@@ -187,6 +223,23 @@ namespace RandomLoadout
             }
 
             return BuildCommandPageFocusEntries(RoomSectionCommandPageFocusEntries, RoomChestCommandPageFocusEntries);
+        }
+
+        private CommandPageActionBinding[] GetRoomCommandPageActionBindings(PlayerController player)
+        {
+            return new[]
+            {
+                new CommandPageActionBinding("cmd.room.chest_tier.brown", delegate { ExecuteSpawnChest(player, null, RoomChestTier.Brown); }),
+                new CommandPageActionBinding("cmd.room.chest_tier.blue", delegate { ExecuteSpawnChest(player, null, RoomChestTier.Blue); }),
+                new CommandPageActionBinding("cmd.room.chest_tier.green", delegate { ExecuteSpawnChest(player, null, RoomChestTier.Green); }),
+                new CommandPageActionBinding("cmd.room.chest_tier.red", delegate { ExecuteSpawnChest(player, null, RoomChestTier.Red); }),
+                new CommandPageActionBinding("cmd.room.chest_tier.black", delegate { ExecuteSpawnChest(player, null, RoomChestTier.Black); }),
+                new CommandPageActionBinding("cmd.room.chest_tier.synergy", delegate { ExecuteSpawnChest(player, null, RoomChestTier.Synergy); }),
+                new CommandPageActionBinding("cmd.room.chest_tier.rainbow", delegate { ExecuteSpawnChest(player, null, RoomChestTier.Rainbow); }),
+                new CommandPageActionBinding("cmd.room.refresh_enemies", delegate { ExecuteRefreshRoomEnemies(player, null); }),
+                new CommandPageActionBinding("cmd.room.spawn_gunber_muncher", delegate { ExecuteSpawnGunberMuncher(player, null); }),
+                new CommandPageActionBinding("cmd.room.spawn_evil_muncher", delegate { ExecuteSpawnEvilMuncher(player, null); }),
+            };
         }
 
         private void DrawRoomChestTierButton(Rect rect, string controlId, RoomChestTier chestTier, PlayerController player, ManualLogSource logger)

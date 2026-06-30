@@ -27,6 +27,17 @@ namespace RandomLoadout
             if (presetPickups.Length > 0)
             {
                 int? representativePickupId = StartItemPickupCatalog.GetFirstRepresentativePickupId(presetPickups);
+                string representativePickupType = string.Empty;
+                for (int index = 0; index < presetPickups.Length; index++)
+                {
+                    string normalizedType = StartItemPickupCatalog.NormalizeType(presetPickups[index] != null ? presetPickups[index].Type : string.Empty);
+                    if (!string.IsNullOrEmpty(normalizedType))
+                    {
+                        representativePickupType = normalizedType;
+                        break;
+                    }
+                }
+
                 entries.Add(
                     new LoadoutRuleEditorEntry(
                         -1,
@@ -34,7 +45,7 @@ namespace RandomLoadout
                         GuiText.Get("gui.loadout_editor.pickups_collection_summary", presetPickups.Length),
                         representativePickupId,
                         false,
-                        string.Empty,
+                        representativePickupType,
                         presetPickups.Length,
                         true));
             }

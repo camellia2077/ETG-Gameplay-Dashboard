@@ -8,14 +8,6 @@ namespace RandomLoadout
         private void DrawLoadoutPresetPickupsDetailPage(Rect panelRect, ManualLogSource logger)
         {
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
-            const float actionButtonWidth = 132f;
-            const float actionButtonHeight = 28f;
-            Rect addKeyButtonRect = new Rect(panelRect.x + 14f, panelRect.y + 84f, actionButtonWidth, actionButtonHeight);
-            Rect addRatKeyButtonRect = new Rect(addKeyButtonRect.xMax + ButtonGap, addKeyButtonRect.y, actionButtonWidth, actionButtonHeight);
-            Rect addMaxHealthButtonRect = new Rect(addRatKeyButtonRect.xMax + ButtonGap, addKeyButtonRect.y, actionButtonWidth, actionButtonHeight);
-            Rect addArmorButtonRect = new Rect(panelRect.x + 14f, addKeyButtonRect.yMax + ButtonGap, actionButtonWidth, actionButtonHeight);
-            Rect addBlankButtonRect = new Rect(addArmorButtonRect.xMax + ButtonGap, addArmorButtonRect.y, actionButtonWidth, actionButtonHeight);
-            Rect addCasingsButtonRect = new Rect(addBlankButtonRect.xMax + ButtonGap, addArmorButtonRect.y, actionButtonWidth, actionButtonHeight);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("loadout.back", _buttonStyle)))
             {
                 _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
@@ -23,36 +15,6 @@ namespace RandomLoadout
                 ResetLoadoutPresetPickupCountEdit();
                 RefreshLoadoutEditorEntries();
                 return;
-            }
-
-            if (GUI.Button(addKeyButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_key"), GetControllerButtonStyle("loadout.pickups.add_key", _buttonStyle)))
-            {
-                ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.KeyType, logger);
-            }
-
-            if (GUI.Button(addRatKeyButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_rat_key"), GetControllerButtonStyle("loadout.pickups.add_rat_key", _buttonStyle)))
-            {
-                ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.RatKeyType, logger);
-            }
-
-            if (GUI.Button(addMaxHealthButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_max_health"), GetControllerButtonStyle("loadout.pickups.add_max_health", _buttonStyle)))
-            {
-                ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.MaxHealthType, logger);
-            }
-
-            if (GUI.Button(addArmorButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_armor"), GetControllerButtonStyle("loadout.pickups.add_armor", _buttonStyle)))
-            {
-                ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.ArmorType, logger);
-            }
-
-            if (GUI.Button(addBlankButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_blank"), GetControllerButtonStyle("loadout.pickups.add_blank", _buttonStyle)))
-            {
-                ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.BlankType, logger);
-            }
-
-            if (GUI.Button(addCasingsButtonRect, GuiText.Get("gui.loadout_editor.button.add_pickup_casings"), GetControllerButtonStyle("loadout.pickups.add_casings", _buttonStyle)))
-            {
-                ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.CasingsType, logger);
             }
 
             GUI.Label(
@@ -68,7 +30,50 @@ namespace RandomLoadout
                 GuiText.Get("gui.loadout_editor.pickups_summary", _cachedLoadoutPickupEntries.Length),
                 _hintStyle);
 
-            DrawLoadoutPresetPickupRows(new Rect(panelRect.x + 14f, panelRect.y + 156f, panelRect.width - 28f, panelRect.height - 170f), logger);
+            const float optionRowHeight = 32f;
+            const float optionRowGap = 6f;
+            float optionsTop = panelRect.y + 86f;
+            float optionsLeft = panelRect.x + 14f;
+            float optionsWidth = panelRect.width - 28f;
+            DrawLoadoutPresetPickupOptionRow(
+                new Rect(optionsLeft, optionsTop, optionsWidth, optionRowHeight),
+                StartItemPickupCatalog.MaxHealthType,
+                "loadout.pickups.add_max_health",
+                GuiText.Get("gui.loadout_editor.button.add_pickup_max_health"),
+                delegate { ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.MaxHealthType, logger); });
+            DrawLoadoutPresetPickupOptionRow(
+                new Rect(optionsLeft, optionsTop + ((optionRowHeight + optionRowGap) * 1f), optionsWidth, optionRowHeight),
+                StartItemPickupCatalog.ArmorType,
+                "loadout.pickups.add_armor",
+                GuiText.Get("gui.loadout_editor.button.add_pickup_armor"),
+                delegate { ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.ArmorType, logger); });
+            DrawLoadoutPresetPickupOptionRow(
+                new Rect(optionsLeft, optionsTop + ((optionRowHeight + optionRowGap) * 2f), optionsWidth, optionRowHeight),
+                StartItemPickupCatalog.KeyType,
+                "loadout.pickups.add_key",
+                GuiText.Get("gui.loadout_editor.button.add_pickup_key"),
+                delegate { ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.KeyType, logger); });
+            DrawLoadoutPresetPickupOptionRow(
+                new Rect(optionsLeft, optionsTop + ((optionRowHeight + optionRowGap) * 3f), optionsWidth, optionRowHeight),
+                StartItemPickupCatalog.RatKeyType,
+                "loadout.pickups.add_rat_key",
+                GuiText.Get("gui.loadout_editor.button.add_pickup_rat_key"),
+                delegate { ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.RatKeyType, logger); });
+            DrawLoadoutPresetPickupOptionRow(
+                new Rect(optionsLeft, optionsTop + ((optionRowHeight + optionRowGap) * 4f), optionsWidth, optionRowHeight),
+                StartItemPickupCatalog.BlankType,
+                "loadout.pickups.add_blank",
+                GuiText.Get("gui.loadout_editor.button.add_pickup_blank"),
+                delegate { ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.BlankType, logger); });
+            DrawLoadoutPresetPickupOptionRow(
+                new Rect(optionsLeft, optionsTop + ((optionRowHeight + optionRowGap) * 5f), optionsWidth, optionRowHeight),
+                StartItemPickupCatalog.CasingsType,
+                "loadout.pickups.add_casings",
+                GuiText.Get("gui.loadout_editor.button.add_pickup_casings"),
+                delegate { ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.CasingsType, logger); });
+
+            float listTop = optionsTop + ((optionRowHeight + optionRowGap) * 6f) + 12f;
+            DrawLoadoutPresetPickupRows(new Rect(panelRect.x + 14f, listTop, panelRect.width - 28f, panelRect.height - (listTop - panelRect.y) - 14f), logger);
         }
 
         private void DrawLoadoutPresetPickupRows(Rect listRect, ManualLogSource logger)
@@ -106,9 +111,13 @@ namespace RandomLoadout
             Rect countConfirmRect = new Rect(plusButtonRect.x - ButtonGap - countConfirmWidth, removeButtonRect.y, countConfirmWidth, removeButtonRect.height);
             Rect countLabelRect = new Rect(countConfirmRect.x - ButtonGap - countFieldWidth, removeButtonRect.y, countFieldWidth, removeButtonRect.height);
             Rect minusButtonRect = new Rect(countLabelRect.x - ButtonGap - countButtonWidth, removeButtonRect.y, countButtonWidth, removeButtonRect.height);
-            float textWidth = rowRect.width - removeWidth - countButtonWidth - countConfirmWidth - countFieldWidth - countButtonWidth - 52f;
-            GUI.Label(new Rect(rowRect.x + 10f, rowRect.y + 5f, textWidth, 20f), entry != null ? entry.PrimaryText : string.Empty, _pickupPrimaryTextStyle);
-            GUI.Label(new Rect(rowRect.x + 10f, rowRect.y + 24f, textWidth, 18f), entry != null ? entry.SecondaryText : string.Empty, _pickupSecondaryTextStyle);
+            const float entryIconSize = 30f;
+            Rect iconRect = new Rect(rowRect.x + 8f, rowRect.y + ((rowRect.height - entryIconSize) * 0.5f), entryIconSize, entryIconSize);
+            DrawLoadoutPickupEntryIcon(iconRect, entry);
+            float textLeft = iconRect.xMax + 8f;
+            float textWidth = rowRect.width - removeWidth - countButtonWidth - countConfirmWidth - countFieldWidth - countButtonWidth - entryIconSize - 60f;
+            GUI.Label(new Rect(textLeft, rowRect.y + 5f, textWidth, 20f), entry != null ? entry.PrimaryText : string.Empty, _pickupPrimaryTextStyle);
+            GUI.Label(new Rect(textLeft, rowRect.y + 24f, textWidth, 18f), entry != null ? entry.SecondaryText : string.Empty, _pickupSecondaryTextStyle);
 
             bool isEditingCount = entry != null && entry.Index == _loadoutPickupCountEditIndex;
             if (isEditingCount)
@@ -144,6 +153,54 @@ namespace RandomLoadout
             }
         }
 
+        private void DrawLoadoutPresetPickupOptionRow(Rect rowRect, string pickupType, string controlId, string buttonLabel, System.Action onClick)
+        {
+            GUI.Box(rowRect, GUIContent.none, _pickupRowStyle);
+
+            const float optionIconSize = 30f;
+            const float addButtonWidth = 156f;
+            Rect iconRect = new Rect(rowRect.x + 8f, rowRect.y + ((rowRect.height - optionIconSize) * 0.5f), optionIconSize, optionIconSize);
+            DrawStartItemPickupIcon(iconRect, pickupType);
+
+            GUI.Label(
+                new Rect(iconRect.xMax + 10f, rowRect.y + 4f, rowRect.width - addButtonWidth - optionIconSize - 34f, rowRect.height - 8f),
+                StartItemPickupCatalog.GetDisplayName(pickupType),
+                _pickupPrimaryTextStyle);
+
+            Rect addButtonRect = new Rect(rowRect.x + rowRect.width - addButtonWidth - 8f, rowRect.y + 2f, addButtonWidth, rowRect.height - 4f);
+            if (GUI.Button(addButtonRect, buttonLabel, GetControllerButtonStyle(controlId, _buttonStyle)))
+            {
+                if (onClick != null)
+                {
+                    onClick();
+                }
+            }
+        }
+
+        private void DrawLoadoutPickupEntryIcon(Rect iconRect, LoadoutRuleEditorEntry entry)
+        {
+            PickupIconData iconData;
+            if (TryGetLoadoutEntryIcon(entry, out iconData))
+            {
+                GUI.DrawTextureWithTexCoords(iconRect, iconData.Texture, iconData.TextureCoords, true);
+                return;
+            }
+
+            GUI.Box(iconRect, GetStartItemPickupFallbackLabel(entry != null ? entry.PickupType : string.Empty), _pickupIconFallbackStyle);
+        }
+
+        private void DrawStartItemPickupIcon(Rect iconRect, string pickupType)
+        {
+            PickupIconData iconData;
+            if (TryGetStartItemPickupIcon(pickupType, out iconData))
+            {
+                GUI.DrawTextureWithTexCoords(iconRect, iconData.Texture, iconData.TextureCoords, true);
+                return;
+            }
+
+            GUI.Box(iconRect, GetStartItemPickupFallbackLabel(pickupType), _pickupIconFallbackStyle);
+        }
+
         private void RefreshLoadoutPickupEntries()
         {
             _cachedLoadoutPickupEntries = _loadoutRuleEditorService != null
@@ -154,7 +211,7 @@ namespace RandomLoadout
         private void OpenLoadoutPresetPickupsDetail()
         {
             _loadoutEditorMode = LoadoutEditorMode.PresetPickupsDetail;
-            _loadoutEditorFocusedControlId = "loadout.pickups.add_key";
+            _loadoutEditorFocusedControlId = "loadout.pickups.add_max_health";
             _loadoutEditorScrollPosition = Vector2.zero;
             ResetLoadoutPresetPickupCountEdit();
             RefreshLoadoutPickupEntries();

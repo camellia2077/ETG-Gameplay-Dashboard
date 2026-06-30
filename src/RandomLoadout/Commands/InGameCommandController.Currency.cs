@@ -12,6 +12,7 @@ namespace RandomLoadout
         {
             _currentPage = PanelPage.Currency;
             _focusInputField = false;
+            _currencyPageFocusedControlId = "currency.max_health";
 
             if (logger != null)
             {
@@ -22,71 +23,131 @@ namespace RandomLoadout
         private void DrawCurrencyPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
-            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
+            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("currency.back", _buttonStyle)))
             {
-                _currentPage = PanelPage.Command;
-                _focusInputField = true;
+                CloseCurrencyPage();
                 return;
             }
 
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 12f, panelRect.width - ButtonWidth - 32f, 24f),
-                GetLocalizedFallback("gui.currency.title", "Pickups", "拾取物"),
+                GetLocalizedFallback("gui.command.currency.title", "Pickups", "拾取物"),
                 _titleStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
-                GetLocalizedFallback("gui.currency.hint.choose", "Choose a pickup to add.", "选择要增加的拾取物。"),
+                GetLocalizedFallback("gui.command.currency.hint.choose", "Choose a pickup to add.", "选择要增加的拾取物。"),
                 _hintStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 58f, panelRect.width - 28f, 20f),
-                GetLocalizedFallback("gui.currency.hint.run_only", "Applies to the current character or current run only.", "只影响当前角色或当前这一局。"),
+                GetLocalizedFallback("gui.command.currency.hint.run_only", "Applies to the current character or current run only.", "只影响当前角色或当前这一局。"),
                 _hintStyle);
 
-            float left = panelRect.x + 14f;
+            const float rowHeight = 38f;
+            const float rowGap = 8f;
             float top = panelRect.y + 92f;
-            Rect addKeyButtonRect = new Rect(left, top, CurrencyActionButtonWidth, 34f);
-            Rect addRatKeyButtonRect = new Rect(addKeyButtonRect.xMax + ButtonGap, top, CurrencyActionButtonWidth, 34f);
-            Rect addCurrencyButtonRect = new Rect(left, addKeyButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
-            Rect addMetaCurrencyButtonRect = new Rect(addCurrencyButtonRect.xMax + ButtonGap, addCurrencyButtonRect.y, CurrencyActionButtonWidth, 34f);
-            Rect addBlankButtonRect = new Rect(left, addCurrencyButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
-            Rect addArmorButtonRect = new Rect(addBlankButtonRect.xMax + ButtonGap, addBlankButtonRect.y, CurrencyActionButtonWidth, 34f);
-            Rect addMaxHealthButtonRect = new Rect(left, addBlankButtonRect.yMax + ButtonGap, CurrencyActionButtonWidth, 34f);
-            if (GUI.Button(addKeyButtonRect, GetLocalizedFallback("gui.currency.button.key", "+1 Key", "+1 钥匙"), _buttonStyle))
-            {
-                ExecuteAddKey(player, logger);
-            }
+            Rect contentRect = new Rect(panelRect.x + 14f, top, panelRect.width - 28f, panelRect.height - (top - panelRect.y) - 14f);
+            DrawPickupActionRows(contentRect, top, rowHeight, rowGap, BuildCurrencyPickupRows(player, logger));
+        }
 
-            if (GUI.Button(addRatKeyButtonRect, GetLocalizedFallback("gui.currency.button.rat_key", "+1 Rat Key", "+1 老鼠钥匙"), _buttonStyle))
-            {
-                ExecuteAddRatKey(player, logger);
-            }
+        private void CloseCurrencyPage()
+        {
+            _currentPage = PanelPage.Command;
+            _focusInputField = true;
+        }
 
-            if (GUI.Button(addCurrencyButtonRect, GetLocalizedFallback("gui.currency.button.casings", "+50 Casings", "+50 弹壳"), _buttonStyle))
-            {
-                // Dungeon run currency (casings).
-                ExecuteAddCurrency(player, logger);
-            }
+        private ControllerFocusEntry[] GetCurrencyPageFocusEntries()
+        {
+            return CurrencyPageFocusEntries;
+        }
 
-            if (GUI.Button(addMetaCurrencyButtonRect, GetLocalizedFallback("gui.currency.button.hegemony", "+50 Hegemony", "+50 霸权币"), _buttonStyle))
+        private void ExecuteCurrencyPageFocusedControl(PlayerController player, ManualLogSource logger)
+        {
+            switch (_currencyPageFocusedControlId)
             {
-                // Breach hub meta currency (hegemony credits).
-                ExecuteAddMetaCurrency(player, logger);
+                case "currency.back":
+                    CloseCurrencyPage();
+                    return;
+                case "currency.max_health":
+                    ExecuteAddMaxHealth(player, logger);
+                    return;
+                case "currency.armor":
+                    ExecuteAddArmor(player, logger);
+                    return;
+                case "currency.blank":
+                    ExecuteAddBlank(player, logger);
+                    return;
+                case "currency.key":
+                    ExecuteAddKey(player, logger);
+                    return;
+                case "currency.rat_key":
+                    ExecuteAddRatKey(player, logger);
+                    return;
+                case "currency.casings":
+                    ExecuteAddCurrency(player, logger);
+                    return;
+                case "currency.hegemony":
+                    ExecuteAddMetaCurrency(player, logger);
+                    return;
+                default:
+                    return;
             }
+        }
 
-            if (GUI.Button(addBlankButtonRect, GetLocalizedFallback("gui.currency.button.blank", "+1 Blank", "+1 空包弹"), _buttonStyle))
+        private PickupActionRowDefinition[] BuildCurrencyPickupRows(PlayerController player, ManualLogSource logger)
+        {
+            string actionLabel = GetLocalizedFallback("gui.command.currency.button.spawn", "Spawn", "生成");
+            return new[]
             {
-                ExecuteAddBlank(player, logger);
-            }
-
-            if (GUI.Button(addArmorButtonRect, GetLocalizedFallback("gui.currency.button.armor", "+1 Armor", "+1 护甲"), _buttonStyle))
-            {
-                ExecuteAddArmor(player, logger);
-            }
-
-            if (GUI.Button(addMaxHealthButtonRect, GetLocalizedFallback("gui.currency.button.max_health", "+1 Max HP", "+1 血量上限"), _buttonStyle))
-            {
-                ExecuteAddMaxHealth(player, logger);
-            }
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteHealthPickup,
+                    GetLocalizedFallback("gui.command.currency.label.max_health", "Max HP (+1)", "血量上限（+1）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.max_health", actionLabel, delegate { ExecuteAddMaxHealth(player, logger); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteArmorPickup,
+                    GetLocalizedFallback("gui.command.currency.label.armor", "Armor (+1)", "护甲（+1）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.armor", actionLabel, delegate { ExecuteAddArmor(player, logger); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteBlankPickup,
+                    GetLocalizedFallback("gui.command.currency.label.blank", "Blank (+1)", "空包弹（+1）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.blank", actionLabel, delegate { ExecuteAddBlank(player, logger); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteKeyPickup,
+                    GetLocalizedFallback("gui.command.currency.label.key", "Key (+1)", "钥匙（+1）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.key", actionLabel, delegate { ExecuteAddKey(player, logger); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteRatRewardKeyPickup,
+                    GetLocalizedFallback("gui.command.currency.label.rat_key", "Rat Key (+1)", "老鼠钥匙（+1）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.rat_key", actionLabel, delegate { ExecuteAddRatKey(player, logger); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteCasingsPickup,
+                    GetLocalizedFallback("gui.command.currency.label.casings", "Casings (+100)", "弹壳（+100）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.casings", actionLabel, delegate { ExecuteAddCurrency(player, logger); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteHegemonyPickup,
+                    GetLocalizedFallback("gui.command.currency.label.hegemony", "Hegemony (+50)", "霸权币（+50）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.hegemony", actionLabel, delegate { ExecuteAddMetaCurrency(player, logger); }, _buttonStyle),
+                    }),
+            };
         }
     }
 }

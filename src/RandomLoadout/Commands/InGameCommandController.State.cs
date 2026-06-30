@@ -108,6 +108,12 @@ namespace RandomLoadout
             State,
         }
 
+        private enum PlayerMenuSection
+        {
+            Pickups,
+            Stats,
+        }
+
         private enum ControllerNavDirection
         {
             Left,
@@ -118,6 +124,7 @@ namespace RandomLoadout
 
         private const string InputControlName = "RandomLoadoutCommandInput";
         private const string PickupSearchControlName = "RandomLoadoutPickupSearch";
+        private const string PanelInputOverrideReason = "randomloadout_command_panel";
         private const float StatusDurationSeconds = 4f;
         private const float KeyboardNavigationRepeatDelaySeconds = 0.35f;
         private const float KeyboardNavigationRepeatIntervalSeconds = 0.08f;
@@ -142,7 +149,7 @@ namespace RandomLoadout
         private const float KeyboardHelpPanelHeight = 356f;
         private const float CharacterPanelBaseHeaderHeight = 126f;
         private const float CharacterPanelFooterHeight = 26f;
-        private const float CurrencyPanelHeight = 252f;
+        private const float CurrencyPanelHeight = 430f;
         private const float BossRushPanelHeight = 226f;
         private const float PanelBottomMargin = 92f;
         private const float StatusMaxWidth = 560f;
@@ -214,87 +221,6 @@ namespace RandomLoadout
             CommandMenuCategory.Room,
         };
 
-        private static readonly ControllerFocusEntry[] CommandPageSharedFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.about", 0, 0),
-            new ControllerFocusEntry("cmd.settings", 0, 1),
-            new ControllerFocusEntry("cmd.language", 0, 2),
-            new ControllerFocusEntry("cmd.category.general", 1, 0),
-            new ControllerFocusEntry("cmd.category.combat", 1, 1),
-            new ControllerFocusEntry("cmd.category.player", 1, 2),
-            new ControllerFocusEntry("cmd.category.room", 1, 3),
-        };
-
-        private static readonly ControllerFocusEntry[] GeneralCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.general.pickups", 2, 0),
-            new ControllerFocusEntry("cmd.general.loadout", 2, 1),
-            new ControllerFocusEntry("cmd.general.currency", 2, 2),
-            new ControllerFocusEntry("cmd.general.teleport", 2, 3),
-            new ControllerFocusEntry("cmd.general.characters", 3, 0),
-            new ControllerFocusEntry("cmd.general.boss_rush", 3, 1),
-            new ControllerFocusEntry("cmd.general.reveal_map", 3, 2),
-            new ControllerFocusEntry("cmd.general.random_item", 3, 3),
-        };
-
-        private static readonly ControllerFocusEntry[] CombatCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.combat.rapid", 2, 0),
-            new ControllerFocusEntry("cmd.combat.auto_reload", 2, 1),
-            new ControllerFocusEntry("cmd.combat.ammo_mode", 3, 0),
-            new ControllerFocusEntry("cmd.combat.invincible", 3, 1),
-            new ControllerFocusEntry("cmd.combat.ammonomicon", 4, 0),
-            new ControllerFocusEntry("cmd.combat.full_ammo", 4, 1),
-        };
-
-        private static readonly ControllerFocusEntry[] PlayerCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.player.heal_half", 2, 0),
-            new ControllerFocusEntry("cmd.player.full_heal", 2, 1),
-            new ControllerFocusEntry("cmd.player.add_max_health", 2, 2),
-            new ControllerFocusEntry("cmd.player.add_armor", 2, 3),
-            new ControllerFocusEntry("cmd.player.add_blank", 3, 0),
-            new ControllerFocusEntry("cmd.player.refill_blanks", 3, 1),
-            new ControllerFocusEntry("cmd.player.clear_curse", 4, 0),
-            new ControllerFocusEntry("cmd.player.stats", 4, 1),
-        };
-
-        private static readonly ControllerFocusEntry[] RoomSectionCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.room.section.chest", 2, 0),
-            new ControllerFocusEntry("cmd.room.section.neutral", 2, 1),
-            new ControllerFocusEntry("cmd.room.section.enemies", 2, 2),
-            new ControllerFocusEntry("cmd.room.section.state", 2, 3),
-        };
-
-        private static readonly ControllerFocusEntry[] RoomChestOnlySectionCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.room.section.chest", 2, 0),
-            new ControllerFocusEntry("cmd.room.section.neutral", 2, 1),
-        };
-
-        private static readonly ControllerFocusEntry[] RoomChestCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.room.chest_tier.brown", 3, 0),
-            new ControllerFocusEntry("cmd.room.chest_tier.blue", 3, 1),
-            new ControllerFocusEntry("cmd.room.chest_tier.green", 3, 2),
-            new ControllerFocusEntry("cmd.room.chest_tier.red", 3, 3),
-            new ControllerFocusEntry("cmd.room.chest_tier.black", 4, 0),
-            new ControllerFocusEntry("cmd.room.chest_tier.synergy", 4, 1),
-            new ControllerFocusEntry("cmd.room.chest_tier.rainbow", 4, 2),
-        };
-
-        private static readonly ControllerFocusEntry[] RoomNeutralCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.room.spawn_gunber_muncher", 3, 0),
-            new ControllerFocusEntry("cmd.room.spawn_evil_muncher", 3, 1),
-        };
-
-        private static readonly ControllerFocusEntry[] RoomEnemiesCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.room.refresh_enemies", 3, 0),
-        };
-
         private static readonly ControllerFocusEntry[] SettingsPageFocusEntries =
         {
             new ControllerFocusEntry("settings.back", 0, 0),
@@ -307,6 +233,18 @@ namespace RandomLoadout
             new ControllerFocusEntry("settings.experimental_mode", 7, 0),
         };
 
+        private static readonly ControllerFocusEntry[] CurrencyPageFocusEntries =
+        {
+            new ControllerFocusEntry("currency.max_health", 1, 0),
+            new ControllerFocusEntry("currency.back", 1, 1),
+            new ControllerFocusEntry("currency.armor", 2, 0),
+            new ControllerFocusEntry("currency.blank", 3, 0),
+            new ControllerFocusEntry("currency.key", 4, 0),
+            new ControllerFocusEntry("currency.rat_key", 5, 0),
+            new ControllerFocusEntry("currency.casings", 6, 0),
+            new ControllerFocusEntry("currency.hegemony", 7, 0),
+        };
+
         private readonly GrantCommandParser _parser = new GrantCommandParser();
         private readonly GrantCommandService _commandService;
         private readonly PlayerDebugCommandService _playerDebugCommandService;
@@ -315,6 +253,10 @@ namespace RandomLoadout
         private readonly BossRushService _bossRushService;
         private readonly RapidFireToggleService _rapidFireToggleService;
         private readonly AutoReloadToggleService _autoReloadToggleService;
+        private readonly ArmorNoConsumeToggleService _armorNoConsumeToggleService;
+        private readonly BlankNoConsumeToggleService _blankNoConsumeToggleService;
+        private readonly KeyNoConsumeToggleService _keyNoConsumeToggleService;
+        private readonly CurrencyNoConsumeToggleService _currencyNoConsumeToggleService;
         private readonly InvincibilityToggleService _invincibilityToggleService;
         private readonly AmmoModeToggleService _ammoModeToggleService;
         private readonly LoadoutRuleEditorService _loadoutRuleEditorService;
@@ -335,6 +277,8 @@ namespace RandomLoadout
         private readonly Action<bool> _ammonomiconFastOpenEnabledSetter;
         private readonly Func<bool> _mapTeleportVerboseLoggingEnabledProvider;
         private readonly Func<bool> _floorTeleportVerboseLoggingEnabledProvider;
+        private readonly Func<bool> _commandPanelHealthVerboseLoggingEnabledProvider;
+        private readonly Func<bool> _commandPanelCursorVerboseLoggingEnabledProvider;
         private readonly Func<EtgFloorDefinition, string, string, bool> _deferredTeleportRequestHandler;
 
         private GUIStyle _panelStyle;
@@ -385,6 +329,7 @@ namespace RandomLoadout
         private string _characterPageFocusedControlId = "characters.mode";
         private string _loadoutEditorFocusedControlId = "loadout.back";
         private string _pickupPageFocusedControlId = "pickups.back";
+        private string _currencyPageFocusedControlId = "currency.max_health";
         private ControllerNavDirection? _heldKeyboardNavigationDirection;
         private string _lastGuiLanguageCode = string.Empty;
         private string _revealMapActivatedSceneName = string.Empty;
@@ -399,6 +344,7 @@ namespace RandomLoadout
         private CharacterActionMode _characterActionMode = CharacterActionMode.SwitchOnly;
         private RoomChestTier _selectedRoomChestTier = RoomChestTier.Brown;
         private RoomMenuSection _roomMenuSection = RoomMenuSection.Chest;
+        private PlayerMenuSection _playerMenuSection = PlayerMenuSection.Pickups;
         private FoyerCharacterOption[] _cachedCharacterOptions = EmptyCharacterOptions;
         private string _cachedCharacterAvailability = string.Empty;
         private float _nextCharacterPageRefreshAt;
@@ -434,10 +380,18 @@ namespace RandomLoadout
         private float _lastLoggedControllerLeftStickVerticalAxis = float.NaN;
         private float _lastLoggedControllerRightStickHorizontalAxis = float.NaN;
         private float _lastLoggedControllerRightStickVerticalAxis = float.NaN;
+        private bool _hasLoggedCursorVisibilityState;
+        private bool _lastLoggedCursorVisible;
+        private CursorLockMode _lastLoggedCursorLockMode;
+        private string _lastLoggedActiveInputDeviceName = string.Empty;
+        private string _lastLoggedActiveInputDeviceClass = string.Empty;
         private bool _wasControllerHorizontalNavigationActive;
         private bool _wasControllerVerticalNavigationActive;
+        private PlayerController _panelInputOverridePlayer;
         private readonly bool[] _wasJoystickButtonPressed = new bool[20];
         private readonly Dictionary<int, PickupIconData> _pickupIconCache = new Dictionary<int, PickupIconData>();
+        private dfAtlas _gameUiAtlas;
+        private bool _hasResolvedGameUiAtlas;
         private static readonly string[] CommandPanelKeyOptions =
         {
             "F7",
