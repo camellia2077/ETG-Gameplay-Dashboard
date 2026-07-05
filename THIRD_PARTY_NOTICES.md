@@ -55,6 +55,19 @@ They are acknowledged here for transparency and credit, but are not redistribute
 * [`Nevernamed22/OnceMoreIntoTheBreach`](https://github.com/Nevernamed22/OnceMoreIntoTheBreach)
   * used as a reference for ETG room-name conventions such as `Boss Foyer`, runtime teleport patterns, and other community runtime practices
 
+## Referenced Text And Data Resources
+
+These resources are not code dependencies, but some project text/data work referenced them during development.
+
+* [`Lynx3x/etg-itemtips-cn`](https://github.com/Lynx3x/etg-itemtips-cn) - `MIT`
+  * some Chinese item-name text used by this project was referenced from this repository
+  * some names were directly adopted from its published text results
+  * this project does not fully reuse or redistribute that repository as-is
+
+License source:
+
+* [`Lynx3x/etg-itemtips-cn` repository](https://github.com/Lynx3x/etg-itemtips-cn)
+
 ## Distribution Rules Followed By This Project
 
 When publishing `ETG-Gameplay-Dashboard`, the project intends to follow these rules:

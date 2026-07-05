@@ -16,7 +16,7 @@ namespace RandomLoadout
                 _lastPickupCatalogExportFailure = null;
                 Logger.LogInfo(
                     RandomLoadoutLog.Init(
-                        "Exported grantable pickup catalog to '" + exportResult.TextOutputPath + "', '" + exportResult.JsonOutputPath + "', '" + exportResult.GroupedJsonOutputPath + "', and '" + exportResult.RulePoolOutputPath + "' (" + exportResult.EntryCount + " entries)."));
+                        "Exported grantable pickup catalog to '" + exportResult.TextOutputPath + "', '" + exportResult.JsonOutputPath + "', '" + exportResult.GroupedJsonOutputPath + "', '" + exportResult.NamesJsonOutputPath + "', and '" + exportResult.RulePoolOutputPath + "' (" + exportResult.EntryCount + " entries)."));
                 return;
             }
 

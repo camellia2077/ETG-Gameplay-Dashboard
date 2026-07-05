@@ -98,6 +98,12 @@ Read only the relevant docs for the subsystem being changed:
 - Build, deploy, and logs: `../docs/getting-started/development-setup.md`, `../docs/operations/deploy.md`, `../docs/operations/logging.md`
 - Prior decisions and history: `../docs/decisions/`, `../docs/history/`
 
+For feature-specific runtime diagnostics:
+
+- keep verbose debug log switches defaulted to `false`
+- add or update the matching guide in `../docs/operations/` that explains what the switch captures
+- update `../docs/operations/logging.md` so agents can find the switch and the feature guide from the logging index
+
 ## Verification
 
 - Run `python .\tools\devtools\check_naming.py --verbose` after code changes.

@@ -9,6 +9,7 @@ namespace RandomLoadout
             int pickupId,
             string displayName,
             string englishDisplayName,
+            string gameDisplayName,
             string internalName,
             string encounterGuid,
             string quality,
@@ -35,6 +36,7 @@ namespace RandomLoadout
             PickupId = pickupId;
             DisplayName = displayName ?? string.Empty;
             EnglishDisplayName = englishDisplayName ?? string.Empty;
+            GameDisplayName = gameDisplayName ?? string.Empty;
             InternalName = internalName ?? string.Empty;
             EncounterGuid = encounterGuid ?? string.Empty;
             Quality = quality ?? string.Empty;
@@ -65,6 +67,8 @@ namespace RandomLoadout
         public string DisplayName { get; private set; }
 
         public string EnglishDisplayName { get; private set; }
+
+        public string GameDisplayName { get; private set; }
 
         public string InternalName { get; private set; }
 

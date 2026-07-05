@@ -62,6 +62,7 @@ EnableFloorTeleportVerboseLogs = false
 EnableBossRushVerboseLogs = false
 EnableCommandPanelHealthVerboseLogs = false
 EnableCommandPanelCursorVerboseLogs = false
+EnableActiveItemGrantVerboseLogs = false
 ```
 
 Use them only while actively reproducing an issue. Leave them off for normal play.
@@ -74,6 +75,7 @@ Feature guides:
 - [Boss Rush Logging](./logging-boss-rush.md)
 - [Command-Panel Health Logging](./logging-command-panel-health.md)
 - [Command-Panel Cursor Logging](./logging-command-panel-cursor.md)
+- [Active-Item Grant Logging](./logging-active-item-grant.md)
 
 ## Startup Self-Check
 
@@ -105,6 +107,7 @@ After any hook, scene, Boss Rush, character-select-hub, reward, pause-flow, or c
 - feature-specific warnings from `[RandomLoadout][Command]`
 - command-panel health rollback diagnostics when heart or armor HUD animations replay unexpectedly
 - command-panel cursor diagnostics when controller-to-mouse handoff makes the in-game cursor disappear or flicker
+- active-item grant diagnostics when active items drop near the player instead of entering the active-item bar
 
 Use [Testing Matrix](../reference/testing-matrix.md) to decide the rest of the validation set.
 
@@ -144,6 +147,8 @@ python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common
   [./logging-command-panel-health.md](./logging-command-panel-health.md)
 - Command-panel cursor diagnostics:
   [./logging-command-panel-cursor.md](./logging-command-panel-cursor.md)
+- Active-item grant diagnostics:
+  [./logging-active-item-grant.md](./logging-active-item-grant.md)
 - Smoke checklist:
   [./smoke-checklist.md](./smoke-checklist.md)
 - Runtime risk areas:

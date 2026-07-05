@@ -8,6 +8,8 @@ namespace RandomLoadout
 {
     internal sealed partial class InGameCommandController
     {
+        private const string PickupSearchClearControlId = "pickups.search.clear";
+
         private void OpenPickupPage(ManualLogSource logger)
         {
             OpenPickupPage(PickupBrowserMode.Grant, logger);
@@ -41,6 +43,8 @@ namespace RandomLoadout
 
         private void DrawPickupPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
+            const float pickupSearchClearButtonWidth = 72f;
+
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("pickups.back", _buttonStyle)))
             {
@@ -62,7 +66,8 @@ namespace RandomLoadout
                 _hintStyle);
 
             GUI.SetNextControlName(PickupSearchControlName);
-            Rect searchRect = new Rect(panelRect.x + 14f, panelRect.y + 86f, panelRect.width - 28f, 32f);
+            Rect searchRect = new Rect(panelRect.x + 14f, panelRect.y + 86f, panelRect.width - 28f - pickupSearchClearButtonWidth - 8f, 32f);
+            Rect clearSearchButtonRect = new Rect(searchRect.xMax + 8f, searchRect.y, pickupSearchClearButtonWidth, searchRect.height);
             if (IsControllerFocusActive("pickups", "pickups.search"))
             {
                 GUI.Box(
@@ -72,6 +77,19 @@ namespace RandomLoadout
             }
 
             _pickupSearchText = GUI.TextField(searchRect, _pickupSearchText, 128, _textFieldStyle);
+            if (IsControllerFocusActive("pickups", PickupSearchClearControlId))
+            {
+                GUI.Box(
+                    new Rect(clearSearchButtonRect.x - 2f, clearSearchButtonRect.y - 2f, clearSearchButtonRect.width + 4f, clearSearchButtonRect.height + 4f),
+                    GUIContent.none,
+                    _enabledButtonStyle);
+            }
+
+            if (GUI.Button(clearSearchButtonRect, GuiText.Get("gui.pickups.button.clear_search"), GetControllerButtonStyle(PickupSearchClearControlId, _buttonStyle)))
+            {
+                ClearPickupSearchText();
+            }
+
             if (_focusPickupSearchField)
             {
                 GUI.FocusControl(PickupSearchControlName);
@@ -247,7 +265,7 @@ namespace RandomLoadout
                 return;
             }
 
-            Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (matches.Length * PickupRowHeight) + 4f);
+            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (matches.Length * PickupRowHeight) + 4f);
             EnsurePickupBrowserFocusedResultVisible(matches, listRect.height);
             _pickupScrollPosition = BeginCommandScrollView(listRect, _pickupScrollPosition, viewRect);
             for (int i = 0; i < matches.Length; i++)
@@ -454,6 +472,14 @@ namespace RandomLoadout
             _pickupIconCache.Clear();
         }
 
+        private void ClearPickupSearchText()
+        {
+            _pickupSearchText = string.Empty;
+            _focusPickupSearchField = true;
+            _pickupPageFocusedControlId = "pickups.search";
+            _pickupScrollPosition = Vector2.zero;
+        }
+
         private void ClosePickupPage()
         {
             if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
@@ -498,22 +524,23 @@ namespace RandomLoadout
                 extraFilterEntryCount += 5;
             }
 
-            ControllerFocusEntry[] entries = new ControllerFocusEntry[10 + extraFilterEntryCount + matches.Length];
+            ControllerFocusEntry[] entries = new ControllerFocusEntry[11 + extraFilterEntryCount + matches.Length];
             entries[0] = new ControllerFocusEntry("pickups.back", 0, 0);
             entries[1] = new ControllerFocusEntry("pickups.search", 1, 0);
-            entries[2] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.All), 2, 0);
-            entries[3] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Gun), 2, 1);
-            entries[4] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Passive), 2, 2);
-            entries[5] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Active), 2, 3);
-            entries[6] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.S), 3, 0);
-            entries[7] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.A), 3, 1);
-            entries[8] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.B), 3, 2);
-            entries[9] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.C), 3, 3);
-            entries[10] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.D), 3, 4);
-            entries[11] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.All), 3, 5);
-            entries[12] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.Special), 3, 6);
-            entries[13] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.Excluded), 3, 7);
-            int writeIndex = 14;
+            entries[2] = new ControllerFocusEntry(PickupSearchClearControlId, 1, 1);
+            entries[3] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.All), 2, 0);
+            entries[4] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Gun), 2, 1);
+            entries[5] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Passive), 2, 2);
+            entries[6] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Active), 2, 3);
+            entries[7] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.S), 3, 0);
+            entries[8] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.A), 3, 1);
+            entries[9] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.B), 3, 2);
+            entries[10] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.C), 3, 3);
+            entries[11] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.D), 3, 4);
+            entries[12] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.All), 3, 5);
+            entries[13] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.Special), 3, 6);
+            entries[14] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.Excluded), 3, 7);
+            int writeIndex = 15;
             int listStartRow = 4;
             if (_pickupBrowserFilter == PickupBrowserFilter.Gun)
             {
@@ -564,6 +591,12 @@ namespace RandomLoadout
             if (string.Equals(_pickupPageFocusedControlId, "pickups.search", StringComparison.Ordinal))
             {
                 _focusPickupSearchField = true;
+                return;
+            }
+
+            if (string.Equals(_pickupPageFocusedControlId, PickupSearchClearControlId, StringComparison.Ordinal))
+            {
+                ClearPickupSearchText();
                 return;
             }
 

@@ -6,6 +6,17 @@ namespace RandomLoadout
 {
     internal sealed class EtgPickupGranter
     {
+        private readonly PlayerActiveItemCapacityOverrideService _playerActiveItemCapacityOverrideService;
+        private readonly System.Func<bool> _activeItemGrantVerboseLoggingEnabledProvider;
+
+        public EtgPickupGranter(
+            PlayerActiveItemCapacityOverrideService playerActiveItemCapacityOverrideService,
+            System.Func<bool> activeItemGrantVerboseLoggingEnabledProvider)
+        {
+            _playerActiveItemCapacityOverrideService = playerActiveItemCapacityOverrideService;
+            _activeItemGrantVerboseLoggingEnabledProvider = activeItemGrantVerboseLoggingEnabledProvider;
+        }
+
         public EtgGrantOutcome Grant(PlayerController player, SelectedPickup selection)
         {
             PickupObject pickup = PickupObjectDatabase.GetById(selection.PickupId);
@@ -78,6 +89,26 @@ namespace RandomLoadout
             grantPath = string.Empty;
             grantDetail = string.Empty;
             Component component = pickup as Component;
+            bool ensuredActiveCapacity = false;
+            int activeCapacityTarget = 0;
+            int activeCapacityBefore = 0;
+            int activeCapacityAfter = 0;
+            int activeItemCountBefore = 0;
+            bool primaryGrantResult = false;
+            if (category == PickupCategory.Active)
+            {
+                activeCapacityBefore = GetActiveItemCapacity(player);
+                activeItemCountBefore = GetActiveItemCount(player);
+                activeCapacityTarget = GetRequiredActiveItemCapacity(player);
+                if (activeCapacityTarget > 0 && _playerActiveItemCapacityOverrideService != null)
+                {
+                    _playerActiveItemCapacityOverrideService.EnsureCapacity(player, activeCapacityTarget);
+                    ensuredActiveCapacity = true;
+                }
+
+                activeCapacityAfter = GetActiveItemCapacity(player);
+            }
+
             if (component != null)
             {
                 // Prefer the same prefab-to-player flow used by ModTheGungeonAPI's give command.
@@ -85,17 +116,33 @@ namespace RandomLoadout
                 // the game handles the pickup as if it were granted from its real prefab.
                 try
                 {
-                    if (LootEngine.TryGivePrefabToPlayer(component.gameObject, player, false))
+                    primaryGrantResult = LootEngine.TryGivePrefabToPlayer(component.gameObject, player, false);
+                    if (primaryGrantResult)
                     {
                         grantPath = "primary";
-                        grantDetail = "Granted via LootEngine.TryGivePrefabToPlayer.";
+                        grantDetail = ensuredActiveCapacity
+                            ? BuildActiveCapacityGrantDetail(activeCapacityBefore, activeCapacityAfter, activeCapacityTarget, activeItemCountBefore, primaryGrantResult)
+                            : "Granted via LootEngine.TryGivePrefabToPlayer.";
                         return true;
+                    }
+
+                    if (category == PickupCategory.Active)
+                    {
+                        grantDetail = BuildActiveGrantRejectedDetail(activeCapacityBefore, activeCapacityAfter, activeCapacityTarget, activeItemCountBefore, primaryGrantResult);
                     }
                 }
                 catch (Exception exception)
                 {
                     grantPath = "primary-exception";
                     grantDetail = "LootEngine.TryGivePrefabToPlayer threw " + exception.GetType().Name + ": " + exception.Message;
+                    if (category == PickupCategory.Active)
+                    {
+                        string activeCapacityStateSuffix = BuildActiveCapacityStateSuffix(activeCapacityBefore, activeCapacityAfter, activeCapacityTarget, activeItemCountBefore, primaryGrantResult);
+                        if (!string.IsNullOrEmpty(activeCapacityStateSuffix))
+                        {
+                            grantDetail += " " + activeCapacityStateSuffix;
+                        }
+                    }
                 }
             }
 
@@ -120,6 +167,14 @@ namespace RandomLoadout
                     }
 
                     bool activeSlotsFull = AreActiveItemSlotsFull(player);
+                    if (!string.IsNullOrEmpty(grantDetail))
+                    {
+                        grantPath = activeSlotsFull
+                            ? "primary_rejected_etg_spew_slots_full"
+                            : "primary_rejected_etg_spew";
+                        return true;
+                    }
+
                     if (TrySpawnActiveItemNearPlayer(player, component.gameObject, pickup.PickupObjectId, out grantDetail))
                     {
                         grantPath = activeSlotsFull ? "spawn_near_player_slots_full" : "spawn_near_player";
@@ -207,6 +262,80 @@ namespace RandomLoadout
             return (object)player != null &&
                 player.activeItems != null &&
                 player.activeItems.Count >= player.maxActiveItemsHeld;
+        }
+
+        private static int GetRequiredActiveItemCapacity(PlayerController player)
+        {
+            if ((object)player == null || player.activeItems == null)
+            {
+                return 0;
+            }
+
+            return player.activeItems.Count + 1;
+        }
+
+        private static int GetActiveItemCapacity(PlayerController player)
+        {
+            return (object)player != null ? player.maxActiveItemsHeld : 0;
+        }
+
+        private static int GetActiveItemCount(PlayerController player)
+        {
+            return (object)player != null && player.activeItems != null
+                ? player.activeItems.Count
+                : 0;
+        }
+
+        private static string DescribeActiveCapacityState(int capacityBefore, int capacityAfter, int targetCapacity, int activeItemCountBefore, bool primaryGrantResult)
+        {
+            return "ActiveCapacityBefore=" +
+                capacityBefore +
+                ", ActiveCapacityAfter=" +
+                capacityAfter +
+                ", ActiveCapacityTarget=" +
+                targetCapacity +
+                ", ActiveItemCountBefore=" +
+                activeItemCountBefore +
+                ", TryGivePrefabToPlayerResult=" +
+                primaryGrantResult +
+                ".";
+        }
+
+        private bool IsActiveItemGrantVerboseLoggingEnabled()
+        {
+            return _activeItemGrantVerboseLoggingEnabledProvider != null && _activeItemGrantVerboseLoggingEnabledProvider();
+        }
+
+        private string BuildActiveCapacityGrantDetail(int capacityBefore, int capacityAfter, int targetCapacity, int activeItemCountBefore, bool primaryGrantResult)
+        {
+            if (!IsActiveItemGrantVerboseLoggingEnabled())
+            {
+                return "Expanded active-item capacity before granting via LootEngine.TryGivePrefabToPlayer.";
+            }
+
+            return "Expanded active-item capacity before granting via LootEngine.TryGivePrefabToPlayer. " +
+                DescribeActiveCapacityState(capacityBefore, capacityAfter, targetCapacity, activeItemCountBefore, primaryGrantResult);
+        }
+
+        private string BuildActiveGrantRejectedDetail(int capacityBefore, int capacityAfter, int targetCapacity, int activeItemCountBefore, bool primaryGrantResult)
+        {
+            if (!IsActiveItemGrantVerboseLoggingEnabled())
+            {
+                return "LootEngine.TryGivePrefabToPlayer returned false for the active item.";
+            }
+
+            return "LootEngine.TryGivePrefabToPlayer returned false. " +
+                DescribeActiveCapacityState(capacityBefore, capacityAfter, targetCapacity, activeItemCountBefore, primaryGrantResult);
+        }
+
+        private string BuildActiveCapacityStateSuffix(int capacityBefore, int capacityAfter, int targetCapacity, int activeItemCountBefore, bool primaryGrantResult)
+        {
+            if (!IsActiveItemGrantVerboseLoggingEnabled())
+            {
+                return string.Empty;
+            }
+
+            return DescribeActiveCapacityState(capacityBefore, capacityAfter, targetCapacity, activeItemCountBefore, primaryGrantResult);
         }
 
         private static string GetPickupLabel(PickupObject pickup)

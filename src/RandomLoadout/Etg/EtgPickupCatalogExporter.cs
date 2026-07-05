@@ -9,13 +9,15 @@ namespace RandomLoadout
         private readonly string _textOutputPath;
         private readonly string _jsonOutputPath;
         private readonly string _groupedJsonOutputPath;
+        private readonly string _namesJsonOutputPath;
         private readonly string _rulePoolOutputPath;
 
-        public EtgPickupCatalogExporter(string textOutputPath, string jsonOutputPath, string groupedJsonOutputPath, string rulePoolOutputPath)
+        public EtgPickupCatalogExporter(string textOutputPath, string jsonOutputPath, string groupedJsonOutputPath, string namesJsonOutputPath, string rulePoolOutputPath)
         {
             _textOutputPath = textOutputPath;
             _jsonOutputPath = jsonOutputPath;
             _groupedJsonOutputPath = groupedJsonOutputPath;
+            _namesJsonOutputPath = namesJsonOutputPath;
             _rulePoolOutputPath = rulePoolOutputPath;
         }
 
@@ -23,7 +25,7 @@ namespace RandomLoadout
         {
             if (pickupResolver == null)
             {
-                return new EtgPickupCatalogExportResult(false, _textOutputPath, _jsonOutputPath, _groupedJsonOutputPath, _rulePoolOutputPath, 0, "The pickup resolver was not available.");
+                return new EtgPickupCatalogExportResult(false, _textOutputPath, _jsonOutputPath, _groupedJsonOutputPath, _namesJsonOutputPath, _rulePoolOutputPath, 0, "The pickup resolver was not available.");
             }
 
             try
@@ -31,24 +33,26 @@ namespace RandomLoadout
                 EtgPickupCatalogEntry[] entries = pickupResolver.GetGrantablePickupCatalog();
                 if (entries.Length == 0)
                 {
-                    return new EtgPickupCatalogExportResult(false, _textOutputPath, _jsonOutputPath, _groupedJsonOutputPath, _rulePoolOutputPath, 0, "No supported pickups were available for export yet.");
+                    return new EtgPickupCatalogExportResult(false, _textOutputPath, _jsonOutputPath, _groupedJsonOutputPath, _namesJsonOutputPath, _rulePoolOutputPath, 0, "No supported pickups were available for export yet.");
                 }
 
                 EnsureDirectoryExists(_textOutputPath);
                 EnsureDirectoryExists(_jsonOutputPath);
                 EnsureDirectoryExists(_groupedJsonOutputPath);
+                EnsureDirectoryExists(_namesJsonOutputPath);
                 EnsureDirectoryExists(_rulePoolOutputPath);
 
                 WriteTextCatalog(entries);
                 WriteJsonCatalog(entries);
                 WriteGroupedJsonCatalog(entries);
+                WriteNamesJsonCatalog(entries);
                 WriteFullRulePool(entries);
 
-                return new EtgPickupCatalogExportResult(true, _textOutputPath, _jsonOutputPath, _groupedJsonOutputPath, _rulePoolOutputPath, entries.Length, string.Empty);
+                return new EtgPickupCatalogExportResult(true, _textOutputPath, _jsonOutputPath, _groupedJsonOutputPath, _namesJsonOutputPath, _rulePoolOutputPath, entries.Length, string.Empty);
             }
             catch (Exception exception)
             {
-                return new EtgPickupCatalogExportResult(false, _textOutputPath, _jsonOutputPath, _groupedJsonOutputPath, _rulePoolOutputPath, 0, exception.Message);
+                return new EtgPickupCatalogExportResult(false, _textOutputPath, _jsonOutputPath, _groupedJsonOutputPath, _namesJsonOutputPath, _rulePoolOutputPath, 0, exception.Message);
             }
         }
 
@@ -59,7 +63,7 @@ namespace RandomLoadout
                 writer.WriteLine("# RandomLoadout grantable pickup catalog");
                 writer.WriteLine("# Generated (UTC): " + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
                 writer.WriteLine(
-                    "# Format: Category<TAB>ID<TAB>DisplayName<TAB>InternalName<TAB>EncounterGuid<TAB>Quality<TAB>PurchasePrice<TAB>CanBeDropped<TAB>CanBeSold<TAB>SuppressInInventory<TAB>PrimaryDisplayName<TAB>ShortDescription<TAB>LongDescription<TAB>ContentSource<TAB>ForcedPositionInAmmonomicon<TAB>GunClass<TAB>Ammo<TAB>CanGainAmmo<TAB>InfiniteAmmo<TAB>ReloadTime<TAB>ActiveNumberOfUses<TAB>ActiveTimeCooldown<TAB>ActiveDamageCooldown<TAB>ActiveRoomCooldown");
+                    "# Format: Category<TAB>ID<TAB>DisplayName<TAB>EnglishDisplayName<TAB>GameDisplayName<TAB>InternalName<TAB>EncounterGuid<TAB>Quality<TAB>PurchasePrice<TAB>CanBeDropped<TAB>CanBeSold<TAB>SuppressInInventory<TAB>PrimaryDisplayName<TAB>ShortDescription<TAB>LongDescription<TAB>ContentSource<TAB>ForcedPositionInAmmonomicon<TAB>GunClass<TAB>Ammo<TAB>CanGainAmmo<TAB>InfiniteAmmo<TAB>ReloadTime<TAB>ActiveNumberOfUses<TAB>ActiveTimeCooldown<TAB>ActiveDamageCooldown<TAB>ActiveRoomCooldown");
 
                 for (int i = 0; i < entries.Length; i++)
                 {
@@ -67,6 +71,8 @@ namespace RandomLoadout
                     WriteField(writer, entry.Category.ToString());
                     WriteField(writer, entry.PickupId.ToString());
                     WriteField(writer, entry.DisplayName);
+                    WriteField(writer, entry.EnglishDisplayName);
+                    WriteField(writer, entry.GameDisplayName);
                     WriteField(writer, entry.InternalName);
                     WriteField(writer, entry.EncounterGuid);
                     WriteField(writer, entry.Quality);
@@ -98,6 +104,7 @@ namespace RandomLoadout
             {
                 writer.WriteLine("{");
                 writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) + "\",");
+                writer.WriteLine("  \"gameLanguageCode\": \"" + EscapeJson(GuiText.GameLanguageCode) + "\",");
                 writer.WriteLine("  \"entryCount\": " + entries.Length + ",");
                 writer.WriteLine("  \"pickups\": [");
 
@@ -108,6 +115,8 @@ namespace RandomLoadout
                     writer.WriteLine("      \"category\": \"" + EscapeJson(entry.Category.ToString()) + "\",");
                     writer.WriteLine("      \"pickupId\": " + entry.PickupId + ",");
                     writer.WriteLine("      \"displayName\": \"" + EscapeJson(entry.DisplayName) + "\",");
+                    writer.WriteLine("      \"englishDisplayName\": \"" + EscapeJson(entry.EnglishDisplayName) + "\",");
+                    writer.WriteLine("      \"gameDisplayName\": \"" + EscapeJson(entry.GameDisplayName) + "\",");
                     writer.WriteLine("      \"internalName\": \"" + EscapeJson(entry.InternalName) + "\",");
                     writer.WriteLine("      \"encounterGuid\": \"" + EscapeJson(entry.EncounterGuid) + "\",");
                     writer.WriteLine("      \"quality\": \"" + EscapeJson(entry.Quality) + "\",");
@@ -144,12 +153,42 @@ namespace RandomLoadout
             {
                 writer.WriteLine("{");
                 writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) + "\",");
+                writer.WriteLine("  \"gameLanguageCode\": \"" + EscapeJson(GuiText.GameLanguageCode) + "\",");
                 writer.WriteLine("  \"entryCount\": " + entries.Length + ",");
                 writer.WriteLine("  \"categories\": {");
                 WriteCategoryGroup(writer, entries, "Gun", 4, true);
                 WriteCategoryGroup(writer, entries, "Passive", 4, true);
                 WriteCategoryGroup(writer, entries, "Active", 4, false);
                 writer.WriteLine("  }");
+                writer.WriteLine("}");
+            }
+        }
+
+        private void WriteNamesJsonCatalog(EtgPickupCatalogEntry[] entries)
+        {
+            using (StreamWriter writer = new StreamWriter(_namesJsonOutputPath, false, new UTF8Encoding(false)))
+            {
+                writer.WriteLine("{");
+                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) + "\",");
+                writer.WriteLine("  \"gameLanguageCode\": \"" + EscapeJson(GuiText.GameLanguageCode) + "\",");
+                writer.WriteLine("  \"entryCount\": " + entries.Length + ",");
+                writer.WriteLine("  \"pickups\": [");
+
+                for (int i = 0; i < entries.Length; i++)
+                {
+                    EtgPickupCatalogEntry entry = entries[i];
+                    writer.WriteLine("    {");
+                    writer.WriteLine("      \"pickupId\": " + entry.PickupId + ",");
+                    writer.WriteLine("      \"category\": \"" + EscapeJson(entry.Category.ToString()) + "\",");
+                    writer.WriteLine("      \"displayName\": \"" + EscapeJson(entry.DisplayName) + "\",");
+                    writer.WriteLine("      \"englishDisplayName\": \"" + EscapeJson(entry.EnglishDisplayName) + "\",");
+                    writer.WriteLine("      \"gameDisplayName\": \"" + EscapeJson(entry.GameDisplayName) + "\",");
+                    writer.WriteLine("      \"internalName\": \"" + EscapeJson(entry.InternalName) + "\"");
+                    writer.Write("    }");
+                    writer.WriteLine(i < entries.Length - 1 ? "," : string.Empty);
+                }
+
+                writer.WriteLine("  ]");
                 writer.WriteLine("}");
             }
         }
@@ -286,6 +325,8 @@ namespace RandomLoadout
             writer.WriteLine(indent + "  \"category\": \"" + EscapeJson(entry.Category.ToString()) + "\",");
             writer.WriteLine(indent + "  \"pickupId\": " + entry.PickupId + ",");
             writer.WriteLine(indent + "  \"displayName\": \"" + EscapeJson(entry.DisplayName) + "\",");
+            writer.WriteLine(indent + "  \"englishDisplayName\": \"" + EscapeJson(entry.EnglishDisplayName) + "\",");
+            writer.WriteLine(indent + "  \"gameDisplayName\": \"" + EscapeJson(entry.GameDisplayName) + "\",");
             writer.WriteLine(indent + "  \"internalName\": \"" + EscapeJson(entry.InternalName) + "\",");
             writer.WriteLine(indent + "  \"encounterGuid\": \"" + EscapeJson(entry.EncounterGuid) + "\",");
             writer.WriteLine(indent + "  \"quality\": \"" + EscapeJson(entry.Quality) + "\",");
@@ -315,6 +356,8 @@ namespace RandomLoadout
             writer.WriteLine(indent + "{");
             writer.WriteLine(indent + "  \"pickupId\": " + entry.PickupId + ",");
             writer.WriteLine(indent + "  \"displayName\": \"" + EscapeJson(entry.DisplayName) + "\",");
+            writer.WriteLine(indent + "  \"englishDisplayName\": \"" + EscapeJson(entry.EnglishDisplayName) + "\",");
+            writer.WriteLine(indent + "  \"gameDisplayName\": \"" + EscapeJson(entry.GameDisplayName) + "\",");
             writer.WriteLine(indent + "  \"internalName\": \"" + EscapeJson(entry.InternalName) + "\",");
             writer.WriteLine(indent + "  \"quality\": \"" + EscapeJson(entry.Quality) + "\",");
             writer.WriteLine(indent + "  \"encounterGuid\": \"" + EscapeJson(entry.EncounterGuid) + "\"");

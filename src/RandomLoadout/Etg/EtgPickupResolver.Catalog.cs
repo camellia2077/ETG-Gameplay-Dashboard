@@ -28,6 +28,7 @@ namespace RandomLoadout
                         pickup.PickupObjectId,
                         GetPickupLabel(pickup),
                         GetEnglishPickupLabel(pickup),
+                        GetPickupLabelForGameLanguage(pickup),
                         pickup.name ?? string.Empty,
                         GetEncounterGuid(pickup),
                         GetItemQualityLabel(pickup),

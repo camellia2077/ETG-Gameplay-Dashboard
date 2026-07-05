@@ -36,6 +36,22 @@
 
 - [src/AGENTS.md](./src/AGENTS.md)
 
+## 数据来源与署名
+
+项目中的部分物品游玩信息数据来自 `wiki.gg` 上的《挺进地牢》社区 Wiki：
+
+- <https://enterthegungeon.wiki.gg/>
+
+根据 `wiki.gg` 页面页脚公开标注，相关页面内容通常采用 `Creative Commons Attribution-ShareAlike 4.0 License`（除非页面另有说明）。本项目会对这些数据进行抓取、清洗、结构化整理，并以更适合游戏内查看的方式进行展示。
+
+项目中的部分中文物品名称在开发过程中参考并部分直接采用了下列仓库提供的文本结果：
+
+- <https://github.com/Lynx3x/etg-itemtips-cn>
+
+该仓库公开标注为 `MIT License`。本项目仅参考并吸收了其中的部分中文文本结果，并未完整复用或原样分发该仓库全部内容。
+
+本项目为非官方社区项目，与 `wiki.gg`、`Dodge Roll` 或 `Devolver Digital` 无隶属关系。原始内容的许可与站点条款请以来源页面及 `wiki.gg` 的相关说明为准。
+
 ## 致谢 / 开源依赖
 
 分发在面向玩家的发布包中：

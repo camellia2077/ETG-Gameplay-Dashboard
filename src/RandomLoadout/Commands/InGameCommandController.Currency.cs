@@ -114,7 +114,7 @@ namespace RandomLoadout
                     }),
                 new PickupActionRowDefinition(
                     GameUiAtlasSpriteBlankPickup,
-                    GetLocalizedFallback("gui.command.currency.label.blank", "Blank (+1)", "空包弹（+1）"),
+                    GetLocalizedFallback("gui.command.currency.label.blank", "Blank (+1)", "空响弹（+1）"),
                     new[]
                     {
                         new PickupActionButtonDefinition("currency.blank", actionLabel, delegate { ExecuteAddBlank(player, logger); }, _buttonStyle),

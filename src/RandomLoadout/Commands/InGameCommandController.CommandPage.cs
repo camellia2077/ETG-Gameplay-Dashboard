@@ -136,6 +136,7 @@ namespace RandomLoadout
         {
             if (!IsControllerFocusActive("cmd", controlId) &&
                 !IsControllerFocusActive("settings", controlId) &&
+                !IsControllerFocusActive("pickup_info_config", controlId) &&
                 !IsControllerFocusActive("characters", controlId) &&
                 !IsControllerFocusActive("loadout", controlId) &&
                 !IsControllerFocusActive("pickups", controlId) &&
@@ -162,6 +163,11 @@ namespace RandomLoadout
             if (_currentPage == PanelPage.Settings && string.Equals(pagePrefix, "settings", System.StringComparison.Ordinal))
             {
                 return string.Equals(_settingsPageFocusedControlId, controlId, System.StringComparison.Ordinal);
+            }
+
+            if (_currentPage == PanelPage.PickupInfoConfig && string.Equals(pagePrefix, "pickup_info_config", System.StringComparison.Ordinal))
+            {
+                return string.Equals(_pickupInfoConfigFocusedControlId, controlId, System.StringComparison.Ordinal);
             }
 
             if (_currentPage == PanelPage.Characters && string.Equals(pagePrefix, "characters", System.StringComparison.Ordinal))
@@ -513,6 +519,15 @@ namespace RandomLoadout
             if (_playerStatsPanelShownSetter != null)
             {
                 _playerStatsPanelShownSetter(isEnabled);
+            }
+        }
+
+        private void SetPickupInfoOverlayShown(bool isEnabled)
+        {
+            _showPickupInfoOverlay = isEnabled;
+            if (_pickupInfoOverlayEnabledSetter != null)
+            {
+                _pickupInfoOverlayEnabledSetter(isEnabled);
             }
         }
 

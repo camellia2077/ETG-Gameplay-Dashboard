@@ -11,6 +11,7 @@ namespace RandomLoadout
         private const string PickupCatalogTextFileName = NAME + ".pickups.txt";
         private const string PickupCatalogJsonFileName = NAME + ".pickups.json";
         private const string PickupCatalogGroupedJsonFileName = NAME + ".pickups.by-category.json";
+        private const string PickupNamesJsonFileName = NAME + ".pickup-names.game-language.json";
         private const string PickupCatalogRulePoolFileName = NAME + ".rules.full-pool.json5";
         private const string RandomPoolSelectionStateFileName = "ETG-Gameplay-Dashboard.selection-state.json5";
 
@@ -24,6 +25,13 @@ namespace RandomLoadout
         private ConfigEntry<string> _commandPanelKeyConfig;
         private ConfigEntry<string> _uiScalePresetConfig;
         private ConfigEntry<bool> _showPlayerStatsPanelConfig;
+        private ConfigEntry<bool> _showPickupInfoOverlayConfig;
+        private ConfigEntry<bool> _showPickupInfoQualityConfig;
+        private ConfigEntry<bool> _showPickupInfoTypeConfig;
+        private ConfigEntry<bool> _showPickupInfoEffectsConfig;
+        private ConfigEntry<bool> _showPickupInfoSynergiesConfig;
+        private ConfigEntry<bool> _showPickupInfoSummaryConfig;
+        private ConfigEntry<bool> _showPickupInfoNotesConfig;
         private ConfigEntry<bool> _experimentalModeConfig;
         private ConfigEntry<bool> _ammonomiconFastOpenEnabledConfig;
         private ConfigEntry<bool> _mapTeleportVerboseLogsConfig;
@@ -32,6 +40,7 @@ namespace RandomLoadout
         private ConfigEntry<bool> _bossRushVerboseLogsConfig;
         private ConfigEntry<bool> _commandPanelHealthVerboseLogsConfig;
         private ConfigEntry<bool> _commandPanelCursorVerboseLogsConfig;
+        private ConfigEntry<bool> _activeItemGrantVerboseLogsConfig;
         private ConfigEntry<string> _activeStartItemsPresetConfig;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
@@ -40,11 +49,15 @@ namespace RandomLoadout
         private bool _hasLoadedAliasRegistry;
         private bool _hasResolvedLoadoutConfig;
         private JsonPickupAliasFileProvider _aliasFileProvider;
+        private JsonPickupGameplayProvider _pickupGameplayProvider;
         private RandomPoolSelectionStateProvider _randomPoolSelectionStateProvider;
         private EtgLoadoutConfigResolver _configResolver;
         private EtgPickupCatalogExporter _pickupCatalogExporter;
         private JsonLoadoutRuleFileProvider _ruleFileProvider;
         private InGameCommandController _commandController;
+        private PickupGameplayRegistry _pickupGameplayRegistry;
+        private PickupInfoTermsRegistry _pickupInfoTermsRegistry;
+        private NearbyPickupTipService _nearbyPickupTipService;
         private RapidFireToggleService _rapidFireToggleService;
         private AutoReloadToggleService _autoReloadToggleService;
         private ArmorNoConsumeToggleService _armorNoConsumeToggleService;
@@ -70,5 +83,10 @@ namespace RandomLoadout
         private string _pendingTeleportCommandText;
         private string _pendingTeleportReadySceneName;
         private int _pendingTeleportReadyFrames;
+        private UnityEngine.GUIStyle _pickupWikiTipPanelStyle;
+        private UnityEngine.GUIStyle _pickupWikiTipTitleStyle;
+        private UnityEngine.GUIStyle _pickupWikiTipBodyStyle;
+        private UnityEngine.Vector2 _pickupWikiTipScrollPosition = UnityEngine.Vector2.zero;
+        private int _pickupWikiTipScrollPickupId;
     }
 }

@@ -97,6 +97,8 @@ Key rule:
 - `EtgPickupCatalogEntry.DisplayName` is the localized display name for the current UI language
 - `EtgPickupCatalogEntry.EnglishDisplayName` is a separate English-oriented fallback used when the command panel is in
   English
+- `EtgPickupCatalogEntry.GameDisplayName` follows the actual ETG runtime language, ignoring the mod UI language
+  override
 
 Owning code:
 
@@ -196,6 +198,30 @@ The backup-table path uses:
 - `m_backupItemsTable`
 
 and calls `GetExactString(0)` on the entry object via reflection.
+
+## Exported Pickup Name Snapshots
+
+The runtime catalog export now writes pickup-name snapshots plus an optional nearby-pickup gameplay work file:
+
+- full pickup catalogs such as `RandomLoadout.pickups.json`
+- a compact name snapshot: `RandomLoadout.pickup-names.game-language.json`
+- an optional gameplay-info work file: `RandomLoadout.pickup-gameplay.zh-CN.work.json`
+
+Important behavior:
+
+- `gameDisplayName` follows the actual ETG runtime language
+
+This means you can switch the game itself to Simplified Chinese, start the mod once, and export a pickup-name list that
+matches the game's own Chinese item names even if the command panel language override is not `auto`.
+
+For nearby pickup info:
+
+- runtime reads nearby-pickup title/body data from `RandomLoadout.pickup-gameplay.en.json`
+- `chineseDisplayName`, `chineseGameplaySummary`, `chineseEffectHighlights`, `chineseSynergyHighlights`, and `chineseUsageNotes` are preferred in `zh-CN` when the gameplay work file exists
+- if localized gameplay text is missing, runtime falls back to the English gameplay snapshot
+- `chineseDisplayName` from the work file is preferred for the title in `zh-CN`
+- `pickup-wiki-tips` is no longer used as a display-time fallback
+- runtime formatting may insert line breaks around recognized section markers when rendering nearby-pickup body text; the JSON itself does not need manual line breaks for those markers
 
 ## Where English Pickup Names Must Be Applied
 

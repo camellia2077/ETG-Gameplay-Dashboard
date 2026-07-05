@@ -33,6 +33,20 @@ namespace RandomLoadout
             System.Action<string> uiScalePresetSetter,
             System.Func<bool> playerStatsPanelShownProvider,
             System.Action<bool> playerStatsPanelShownSetter,
+            System.Func<bool> pickupInfoOverlayEnabledProvider,
+            System.Action<bool> pickupInfoOverlayEnabledSetter,
+            System.Func<bool> pickupInfoQualityEnabledProvider,
+            System.Action<bool> pickupInfoQualityEnabledSetter,
+            System.Func<bool> pickupInfoTypeEnabledProvider,
+            System.Action<bool> pickupInfoTypeEnabledSetter,
+            System.Func<bool> pickupInfoEffectsEnabledProvider,
+            System.Action<bool> pickupInfoEffectsEnabledSetter,
+            System.Func<bool> pickupInfoSynergiesEnabledProvider,
+            System.Action<bool> pickupInfoSynergiesEnabledSetter,
+            System.Func<bool> pickupInfoSummaryEnabledProvider,
+            System.Action<bool> pickupInfoSummaryEnabledSetter,
+            System.Func<bool> pickupInfoNotesEnabledProvider,
+            System.Action<bool> pickupInfoNotesEnabledSetter,
             System.Func<bool> experimentalModeProvider,
             System.Action<bool> experimentalModeSetter,
             System.Action<bool> ammonomiconFastOpenEnabledSetter,
@@ -69,6 +83,20 @@ namespace RandomLoadout
             _uiScalePresetSetter = uiScalePresetSetter;
             _playerStatsPanelShownProvider = playerStatsPanelShownProvider;
             _playerStatsPanelShownSetter = playerStatsPanelShownSetter;
+            _pickupInfoOverlayEnabledProvider = pickupInfoOverlayEnabledProvider;
+            _pickupInfoOverlayEnabledSetter = pickupInfoOverlayEnabledSetter;
+            _pickupInfoQualityEnabledProvider = pickupInfoQualityEnabledProvider;
+            _pickupInfoQualityEnabledSetter = pickupInfoQualityEnabledSetter;
+            _pickupInfoTypeEnabledProvider = pickupInfoTypeEnabledProvider;
+            _pickupInfoTypeEnabledSetter = pickupInfoTypeEnabledSetter;
+            _pickupInfoEffectsEnabledProvider = pickupInfoEffectsEnabledProvider;
+            _pickupInfoEffectsEnabledSetter = pickupInfoEffectsEnabledSetter;
+            _pickupInfoSynergiesEnabledProvider = pickupInfoSynergiesEnabledProvider;
+            _pickupInfoSynergiesEnabledSetter = pickupInfoSynergiesEnabledSetter;
+            _pickupInfoSummaryEnabledProvider = pickupInfoSummaryEnabledProvider;
+            _pickupInfoSummaryEnabledSetter = pickupInfoSummaryEnabledSetter;
+            _pickupInfoNotesEnabledProvider = pickupInfoNotesEnabledProvider;
+            _pickupInfoNotesEnabledSetter = pickupInfoNotesEnabledSetter;
             _experimentalModeProvider = experimentalModeProvider;
             _experimentalModeSetter = experimentalModeSetter;
             _ammonomiconFastOpenEnabledSetter = ammonomiconFastOpenEnabledSetter;
@@ -78,6 +106,13 @@ namespace RandomLoadout
             _commandPanelCursorVerboseLoggingEnabledProvider = commandPanelCursorVerboseLoggingEnabledProvider;
             _deferredTeleportRequestHandler = deferredTeleportRequestHandler;
             _showPlayerStatsPanel = _playerStatsPanelShownProvider != null && _playerStatsPanelShownProvider();
+            _showPickupInfoOverlay = _pickupInfoOverlayEnabledProvider == null || _pickupInfoOverlayEnabledProvider();
+            _showPickupInfoQuality = _pickupInfoQualityEnabledProvider == null || _pickupInfoQualityEnabledProvider();
+            _showPickupInfoType = _pickupInfoTypeEnabledProvider == null || _pickupInfoTypeEnabledProvider();
+            _showPickupInfoEffects = _pickupInfoEffectsEnabledProvider == null || _pickupInfoEffectsEnabledProvider();
+            _showPickupInfoSynergies = _pickupInfoSynergiesEnabledProvider == null || _pickupInfoSynergiesEnabledProvider();
+            _showPickupInfoSummary = _pickupInfoSummaryEnabledProvider == null || _pickupInfoSummaryEnabledProvider();
+            _showPickupInfoNotes = _pickupInfoNotesEnabledProvider == null || _pickupInfoNotesEnabledProvider();
             if (_bossRushService != null)
             {
                 _bossRushService.StatusRaised += OnBossRushStatusRaised;
@@ -155,6 +190,10 @@ namespace RandomLoadout
             else if (_isVisible && _currentPage == PanelPage.Settings)
             {
                 panelHeight = SettingsPanelHeight;
+            }
+            else if (_isVisible && _currentPage == PanelPage.PickupInfoConfig)
+            {
+                panelHeight = PickupInfoConfigPanelHeight;
             }
             else if (_isVisible && _currentPage == PanelPage.AdvancedTools)
             {
@@ -240,11 +279,16 @@ namespace RandomLoadout
                 if (_currentPage == PanelPage.Settings)
                 {
                     DrawSettingsPage(panelRect, logger);
+                    return;
                 }
-                else
+
+                if (_currentPage == PanelPage.PickupInfoConfig)
                 {
-                    DrawCommandPage(panelRect, player, logger);
+                    DrawPickupInfoConfigPage(panelRect);
+                    return;
                 }
+
+                DrawCommandPage(panelRect, player, logger);
 
                 DrawExperimentalModeConfirmDialog(panelRect, logger);
             }
@@ -322,6 +366,9 @@ namespace RandomLoadout
                     return;
                 case PanelPage.Settings:
                     HandleSettingsPageControllerNavigation(isControllerBackPressed);
+                    return;
+                case PanelPage.PickupInfoConfig:
+                    HandlePickupInfoConfigPageControllerNavigation(isControllerBackPressed);
                     return;
                 case PanelPage.Characters:
                     HandleCharacterPageControllerNavigation(isControllerBackPressed);
@@ -425,6 +472,36 @@ namespace RandomLoadout
             if (IsPanelConfirmPressed())
             {
                 ExecuteSettingsPageFocusedControl();
+            }
+        }
+
+        private void HandlePickupInfoConfigPageControllerNavigation(bool isControllerBackPressed)
+        {
+            if (isControllerBackPressed)
+            {
+                LogGamepadShortcutState("Controller back press is returning from pickup info config to the command page.");
+                _currentPage = PanelPage.Command;
+                return;
+            }
+
+            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
+            if (navigationDirection.HasValue)
+            {
+                string previousControlId = _pickupInfoConfigFocusedControlId;
+                _pickupInfoConfigFocusedControlId = MoveControllerFocus(PickupInfoConfigPageFocusEntries, _pickupInfoConfigFocusedControlId, navigationDirection.Value);
+                LogGamepadShortcutState(
+                    "Pickup info config controller navigation moved focus. Direction=" +
+                    navigationDirection.Value +
+                    ", From=" +
+                    previousControlId +
+                    ", To=" +
+                    _pickupInfoConfigFocusedControlId +
+                    ".");
+            }
+
+            if (IsPanelConfirmPressed())
+            {
+                ExecutePickupInfoConfigPageFocusedControl();
             }
         }
 
@@ -1353,6 +1430,7 @@ namespace RandomLoadout
             _currentPage = PanelPage.Command;
             _commandPageFocusedControlId = "cmd.settings";
             _settingsPageFocusedControlId = "settings.toggle_key";
+            _pickupInfoConfigFocusedControlId = "pickup_info_config.quality";
             _characterPageFocusedControlId = "characters.mode";
             _loadoutEditorFocusedControlId = "loadout.back";
             _inputText = string.Empty;

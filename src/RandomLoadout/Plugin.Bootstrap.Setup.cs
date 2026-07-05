@@ -37,6 +37,41 @@ namespace RandomLoadout
                 "ShowPlayerStatsPanel",
                 false,
                 "Show or hide the player stats side panel by default.");
+            _showPickupInfoOverlayConfig = Config.Bind(
+                "UI",
+                "ShowPickupInfoOverlay",
+                true,
+                "Show or hide the nearby dropped-pickup detailed info overlay.");
+            _showPickupInfoQualityConfig = Config.Bind(
+                "UI",
+                "ShowPickupInfoQuality",
+                true,
+                "Show or hide the Quality section in the nearby pickup info overlay.");
+            _showPickupInfoTypeConfig = Config.Bind(
+                "UI",
+                "ShowPickupInfoType",
+                true,
+                "Show or hide the Type section in the nearby pickup info overlay.");
+            _showPickupInfoEffectsConfig = Config.Bind(
+                "UI",
+                "ShowPickupInfoEffects",
+                true,
+                "Show or hide the Effects section in the nearby pickup info overlay.");
+            _showPickupInfoSynergiesConfig = Config.Bind(
+                "UI",
+                "ShowPickupInfoSynergies",
+                true,
+                "Show or hide the Synergies section in the nearby pickup info overlay.");
+            _showPickupInfoSummaryConfig = Config.Bind(
+                "UI",
+                "ShowPickupInfoSummary",
+                true,
+                "Show or hide the Summary section in the nearby pickup info overlay.");
+            _showPickupInfoNotesConfig = Config.Bind(
+                "UI",
+                "ShowPickupInfoNotes",
+                true,
+                "Show or hide the Notes section in the nearby pickup info overlay.");
             _experimentalModeConfig = Config.Bind(
                 "UI",
                 "ExperimentalMode",
@@ -77,6 +112,11 @@ namespace RandomLoadout
                 "EnableCommandPanelCursorVerboseLogs",
                 false,
                 "Enable verbose command-panel cursor diagnostics, including cursor visibility changes, active input-device switches, and mouse click attempts while the panel is open. Keep disabled for normal play and enable only when debugging controller-to-mouse handoff issues.");
+            _activeItemGrantVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableActiveItemGrantVerboseLogs",
+                false,
+                "Enable verbose active-item grant diagnostics, including temporary slot-capacity expansion, ETG grant-path rejection details, and rollback restoration tracing. Keep disabled for normal play and enable only when debugging active items dropping near the player instead of entering the active-item bar.");
             _activeStartItemsPresetConfig = Config.Bind(
                 "StartItems",
                 "ActivePreset",
@@ -92,8 +132,12 @@ namespace RandomLoadout
                 Path.Combine(Paths.ConfigPath, PickupCatalogTextFileName),
                 Path.Combine(Paths.ConfigPath, PickupCatalogJsonFileName),
                 Path.Combine(Paths.ConfigPath, PickupCatalogGroupedJsonFileName),
+                Path.Combine(Paths.ConfigPath, PickupNamesJsonFileName),
                 Path.Combine(Paths.ConfigPath, PickupCatalogRulePoolFileName));
             _aliasFileProvider = new JsonPickupAliasFileProvider(DashboardFileLayout.GetAliasFilePath(Paths.ConfigPath));
+            _pickupGameplayProvider = new JsonPickupGameplayProvider(
+                DashboardFileLayout.GetPickupGameplayFilePath(Paths.ConfigPath),
+                DashboardFileLayout.GetPickupGameplaySimplifiedChineseWorkFilePath(Paths.ConfigPath));
             _randomPoolSelectionStateProvider = new RandomPoolSelectionStateProvider(Path.Combine(Paths.ConfigPath, RandomPoolSelectionStateFileName));
             _ruleFileProvider = new JsonLoadoutRuleFileProvider(
                 DashboardFileLayout.GetRulesFilePath(Paths.ConfigPath),
@@ -103,6 +147,37 @@ namespace RandomLoadout
 
         private void InitializeServices()
         {
+            string pickupInfoTermsMessage = string.Empty;
+            string pickupInfoTermsWarning = string.Empty;
+            _pickupInfoTermsRegistry = _pickupGameplayProvider != null
+                ? _pickupGameplayProvider.LoadTerms(out pickupInfoTermsMessage, out pickupInfoTermsWarning)
+                : PickupInfoTermsRegistry.Empty;
+            if (!string.IsNullOrEmpty(pickupInfoTermsMessage))
+            {
+                Logger.LogInfo(RandomLoadoutLog.Init(pickupInfoTermsMessage));
+            }
+
+            if (!string.IsNullOrEmpty(pickupInfoTermsWarning))
+            {
+                Logger.LogWarning(RandomLoadoutLog.Init(pickupInfoTermsWarning));
+            }
+
+            string pickupGameplayMessage = string.Empty;
+            string pickupGameplayWarning = string.Empty;
+            _pickupGameplayRegistry = _pickupGameplayProvider != null
+                ? _pickupGameplayProvider.Load(out pickupGameplayMessage, out pickupGameplayWarning)
+                : PickupGameplayRegistry.Empty;
+            if (!string.IsNullOrEmpty(pickupGameplayMessage))
+            {
+                Logger.LogInfo(RandomLoadoutLog.Init(pickupGameplayMessage));
+            }
+
+            if (!string.IsNullOrEmpty(pickupGameplayWarning))
+            {
+                Logger.LogWarning(RandomLoadoutLog.Init(pickupGameplayWarning));
+            }
+
+            _nearbyPickupTipService = new NearbyPickupTipService(_pickupGameplayRegistry);
             _rapidFireToggleService = new RapidFireToggleService();
             _autoReloadToggleService = new AutoReloadToggleService();
             _armorNoConsumeToggleService = new ArmorNoConsumeToggleService();
@@ -114,9 +189,9 @@ namespace RandomLoadout
             _ammonomiconFastOpenToggleService = new AmmonomiconFastOpenToggleService();
             _ammonomiconFastOpenToggleService.SetIsFastOpenEnabled(_ammonomiconFastOpenEnabledConfig.Value);
             _playerHealthOverrideService = new PlayerHealthOverrideService(Logger, IsCommandPanelHealthVerboseLoggingEnabled);
-            _playerActiveItemCapacityOverrideService = new PlayerActiveItemCapacityOverrideService(Logger);
+            _playerActiveItemCapacityOverrideService = new PlayerActiveItemCapacityOverrideService(Logger, IsActiveItemGrantVerboseLoggingEnabled);
             _playerDebugCommandService = new PlayerDebugCommandService(_playerHealthOverrideService);
-            _pickupGranter = new EtgPickupGranter();
+            _pickupGranter = new EtgPickupGranter(_playerActiveItemCapacityOverrideService, IsActiveItemGrantVerboseLoggingEnabled);
             _bossRushService = new BossRushService(Logger, IsBossRushVerboseLoggingEnabled);
         }
 
@@ -160,6 +235,20 @@ namespace RandomLoadout
                 SetUiScalePreset,
                 IsPlayerStatsPanelShown,
                 SetPlayerStatsPanelShown,
+                IsPickupInfoOverlayEnabled,
+                SetPickupInfoOverlayEnabled,
+                IsPickupInfoQualityEnabled,
+                SetPickupInfoQualityEnabled,
+                IsPickupInfoTypeEnabled,
+                SetPickupInfoTypeEnabled,
+                IsPickupInfoEffectsEnabled,
+                SetPickupInfoEffectsEnabled,
+                IsPickupInfoSynergiesEnabled,
+                SetPickupInfoSynergiesEnabled,
+                IsPickupInfoSummaryEnabled,
+                SetPickupInfoSummaryEnabled,
+                IsPickupInfoNotesEnabled,
+                SetPickupInfoNotesEnabled,
                 IsExperimentalModeEnabled,
                 SetExperimentalModeEnabled,
                 SetAmmonomiconFastOpenEnabled,
@@ -187,15 +276,20 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel gamepad open input is 360 controller R3 short press."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel UI size preset is " + GetUiScalePreset() + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Player stats side panel is " + (IsPlayerStatsPanelShown() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Pickup info overlay is " + (IsPickupInfoOverlayEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Pickup info sections: quality=" + (IsPickupInfoQualityEnabled() ? "on" : "off") + ", type=" + (IsPickupInfoTypeEnabled() ? "on" : "off") + ", effects=" + (IsPickupInfoEffectsEnabled() ? "on" : "off") + ", synergies=" + (IsPickupInfoSynergiesEnabled() ? "on" : "off") + ", summary=" + (IsPickupInfoSummaryEnabled() ? "on" : "off") + ", notes=" + (IsPickupInfoNotesEnabled() ? "on" : "off") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel experimental mode is " + (IsExperimentalModeEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Ammonomicon fast open is " + (IsAmmonomiconFastOpenEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Nearby pickup info mode is gameplay."));
             Logger.LogInfo(RandomLoadoutLog.Init("Reveal Map verbose logs are " + (IsMapTeleportVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Muncher verbose logs are " + (IsMuncherVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Floor teleport verbose logs are " + (IsFloorTeleportVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Boss Rush verbose logs are " + (IsBossRushVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command-panel health verbose logs are " + (IsCommandPanelHealthVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command-panel cursor verbose logs are " + (IsCommandPanelCursorVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Active-item grant verbose logs are " + (IsActiveItemGrantVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Active start-items preset is " + GetActiveStartItemsPreset() + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Nearby pickup gameplay info loaded: " + (_pickupGameplayRegistry != null ? _pickupGameplayRegistry.Count.ToString() : "0") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Boss Rush service initialized. Startup self-check is running."));
         }
 

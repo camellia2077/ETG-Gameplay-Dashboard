@@ -17,6 +17,7 @@ namespace RandomLoadout
             LoadoutEditor,
             About,
             Settings,
+            PickupInfoConfig,
             AdvancedTools,
             ControllerHelp,
             KeyboardHelp,
@@ -143,7 +144,8 @@ namespace RandomLoadout
         private const float PickupBrowserPanelHeight = 496f;
         private const float LoadoutEditorPanelHeight = 440f;
         private const float AboutPanelHeight = 404f;
-        private const float SettingsPanelHeight = 692f;
+        private const float SettingsPanelHeight = 732f;
+        private const float PickupInfoConfigPanelHeight = 428f;
         private const float AdvancedToolsPanelHeight = 254f;
         private const float ControllerHelpPanelHeight = 332f;
         private const float KeyboardHelpPanelHeight = 356f;
@@ -233,6 +235,17 @@ namespace RandomLoadout
             new ControllerFocusEntry("settings.experimental_mode", 7, 0),
         };
 
+        private static readonly ControllerFocusEntry[] PickupInfoConfigPageFocusEntries =
+        {
+            new ControllerFocusEntry("pickup_info_config.back", 0, 0),
+            new ControllerFocusEntry("pickup_info_config.quality", 1, 0),
+            new ControllerFocusEntry("pickup_info_config.type", 2, 0),
+            new ControllerFocusEntry("pickup_info_config.effects", 3, 0),
+            new ControllerFocusEntry("pickup_info_config.synergies", 4, 0),
+            new ControllerFocusEntry("pickup_info_config.summary", 5, 0),
+            new ControllerFocusEntry("pickup_info_config.notes", 6, 0),
+        };
+
         private static readonly ControllerFocusEntry[] CurrencyPageFocusEntries =
         {
             new ControllerFocusEntry("currency.max_health", 1, 0),
@@ -272,6 +285,20 @@ namespace RandomLoadout
         private readonly Action<string> _uiScalePresetSetter;
         private readonly Func<bool> _playerStatsPanelShownProvider;
         private readonly Action<bool> _playerStatsPanelShownSetter;
+        private readonly Func<bool> _pickupInfoOverlayEnabledProvider;
+        private readonly Action<bool> _pickupInfoOverlayEnabledSetter;
+        private readonly Func<bool> _pickupInfoQualityEnabledProvider;
+        private readonly Action<bool> _pickupInfoQualityEnabledSetter;
+        private readonly Func<bool> _pickupInfoTypeEnabledProvider;
+        private readonly Action<bool> _pickupInfoTypeEnabledSetter;
+        private readonly Func<bool> _pickupInfoEffectsEnabledProvider;
+        private readonly Action<bool> _pickupInfoEffectsEnabledSetter;
+        private readonly Func<bool> _pickupInfoSynergiesEnabledProvider;
+        private readonly Action<bool> _pickupInfoSynergiesEnabledSetter;
+        private readonly Func<bool> _pickupInfoSummaryEnabledProvider;
+        private readonly Action<bool> _pickupInfoSummaryEnabledSetter;
+        private readonly Func<bool> _pickupInfoNotesEnabledProvider;
+        private readonly Action<bool> _pickupInfoNotesEnabledSetter;
         private readonly Func<bool> _experimentalModeProvider;
         private readonly Action<bool> _experimentalModeSetter;
         private readonly Action<bool> _ammonomiconFastOpenEnabledSetter;
@@ -309,16 +336,16 @@ namespace RandomLoadout
         private GUIStyle _settingsInfoTextStyle;
         private GUIStyle _controllerHelpTitleStyle;
         private GUIStyle _controllerHelpTextStyle;
-        private GUIStyle _scrollViewStyle;
-        private GUIStyle _scrollbarBackgroundStyle;
-        private GUIStyle _verticalScrollbarThumbStyle;
-        private GUIStyle _horizontalScrollbarThumbStyle;
-        private GUIStyle _verticalScrollbarButtonStyle;
-        private GUIStyle _horizontalScrollbarButtonStyle;
-
         private bool _isVisible;
         private bool _showTeleportPanel;
         private bool _showPlayerStatsPanel;
+        private bool _showPickupInfoOverlay;
+        private bool _showPickupInfoQuality;
+        private bool _showPickupInfoType;
+        private bool _showPickupInfoEffects;
+        private bool _showPickupInfoSynergies;
+        private bool _showPickupInfoSummary;
+        private bool _showPickupInfoNotes;
         private bool _showExperimentalModeConfirmDialog;
         private bool _focusInputField;
         private bool _focusPickupSearchField;
@@ -326,6 +353,7 @@ namespace RandomLoadout
         private PanelPage _currentPage;
         private string _commandPageFocusedControlId = "cmd.settings";
         private string _settingsPageFocusedControlId = "settings.toggle_key";
+        private string _pickupInfoConfigFocusedControlId = "pickup_info_config.quality";
         private string _characterPageFocusedControlId = "characters.mode";
         private string _loadoutEditorFocusedControlId = "loadout.back";
         private string _pickupPageFocusedControlId = "pickups.back";

@@ -7,6 +7,7 @@ namespace RandomLoadout
             string textOutputPath,
             string jsonOutputPath,
             string groupedJsonOutputPath,
+            string namesJsonOutputPath,
             string rulePoolOutputPath,
             int entryCount,
             string failureReason)
@@ -15,6 +16,7 @@ namespace RandomLoadout
             TextOutputPath = textOutputPath ?? string.Empty;
             JsonOutputPath = jsonOutputPath ?? string.Empty;
             GroupedJsonOutputPath = groupedJsonOutputPath ?? string.Empty;
+            NamesJsonOutputPath = namesJsonOutputPath ?? string.Empty;
             RulePoolOutputPath = rulePoolOutputPath ?? string.Empty;
             EntryCount = entryCount;
             FailureReason = failureReason ?? string.Empty;
@@ -27,6 +29,8 @@ namespace RandomLoadout
         public string JsonOutputPath { get; private set; }
 
         public string GroupedJsonOutputPath { get; private set; }
+
+        public string NamesJsonOutputPath { get; private set; }
 
         public string RulePoolOutputPath { get; private set; }
 

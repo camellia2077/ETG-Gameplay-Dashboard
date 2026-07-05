@@ -140,12 +140,16 @@
     <Compile Include="Configuration\JsonLoadoutRuleFileProvider.Presets.cs" />
     <Compile Include="Configuration\JsonLoadoutRuleFileProvider.Save.cs" />
     <Compile Include="Configuration\JsonPickupAliasFileProvider.cs" />
+    <Compile Include="Configuration\JsonPickupGameplayProvider.cs" />
     <Compile Include="Configuration\LoadoutConfigResolutionResult.cs" />
     <Compile Include="Configuration\LoadoutRuleFileLoadResult.cs" />
     <Compile Include="Configuration\LoadoutRuleDefinition.cs" />
     <Compile Include="Configuration\LoadoutRuleFileModel.cs" />
     <Compile Include="Configuration\PickupAliasEntry.cs" />
     <Compile Include="Configuration\PickupAliasRegistry.cs" />
+    <Compile Include="Configuration\PickupGameplayEntry.cs" />
+    <Compile Include="Configuration\PickupGameplayRegistry.cs" />
+    <Compile Include="Configuration\PickupInfoTermsRegistry.cs" />
     <Compile Include="Configuration\RandomPoolSelectionStateProvider.cs" />
     <Compile Include="Configuration\StartItemsPresetNames.cs" />
     <Compile Include="Commands\GrantCommandExecutionResult.cs" />
@@ -176,6 +180,7 @@
     <Compile Include="Commands\InGameCommandController.LoadoutEditor.cs" />
     <Compile Include="Commands\InGameCommandController.LoadoutPickups.cs" />
     <Compile Include="Commands\InGameCommandController.PickupIcons.cs" />
+    <Compile Include="Commands\InGameCommandController.PickupInfoConfig.cs" />
     <Compile Include="Commands\InGameCommandController.PickupBrowser.cs" />
     <Compile Include="Commands\InGameCommandController.PlayerStats.cs" />
     <Compile Include="Commands\InGameCommandController.Settings.cs" />
@@ -223,9 +228,11 @@
     <Compile Include="Plugin.Bootstrap.cs" />
     <Compile Include="Plugin.Bootstrap.Setup.cs" />
     <Compile Include="Plugin.CatalogExport.cs" />
+    <Compile Include="Plugin.PickupWikiTips.cs" />
     <Compile Include="Plugin.RuntimeHooks.cs" />
     <Compile Include="Plugin.RunLifecycle.cs" />
     <Compile Include="Plugin.State.cs" />
+    <Compile Include="SharedScrollViewStyles.cs" />
     <Compile Include="UiScalePresetCatalog.cs" />
     <Compile Include="Runtime\BossRushEncounter.cs" />
     <Compile Include="Runtime\EtgFloorDefinition.cs" />
@@ -234,6 +241,7 @@
     <Compile Include="Runtime\BossRushHooks.cs" />
     <Compile Include="Runtime\CurrencyNoConsumeHooks.cs" />
     <Compile Include="Runtime\LockedAmmoHooks.cs" />
+    <Compile Include="Runtime\NearbyPickupTipService.cs" />
     <Compile Include="Runtime\RuntimeHookRegistry.cs" />
     <Compile Include="Runtime\BossRushService.cs" />
     <Compile Include="Runtime\BossRushService.Flow.cs" />

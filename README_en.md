@@ -36,6 +36,22 @@ For development notes, architecture expectations, and agent handoff guidance, re
 
 - [src/AGENTS.md](./src/AGENTS.md)
 
+## Data Sources And Attribution
+
+Some pickup gameplay information used by this project is derived from the `Enter the Gungeon` community wiki on `wiki.gg`:
+
+- <https://enterthegungeon.wiki.gg/>
+
+As indicated in the `wiki.gg` page footer, relevant page content is generally published under the `Creative Commons Attribution-ShareAlike 4.0 License` unless otherwise noted. This project fetches, cleans, restructures, and reformats that data for in-game reference use.
+
+Some Chinese item-name text used during development was also partially referenced from, and in some cases directly adopted from, the published text results of:
+
+- <https://github.com/Lynx3x/etg-itemtips-cn>
+
+That repository is published under the `MIT License`. This project only references and incorporates a subset of its Chinese text results and does not fully reuse or redistribute that repository as-is.
+
+This is an unofficial community project and is not affiliated with `wiki.gg`, `Dodge Roll`, or `Devolver Digital`. Original content licensing and site terms should be interpreted according to the source pages and the relevant upstream project or site notices.
+
 ## Credits / Open Source Dependencies
 
 Redistributed in the player-facing release package:

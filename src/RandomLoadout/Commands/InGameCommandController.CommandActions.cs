@@ -198,14 +198,14 @@ namespace RandomLoadout
                 string unavailableMessage = GetLocalizedFallback(
                     "result.blank_no_consume.unavailable",
                     "Blank no-consume service is unavailable.",
-                    "空包弹不消耗服务当前不可用。");
+                    "空响弹不消耗服务当前不可用。");
                 ShowStatus(unavailableMessage, true);
                 if (logger != null)
                 {
                     logger.LogWarning(RandomLoadoutLog.Command(GetLocalizedFallback(
                         "result.blank_no_consume.unavailable",
                         "Blank no-consume service is unavailable.",
-                        "空包弹不消耗服务当前不可用。")));
+                        "空响弹不消耗服务当前不可用。")));
                 }
 
                 return;

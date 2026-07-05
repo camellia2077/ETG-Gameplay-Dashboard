@@ -23,6 +23,11 @@ namespace RandomLoadout
             get { return DetectLanguageCode(); }
         }
 
+        public static string GameLanguageCode
+        {
+            get { return DetectLanguageCode(ignoreOverride: true); }
+        }
+
         public static void Initialize(string configDirectory)
         {
             _englishTable = LoadTable(DashboardFileLayout.GetEnglishLocalizationFilePath(configDirectory));
@@ -234,7 +239,13 @@ namespace RandomLoadout
 
         private static string DetectLanguageCode()
         {
-            if (!string.IsNullOrEmpty(_languageOverride) &&
+            return DetectLanguageCode(false);
+        }
+
+        private static string DetectLanguageCode(bool ignoreOverride)
+        {
+            if (!ignoreOverride &&
+                !string.IsNullOrEmpty(_languageOverride) &&
                 !string.Equals(_languageOverride, "auto", StringComparison.OrdinalIgnoreCase))
             {
                 return NormalizeLanguageCode(_languageOverride);

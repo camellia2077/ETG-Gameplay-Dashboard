@@ -78,6 +78,36 @@ namespace RandomLoadout
             return ResolveLocalizedLabelForCurrentUiLanguage(pickup.name);
         }
 
+        private static string GetPickupLabelForGameLanguage(PickupObject pickup)
+        {
+            if ((object)pickup == null)
+            {
+                return "<null>";
+            }
+
+            if (pickup.encounterTrackable != null)
+            {
+                string modifiedDisplayName = pickup.encounterTrackable.GetModifiedDisplayName();
+                if (!string.IsNullOrEmpty(modifiedDisplayName))
+                {
+                    return ResolveLocalizedLabelForGameLanguage(modifiedDisplayName);
+                }
+
+                if (pickup.encounterTrackable.journalData != null &&
+                    !string.IsNullOrEmpty(pickup.encounterTrackable.journalData.PrimaryDisplayName))
+                {
+                    return ResolveLocalizedLabelForGameLanguage(pickup.encounterTrackable.journalData.PrimaryDisplayName);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(pickup.DisplayName))
+            {
+                return ResolveLocalizedLabelForGameLanguage(pickup.DisplayName);
+            }
+
+            return ResolveLocalizedLabelForGameLanguage(pickup.name);
+        }
+
         private static string GetEnglishPickupLabel(PickupObject pickup)
         {
             if ((object)pickup == null)
@@ -106,7 +136,17 @@ namespace RandomLoadout
 
         private static string ResolveLocalizedLabelForCurrentUiLanguage(string rawLabel)
         {
-            if (string.Equals(GuiText.CurrentLanguageCode, "en", StringComparison.OrdinalIgnoreCase))
+            return ResolveLocalizedLabelForLanguage(rawLabel, GuiText.CurrentLanguageCode);
+        }
+
+        private static string ResolveLocalizedLabelForGameLanguage(string rawLabel)
+        {
+            return ResolveLocalizedLabelForLanguage(rawLabel, GuiText.GameLanguageCode);
+        }
+
+        private static string ResolveLocalizedLabelForLanguage(string rawLabel, string languageCode)
+        {
+            if (string.Equals(languageCode, "en", StringComparison.OrdinalIgnoreCase))
             {
                 string englishLabel = ResolveLocalizedLabelFromBackupTables(rawLabel);
                 if (!string.IsNullOrEmpty(englishLabel) && !string.Equals(englishLabel, rawLabel, StringComparison.Ordinal))

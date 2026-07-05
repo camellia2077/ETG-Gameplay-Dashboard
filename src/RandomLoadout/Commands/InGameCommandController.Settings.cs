@@ -77,7 +77,6 @@ namespace RandomLoadout
                 GuiText.Get("gui.settings.setting.language"),
                 GetLanguageDisplayName(GetConfiguredLanguage()),
                 delegate { ExecuteToggleLanguage(logger); });
-
             rowTop += 134f;
             DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.experimental"));
             DrawSettingsActionRow(

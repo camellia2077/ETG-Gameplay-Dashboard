@@ -88,6 +88,8 @@ namespace RandomLoadout
 
                 _commandController.OnGUI(player, Logger);
             }
+
+            DrawNearbyPickupTipOverlay();
         }
 
         private void EnsureResolvedLoadoutConfig()
@@ -243,6 +245,41 @@ namespace RandomLoadout
             return _showPlayerStatsPanelConfig != null && _showPlayerStatsPanelConfig.Value;
         }
 
+        private bool IsPickupInfoOverlayEnabled()
+        {
+            return _showPickupInfoOverlayConfig == null || _showPickupInfoOverlayConfig.Value;
+        }
+
+        private bool IsPickupInfoQualityEnabled()
+        {
+            return _showPickupInfoQualityConfig == null || _showPickupInfoQualityConfig.Value;
+        }
+
+        private bool IsPickupInfoTypeEnabled()
+        {
+            return _showPickupInfoTypeConfig == null || _showPickupInfoTypeConfig.Value;
+        }
+
+        private bool IsPickupInfoEffectsEnabled()
+        {
+            return _showPickupInfoEffectsConfig == null || _showPickupInfoEffectsConfig.Value;
+        }
+
+        private bool IsPickupInfoSynergiesEnabled()
+        {
+            return _showPickupInfoSynergiesConfig == null || _showPickupInfoSynergiesConfig.Value;
+        }
+
+        private bool IsPickupInfoSummaryEnabled()
+        {
+            return _showPickupInfoSummaryConfig == null || _showPickupInfoSummaryConfig.Value;
+        }
+
+        private bool IsPickupInfoNotesEnabled()
+        {
+            return _showPickupInfoNotesConfig == null || _showPickupInfoNotesConfig.Value;
+        }
+
         private void SetPlayerStatsPanelShown(bool isEnabled)
         {
             if (_showPlayerStatsPanelConfig != null)
@@ -252,6 +289,83 @@ namespace RandomLoadout
             }
 
             Logger.LogInfo(RandomLoadoutLog.Command("Player stats side panel " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetPickupInfoOverlayEnabled(bool isEnabled)
+        {
+            if (_showPickupInfoOverlayConfig != null)
+            {
+                _showPickupInfoOverlayConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Pickup info overlay " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetPickupInfoQualityEnabled(bool isEnabled)
+        {
+            if (_showPickupInfoQualityConfig != null)
+            {
+                _showPickupInfoQualityConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Pickup info quality section " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetPickupInfoTypeEnabled(bool isEnabled)
+        {
+            if (_showPickupInfoTypeConfig != null)
+            {
+                _showPickupInfoTypeConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Pickup info type section " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetPickupInfoEffectsEnabled(bool isEnabled)
+        {
+            if (_showPickupInfoEffectsConfig != null)
+            {
+                _showPickupInfoEffectsConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Pickup info effects section " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetPickupInfoSynergiesEnabled(bool isEnabled)
+        {
+            if (_showPickupInfoSynergiesConfig != null)
+            {
+                _showPickupInfoSynergiesConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Pickup info synergies section " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetPickupInfoSummaryEnabled(bool isEnabled)
+        {
+            if (_showPickupInfoSummaryConfig != null)
+            {
+                _showPickupInfoSummaryConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Pickup info summary section " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetPickupInfoNotesEnabled(bool isEnabled)
+        {
+            if (_showPickupInfoNotesConfig != null)
+            {
+                _showPickupInfoNotesConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Pickup info notes section " + (isEnabled ? "enabled" : "disabled") + "."));
         }
 
         private void SetExperimentalModeEnabled(bool isEnabled)
@@ -320,6 +434,11 @@ namespace RandomLoadout
         private bool IsCommandPanelCursorVerboseLoggingEnabled()
         {
             return _commandPanelCursorVerboseLogsConfig != null && _commandPanelCursorVerboseLogsConfig.Value;
+        }
+
+        private bool IsActiveItemGrantVerboseLoggingEnabled()
+        {
+            return _activeItemGrantVerboseLogsConfig != null && _activeItemGrantVerboseLogsConfig.Value;
         }
 
         private string NormalizeUiScalePreset(string presetName)

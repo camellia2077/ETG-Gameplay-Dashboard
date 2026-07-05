@@ -24,6 +24,11 @@ namespace RandomLoadout
                 _commandController.Update();
             }
 
+            if (_nearbyPickupTipService != null)
+            {
+                _nearbyPickupTipService.Update(player);
+            }
+
             if (_rapidFireToggleService != null)
             {
                 _rapidFireToggleService.Update(player);

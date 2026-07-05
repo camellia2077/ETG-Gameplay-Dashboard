@@ -145,11 +145,15 @@ Use this route for item names, aliases, pickup cards, quality filters, categorie
 | `src/RandomLoadout/Etg/EtgPickupGranter.cs` | actual grant behavior against the player |
 | `src/RandomLoadout/Etg/EtgOwnedPickupReader.cs` | current player inventory reading |
 | `src/RandomLoadout/Etg/EtgPickupCatalogExporter.cs` | exporting pickup metadata |
+| `src/RandomLoadout/Runtime/NearbyPickupTipService.cs` | nearby dropped-pickup detection for gameplay overlay lookups |
 | `src/RandomLoadout/Commands/InGameCommandController.PickupBrowser.cs` | browser filtering and item card display |
 | `src/RandomLoadout/Configuration/JsonPickupAliasFileProvider.cs` | alias file loading |
 | `src/RandomLoadout/Configuration/PickupAliasRegistry.cs` | alias lookup |
 | `defaults/catalog/RandomLoadout.pickups.json` | shipped pickup catalog |
 | `defaults/catalog/RandomLoadout.pickups.by-category.json` | shipped grouped pickup catalog |
+| `RandomLoadout.pickup-names.game-language.json` in game config | compact exported pickup-name snapshot aligned to the current ETG runtime language |
+| `defaults/catalog/RandomLoadout.pickup-gameplay.en.json` | shipped nearby-pickup gameplay catalog |
+| `defaults/catalog/RandomLoadout.pickup-gameplay.zh-CN.work.json` | Simplified Chinese gameplay localization overlay/work file |
 | `defaults/config/ETG-Gameplay-Dashboard.aliases.json5` | shipped aliases |
 
 Read next:

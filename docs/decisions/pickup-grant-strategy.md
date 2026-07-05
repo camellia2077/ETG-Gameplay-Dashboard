@@ -60,7 +60,8 @@
 * 回退路径：
   * `Gun` 回退 `AddGunToInventory(...)`
   * `Passive` 回退 `AcquirePassiveItem(...)`
-  * `Active` 继续依赖 `LootEngine.TryGivePrefabToPlayer(...)`
+  * `Active` 在 grant 前先确保 `maxActiveItemsHeld >= 当前主动数 + 1`，再走 `LootEngine.TryGivePrefabToPlayer(...)`
+  * 如果主动道具在扩容后仍被 ETG 拒绝，才继续回退为掉落到玩家旁边
 
 ### 日志
 

@@ -93,6 +93,9 @@ Important files:
 - `presets\preset.casey_synergies.json`
 - `RandomLoadout.pickups.json`
 - `RandomLoadout.pickups.by-category.json`
+- `RandomLoadout.pickup-names.game-language.json`
+- `RandomLoadout.pickup-gameplay.en.json`
+- `RandomLoadout.pickup-gameplay.zh-CN.work.json`
 - `RandomLoadout.rules.full-pool.json5`
 
 Default behavior:
@@ -100,6 +103,8 @@ Default behavior:
 - existing config files are preserved unless `--overwrite-config` is used
 - repository copies under `defaults/` are read-only baselines
 - the plugin exports fresh runtime catalog files into the game directory after startup
+- `RandomLoadout.pickup-names.game-language.json` reflects the game's actual runtime language, so if ETG is running in
+  Simplified Chinese when the export happens, that file can be used as a game-aligned Chinese pickup-name reference
 
 Fallback behavior:
 

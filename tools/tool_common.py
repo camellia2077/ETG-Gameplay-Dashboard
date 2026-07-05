@@ -25,6 +25,8 @@ DEFAULT_CONFIG_RELATIVE_PATHS = (
 DEFAULT_CATALOG_FILE_NAMES = (
     "RandomLoadout.pickups.json",
     "RandomLoadout.pickups.by-category.json",
+    "RandomLoadout.pickup-gameplay.en.json",
+    "RandomLoadout.pickup-gameplay.zh-CN.work.json",
     "RandomLoadout.rules.full-pool.json5",
 )
 REQUIRED_BUILD_DLLS = (

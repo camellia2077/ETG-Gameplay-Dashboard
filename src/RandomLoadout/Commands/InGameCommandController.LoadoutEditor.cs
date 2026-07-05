@@ -232,7 +232,7 @@ namespace RandomLoadout
                 return;
             }
 
-            Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (_cachedLoadoutPresetEntries.Length * PickupRowHeight) + 4f);
+            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (_cachedLoadoutPresetEntries.Length * PickupRowHeight) + 4f);
             _loadoutPresetScrollPosition = BeginCommandScrollView(listRect, _loadoutPresetScrollPosition, viewRect);
             for (int i = 0; i < _cachedLoadoutPresetEntries.Length; i++)
             {
@@ -295,7 +295,7 @@ namespace RandomLoadout
                 return;
             }
 
-            Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (_cachedLoadoutRuleEntries.Length * LoadoutRuleRowHeight) + 4f);
+            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (_cachedLoadoutRuleEntries.Length * LoadoutRuleRowHeight) + 4f);
             _loadoutEditorScrollPosition = BeginCommandScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
             for (int i = 0; i < _cachedLoadoutRuleEntries.Length; i++)
             {
@@ -367,7 +367,7 @@ namespace RandomLoadout
                 return;
             }
 
-            Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (_cachedLoadoutRandomPoolEntries.Length * PickupRowHeight) + 4f);
+            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (_cachedLoadoutRandomPoolEntries.Length * PickupRowHeight) + 4f);
             _loadoutEditorScrollPosition = BeginCommandScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
             for (int i = 0; i < _cachedLoadoutRandomPoolEntries.Length; i++)
             {

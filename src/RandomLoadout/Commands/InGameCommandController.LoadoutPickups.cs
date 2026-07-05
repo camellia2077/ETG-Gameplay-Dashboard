@@ -88,7 +88,7 @@ namespace RandomLoadout
                 return;
             }
 
-            Rect viewRect = new Rect(0f, 0f, listRect.width - 18f, (_cachedLoadoutPickupEntries.Length * PickupRowHeight) + 4f);
+            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (_cachedLoadoutPickupEntries.Length * PickupRowHeight) + 4f);
             _loadoutEditorScrollPosition = BeginCommandScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
             for (int i = 0; i < _cachedLoadoutPickupEntries.Length; i++)
             {

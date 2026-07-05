@@ -84,7 +84,7 @@ namespace RandomLoadout
                     }),
                 new PickupActionRowDefinition(
                     GameUiAtlasSpriteBlankPickup,
-                    GetLocalizedFallback("gui.command.label.blank", "Blank", "空包弹"),
+                    GetLocalizedFallback("gui.command.label.blank", "Blank", "空响弹"),
                     new[]
                     {
                         new PickupActionButtonDefinition("cmd.player.add_blank", GuiText.Get("gui.command.player.blank.add_one"), delegate { ExecuteAddBlank(player, logger); }, _buttonStyle),

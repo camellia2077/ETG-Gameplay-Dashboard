@@ -16,6 +16,8 @@ namespace RandomLoadout
             new ControllerFocusEntry("cmd.general.reveal_map", 3, 2),
             new ControllerFocusEntry("cmd.general.random_item", 3, 3),
             new ControllerFocusEntry("cmd.general.stats", 4, 0),
+            new ControllerFocusEntry("cmd.general.pickup_info", 4, 1),
+            new ControllerFocusEntry("cmd.general.pickup_info_config", 4, 2),
         };
 
         private void DrawGeneralContent(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
@@ -76,6 +78,20 @@ namespace RandomLoadout
             {
                 SetPlayerStatsPanelShown(!_showPlayerStatsPanel);
             }
+
+            string pickupInfoButtonLabel = _showPickupInfoOverlay
+                ? GetLocalizedFallback("gui.command.button.pickup_info_on", "Pickup Info: On", "物品图鉴：开")
+                : GetLocalizedFallback("gui.command.button.pickup_info_off", "Pickup Info: Off", "物品图鉴：关");
+            GUIStyle pickupInfoButtonStyle = _showPickupInfoOverlay ? _enabledButtonStyle : _buttonStyle;
+            if (DrawControllerButton(new Rect(secondColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.general.pickup_info", pickupInfoButtonLabel, pickupInfoButtonStyle))
+            {
+                ExecuteTogglePickupInfoOverlay();
+            }
+
+            if (DrawControllerButton(new Rect(thirdColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.general.pickup_info_config", GetLocalizedFallback("gui.command.button.pickup_info_config", "Pickup Info Config", "物品图鉴设置"), _buttonStyle))
+            {
+                OpenPickupInfoConfigPage();
+            }
         }
 
         private CommandPageActionBinding[] GetGeneralCommandPageActionBindings(PlayerController player)
@@ -91,7 +107,19 @@ namespace RandomLoadout
                 new CommandPageActionBinding("cmd.general.reveal_map", delegate { ExecuteRevealCurrentFloorMap(player, null); }),
                 new CommandPageActionBinding("cmd.general.random_item", delegate { ExecuteRandom(player, null); }),
                 new CommandPageActionBinding("cmd.general.stats", delegate { SetPlayerStatsPanelShown(!_showPlayerStatsPanel); }),
+                new CommandPageActionBinding("cmd.general.pickup_info", delegate { ExecuteTogglePickupInfoOverlay(); }),
+                new CommandPageActionBinding("cmd.general.pickup_info_config", delegate { OpenPickupInfoConfigPage(); }),
             };
+        }
+
+        private void ExecuteTogglePickupInfoOverlay()
+        {
+            SetPickupInfoOverlayShown(!_showPickupInfoOverlay);
+            ShowStatus(
+                _showPickupInfoOverlay
+                    ? GetLocalizedFallback("result.pickup_info_overlay.enabled", "Pickup Info enabled. Show detailed item info when you approach dropped pickups.", "已开启物品图鉴。靠近掉落物时显示详细物品信息。")
+                    : GetLocalizedFallback("result.pickup_info_overlay.disabled", "Pickup Info disabled.", "已关闭物品图鉴。"),
+                false);
         }
     }
 }

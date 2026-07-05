@@ -43,6 +43,10 @@ Before implementing behavior against game/runtime APIs:
 - In particular, avoid `--overwrite-config` for normal deploys.
 - Preserve user rules, aliases, language settings, and active preset choices in the game `BepInEx\config` directory.
 - When localization defaults change, copy only localization files if the user needs the in-game text updated.
+- Feature-specific verbose debug logs must default to `false` in `BepInEx\config\ETG-Gameplay-Dashboard.cfg`.
+- When you add or change a verbose log switch, document both:
+  - how to enable or disable it in `docs/operations/logging.md`
+  - what it captures in the matching feature logging guide under `docs/operations/`
 
 ## Common Commands
 
@@ -59,3 +63,4 @@ Before implementing behavior against game/runtime APIs:
 - If a change touches runtime hooks, scene flow, game state, item granting, config loading, or deployment, update or consult the matching docs.
 - For user-facing UI or behavior changes, verify with at least a Debug build.
 - For ETG runtime changes, inspect the BepInEx log when behavior cannot be validated by build output alone.
+- When debugging runtime issues, prefer turning on only the relevant feature-specific verbose log switch and leave unrelated verbose switches off.

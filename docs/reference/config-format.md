@@ -18,6 +18,42 @@ The mod also maintains `RandomLoadout.selection-state.json5` automatically. This
 orders and the next index for each active preset id so random start-item pools cycle through a shuffled order across
 runs. It is runtime state, not a user-authored rules file.
 
+## Catalog And Web-Derived Data
+
+Repository-shipped catalog snapshots live under `defaults/catalog/`.
+
+Use this directory for runtime-ready, normalized data files that the mod may deploy and read directly, for example:
+
+- `RandomLoadout.pickups.json`
+- `RandomLoadout.pickups.by-category.json`
+- `RandomLoadout.pickup-gameplay.en.json`
+- `RandomLoadout.pickup-gameplay.zh-CN.work.json`
+
+For web-derived content such as wiki descriptions, store only the runtime-ready JSON snapshot here. Do not store raw
+HTML pages or full webpage dumps in `defaults/catalog/`.
+
+Preferred pattern:
+
+- `tools/data/`: generator scripts and optional scrape/cache helpers
+- `defaults/catalog/`: generated, compact JSON that is safe for runtime use and repository distribution
+
+For gameplay-focused nearby-pickup info, the shipped JSON should stay compact and structured. Keep fields such as:
+
+- `pickupId`
+- `englishDisplayName`
+- `wikiKey`
+- stat fields such as `quality`, `pickupType`, `gunClass`, `dps`, `reloadTime`
+- gameplay text fields such as `englishGameplaySummary`, `englishEffectHighlights`, `englishSynergyHighlights`, `englishUsageNotes`
+
+Extra scrape-only artifacts belong outside `defaults/catalog/`.
+
+The optional Simplified Chinese gameplay work file mirrors the localization overlay layer and may be empty until
+translation work begins.
+
+Legacy files such as `RandomLoadout.pickup-wiki-tips.en.json` and
+`RandomLoadout.pickup-wiki-tips.zh-CN.work.json` may still exist in the repository for migration/reference purposes,
+but they are no longer part of the active runtime nearby-pickup display path.
+
 ## Supported JSON5 Features
 
 The loader supports these JSON5 conveniences:
