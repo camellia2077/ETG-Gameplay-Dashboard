@@ -53,5 +53,6 @@
     <Compile Include="Selection\SelectedPickup.cs" />
     <Compile Include="Selection\SelectionWarning.cs" />
   </ItemGroup>
+  <Import Project="..\..\build\LicenseHeaderCheck.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -115,7 +118,8 @@ namespace RandomLoadout
             for (int i = 0; i < localizedEntries.Count; i++)
             {
                 PickupGameplayEntry localizedEntry = localizedEntries[i];
-                if (localizedEntry == null || localizedEntry.PickupId <= 0)
+                // ETG pickup IDs are zero-based. Keep 0 as a valid pickup ID and only reject negatives.
+                if (localizedEntry == null || localizedEntry.PickupId < 0)
                 {
                     continue;
                 }
@@ -202,7 +206,8 @@ namespace RandomLoadout
             {
                 string body = objectBodies[i];
                 int pickupId = ParseInt(body, "pickupId", -1);
-                if (pickupId <= 0)
+                // ETG pickup IDs are zero-based. Keep 0 as a valid pickup ID and only reject negatives.
+                if (pickupId < 0)
                 {
                     continue;
                 }

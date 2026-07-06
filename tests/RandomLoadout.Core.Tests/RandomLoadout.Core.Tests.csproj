@@ -98,5 +98,6 @@
       <Name>RandomLoadout.Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <Import Project="..\..\build\LicenseHeaderCheck.targets" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

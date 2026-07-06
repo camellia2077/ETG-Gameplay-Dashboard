@@ -1,3 +1,6 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
 using RandomLoadout.Core;
 using UnityEngine;
 using System;
@@ -26,12 +29,16 @@ namespace RandomLoadout
 
             if (_nearbyPickupTipService != null)
             {
-                _nearbyPickupTipService.Update(player);
+                long startedAtTimestamp = BeginPerformanceSample();
+                _nearbyPickupTipService.Update(player, IsPickupInfoOverlayEnabled());
+                LogPerformanceStep("NearbyPickupTipService.Update", startedAtTimestamp);
             }
 
             if (_rapidFireToggleService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _rapidFireToggleService.Update(player);
+                LogPerformanceStep("RapidFireToggleService.Update", startedAtTimestamp);
             }
 
             if (_autoReloadToggleService != null &&
@@ -39,48 +46,68 @@ namespace RandomLoadout
             {
                 // No-consume mode intentionally preserves the current clip state, including "last bullet"
                 // behaviors that some guns use for special effects. Infinite-reserve mode still reloads.
+                long startedAtTimestamp = BeginPerformanceSample();
                 _autoReloadToggleService.Update(player);
+                LogPerformanceStep("AutoReloadToggleService.Update", startedAtTimestamp);
             }
 
             if (_blankNoConsumeToggleService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _blankNoConsumeToggleService.Update(player);
+                LogPerformanceStep("BlankNoConsumeToggleService.Update", startedAtTimestamp);
             }
 
             if (_armorNoConsumeToggleService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _armorNoConsumeToggleService.Update(player);
+                LogPerformanceStep("ArmorNoConsumeToggleService.Update", startedAtTimestamp);
             }
 
             if (_keyNoConsumeToggleService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _keyNoConsumeToggleService.Update(player);
+                LogPerformanceStep("KeyNoConsumeToggleService.Update", startedAtTimestamp);
             }
 
             if (_currencyNoConsumeToggleService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _currencyNoConsumeToggleService.Update(player);
+                LogPerformanceStep("CurrencyNoConsumeToggleService.Update", startedAtTimestamp);
             }
 
             if (_invincibilityToggleService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _invincibilityToggleService.Update(player);
+                LogPerformanceStep("InvincibilityToggleService.Update", startedAtTimestamp);
             }
 
             if (_ammoModeToggleService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _ammoModeToggleService.Update(player);
+                LogPerformanceStep("AmmoModeToggleService.Update", startedAtTimestamp);
             }
 
             if (_playerHealthOverrideService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _playerHealthOverrideService.Update(player);
+                LogPerformanceStep("PlayerHealthOverrideService.Update", startedAtTimestamp);
             }
 
             if (_playerActiveItemCapacityOverrideService != null)
             {
+                long startedAtTimestamp = BeginPerformanceSample();
                 _playerActiveItemCapacityOverrideService.Update(player);
+                LogPerformanceStep("PlayerActiveItemCapacityOverrideService.Update", startedAtTimestamp);
             }
+
+            RecordPerformanceFrame();
 
             if (_sceneWatcher == null || !_sceneWatcher.IsPollDue(Time.unscaledTime))
             {
@@ -93,6 +120,8 @@ namespace RandomLoadout
 
         private void OnNewLevelFullyLoaded()
         {
+            ScheduleGameWindowFocusRetryAfterSceneReady();
+
             if (_bossRushService != null)
             {
                 _bossRushService.NotifyLevelLoaded();
@@ -103,6 +132,7 @@ namespace RandomLoadout
 
         private void TryHandleCurrentScene(string source)
         {
+            long startedAtTimestamp = BeginPerformanceSample();
             GameManager gameManager = GameManager.Instance;
             if ((object)gameManager == null)
             {
@@ -118,9 +148,15 @@ namespace RandomLoadout
             PlayerController player = gameManager.PrimaryPlayer;
             int playerInstanceId = (object)player != null ? player.GetInstanceID() : 0;
             RunLifecycleObservation lifecycle = _runLifecycleTracker.Observe(sceneName, playerInstanceId);
+            UpdateGameplayPerformanceWindow(lifecycle);
             if (lifecycle.SceneChanged)
             {
+                MarkPerformanceEvent("Scene change via " + source + ": " + lifecycle.PreviousSceneName + " -> " + lifecycle.SceneName);
                 Logger.LogInfo(RandomLoadoutLog.Run("Observed scene change via " + source + ": " + lifecycle.PreviousSceneName + " -> " + lifecycle.SceneName));
+                if (string.Equals(lifecycle.SceneName, CharacterSelectSceneName, StringComparison.Ordinal))
+                {
+                    ScheduleGameWindowFocusRetryAfterSceneReady();
+                }
             }
 
             if (_bossRushService != null)
@@ -156,6 +192,7 @@ namespace RandomLoadout
 
             if (TryProcessPendingTeleport(lifecycle, gameManager, player))
             {
+                LogPerformanceStep("TryHandleCurrentScene", startedAtTimestamp);
                 return;
             }
 
@@ -213,10 +250,12 @@ namespace RandomLoadout
             }
 
             GrantConfiguredLoadout(player, lifecycle.SceneName);
+            LogPerformanceStep("TryHandleCurrentScene", startedAtTimestamp);
         }
 
         private bool BeginDeferredTeleportFromFoyer(EtgFloorDefinition floorDefinition, string labelKey, string commandText)
         {
+            long startedAtTimestamp = BeginPerformanceSample();
             GameManager gameManager = GameManager.Instance;
             if ((object)gameManager == null || floorDefinition == null)
             {
@@ -235,6 +274,7 @@ namespace RandomLoadout
             _pendingTeleportCommandText = commandText ?? string.Empty;
             _pendingTeleportReadySceneName = string.Empty;
             _pendingTeleportReadyFrames = 0;
+            MarkPerformanceEvent("Deferred teleport staged for " + floorDefinition.CommandToken);
 
             try
             {
@@ -252,6 +292,10 @@ namespace RandomLoadout
                     keepFloor.LoadSceneName +
                     ".");
                 gameManager.LoadCustomLevel(keepFloor.LoadSceneName);
+                LogPerformanceOperation(
+                    "BeginDeferredTeleportFromFoyer",
+                    startedAtTimestamp,
+                    "TargetToken=" + floorDefinition.CommandToken + ", BootstrapLoadScene=" + keepFloor.LoadSceneName);
                 return true;
             }
             catch (Exception exception)
@@ -272,6 +316,7 @@ namespace RandomLoadout
 
         private bool TryProcessPendingTeleport(RunLifecycleObservation lifecycle, GameManager gameManager, PlayerController player)
         {
+            long startedAtTimestamp = BeginPerformanceSample();
             if (_pendingTeleportFloor == null)
             {
                 return false;
@@ -291,6 +336,7 @@ namespace RandomLoadout
 
                 _pendingTeleportReadySceneName = lifecycle.SceneName;
                 _pendingTeleportReadyFrames = 0;
+                MarkPerformanceEvent("Deferred teleport armed in " + lifecycle.SceneName);
                 LogFloorTeleportRunInfo(
                     "Deferred teleport armed after entering bootstrap floor. Scene=" +
                     lifecycle.SceneName +
@@ -313,6 +359,7 @@ namespace RandomLoadout
                     _pendingTeleportFloor.CommandToken +
                     ".");
                 _pendingTeleportReadySceneName = lifecycle.SceneName;
+                MarkPerformanceEvent("Deferred teleport re-armed in " + lifecycle.SceneName);
                 return true;
             }
 
@@ -334,6 +381,7 @@ namespace RandomLoadout
                 }
 
                 _pendingTeleportReadyFrames = 0;
+                LogPerformanceStep("TryProcessPendingTeleport", startedAtTimestamp);
                 return true;
             }
 
@@ -342,6 +390,7 @@ namespace RandomLoadout
                 _pendingTeleportReadyFrames % 30 == 0 ||
                 _pendingTeleportReadyFrames == DeferredTeleportRequiredReadyFrames)
             {
+                MarkPerformanceEvent("Deferred teleport ready " + _pendingTeleportReadyFrames + "/" + DeferredTeleportRequiredReadyFrames);
                 LogFloorTeleportRunInfo(
                     "Deferred teleport ready check " +
                     _pendingTeleportReadyFrames +
@@ -356,6 +405,7 @@ namespace RandomLoadout
 
             if (_pendingTeleportReadyFrames < DeferredTeleportRequiredReadyFrames)
             {
+                LogPerformanceStep("TryProcessPendingTeleport", startedAtTimestamp);
                 return true;
             }
 
@@ -366,6 +416,7 @@ namespace RandomLoadout
 
             try
             {
+                MarkPerformanceEvent("Deferred teleport executing " + pendingFloor.CommandToken);
                 LogFloorTeleportRunInfo(
                     "Executing deferred teleport. Scene=" +
                     lifecycle.SceneName +
@@ -379,6 +430,10 @@ namespace RandomLoadout
                     pendingLabelKey +
                     ".");
                 gameManager.LoadCustomLevel(pendingFloor.LoadSceneName);
+                LogPerformanceOperation(
+                    "ExecuteDeferredTeleport",
+                    startedAtTimestamp,
+                    "Scene=" + lifecycle.SceneName + ", TargetToken=" + pendingFloor.CommandToken);
             }
             catch (Exception exception)
             {
@@ -506,6 +561,8 @@ namespace RandomLoadout
 
         private void GrantConfiguredLoadout(PlayerController player, string sceneName)
         {
+            long operationStartedAt = BeginPerformanceSample();
+            MarkPerformanceEvent("Automatic loadout grant in " + sceneName);
             EnsureResolvedLoadoutConfig();
             RefreshActivePresetPickupsForGrant();
 
@@ -541,6 +598,7 @@ namespace RandomLoadout
             {
                 SelectedPickup selection = selectionResult.Selections[i];
                 EtgGrantOutcome outcome;
+                long grantStartedAt = BeginPerformanceSample();
                 try
                 {
                     outcome = _pickupGranter.Grant(player, selection);
@@ -557,6 +615,8 @@ namespace RandomLoadout
                             exception.Message));
                     continue;
                 }
+
+                LogPerformanceStep("EtgPickupGranter.Grant", grantStartedAt);
 
                 if (outcome.Succeeded)
                 {
@@ -579,6 +639,10 @@ namespace RandomLoadout
             }
 
             GrantConfiguredPresetPickups(player);
+            LogPerformanceOperation(
+                "GrantConfiguredLoadout",
+                operationStartedAt,
+                "Scene=" + sceneName + ", SelectedPickupCount=" + selectionResult.Selections.Length + ", PresetPickupCount=" + (_activePresetPickups != null ? _activePresetPickups.Length : 0));
         }
 
         private void RefreshActivePresetPickupsForGrant()

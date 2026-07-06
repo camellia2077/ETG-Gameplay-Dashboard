@@ -1,3 +1,6 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
 namespace RandomLoadout
 {
     internal static class RandomLoadoutLog
@@ -38,6 +41,11 @@ namespace RandomLoadout
         public static string Command(string message)
         {
             return Format("Command", message);
+        }
+
+        public static string Performance(string message)
+        {
+            return Format("Performance", message);
         }
 
         public static string Alias(string message)

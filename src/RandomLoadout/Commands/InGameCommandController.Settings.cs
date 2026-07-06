@@ -1,3 +1,6 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
 using BepInEx.Logging;
 using UnityEngine;
 
@@ -116,8 +119,8 @@ namespace RandomLoadout
         {
             return GetLocalizedFallback(
                 string.Empty,
-                "This project is open source, free, and ad-free. Resale is prohibited.",
-                "本项目开源、免费、无广告，禁止倒卖。");
+                "This project is open source, free, and ad-free. Please prefer the official GitHub or Gitee release pages to verify integrity and avoid repackaged builds with ads or tampering.",
+                "本项目开源、免费、无广告。建议优先从 GitHub 或 Gitee 官方发布页下载，便于校验完整性，避免第三方打包版本被加广告或篡改。");
         }
 
         private void DrawSettingsSectionLabel(float left, float top, float width, string text)

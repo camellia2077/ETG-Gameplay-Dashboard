@@ -73,7 +73,6 @@ Legacy wiki-tip localization data is intentionally bilingual:
   `python .\tools\logs\read_log.py --preset bossrush --preset error --tail 200 --dedupe-consecutive --ignore-case`
 - `python .\tools\devtools\check_naming.py --verbose`
   Run the repository-specific naming checker for `src/**/*.cs`.
-
 ## Read Next
 
 - Build and environment details:

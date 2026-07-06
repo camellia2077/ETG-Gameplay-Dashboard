@@ -41,6 +41,7 @@ RandomLoadout-written log lines use structured prefixes such as:
 - `[RandomLoadout][BossRush]`
 - `[RandomLoadout][Grant]`
 - `[RandomLoadout][Command]`
+- `[RandomLoadout][Performance]`
 
 These prefixes separate plugin logs from Unity, ETG, BepInEx, and other mods.
 
@@ -63,6 +64,9 @@ EnableBossRushVerboseLogs = false
 EnableCommandPanelHealthVerboseLogs = false
 EnableCommandPanelCursorVerboseLogs = false
 EnableActiveItemGrantVerboseLogs = false
+EnableNearbyPickupVerboseLogs = false
+EnableStartupWindowFocusVerboseLogs = false
+EnablePerformanceVerboseLogs = false
 ```
 
 Use them only while actively reproducing an issue. Leave them off for normal play.
@@ -76,6 +80,9 @@ Feature guides:
 - [Command-Panel Health Logging](./logging-command-panel-health.md)
 - [Command-Panel Cursor Logging](./logging-command-panel-cursor.md)
 - [Active-Item Grant Logging](./logging-active-item-grant.md)
+- [Nearby Pickup Logging](./logging-nearby-pickup.md)
+- [Startup Window Focus](./startup-window-focus.md)
+- [Performance Logging](./logging-performance.md)
 
 ## Startup Self-Check
 
@@ -108,6 +115,9 @@ After any hook, scene, Boss Rush, character-select-hub, reward, pause-flow, or c
 - command-panel health rollback diagnostics when heart or armor HUD animations replay unexpectedly
 - command-panel cursor diagnostics when controller-to-mouse handoff makes the in-game cursor disappear or flicker
 - active-item grant diagnostics when active items drop near the player instead of entering the active-item bar
+- nearby-pickup diagnostics when the overlay does not appear for dropped loot or shop merchandise
+- startup window-focus diagnostics when Steam launch enters audio playback but does not fully foreground the game window
+- performance diagnostics when entering a run causes frame drops, long frames, or scene-transition stutter
 
 Use [Testing Matrix](../reference/testing-matrix.md) to decide the rest of the validation set.
 
@@ -135,6 +145,8 @@ python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common
 
 ## Read Next
 
+- Startup window focus diagnostics:
+  [./startup-window-focus.md](./startup-window-focus.md)
 - Map reveal diagnostics:
   [./logging-map-teleport.md](./logging-map-teleport.md)
 - Muncher diagnostics:
@@ -149,6 +161,12 @@ python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common
   [./logging-command-panel-cursor.md](./logging-command-panel-cursor.md)
 - Active-item grant diagnostics:
   [./logging-active-item-grant.md](./logging-active-item-grant.md)
+- Nearby pickup diagnostics:
+  [./logging-nearby-pickup.md](./logging-nearby-pickup.md)
+- Performance diagnostics:
+  [./logging-performance.md](./logging-performance.md)
+- Startup window-focus diagnostics:
+  [./startup-window-focus.md](./startup-window-focus.md)
 - Smoke checklist:
   [./smoke-checklist.md](./smoke-checklist.md)
 - Runtime risk areas:

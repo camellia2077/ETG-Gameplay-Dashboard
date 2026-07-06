@@ -1,3 +1,6 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
 using BepInEx.Logging;
 using HarmonyLib;
 
@@ -11,6 +14,7 @@ namespace RandomLoadout
             _runtimeHookRegistry.Register(".bossrush", InstallBossRushRuntimeHooks, null);
             _runtimeHookRegistry.Register(".ammonomicon_animation", InstallAmmonomiconRuntimeHooks, null);
             _runtimeHookRegistry.Register(".currency_no_consume", InstallCurrencyNoConsumeRuntimeHooks, ClearCurrencyNoConsumeRuntimeHookConfiguration);
+            _runtimeHookRegistry.Register(".nearby_pickup_tip", InstallNearbyPickupTipRuntimeHooks, ClearNearbyPickupTipRuntimeHookConfiguration);
         }
 
         private void InstallRuntimeHooks()
@@ -48,9 +52,20 @@ namespace RandomLoadout
             CurrencyNoConsumeHooks.Install(harmony, logger);
         }
 
+        private void InstallNearbyPickupTipRuntimeHooks(Harmony harmony, ManualLogSource logger)
+        {
+            NearbyPickupTipHooks.Configure(_nearbyPickupTipService);
+            NearbyPickupTipHooks.Install(harmony, logger);
+        }
+
         private static void ClearCurrencyNoConsumeRuntimeHookConfiguration()
         {
             CurrencyNoConsumeHooks.Configure(null);
+        }
+
+        private static void ClearNearbyPickupTipRuntimeHookConfiguration()
+        {
+            NearbyPickupTipHooks.Configure(null);
         }
     }
 }

@@ -1,3 +1,6 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
 using System.IO;
 using BepInEx;
 using RandomLoadout.Core;
@@ -117,6 +120,21 @@ namespace RandomLoadout
                 "EnableActiveItemGrantVerboseLogs",
                 false,
                 "Enable verbose active-item grant diagnostics, including temporary slot-capacity expansion, ETG grant-path rejection details, and rollback restoration tracing. Keep disabled for normal play and enable only when debugging active items dropping near the player instead of entering the active-item bar.");
+            _nearbyPickupVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableNearbyPickupVerboseLogs",
+                false,
+                "Enable verbose nearby pickup overlay diagnostics, including dropped-pickup scans, shop-item scans, gameplay-catalog lookup results, and final overlay target selection. Keep disabled for normal play and enable only when debugging nearby pickup info or shop display behavior.");
+            _startupWindowFocusVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableStartupWindowFocusVerboseLogs",
+                false,
+                "Enable verbose startup window-focus diagnostics, including startup timing, ETG window enumeration, Win32 foreground-call tracing, and foreground-monitor snapshots. Keep disabled for normal play and enable only when debugging Steam launch focus or taskbar visibility behavior.");
+            _performanceVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnablePerformanceVerboseLogs",
+                false,
+                "Enable verbose performance diagnostics, including FPS summaries, long-frame capture, Update-step timing, deferred teleport timing, character switch timing, and automatic loadout grant timing. Keep disabled for normal play and enable only when debugging scene-entry stutter or mod-induced frame drops.");
             _activeStartItemsPresetConfig = Config.Bind(
                 "StartItems",
                 "ActivePreset",
@@ -177,7 +195,7 @@ namespace RandomLoadout
                 Logger.LogWarning(RandomLoadoutLog.Init(pickupGameplayWarning));
             }
 
-            _nearbyPickupTipService = new NearbyPickupTipService(_pickupGameplayRegistry);
+            _nearbyPickupTipService = new NearbyPickupTipService(_pickupGameplayRegistry, Logger, IsNearbyPickupVerboseLoggingEnabled, IsPickupInfoOverlayEnabled);
             _rapidFireToggleService = new RapidFireToggleService();
             _autoReloadToggleService = new AutoReloadToggleService();
             _armorNoConsumeToggleService = new ArmorNoConsumeToggleService();
@@ -193,6 +211,8 @@ namespace RandomLoadout
             _playerDebugCommandService = new PlayerDebugCommandService(_playerHealthOverrideService);
             _pickupGranter = new EtgPickupGranter(_playerActiveItemCapacityOverrideService, IsActiveItemGrantVerboseLoggingEnabled);
             _bossRushService = new BossRushService(Logger, IsBossRushVerboseLoggingEnabled);
+            _gameWindowFocusService = new GameWindowFocusService(Logger, IsStartupWindowFocusVerboseLoggingEnabled);
+            _performanceDiagnostics = new PerformanceDiagnostics(Logger, IsPerformanceVerboseLoggingEnabled);
         }
 
         private void InitializeControllers()
@@ -211,7 +231,7 @@ namespace RandomLoadout
                 grantCommandService,
                 _playerDebugCommandService,
                 roomDebugCommandService,
-                new FoyerCharacterSwitchService(),
+                new FoyerCharacterSwitchService(Logger, IsPerformanceVerboseLoggingEnabled),
                 _bossRushService,
                 _rapidFireToggleService,
                 _autoReloadToggleService,
@@ -288,6 +308,9 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Init("Command-panel health verbose logs are " + (IsCommandPanelHealthVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command-panel cursor verbose logs are " + (IsCommandPanelCursorVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Active-item grant verbose logs are " + (IsActiveItemGrantVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Nearby pickup verbose logs are " + (IsNearbyPickupVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Startup window-focus verbose logs are " + (IsStartupWindowFocusVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Performance verbose logs are " + (IsPerformanceVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Active start-items preset is " + GetActiveStartItemsPreset() + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Nearby pickup gameplay info loaded: " + (_pickupGameplayRegistry != null ? _pickupGameplayRegistry.Count.ToString() : "0") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Boss Rush service initialized. Startup self-check is running."));

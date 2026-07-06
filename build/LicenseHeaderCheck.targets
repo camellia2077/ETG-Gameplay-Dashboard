@@ -1,0 +1,10 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <RepositoryRoot>$(MSBuildThisFileDirectory)..</RepositoryRoot>
+    <LicenseHeaderCheckScript>$(RepositoryRoot)\tools\devtools\check_license_headers.py</LicenseHeaderCheckScript>
+  </PropertyGroup>
+
+  <Target Name="CheckLicenseHeaders" BeforeTargets="CoreCompile" Condition="'$(DesignTimeBuild)' != 'true'">
+    <Exec Command='python "$(LicenseHeaderCheckScript)" --repo-root "$(RepositoryRoot)"' />
+  </Target>
+</Project>

@@ -55,6 +55,7 @@ The generated zip includes:
 * `BepInEx\plugins\RandomLoadout.dll`
 * `ModTheGungeonAPI` and its runtime dependencies (copied from the repository `lib/` directory)
 * repository default config and catalog files in `BepInEx\config\`
+* `licenses\RandomLoadout-LICENSE.txt` containing this repository's GPLv3 text
 * `README-INSTALL.txt`
 * `THIRD_PARTY_NOTICES.md`
 * `licenses\`

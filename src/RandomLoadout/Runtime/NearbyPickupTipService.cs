@@ -1,3 +1,7 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
+using BepInEx.Logging;
 using Dungeonator;
 using UnityEngine;
 
@@ -5,120 +9,174 @@ namespace RandomLoadout
 {
     internal sealed class NearbyPickupTipService
     {
-        private const float MaxTipDistance = 2.5f;
-        private const float RefreshIntervalSeconds = 0.15f;
-
+        // This service intentionally stays event-driven. An earlier room-wide polling
+        // implementation scanned every 0.15s and caused visible hitches in non-combat
+        // rooms, especially around loot-heavy or shop-heavy scenes.
         private readonly PickupGameplayRegistry _gameplayRegistry;
-        private float _nextRefreshAt;
+        private readonly ManualLogSource _logger;
+        private readonly System.Func<bool> _verboseLoggingEnabledProvider;
+        private readonly System.Func<bool> _overlayEnabledProvider;
 
-        public NearbyPickupTipService(PickupGameplayRegistry gameplayRegistry)
+        private Object _currentRangeSource;
+
+        public NearbyPickupTipService(
+            PickupGameplayRegistry gameplayRegistry,
+            ManualLogSource logger,
+            System.Func<bool> verboseLoggingEnabledProvider,
+            System.Func<bool> overlayEnabledProvider)
         {
             _gameplayRegistry = gameplayRegistry ?? PickupGameplayRegistry.Empty;
+            _logger = logger;
+            _verboseLoggingEnabledProvider = verboseLoggingEnabledProvider;
+            _overlayEnabledProvider = overlayEnabledProvider;
         }
 
-        public bool HasVisibleTip
-        {
-            get { return CurrentPickupId > 0; }
-        }
+        public bool HasVisibleTip { get; private set; }
 
         public int CurrentPickupId { get; private set; }
 
         public string CurrentDisplayName { get; private set; }
 
-        public void Update(PlayerController player)
+        public void Update(PlayerController player, bool isOverlayEnabled)
         {
-            if (Time.unscaledTime < _nextRefreshAt)
+            if (!isOverlayEnabled)
+            {
+                ClearTip(null, "overlay_disabled");
+                return;
+            }
+
+            if (player == null || player.CurrentRoom == null)
+            {
+                ClearTip(null, "player_or_room_unavailable");
+                return;
+            }
+
+            if (player.CurrentRoom.HasActiveEnemies(RoomHandler.ActiveEnemyType.All))
+            {
+                ClearTip(null, "active_combat");
+            }
+        }
+
+        public void HandlePickupEnteredRange(PickupObject pickup, PlayerController player)
+        {
+            if (!CanShowTip(player) || pickup == null)
             {
                 return;
             }
 
-            _nextRefreshAt = Time.unscaledTime + RefreshIntervalSeconds;
-            Refresh(player);
+            ShowTip(pickup, pickup, "pickup");
         }
 
-        private void Refresh(PlayerController player)
+        public void HandlePickupExitedRange(PickupObject pickup)
         {
-            if (player == null || player.CurrentRoom == null || _gameplayRegistry.Count == 0)
+            ClearTip(pickup, "pickup_exit_range");
+        }
+
+        public void HandlePickupConsumed(PickupObject pickup)
+        {
+            ClearTip(pickup, "pickup_consumed");
+        }
+
+        public void HandleShopItemEnteredRange(ShopItemController shopItem, PlayerController player)
+        {
+            if (!CanShowTip(player) || shopItem == null || shopItem.item == null)
             {
-                CurrentPickupId = 0;
-                CurrentDisplayName = string.Empty;
                 return;
             }
 
-            int nearestPickupId = 0;
-            string nearestDisplayName = string.Empty;
-            float nearestDistance = MaxTipDistance;
-            DebrisObject[] debrisObjects = Object.FindObjectsOfType<DebrisObject>();
-            for (int i = 0; i < debrisObjects.Length; i++)
-            {
-                DebrisObject debris = debrisObjects[i];
-                if (!IsValidNearbyPickup(debris, player))
-                {
-                    continue;
-                }
-
-                PickupObject pickup = debris.GetComponentInChildren<PickupObject>();
-                if (pickup == null)
-                {
-                    continue;
-                }
-
-                PickupGameplayEntry gameplayEntry;
-                bool hasGameplayInfo = _gameplayRegistry.TryGetEntry(pickup.PickupObjectId, out gameplayEntry);
-                if (!hasGameplayInfo)
-                {
-                    continue;
-                }
-
-                float distance = Vector2.Distance(player.CenterPosition, GetPickupWorldCenter(debris, pickup));
-                if (distance > nearestDistance)
-                {
-                    continue;
-                }
-
-                nearestDistance = distance;
-                nearestPickupId = pickup.PickupObjectId;
-                nearestDisplayName = GetPickupLabelForGameLanguage(pickup);
-            }
-
-            CurrentPickupId = nearestPickupId;
-            CurrentDisplayName = nearestDisplayName;
+            ShowTip(shopItem, shopItem.item, "shop_item");
         }
 
-        private static bool IsValidNearbyPickup(DebrisObject debris, PlayerController player)
+        public void HandleShopItemExitedRange(ShopItemController shopItem)
         {
-            if (debris == null ||
-                !debris.IsPickupObject ||
-                debris.sprite == null ||
-                !debris.gameObject.activeInHierarchy)
+            ClearTip(shopItem, "shop_item_exit_range");
+        }
+
+        public void HandleShopItemInteracted(ShopItemController shopItem)
+        {
+            ClearTip(shopItem, "shop_item_interacted");
+        }
+
+        public void HandleRewardPedestalEnteredRange(RewardPedestal rewardPedestal, PlayerController player)
+        {
+            if (!CanShowTip(player) || rewardPedestal == null || rewardPedestal.contents == null)
+            {
+                return;
+            }
+
+            ShowTip(rewardPedestal, rewardPedestal.contents, "reward_pedestal");
+        }
+
+        public void HandleRewardPedestalExitedRange(RewardPedestal rewardPedestal)
+        {
+            ClearTip(rewardPedestal, "reward_pedestal_exit_range");
+        }
+
+        public void HandleRewardPedestalInteracted(RewardPedestal rewardPedestal)
+        {
+            ClearTip(rewardPedestal, "reward_pedestal_interacted");
+        }
+
+        private bool CanShowTip(PlayerController player)
+        {
+            if (!IsOverlayEnabled())
             {
                 return false;
             }
 
-            GameManager gameManager = GameManager.Instance;
-            if (gameManager == null || gameManager.Dungeon == null || gameManager.Dungeon.data == null)
+            if (player == null || player.CurrentRoom == null)
             {
                 return false;
             }
 
-            RoomHandler debrisRoom = gameManager.Dungeon.data.GetAbsoluteRoomFromPosition(
-                debris.transform.position.IntXY(VectorConversions.Floor));
-            return debrisRoom == player.CurrentRoom;
+            if (player.CurrentRoom.HasActiveEnemies(RoomHandler.ActiveEnemyType.All))
+            {
+                return false;
+            }
+
+            return _gameplayRegistry.Count > 0;
         }
 
-        private static Vector2 GetPickupWorldCenter(DebrisObject debris, PickupObject pickup)
+        private void ShowTip(Object rangeSource, PickupObject pickup, string source)
         {
-            if (debris != null && debris.sprite != null)
+            if (rangeSource == null || pickup == null)
             {
-                return debris.sprite.WorldCenter;
+                return;
             }
 
-            if (pickup != null && pickup.sprite != null)
+            _currentRangeSource = rangeSource;
+            HasVisibleTip = true;
+            CurrentPickupId = pickup.PickupObjectId;
+            CurrentDisplayName = GetPickupLabelForGameLanguage(pickup);
+            PickupGameplayEntry ignoredEntry;
+            LogInfo(
+                "Nearby pickup tip shown. " +
+                "Source=" + source +
+                ", PickupId=" + CurrentPickupId +
+                ", Label=" + Quote(CurrentDisplayName) +
+                ", HasGameplayEntry=" + _gameplayRegistry.TryGetEntry(CurrentPickupId, out ignoredEntry) +
+                ".");
+        }
+
+        private void ClearTip(Object rangeSource, string reason)
+        {
+            // Multiple interactables can overlap in range. Only the currently active
+            // source may clear the visible tip; otherwise an unrelated exit event can
+            // hide a newer tip that the player is still standing next to.
+            if (rangeSource != null && _currentRangeSource != null && !ReferenceEquals(rangeSource, _currentRangeSource))
             {
-                return pickup.sprite.WorldCenter;
+                return;
             }
 
-            return pickup != null ? pickup.transform.position.XY() : Vector2.zero;
+            if (HasVisibleTip || _currentRangeSource != null)
+            {
+                LogInfo("Nearby pickup tip cleared. Reason=" + reason + ".");
+            }
+
+            HasVisibleTip = false;
+            CurrentPickupId = 0;
+            CurrentDisplayName = string.Empty;
+            _currentRangeSource = null;
         }
 
         private static string GetPickupLabelForGameLanguage(PickupObject pickup)
@@ -268,6 +326,31 @@ namespace RandomLoadout
             }
 
             return null;
+        }
+
+        private bool IsOverlayEnabled()
+        {
+            return _overlayEnabledProvider != null && _overlayEnabledProvider();
+        }
+
+        private bool IsVerboseLoggingEnabled()
+        {
+            return _verboseLoggingEnabledProvider != null && _verboseLoggingEnabledProvider();
+        }
+
+        private void LogInfo(string message)
+        {
+            if (!IsVerboseLoggingEnabled() || _logger == null || string.IsNullOrEmpty(message))
+            {
+                return;
+            }
+
+            _logger.LogInfo(RandomLoadoutLog.Run(message));
+        }
+
+        private static string Quote(string value)
+        {
+            return "\"" + (value ?? string.Empty) + "\"";
         }
     }
 }

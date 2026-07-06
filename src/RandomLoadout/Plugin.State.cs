@@ -1,3 +1,6 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
 using BepInEx.Configuration;
 using RandomLoadout.Core;
 
@@ -41,6 +44,9 @@ namespace RandomLoadout
         private ConfigEntry<bool> _commandPanelHealthVerboseLogsConfig;
         private ConfigEntry<bool> _commandPanelCursorVerboseLogsConfig;
         private ConfigEntry<bool> _activeItemGrantVerboseLogsConfig;
+        private ConfigEntry<bool> _nearbyPickupVerboseLogsConfig;
+        private ConfigEntry<bool> _startupWindowFocusVerboseLogsConfig;
+        private ConfigEntry<bool> _performanceVerboseLogsConfig;
         private ConfigEntry<string> _activeStartItemsPresetConfig;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
@@ -73,8 +79,14 @@ namespace RandomLoadout
         private EtgPickupGranter _pickupGranter;
         private BossRushService _bossRushService;
         private RuntimeHookRegistry _runtimeHookRegistry;
+        private GameWindowFocusService _gameWindowFocusService;
+        private PerformanceDiagnostics _performanceDiagnostics;
+        private bool _hasScheduledSceneReadyWindowFocusRetry;
+        private bool _hasStartedWindowForegroundMonitor;
         private bool _hasExportedPickupCatalog;
         private string _lastPickupCatalogExportFailure;
+        private float _gameplayPerformanceWindowStartedAt = -1f;
+        private string _gameplayPerformanceSceneName = string.Empty;
         private RunGrantState _runState;
         private RunLifecycleTracker _runLifecycleTracker;
         private RunSceneWatcher _sceneWatcher;

@@ -1,7 +1,12 @@
-﻿using System;
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
+using BepInEx.Logging;
 using UnityEngine;
 
 namespace RandomLoadout
@@ -23,6 +28,14 @@ namespace RandomLoadout
 
         private FoyerCharacterSelectFlag _pendingSelectionFlag;
         private float _pendingSelectionStartedAt;
+        private readonly ManualLogSource _logger;
+        private readonly Func<bool> _performanceLoggingEnabledProvider;
+
+        public FoyerCharacterSwitchService(ManualLogSource logger, Func<bool> performanceLoggingEnabledProvider)
+        {
+            _logger = logger;
+            _performanceLoggingEnabledProvider = performanceLoggingEnabledProvider;
+        }
 
         public FoyerCharacterOption[] GetCharacterOptions()
         {
@@ -136,6 +149,7 @@ namespace RandomLoadout
 
         public GrantCommandExecutionResult SwitchCharacterOnly(FoyerCharacterOption option)
         {
+            long startedAtTimestamp = IsPerformanceLoggingEnabled() ? Stopwatch.GetTimestamp() : 0L;
             if (option == null)
             {
                 return GrantCommandExecutionResult.Localized(false, "result.characters.option_missing");
@@ -170,8 +184,23 @@ namespace RandomLoadout
             string forceSwitchFailureMessage;
             if (TryForceSwitchCharacterInBreach(foyer, option.Label, out forceSwitchFailureMessage))
             {
+                LogPerformanceInfo(
+                    "Character switch timing. Label=" +
+                    option.Label +
+                    ", Succeeded=true, DurationMs=" +
+                    GetElapsedMilliseconds(startedAtTimestamp).ToString("0.00") +
+                    ".");
                 return CreateCharacterResult(true, "result.characters.switch_success", option.Label);
             }
+
+            LogPerformanceInfo(
+                "Character switch timing. Label=" +
+                option.Label +
+                ", Succeeded=false, DurationMs=" +
+                GetElapsedMilliseconds(startedAtTimestamp).ToString("0.00") +
+                ", Detail=" +
+                (!string.IsNullOrEmpty(forceSwitchFailureMessage) ? forceSwitchFailureMessage : "force switch failed") +
+                ".");
 
             return new GrantCommandExecutionResult(
                 false,
@@ -189,6 +218,34 @@ namespace RandomLoadout
                 succeeded,
                 GuiText.Get(key, GuiText.GetCharacterLabel(characterLabel)),
                 GuiText.GetEnglish(key, GuiText.GetEnglishCharacterLabel(characterLabel)));
+        }
+
+        private bool IsPerformanceLoggingEnabled()
+        {
+            return _performanceLoggingEnabledProvider != null && _performanceLoggingEnabledProvider();
+        }
+
+        private void LogPerformanceInfo(string message)
+        {
+            if (!IsPerformanceLoggingEnabled())
+            {
+                return;
+            }
+
+            if (_logger != null && !string.IsNullOrEmpty(message))
+            {
+                _logger.LogInfo(RandomLoadoutLog.Performance(message));
+            }
+        }
+
+        private static double GetElapsedMilliseconds(long startedAtTimestamp)
+        {
+            if (startedAtTimestamp == 0L)
+            {
+                return 0d;
+            }
+
+            return (Stopwatch.GetTimestamp() - startedAtTimestamp) * 1000d / Stopwatch.Frequency;
         }
     }
 }

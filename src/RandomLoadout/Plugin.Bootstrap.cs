@@ -1,3 +1,6 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
 using System.Collections;
 using BepInEx;
 using RandomLoadout.Core;
@@ -44,6 +47,61 @@ namespace RandomLoadout
             TryExportPickupCatalogOnce();
             Logger.LogInfo(RandomLoadoutLog.Init("GameManager startup detected. Scene watcher subscribed and GUI controller is ready."));
             Logger.LogInfo(RandomLoadoutLog.Init(NAME + " v" + VERSION + " started successfully."));
+            StartWindowForegroundMonitor();
+        }
+
+        private void ScheduleGameWindowFocusRetryAfterSceneReady()
+        {
+            if (_gameWindowFocusService == null || _hasScheduledSceneReadyWindowFocusRetry)
+            {
+                return;
+            }
+
+            // Real-world ETG startup logs showed that focusing during plugin Awake/GameManager startup
+            // was too early: Steam audio had started, but the foreground-capable ETG windows were not
+            // yet stable. We therefore schedule exactly one retry after the first playable foyer load.
+            _hasScheduledSceneReadyWindowFocusRetry = true;
+            StartCoroutine(FocusGameWindowAfterDelay(4.0f, "first_level_loaded"));
+        }
+
+        private IEnumerator FocusGameWindowAfterDelay(float delaySeconds, string reason)
+        {
+            if (delaySeconds > 0f)
+            {
+                if (IsStartupWindowFocusVerboseLoggingEnabled())
+                {
+                    Logger.LogInfo(
+                        RandomLoadoutLog.Init(
+                            "Scheduling startup window focus attempt after " +
+                            delaySeconds.ToString("0.00") +
+                            " seconds. Reason=" +
+                            reason +
+                            "."));
+                }
+
+                yield return new WaitForSecondsRealtime(delaySeconds);
+            }
+
+            if (_gameWindowFocusService == null)
+            {
+                yield break;
+            }
+
+            // Keep the 1s settle delay aligned with the proven external helper timing. The successful
+            // real-machine repro path was: wait for foyer readiness, allow ETG/BepInEx windows to settle,
+            // then attempt foreground handoff.
+            yield return StartCoroutine(_gameWindowFocusService.FocusWhenReady(10f, 0.25f, 1.0f));
+        }
+
+        private void StartWindowForegroundMonitor()
+        {
+            if (_gameWindowFocusService == null || _hasStartedWindowForegroundMonitor || !IsStartupWindowFocusVerboseLoggingEnabled())
+            {
+                return;
+            }
+
+            _hasStartedWindowForegroundMonitor = true;
+            StartCoroutine(_gameWindowFocusService.LogForegroundWindowChanges(20f, 0.25f, "startup_monitor"));
         }
 
         private void LogBossRushHookSelfCheck(BossRushHookInstallReport report)
@@ -439,6 +497,21 @@ namespace RandomLoadout
         private bool IsActiveItemGrantVerboseLoggingEnabled()
         {
             return _activeItemGrantVerboseLogsConfig != null && _activeItemGrantVerboseLogsConfig.Value;
+        }
+
+        private bool IsNearbyPickupVerboseLoggingEnabled()
+        {
+            return _nearbyPickupVerboseLogsConfig != null && _nearbyPickupVerboseLogsConfig.Value;
+        }
+
+        private bool IsStartupWindowFocusVerboseLoggingEnabled()
+        {
+            return _startupWindowFocusVerboseLogsConfig != null && _startupWindowFocusVerboseLogsConfig.Value;
+        }
+
+        private bool IsPerformanceVerboseLoggingEnabled()
+        {
+            return _performanceVerboseLogsConfig != null && _performanceVerboseLogsConfig.Value;
         }
 
         private string NormalizeUiScalePreset(string presetName)

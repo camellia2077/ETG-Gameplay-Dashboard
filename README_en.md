@@ -2,7 +2,7 @@
 
 [中文](README.md) | English
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078d4.svg)](#)
 
 `ETG-Gameplay-Dashboard` is an `Enter the Gungeon` gameplay experience optimization project built on `BepInEx`.
@@ -17,7 +17,7 @@ It is primarily designed to improve the gameplay workflow rather than only act a
 
 ## Installation & Usage
 
-1. Download the latest release package (e.g., `ETG-Gameplay-Dashboard-vX.Y.Z-ETG.zip`) from the [Releases](https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases) page and extract it.
+1. Prefer downloading the latest release package (e.g., `ETG-Gameplay-Dashboard-vX.Y.Z-ETG.zip`) from the official [GitHub Releases](https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases) page so you can verify integrity and avoid repackaged builds with ads or tampering.
 2. Find the game installation folder for `Enter the Gungeon` on Windows.
    - It is typically located at: `steam\steamapps\common\Enter the Gungeon`.
    - **Quick Tip**: In your Steam Library, right-click `Enter the Gungeon` -> **Manage** -> **Browse local files** to open the directory directly.
@@ -65,6 +65,7 @@ Implementation references and community inspiration:
 
 - [`SpecialAPI/SaveAPI`](https://github.com/SpecialAPI/SaveAPI)
 - [`Nevernamed22/OnceMoreIntoTheBreach`](https://github.com/Nevernamed22/OnceMoreIntoTheBreach)
+- [`Glorfindel/ItemTips`](https://gitlab.com/scionofmemory/item-tips)
 
 License and attribution notes:
 

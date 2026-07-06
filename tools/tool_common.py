@@ -43,6 +43,10 @@ REQUIRED_BUILD_DLLS = (
 VERSION_FILE_NAME = "VERSION"
 PLUGIN_VERSION_FILE = Path("src") / "RandomLoadout" / "Properties" / "Version.g.cs"
 CORE_VERSION_FILE = Path("src") / "RandomLoadout.Core" / "Properties" / "Version.g.cs"
+LICENSE_HEADER = (
+    "// Copyright (C) 2026 camellia2077\n"
+    "// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later."
+)
 
 
 def get_repo_root() -> Path:
@@ -66,29 +70,33 @@ def read_repo_version(repo_root: Path) -> str:
 
 
 def _build_plugin_version_source(version: str) -> str:
-    return """using System.Reflection;
+    return """{header}
 
-[assembly: AssemblyVersion("{0}")]
-[assembly: AssemblyFileVersion("{0}")]
-[assembly: AssemblyInformationalVersion("{0}")]
+using System.Reflection;
+
+[assembly: AssemblyVersion("{version}")]
+[assembly: AssemblyFileVersion("{version}")]
+[assembly: AssemblyInformationalVersion("{version}")]
 
 namespace RandomLoadout
 {{
     internal static class BuildVersionInfo
     {{
-        public const string Version = "{0}";
+        public const string Version = "{version}";
     }}
 }}
-""".format(version)
+""".format(header=LICENSE_HEADER, version=version)
 
 
 def _build_core_version_source(version: str) -> str:
-    return """using System.Reflection;
+    return """{header}
 
-[assembly: AssemblyVersion("{0}")]
-[assembly: AssemblyFileVersion("{0}")]
-[assembly: AssemblyInformationalVersion("{0}")]
-""".format(version)
+using System.Reflection;
+
+[assembly: AssemblyVersion("{version}")]
+[assembly: AssemblyFileVersion("{version}")]
+[assembly: AssemblyInformationalVersion("{version}")]
+""".format(header=LICENSE_HEADER, version=version)
 
 
 def _write_if_changed(path: Path, content: str) -> None:

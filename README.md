@@ -2,7 +2,7 @@
 
 中文 | [English](README_en.md)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0.html)
 [![Platform: Windows](https://img.shields.io/badge/Platform-Windows-0078d4.svg)](#)
 
 `ETG-Gameplay-Dashboard` 是一个基于 `BepInEx` 的《挺进地牢》（Enter the Gungeon）游戏体验优化项目。
@@ -17,7 +17,7 @@
 
 ## 安装与使用
 
-1. 从 [Releases](https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases) 页面下载最新版本的发布压缩包（如 `ETG-Gameplay-Dashboard-vX.Y.Z-ETG.zip`）并解压。
+1. 建议优先从 [GitHub Releases 官方发布页](https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases) 下载最新版本的发布压缩包（如 `ETG-Gameplay-Dashboard-vX.Y.Z-ETG.zip`），这样更方便校验完整性，也能避免第三方打包版本被加广告或篡改。
 2. 找到 Windows 上《挺进地牢》（Enter the Gungeon）的游戏安装目录。
    - 通常位于：`steam\steamapps\common\Enter the Gungeon`。
    - **快速查找方法**：在 Steam 库中，右键点击左侧列表的《挺进地牢》游戏，选择 **管理** -> **浏览本地文件** 即可直接打开游戏目录。
@@ -65,6 +65,7 @@
 
 - [`SpecialAPI/SaveAPI`](https://github.com/SpecialAPI/SaveAPI)
 - [`Nevernamed22/OnceMoreIntoTheBreach`](https://github.com/Nevernamed22/OnceMoreIntoTheBreach)
+- [`Glorfindel/ItemTips`](https://gitlab.com/scionofmemory/item-tips)
 
 许可证与署名说明：
 
