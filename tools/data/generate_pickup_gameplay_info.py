@@ -14,7 +14,7 @@ import requests
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CATALOG_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickups.json"
-DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.en.json"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.en.json"
 DEFAULT_CACHE_PATH = REPO_ROOT / "temp" / "wiki.gg-pickup-gameplay-cache.json"
 WIKI_API_URL = "https://enterthegungeon.wiki.gg/api.php"
 USER_AGENT = "ETG-Gameplay-Dashboard/1.0 (pickup gameplay generator)"

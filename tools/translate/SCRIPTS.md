@@ -12,6 +12,13 @@
 
 这个目录服务的是 `pickup gameplay` 中文翻译流程。
 
+当前要服务的最终 runtime 目标是：
+
+- `defaults/catalog/RandomLoadout.pickup-gameplay.json`
+- `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+
+也就是说，这里的脚本不应该再把旧 bilingual work 文件视为最终数据模型，而应该把它视为过渡性工作格式或中间源格式。
+
 它解决的不是“怎么翻译一句话”这种单点问题，而是下面这些更容易反复出错的工程问题：
 
 - 批量翻译时，哪些字段允许改，哪些字段绝对不能动
@@ -23,7 +30,7 @@
 
 1. 导出可翻译批次
 2. 自动扫描常见翻译违规
-3. 把合格结果安全回写
+3. 把合格结果安全映射回 schema v2 runtime 目标
 
 ## 为什么不是只写在 Markdown 里
 
@@ -62,6 +69,7 @@
 - `pickupId` 索引
 - 翻译状态标准化
 - 游戏内物品名替换的共用逻辑
+- 旧工作格式到 runtime 目标字段之间的共用映射基础
 
 为什么要有这个文件：
 
@@ -86,7 +94,7 @@
 
 为什么要有它：
 
-- 避免 agent 直接在主工作文件上编辑
+- 避免 agent 直接在 runtime v2 输出上编辑
 - 让翻译修改在一个可局部审查、可局部重做的批次文件中完成
 - 给后续扫描和回写提供稳定输入
 
@@ -160,7 +168,7 @@
 
 作用：
 
-- 扫描 `entries[*].statGroups[*].stats[*].value` 里的结构化英文标签
+- 扫描旧工作格式里对应 runtime `statSections[*].stats[*].value` 的结构化英文标签
 - 区分：
   - 已有安全映射、应该写进 `valueMappings` 的固定标签
   - 还没有定中文、需要先补词表的未知标签
@@ -169,7 +177,7 @@
 
 - `pickup gameplay` 现在的正文翻译流程只覆盖 4 个正文中文字段
 - 但游戏内面板还会直接显示 `stats[*].value`
-- 按当前数据设计，`stats[*].value` 应保持英文源值不动，再通过顶层 `valueMappings` 提供中文显示
+- 按当前 schema v2 设计，`stats[*].value` 应保持英文源值不动，再通过 `pickup-info-terms.json` 的 `displayValues` 提供中文显示
 - 像 `10 (Impact) 15 (Explosion) 3 (Bees)` 这类内容，适合由脚本给出映射覆盖建议，而不是直接改写 `value`
 
 ### `scan_pickup_gameplay_stat_value_source_drift.py`
@@ -190,7 +198,7 @@
 
 作用：
 
-- 按固定映射同步维护顶层 `valueMappings`
+- 按固定映射同步维护最终 runtime terms 里的 `displayValues`
 - 不改 `stats[*].value` 本体
 
 为什么要有它：
@@ -201,14 +209,14 @@
 - 和扫描器配合后，可以形成：
   - `scan-stat-values` 看报告
   - 扩映射
-  - `localize-stat-values` 回写 `valueMappings`
+  - `localize-stat-values` 回写最终 terms 映射
 
 ### `restore_pickup_gameplay_stat_values_from_english.py`
 
 作用：
 
-- 用 `defaults/catalog/RandomLoadout.pickup-gameplay.en.json` 恢复 `zh-CN.work.json` 里的 `stats[*].value`
-- 只恢复结构化英文源值，不动顶层 `valueMappings`
+- 用 `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json` 恢复 `zh-CN.work.json` 里的 `stats[*].value`
+- 只恢复结构化英文源值，不动最终 terms 映射目标
 
 为什么要有它：
 
@@ -240,7 +248,7 @@
 
 作用：
 
-- 把批次里的中文翻译安全写回主工作文件
+- 把批次里的中文翻译安全写回辅助工作格式，并为后续映射到 runtime v2 做准备
 
 它会做的事情包括：
 
@@ -252,7 +260,7 @@
 
 为什么要有它：
 
-- 防止 agent 直接手改主文件时误伤别的结构
+- 防止 agent 直接手改 runtime v2 输出或辅助工作格式时误伤别的结构
 - 防止基于旧英文源的批次覆盖新数据
 - 保持回写动作可重复、可验证
 
@@ -344,4 +352,4 @@
 - 哪些格式必须统一
 - 哪些问题必须暴露
 
-变成可以重复执行、可以验证、可以收敛的工程流程。
+变成可以重复执行、可以验证、可以收敛，并最终稳定落回 schema v2 runtime 输出的工程流程。

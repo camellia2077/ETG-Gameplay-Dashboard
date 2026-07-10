@@ -152,8 +152,8 @@ Use this route for item names, aliases, pickup cards, quality filters, categorie
 | `defaults/catalog/RandomLoadout.pickups.json` | shipped pickup catalog |
 | `defaults/catalog/RandomLoadout.pickups.by-category.json` | shipped grouped pickup catalog |
 | `RandomLoadout.pickup-names.game-language.json` in game config | compact exported pickup-name snapshot aligned to the current ETG runtime language |
-| `defaults/catalog/RandomLoadout.pickup-gameplay.en.json` | shipped nearby-pickup gameplay catalog |
-| `defaults/catalog/RandomLoadout.pickup-gameplay.zh-CN.work.json` | Simplified Chinese gameplay localization overlay/work file |
+| `defaults/catalog/RandomLoadout.pickup-gameplay.json` | shipped nearby-pickup gameplay runtime catalog (schema v2) |
+| `defaults/catalog/RandomLoadout.pickup-info-terms.json` | shipped nearby-pickup section/stat/display-value terms (schema v2) |
 | `defaults/config/ETG-Gameplay-Dashboard.aliases.json5` | shipped aliases |
 
 Read next:

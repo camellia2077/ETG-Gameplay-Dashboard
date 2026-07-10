@@ -36,7 +36,7 @@ namespace RandomLoadout
                 fallback,
                 delegate(PickupInfoTermsTable table, string termKey, string defaultValue)
                 {
-                    return table.GetSectionLabel(termKey, defaultValue);
+                    return table.GetSection(termKey, defaultValue);
                 });
         }
 
@@ -48,7 +48,7 @@ namespace RandomLoadout
                 fallback,
                 delegate(PickupInfoTermsTable table, string termKey, string defaultValue)
                 {
-                    return table.GetStatLabel(termKey, defaultValue);
+                    return table.GetStat(termKey, defaultValue);
                 });
         }
 
@@ -60,7 +60,7 @@ namespace RandomLoadout
                 fallback,
                 delegate(PickupInfoTermsTable table, string termKey, string defaultValue)
                 {
-                    return table.GetValueMapping(termKey, defaultValue);
+                    return table.GetDisplayValue(termKey, defaultValue);
                 });
         }
 
@@ -97,34 +97,34 @@ namespace RandomLoadout
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase));
 
         public PickupInfoTermsTable(
-            Dictionary<string, string> sectionLabels,
-            Dictionary<string, string> statLabels,
-            Dictionary<string, string> valueMappings)
+            Dictionary<string, string> sections,
+            Dictionary<string, string> stats,
+            Dictionary<string, string> displayValues)
         {
-            SectionLabels = sectionLabels ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            StatLabels = statLabels ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            ValueMappings = valueMappings ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Sections = sections ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            Stats = stats ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            DisplayValues = displayValues ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         }
 
-        public Dictionary<string, string> SectionLabels { get; private set; }
+        public Dictionary<string, string> Sections { get; private set; }
 
-        public Dictionary<string, string> StatLabels { get; private set; }
+        public Dictionary<string, string> Stats { get; private set; }
 
-        public Dictionary<string, string> ValueMappings { get; private set; }
+        public Dictionary<string, string> DisplayValues { get; private set; }
 
-        public string GetSectionLabel(string key, string fallback)
+        public string GetSection(string key, string fallback)
         {
-            return GetValue(SectionLabels, key, fallback);
+            return GetValue(Sections, key, fallback);
         }
 
-        public string GetStatLabel(string key, string fallback)
+        public string GetStat(string key, string fallback)
         {
-            return GetValue(StatLabels, key, fallback);
+            return GetValue(Stats, key, fallback);
         }
 
-        public string GetValueMapping(string key, string fallback)
+        public string GetDisplayValue(string key, string fallback)
         {
-            return GetValue(ValueMappings, key, fallback);
+            return GetValue(DisplayValues, key, fallback);
         }
 
         private static string GetValue(Dictionary<string, string> values, string key, string fallback)

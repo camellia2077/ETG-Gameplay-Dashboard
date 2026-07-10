@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace RandomLoadout
 {
@@ -11,365 +11,251 @@ namespace RandomLoadout
     {
         private static LoadoutRuleFileModel ParseRuleFile(string rawJson)
         {
-            if (string.IsNullOrEmpty(rawJson))
+            if (string.IsNullOrEmpty(rawJson) || string.IsNullOrEmpty(rawJson.Trim()))
             {
                 return new LoadoutRuleFileModel();
             }
 
-            if (string.IsNullOrEmpty(rawJson.Trim()))
+            JObject root = ParseObject(rawJson);
+            if (root["presets"] is JArray)
             {
-                return new LoadoutRuleFileModel();
+                return ParsePresetRuleFile(root);
             }
 
-            bool hasPresets = Regex.IsMatch(rawJson, GetPropertyPrefixPattern("presets"), RegexOptions.IgnoreCase);
-            bool hasRules = Regex.IsMatch(rawJson, GetPropertyPrefixPattern("rules"), RegexOptions.IgnoreCase);
-            if (!hasPresets && !hasRules)
+            if (root["rules"] is JArray)
             {
-                throw new FormatException("Rule file must contain a 'rules' array or a 'presets' array.");
+                return new LoadoutRuleFileModel
+                {
+                    Rules = ParseRulesFromArray(root["rules"] as JArray),
+                };
             }
 
-            if (hasPresets)
-            {
-                return ParsePresetRuleFile(rawJson);
-            }
-
-            return new LoadoutRuleFileModel { Rules = ParseRulesFromArrayBody(ExtractPropertyArrayBody(rawJson, "rules")) };
+            throw new FormatException("Rule file must contain a 'rules' array or a 'presets' array.");
         }
 
-        private static LoadoutRuleFileModel ParsePresetRuleFile(string rawJson)
+        private static LoadoutRuleFileModel ParsePresetRuleFile(JObject root)
         {
             List<LoadoutRuleFilePresetModel> presets = new List<LoadoutRuleFilePresetModel>();
-            string presetsArrayBody = ExtractPropertyArrayBody(rawJson, "presets");
-            List<string> presetBodies = ExtractObjectBodies(presetsArrayBody);
-            for (int i = 0; i < presetBodies.Count; i++)
+            JArray presetsArray = root["presets"] as JArray;
+            if (presetsArray == null)
             {
-                string presetBody = presetBodies[i];
-                string rulesArrayBody = ExtractPropertyArrayBody(presetBody, "rules");
-                if (string.IsNullOrEmpty(rulesArrayBody) &&
-                    !ContainsArrayProperty(presetBody, "rules") &&
-                    !ContainsArrayProperty(presetBody, "pickups"))
+                return new LoadoutRuleFileModel { Presets = presets.ToArray() };
+            }
+
+            int presetIndex = 0;
+            foreach (JToken presetToken in presetsArray)
+            {
+                presetIndex++;
+                JObject preset = presetToken as JObject;
+                if (preset == null)
                 {
                     continue;
                 }
 
-                string id = ParseString(presetBody, "id");
-                string displayNameKey = ParseString(presetBody, "display_name_key");
-                string name = ParseString(presetBody, "name");
+                bool hasRules = preset["rules"] is JArray;
+                bool hasPickups = preset["pickups"] is JArray;
+                if (!hasRules && !hasPickups)
+                {
+                    continue;
+                }
+
+                string id = GetString(preset, "id");
+                string name = GetString(preset, "name");
                 presets.Add(
                     new LoadoutRuleFilePresetModel
                     {
-                        Id = StartItemsPresetNames.CreatePresetId(id, name, i + 1),
-                        DisplayNameKey = StartItemsPresetNames.NormalizePresetName(displayNameKey),
+                        Id = StartItemsPresetNames.CreatePresetId(id, name, presetIndex),
+                        DisplayNameKey = StartItemsPresetNames.NormalizePresetName(GetString(preset, "display_name_key")),
                         Name = StartItemsPresetNames.NormalizePresetName(name),
-                        Rules = ParseRulesFromArrayBody(rulesArrayBody),
-                        Pickups = ParsePresetPickups(presetBody),
+                        Rules = ParseRulesFromArray(preset["rules"] as JArray),
+                        Pickups = ParsePresetPickups(preset),
                     });
             }
 
             return new LoadoutRuleFileModel { Presets = presets.ToArray() };
         }
 
-        private static LoadoutRuleFileRuleModel[] ParseRulesFromArrayBody(string arrayBody)
+        private static LoadoutRuleFileRuleModel[] ParseRulesFromArray(JArray rulesArray)
         {
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>();
-            List<string> ruleBodies = ExtractObjectBodies(arrayBody);
-            for (int i = 0; i < ruleBodies.Count; i++)
+            if (rulesArray == null)
             {
-                string body = ruleBodies[i];
-                if (Regex.IsMatch(body, GetPropertyPrefixPattern("mode"), RegexOptions.IgnoreCase))
+                return rules.ToArray();
+            }
+
+            foreach (JToken ruleToken in rulesArray)
+            {
+                JObject ruleObject = ruleToken as JObject;
+                if (ruleObject == null || ruleObject["mode"] == null || ruleObject["mode"].Type == JTokenType.Null)
                 {
-                    rules.Add(ParseRule(body));
+                    continue;
                 }
+
+                rules.Add(ParseRule(ruleObject));
             }
 
             return rules.ToArray();
         }
 
-        private static LoadoutRuleFileRuleModel ParseRule(string body)
+        private static LoadoutRuleFileRuleModel ParseRule(JObject ruleObject)
         {
-            LoadoutRuleFileRuleModel rule = new LoadoutRuleFileRuleModel();
-            rule.Enabled = ParseBool(body, "enabled", true);
-            rule.Mode = ParseString(body, "mode");
-            rule.Category = ParseString(body, "category");
-            rule.Count = ParseInt(body, "count", 1);
-            rule.Id = ParseNullableInt(body, "id");
-            rule.Alias = ParseString(body, "alias");
-            rule.Name = ParseString(body, "name");
-            rule.PoolIds = ParseIntArray(body, "poolIds");
-            rule.PoolAliases = ParseStringArray(body, "poolAliases");
-            rule.Pool = ParseStringArray(body, "pool");
-            return rule;
+            return new LoadoutRuleFileRuleModel
+            {
+                Enabled = GetBool(ruleObject, "enabled", true),
+                Mode = GetString(ruleObject, "mode"),
+                Category = GetString(ruleObject, "category"),
+                Count = GetInt(ruleObject, "count", 1),
+                Id = GetNullableInt(ruleObject, "id"),
+                Alias = GetString(ruleObject, "alias"),
+                Name = GetString(ruleObject, "name"),
+                PoolIds = GetIntArray(ruleObject["poolIds"]),
+                PoolAliases = GetStringArray(ruleObject["poolAliases"]),
+                Pool = GetStringArray(ruleObject["pool"]),
+            };
         }
 
-        private static LoadoutRuleFilePickupModel[] ParsePresetPickups(string body)
+        private static LoadoutRuleFilePickupModel[] ParsePresetPickups(JObject preset)
         {
             List<LoadoutRuleFilePickupModel> pickups = new List<LoadoutRuleFilePickupModel>();
-            string pickupArrayBody = ExtractPropertyArrayBody(body, "pickups");
-            if (string.IsNullOrEmpty(pickupArrayBody) && !ContainsArrayProperty(body, "pickups"))
+            JArray pickupsArray = preset["pickups"] as JArray;
+            if (pickupsArray == null)
             {
                 return pickups.ToArray();
             }
 
-            List<string> pickupBodies = ExtractObjectBodies(pickupArrayBody);
-            if (pickupBodies.Count == 0)
+            foreach (JToken pickupToken in pickupsArray)
             {
-                string[] pickupTypes = ParseStringArray(body, "pickups");
-                for (int i = 0; i < pickupTypes.Length; i++)
+                JObject pickupObject = pickupToken as JObject;
+                string type;
+                int count;
+                if (pickupObject != null)
                 {
-                    string normalizedType = StartItemPickupCatalog.NormalizeType(pickupTypes[i]);
-                    if (string.IsNullOrEmpty(normalizedType))
-                    {
-                        continue;
-                    }
-
-                    pickups.Add(new LoadoutRuleFilePickupModel { Type = normalizedType, Count = 1 });
+                    type = GetString(pickupObject, "type");
+                    count = GetInt(pickupObject, "count", 1);
                 }
-            }
-
-            for (int i = 0; i < pickupBodies.Count; i++)
-            {
-                string pickupBody = pickupBodies[i];
-                string normalizedType = StartItemPickupCatalog.NormalizeType(ParseString(pickupBody, "type"));
-                if (string.IsNullOrEmpty(normalizedType))
+                else
                 {
-                    continue;
+                    type = GetString(pickupToken);
+                    count = 1;
                 }
 
-                pickups.Add(
-                    new LoadoutRuleFilePickupModel
-                    {
-                        Type = normalizedType,
-                        Count = StartItemPickupCatalog.NormalizeCount(ParseInt(pickupBody, "count", 1)),
-                    });
+                string normalizedType = StartItemPickupCatalog.NormalizeType(type);
+                if (!string.IsNullOrEmpty(normalizedType))
+                {
+                    pickups.Add(
+                        new LoadoutRuleFilePickupModel
+                        {
+                            Type = normalizedType,
+                            Count = pickupObject == null
+                                ? 1
+                                : StartItemPickupCatalog.NormalizeCount(count),
+                        });
+                }
             }
 
             return StartItemPickupCatalog.MergePickups(pickups.ToArray());
         }
 
-        private static string ExtractPropertyArrayBody(string rawJson, string propertyName)
+        private static JObject ParseObject(string rawJson)
         {
-            Match match = Regex.Match(rawJson, GetPropertyPrefixPattern(propertyName) + "\\[", RegexOptions.IgnoreCase);
-            if (!match.Success)
+            return JObject.Parse(rawJson);
+        }
+
+        private static string GetString(JObject objectValue, string propertyName)
+        {
+            return objectValue == null ? string.Empty : GetString(objectValue[propertyName]);
+        }
+
+        private static string GetString(JToken value)
+        {
+            if (value == null || value.Type == JTokenType.Null)
             {
                 return string.Empty;
             }
 
-            int arrayStart = match.Index + match.Length - 1;
-            int arrayEnd = FindMatchingClose(rawJson, arrayStart, '[', ']');
-            return arrayEnd > arrayStart ? rawJson.Substring(arrayStart + 1, arrayEnd - arrayStart - 1) : string.Empty;
+            return value.Type == JTokenType.String ? value.Value<string>() : value.ToString();
         }
 
-        private static bool ContainsArrayProperty(string rawJson, string propertyName)
+        private static bool GetBool(JObject objectValue, string propertyName, bool defaultValue)
         {
-            return Regex.IsMatch(rawJson ?? string.Empty, GetPropertyPrefixPattern(propertyName) + "\\[", RegexOptions.IgnoreCase);
-        }
-
-        private static List<string> ExtractObjectBodies(string arrayBody)
-        {
-            List<string> bodies = new List<string>();
-            if (string.IsNullOrEmpty(arrayBody))
-            {
-                return bodies;
-            }
-
-            for (int index = 0; index < arrayBody.Length; index++)
-            {
-                if (arrayBody[index] != '{')
-                {
-                    continue;
-                }
-
-                int objectEnd = FindMatchingClose(arrayBody, index, '{', '}');
-                if (objectEnd <= index)
-                {
-                    continue;
-                }
-
-                bodies.Add(arrayBody.Substring(index + 1, objectEnd - index - 1));
-                index = objectEnd;
-            }
-
-            return bodies;
-        }
-
-        private static int FindMatchingClose(string text, int openIndex, char openChar, char closeChar)
-        {
-            int depth = 0;
-            bool inString = false;
-            char stringQuote = '\0';
-            bool escaped = false;
-            for (int index = openIndex; index < text.Length; index++)
-            {
-                char current = text[index];
-                if (inString)
-                {
-                    if (escaped)
-                    {
-                        escaped = false;
-                    }
-                    else if (current == '\\')
-                    {
-                        escaped = true;
-                    }
-                    else if (current == stringQuote)
-                    {
-                        inString = false;
-                    }
-
-                    continue;
-                }
-
-                if (current == '"' || current == '\'')
-                {
-                    inString = true;
-                    stringQuote = current;
-                    continue;
-                }
-
-                if (current == openChar)
-                {
-                    depth++;
-                }
-                else if (current == closeChar)
-                {
-                    depth--;
-                    if (depth == 0)
-                    {
-                        return index;
-                    }
-                }
-            }
-
-            return -1;
-        }
-
-        private static string ParseString(string body, string propertyName)
-        {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "(?:\"(?<dq>(?:\\\\.|[^\"])*)\"|'(?<sq>(?:\\\\.|[^'])*)')",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                return string.Empty;
-            }
-
-            string value = match.Groups["dq"].Success
-                ? match.Groups["dq"].Value
-                : match.Groups["sq"].Value;
-            return UnescapeJsonString(value);
-        }
-
-        private static bool ParseBool(string body, string propertyName, bool defaultValue)
-        {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "(?<value>true|false)",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
+            JToken value = objectValue != null ? objectValue[propertyName] : null;
+            if (value == null || value.Type == JTokenType.Null)
             {
                 return defaultValue;
             }
 
-            return string.Equals(match.Groups["value"].Value, "true", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static int ParseInt(string body, string propertyName, int defaultValue)
-        {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "(?<value>-?\\d+)",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
+            if (value.Type == JTokenType.Boolean)
             {
-                return defaultValue;
+                return value.Value<bool>();
             }
 
-            int value;
-            return int.TryParse(match.Groups["value"].Value, out value) ? value : defaultValue;
+            bool parsed;
+            return bool.TryParse(GetString(value), out parsed) ? parsed : defaultValue;
         }
 
-        private static int? ParseNullableInt(string body, string propertyName)
+        private static int GetInt(JObject objectValue, string propertyName, int defaultValue)
         {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "(?<value>-?\\d+)",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
+            return GetInt(objectValue != null ? objectValue[propertyName] : null, defaultValue);
+        }
+
+        private static int GetInt(JToken value, int defaultValue)
+        {
+            int parsed;
+            return int.TryParse(GetString(value), out parsed) ? parsed : defaultValue;
+        }
+
+        private static int? GetNullableInt(JObject objectValue, string propertyName)
+        {
+            JToken value = objectValue != null ? objectValue[propertyName] : null;
+            if (value == null || value.Type == JTokenType.Null)
             {
                 return null;
             }
 
-            int value;
-            return int.TryParse(match.Groups["value"].Value, out value) ? (int?)value : null;
+            int parsed;
+            return int.TryParse(GetString(value), out parsed) ? (int?)parsed : null;
         }
 
-        private static int[] ParseIntArray(string body, string propertyName)
+        private static int[] GetIntArray(JToken value)
         {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "\\[(?<value>[\\s\\S]*?)\\]",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
+            JArray array = value as JArray;
+            if (array == null)
             {
                 return new int[0];
             }
 
-            MatchCollection itemMatches = Regex.Matches(match.Groups["value"].Value, "-?\\d+");
             List<int> values = new List<int>();
-            for (int i = 0; i < itemMatches.Count; i++)
+            foreach (JToken item in array)
             {
-                int value;
-                if (int.TryParse(itemMatches[i].Value, out value))
+                int parsed;
+                if (int.TryParse(GetString(item), out parsed))
                 {
-                    values.Add(value);
+                    values.Add(parsed);
                 }
             }
 
             return values.ToArray();
         }
 
-        private static string[] ParseStringArray(string body, string propertyName)
+        private static string[] GetStringArray(JToken value)
         {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "\\[(?<value>[\\s\\S]*?)\\]",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
+            JArray array = value as JArray;
+            if (array == null)
             {
                 return new string[0];
             }
 
-            MatchCollection itemMatches = Regex.Matches(
-                match.Groups["value"].Value,
-                "(?:\"(?<dq>(?:\\\\.|[^\"])*)\"|'(?<sq>(?:\\\\.|[^'])*)')");
             List<string> values = new List<string>();
-            for (int i = 0; i < itemMatches.Count; i++)
+            foreach (JToken item in array)
             {
-                string itemValue = itemMatches[i].Groups["dq"].Success
-                    ? itemMatches[i].Groups["dq"].Value
-                    : itemMatches[i].Groups["sq"].Value;
-                values.Add(UnescapeJsonString(itemValue));
+                string parsed = GetString(item);
+                if (!string.IsNullOrEmpty(parsed))
+                {
+                    values.Add(parsed);
+                }
             }
 
             return values.ToArray();
-        }
-
-        private static string UnescapeJsonString(string value)
-        {
-            return value
-                .Replace("\\\"", "\"")
-                .Replace("\\'", "'")
-                .Replace("\\\\", "\\")
-                .Replace("\\n", "\n")
-                .Replace("\\r", "\r")
-                .Replace("\\t", "\t");
-        }
-
-        private static string GetPropertyPrefixPattern(string propertyName)
-        {
-            string escaped = Regex.Escape(propertyName);
-            return "(?:\"" + escaped + "\"|'" + escaped + "'|\\b" + escaped + "\\b)\\s*:\\s*";
         }
     }
 }

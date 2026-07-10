@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace RandomLoadout
 {
@@ -75,12 +75,18 @@ namespace RandomLoadout
                 return new AliasFileModel();
             }
 
+            JObject root = JObject.Parse(rawJson);
+            JArray aliasesArray = root["aliases"] as JArray;
             List<AliasEntryModel> aliases = new List<AliasEntryModel>();
-            MatchCollection aliasMatches = Regex.Matches(rawJson, "\\{(?<body>[\\s\\S]*?)\\}");
-            for (int i = 0; i < aliasMatches.Count; i++)
+            if (aliasesArray == null)
             {
-                string body = aliasMatches[i].Groups["body"].Value;
-                if (!Regex.IsMatch(body, GetPropertyPrefixPattern("alias"), RegexOptions.IgnoreCase))
+                return new AliasFileModel { Aliases = aliases.ToArray() };
+            }
+
+            foreach (JToken aliasToken in aliasesArray)
+            {
+                JObject aliasObject = aliasToken as JObject;
+                if (aliasObject == null)
                 {
                     continue;
                 }
@@ -88,8 +94,8 @@ namespace RandomLoadout
                 aliases.Add(
                     new AliasEntryModel
                     {
-                        Alias = ParseString(body, "alias"),
-                        Id = ParseInt(body, "id", 0),
+                        Alias = GetString(aliasObject["alias"]),
+                        Id = GetInt(aliasObject["id"], 0),
                     });
             }
 
@@ -109,48 +115,20 @@ namespace RandomLoadout
             };
         }
 
-        private static string ParseString(string body, string propertyName)
+        private static string GetString(JToken value)
         {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "(?:\"(?<dq>(?:\\\\.|[^\"])*)\"|'(?<sq>(?:\\\\.|[^'])*)')",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
+            if (value == null || value.Type == JTokenType.Null)
             {
                 return string.Empty;
             }
 
-            string value = match.Groups["dq"].Success
-                ? match.Groups["dq"].Value
-                : match.Groups["sq"].Value;
-            return value
-                .Replace("\\\"", "\"")
-                .Replace("\\'", "'")
-                .Replace("\\\\", "\\")
-                .Replace("\\n", "\n")
-                .Replace("\\r", "\r")
-                .Replace("\\t", "\t");
+            return value.Type == JTokenType.String ? value.Value<string>() : value.ToString();
         }
 
-        private static int ParseInt(string body, string propertyName, int defaultValue)
+        private static int GetInt(JToken value, int defaultValue)
         {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "(?<value>-?\\d+)",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                return defaultValue;
-            }
-
-            int value;
-            return int.TryParse(match.Groups["value"].Value, out value) ? value : defaultValue;
-        }
-
-        private static string GetPropertyPrefixPattern(string propertyName)
-        {
-            string escaped = Regex.Escape(propertyName);
-            return "(?:\"" + escaped + "\"|'" + escaped + "'|\\b" + escaped + "\\b)\\s*:\\s*";
+            int parsed;
+            return int.TryParse(GetString(value), out parsed) ? parsed : defaultValue;
         }
     }
 }

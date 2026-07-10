@@ -26,8 +26,8 @@ Use this directory for runtime-ready, normalized data files that the mod may dep
 
 - `RandomLoadout.pickups.json`
 - `RandomLoadout.pickups.by-category.json`
-- `RandomLoadout.pickup-gameplay.en.json`
-- `RandomLoadout.pickup-gameplay.zh-CN.work.json`
+- `RandomLoadout.pickup-gameplay.json`
+- `RandomLoadout.pickup-info-terms.json`
 
 For web-derived content such as wiki descriptions, store only the runtime-ready JSON snapshot here. Do not store raw
 HTML pages or full webpage dumps in `defaults/catalog/`.
@@ -37,18 +37,30 @@ Preferred pattern:
 - `tools/data/`: generator scripts and optional scrape/cache helpers
 - `defaults/catalog/`: generated, compact JSON that is safe for runtime use and repository distribution
 
-For gameplay-focused nearby-pickup info, the shipped JSON should stay compact and structured. Keep fields such as:
+For gameplay-focused nearby-pickup info, runtime data now uses schema v2:
 
-- `pickupId`
-- `englishDisplayName`
-- `wikiKey`
-- stat fields such as `quality`, `pickupType`, `gunClass`, `dps`, `reloadTime`
-- gameplay text fields such as `englishGameplaySummary`, `englishEffectHighlights`, `englishSynergyHighlights`, `englishUsageNotes`
+- `RandomLoadout.pickup-gameplay.json` stores the runtime pickup facts
+- `RandomLoadout.pickup-info-terms.json` stores UI-facing labels and display-value translations
+
+Keep the gameplay file compact and structured around:
+
+- top-level `schemaVersion`
+- top-level `pickups` object keyed by stringified `pickupId`
+- per-pickup `names.en` / `names.zh-CN`
+- per-pickup facts such as `wikiKey`, `quality`, and `type`
+- ordered `statSections`
+- localized `text.summary`, `text.effects`, `text.synergies`, and `text.notes`
+
+Keep the terms file structured around:
+
+- `sections`
+- `stats`
+- `displayValues`
 
 Extra scrape-only artifacts belong outside `defaults/catalog/`.
 
-The optional Simplified Chinese gameplay work file mirrors the localization overlay layer and may be empty until
-translation work begins.
+The old bilingual sources may still exist for translation or migration workflows, but they are no longer the active
+runtime nearby-pickup format.
 
 Legacy files such as `RandomLoadout.pickup-wiki-tips.en.json` and
 `RandomLoadout.pickup-wiki-tips.zh-CN.work.json` may still exist in the repository for migration/reference purposes,

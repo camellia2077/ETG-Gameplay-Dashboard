@@ -12,8 +12,8 @@ namespace RandomLoadout
         public const string EnglishLocalizationFileName = "ETG-Gameplay-Dashboard.localization.en.json5";
         public const string SimplifiedChineseLocalizationFileName = "ETG-Gameplay-Dashboard.localization.zh-CN.json5";
         public const string PresetsDirectoryName = "presets";
-        public const string PickupGameplayFileName = "RandomLoadout.pickup-gameplay.en.json";
-        public const string PickupGameplaySimplifiedChineseWorkFileName = "RandomLoadout.pickup-gameplay.zh-CN.work.json";
+        public const string PickupGameplayFileName = "RandomLoadout.pickup-gameplay.json";
+        public const string PickupInfoTermsFileName = "RandomLoadout.pickup-info-terms.json";
 
         public static string GetRulesFilePath(string configDirectory)
         {
@@ -45,9 +45,9 @@ namespace RandomLoadout
             return Path.Combine(configDirectory ?? string.Empty, PickupGameplayFileName);
         }
 
-        public static string GetPickupGameplaySimplifiedChineseWorkFilePath(string configDirectory)
+        public static string GetPickupInfoTermsFilePath(string configDirectory)
         {
-            return Path.Combine(configDirectory ?? string.Empty, PickupGameplaySimplifiedChineseWorkFileName);
+            return Path.Combine(configDirectory ?? string.Empty, PickupInfoTermsFileName);
         }
 
         public static string GetPresetFilePath(string configDirectory, string fileName)

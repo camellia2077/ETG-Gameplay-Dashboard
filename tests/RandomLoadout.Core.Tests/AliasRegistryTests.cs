@@ -2,6 +2,7 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System;
+using System.IO;
 
 namespace RandomLoadout.Core.Tests
 {
@@ -71,6 +72,36 @@ namespace RandomLoadout.Core.Tests
             int pickupId;
             AssertEx.True(!registry.TryResolve("bad_alias", out pickupId), "Aliases with unsupported pickup IDs should be rejected.");
             AssertEx.True(warnings.Count == 1, "Rejecting an unsupported pickup ID should produce one warning.");
+        }
+
+        public static void LoadsJson5AliasesWithCommentsAndTrailingCommas()
+        {
+            string path = Path.GetTempFileName();
+            try
+            {
+                File.WriteAllText(
+                    path,
+                    "{\n" +
+                    "  // Alias comment\n" +
+                    "  \"aliases\": [\n" +
+                    "    { \"alias\": \"casey_bat\", \"id\": 541 },\n" +
+                    "  ],\n" +
+                    "}");
+
+                AliasLoadResult result = new JsonPickupAliasFileProvider(path).Load(
+                    delegate { return true; });
+                int pickupId;
+                AssertEx.True(result.Registry.TryResolve("casey_bat", out pickupId), "The JSON5 alias should be loaded.");
+                AssertEx.Equal(541, pickupId, "The JSON5 alias should preserve its pickup ID.");
+                AssertEx.Equal(0, result.Warnings.Length, "A valid JSON5 alias file should not produce warnings: " + string.Join(" | ", result.Warnings));
+            }
+            finally
+            {
+                if (File.Exists(path))
+                {
+                    File.Delete(path);
+                }
+            }
         }
     }
 }

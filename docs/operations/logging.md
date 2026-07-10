@@ -116,6 +116,7 @@ After any hook, scene, Boss Rush, character-select-hub, reward, pause-flow, or c
 - command-panel cursor diagnostics when controller-to-mouse handoff makes the in-game cursor disappear or flicker
 - active-item grant diagnostics when active items drop near the player instead of entering the active-item bar
 - nearby-pickup diagnostics when the overlay does not appear for dropped loot or shop merchandise
+  this now also includes schema-v2 gameplay/terms input-file path and existence diagnostics when nearby-pickup verbose logs are enabled
 - startup window-focus diagnostics when Steam launch enters audio playback but does not fully foreground the game window
 - performance diagnostics when entering a run causes frame drops, long frames, or scene-transition stutter
 

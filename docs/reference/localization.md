@@ -201,11 +201,12 @@ and calls `GetExactString(0)` on the entry object via reflection.
 
 ## Exported Pickup Name Snapshots
 
-The runtime catalog export now writes pickup-name snapshots plus an optional nearby-pickup gameplay work file:
+The runtime catalog export now writes pickup-name snapshots plus the nearby-pickup gameplay runtime files:
 
 - full pickup catalogs such as `RandomLoadout.pickups.json`
 - a compact name snapshot: `RandomLoadout.pickup-names.game-language.json`
-- an optional gameplay-info work file: `RandomLoadout.pickup-gameplay.zh-CN.work.json`
+- a gameplay-info runtime file: `RandomLoadout.pickup-gameplay.json`
+- a gameplay-info terms file: `RandomLoadout.pickup-info-terms.json`
 
 Important behavior:
 
@@ -216,10 +217,10 @@ matches the game's own Chinese item names even if the command panel language ove
 
 For nearby pickup info:
 
-- runtime reads nearby-pickup title/body data from `RandomLoadout.pickup-gameplay.en.json`
-- `chineseDisplayName`, `chineseGameplaySummary`, `chineseEffectHighlights`, `chineseSynergyHighlights`, and `chineseUsageNotes` are preferred in `zh-CN` when the gameplay work file exists
-- if localized gameplay text is missing, runtime falls back to the English gameplay snapshot
-- `chineseDisplayName` from the work file is preferred for the title in `zh-CN`
+- runtime reads nearby-pickup title/body data from `RandomLoadout.pickup-gameplay.json`
+- runtime reads section/stat/display-value translations from `RandomLoadout.pickup-info-terms.json`
+- each pickup now carries bilingual `names.*` and `text.*` fields inside the same schema-v2 runtime file
+- if localized gameplay text is missing, runtime falls back to the English values in the same gameplay snapshot
 - `pickup-wiki-tips` is no longer used as a display-time fallback
 - runtime formatting may insert line breaks around recognized section markers when rendering nearby-pickup body text; the JSON itself does not need manual line breaks for those markers
 

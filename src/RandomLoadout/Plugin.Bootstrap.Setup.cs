@@ -1,6 +1,7 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
+using System;
 using System.IO;
 using BepInEx;
 using RandomLoadout.Core;
@@ -155,7 +156,7 @@ namespace RandomLoadout
             _aliasFileProvider = new JsonPickupAliasFileProvider(DashboardFileLayout.GetAliasFilePath(Paths.ConfigPath));
             _pickupGameplayProvider = new JsonPickupGameplayProvider(
                 DashboardFileLayout.GetPickupGameplayFilePath(Paths.ConfigPath),
-                DashboardFileLayout.GetPickupGameplaySimplifiedChineseWorkFilePath(Paths.ConfigPath));
+                DashboardFileLayout.GetPickupInfoTermsFilePath(Paths.ConfigPath));
             _randomPoolSelectionStateProvider = new RandomPoolSelectionStateProvider(Path.Combine(Paths.ConfigPath, RandomPoolSelectionStateFileName));
             _ruleFileProvider = new JsonLoadoutRuleFileProvider(
                 DashboardFileLayout.GetRulesFilePath(Paths.ConfigPath),
@@ -165,6 +166,11 @@ namespace RandomLoadout
 
         private void InitializeServices()
         {
+            if (IsNearbyPickupVerboseLoggingEnabled())
+            {
+                LogPickupGameplayInputFiles();
+            }
+
             string pickupInfoTermsMessage = string.Empty;
             string pickupInfoTermsWarning = string.Empty;
             _pickupInfoTermsRegistry = _pickupGameplayProvider != null
@@ -213,6 +219,51 @@ namespace RandomLoadout
             _bossRushService = new BossRushService(Logger, IsBossRushVerboseLoggingEnabled);
             _gameWindowFocusService = new GameWindowFocusService(Logger, IsStartupWindowFocusVerboseLoggingEnabled);
             _performanceDiagnostics = new PerformanceDiagnostics(Logger, IsPerformanceVerboseLoggingEnabled);
+        }
+
+        private void LogPickupGameplayInputFiles()
+        {
+            if (Logger == null || _pickupGameplayProvider == null)
+            {
+                return;
+            }
+
+            LogPickupGameplayInputFile("Gameplay", _pickupGameplayProvider.GameplayFilePath);
+            LogPickupGameplayInputFile("Terms", _pickupGameplayProvider.TermsFilePath);
+        }
+
+        private void LogPickupGameplayInputFile(string label, string path)
+        {
+            string resolvedPath = path ?? string.Empty;
+            bool exists = !string.IsNullOrEmpty(resolvedPath) && File.Exists(resolvedPath);
+            long size = 0L;
+            if (exists)
+            {
+                try
+                {
+                    size = new FileInfo(resolvedPath).Length;
+                }
+                catch (IOException)
+                {
+                    size = -1L;
+                }
+                catch (UnauthorizedAccessException)
+                {
+                    size = -1L;
+                }
+            }
+
+            Logger.LogInfo(
+                RandomLoadoutLog.Init(
+                    "Pickup gameplay " +
+                    label +
+                    " file: Path='" +
+                    resolvedPath +
+                    "', Exists=" +
+                    exists +
+                    ", SizeBytes=" +
+                    size +
+                    "."));
         }
 
         private void InitializeControllers()

@@ -146,6 +146,7 @@ namespace RandomLoadout
 
             _settingsInfoTextStyle = new GUIStyle(_hintStyle);
             _settingsInfoTextStyle.normal.textColor = Color.white;
+            _settingsInfoTextStyle.wordWrap = true;
 
             _controllerHelpTitleStyle = new GUIStyle(_titleStyle);
             _controllerHelpTitleStyle.normal.textColor = Color.white;

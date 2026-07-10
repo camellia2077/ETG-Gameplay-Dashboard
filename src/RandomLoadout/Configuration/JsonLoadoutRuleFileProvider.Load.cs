@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using Newtonsoft.Json.Linq;
 using RandomLoadout.Core;
 
 namespace RandomLoadout
@@ -176,13 +177,12 @@ namespace RandomLoadout
                 return null;
             }
 
-            string id = ParseString(rawJson, "id");
-            string displayNameKey = ParseString(rawJson, "display_name_key");
-            string name = ParseString(rawJson, "name");
-            string rulesArrayBody = ExtractPropertyArrayBody(rawJson, "rules");
-            if ((string.IsNullOrEmpty(id) && string.IsNullOrEmpty(name)) ||
-                ((string.IsNullOrEmpty(rulesArrayBody) && !RegexContainsRulesArray(rawJson)) &&
-                 !RegexContainsPickupsArray(rawJson)))
+            JObject preset = ParseObject(rawJson);
+            string id = GetString(preset, "id");
+            string name = GetString(preset, "name");
+            bool hasRules = preset["rules"] is JArray;
+            bool hasPickups = preset["pickups"] is JArray;
+            if ((string.IsNullOrEmpty(id) && string.IsNullOrEmpty(name)) || (!hasRules && !hasPickups))
             {
                 return null;
             }
@@ -190,11 +190,11 @@ namespace RandomLoadout
             return new LoadoutRuleFilePresetModel
             {
                 Id = StartItemsPresetNames.CreatePresetId(id, name, fallbackIndex),
-                DisplayNameKey = StartItemsPresetNames.NormalizePresetName(displayNameKey),
+                DisplayNameKey = StartItemsPresetNames.NormalizePresetName(GetString(preset, "display_name_key")),
                 Name = StartItemsPresetNames.NormalizePresetName(name),
                 SourcePath = presetPath ?? string.Empty,
-                Rules = ParseRulesFromArrayBody(rulesArrayBody),
-                Pickups = ParsePresetPickups(rawJson),
+                Rules = ParseRulesFromArray(preset["rules"] as JArray),
+                Pickups = ParsePresetPickups(preset),
             };
         }
 
@@ -251,22 +251,6 @@ namespace RandomLoadout
             }
 
             return "preset." + safeId + ".json";
-        }
-
-        private static bool RegexContainsRulesArray(string rawJson)
-        {
-            return System.Text.RegularExpressions.Regex.IsMatch(
-                rawJson ?? string.Empty,
-                GetPropertyPrefixPattern("rules") + "\\[",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        }
-
-        private static bool RegexContainsPickupsArray(string rawJson)
-        {
-            return System.Text.RegularExpressions.Regex.IsMatch(
-                rawJson ?? string.Empty,
-                GetPropertyPrefixPattern("pickups") + "\\[",
-                System.Text.RegularExpressions.RegexOptions.IgnoreCase);
         }
 
         private const string DefaultPresetId = StartItemsPresetNames.DefaultPresetId;

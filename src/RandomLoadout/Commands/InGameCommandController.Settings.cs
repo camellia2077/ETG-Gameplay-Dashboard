@@ -52,18 +52,21 @@ namespace RandomLoadout
                 "settings.controller_help",
                 GuiText.Get("gui.settings.setting.controller_help"),
                 GuiText.Get("gui.settings.value.controller_help"),
+                GuiText.Get("gui.settings.button.view_details"),
                 delegate { OpenControllerHelpPage(); });
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 108f, rowWidth, 34f),
                 "settings.keyboard_help",
                 GuiText.Get("gui.settings.setting.keyboard_help"),
                 GuiText.Get("gui.settings.value.keyboard_help"),
+                GuiText.Get("gui.settings.button.view_details"),
                 delegate { OpenKeyboardHelpPage(); });
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 148f, rowWidth, 34f),
                 "settings.advanced_tools",
                 GuiText.Get("gui.settings.setting.advanced_tools"),
                 GuiText.Get("gui.settings.value.advanced_tools"),
+                GuiText.Get("gui.settings.button.view_details"),
                 delegate { OpenAdvancedToolsPage(); });
 
             rowTop += 214f;
@@ -110,7 +113,7 @@ namespace RandomLoadout
                 GuiText.Get("gui.settings.releases"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 194f, rowWidth, 20f),
+                new Rect(left, rowTop + 194f, rowWidth, 72f),
                 GetProjectDisclaimerText(),
                 _settingsInfoTextStyle);
         }
@@ -119,8 +122,8 @@ namespace RandomLoadout
         {
             return GetLocalizedFallback(
                 string.Empty,
-                "This project is open source, free, and ad-free. Please prefer the official GitHub or Gitee release pages to verify integrity and avoid repackaged builds with ads or tampering.",
-                "本项目开源、免费、无广告。建议优先从 GitHub 或 Gitee 官方发布页下载，便于校验完整性，避免第三方打包版本被加广告或篡改。");
+                "This project is open source, free, and ad-free. Please download from GitHub, read the update notes for each release, and avoid third-party repackaged builds that may add ads or tampering.",
+                "本项目开源、免费、无广告。推荐从 GitHub 下载，并查看每次 Release 的更新说明，避免使用可能被加入广告或篡改内容的第三方打包版本。");
         }
 
         private void DrawSettingsSectionLabel(float left, float top, float width, string text)

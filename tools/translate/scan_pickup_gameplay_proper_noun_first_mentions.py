@@ -8,7 +8,7 @@ from pathlib import Path
 from gameplay_translation_workflow import DEFAULT_WORK_FILE_PATH, REPO_ROOT, TRANSLATABLE_FIELD_PAIRS, load_json
 
 
-DEFAULT_INPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
+DEFAULT_INPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
 LATIN_FRAGMENT_PATTERN = re.compile(
     r"[A-Za-zÀ-ÖØ-öø-ÿĀ-ž][A-Za-z0-9À-ÖØ-öø-ÿĀ-ž'&_.:+\-]*(?:\s+[A-Za-z0-9À-ÖØ-öø-ÿĀ-ž'&_.:+\-]+)*"
 )

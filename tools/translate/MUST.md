@@ -2,6 +2,13 @@
 
 开始翻译前，先读完这份文件。
 
+当前 nearby-pickup gameplay 翻译流程的最终 runtime 目标是：
+
+- `defaults/catalog/RandomLoadout.pickup-gameplay.json`
+- `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+
+旧 `zh-CN.work.json` 和 `.check.json` 批次文件只是辅助工作格式，不是最终交付格式。
+
 高层命令只有两个：
 
 ```powershell
@@ -25,11 +32,11 @@ python .\tools\translate\main.py postcheck ...
 
 ## 最低硬要求
 
-1. 只在 `.check.json` 批次里工作，不要先改主工作文件。
-2. `localizedEnglish*` 只作为参考，不回写主工作文件。
+1. 只在 `.check.json` 批次里工作，不要先改 runtime v2 输出文件。
+2. `localizedEnglish*` 只作为参考，不回写 runtime v2 输出文件。
 3. 英文空字段对应的中文字段也保持空，不要补写。
 4. 术语和固定译名优先参考 `GLOSSARY.md`。
-5. 程序检查和 agent 获取文本检查都通过后，才能回写主工作文件。
+5. 程序检查和 agent 获取文本检查都通过后，才能进入可映射回 runtime v2 的回写阶段。
 
 ## 翻译
 
@@ -40,7 +47,7 @@ python .\tools\translate\main.py translate --start-id <start> --end-id <end> --i
 ```
 
 2. 修改生成的 `.check.json` 批次。
-3. 不要先回写主工作文件。
+3. 不要先把辅助工作格式当成最终目标。
 4. 翻译过程中反复执行：
 
 ```powershell

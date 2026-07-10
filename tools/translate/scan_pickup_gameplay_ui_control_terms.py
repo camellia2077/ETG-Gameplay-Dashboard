@@ -8,7 +8,7 @@ from pathlib import Path
 from gameplay_translation_workflow import REPO_ROOT, TRANSLATABLE_FIELD_PAIRS, load_json
 
 
-DEFAULT_INPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
+DEFAULT_INPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
 WRAPPED_ENGLISH_PATTERN = re.compile(
     r"[《》〈〉「」『』“”‘’·\u4e00-\u9fff0-9A-Za-z0-9 _.\-:：,，、]{1,120}（[A-Za-zÀ-ÖØ-öø-ÿĀ-ž0-9'\"“”&_.:+,\- !?]+）"
 )

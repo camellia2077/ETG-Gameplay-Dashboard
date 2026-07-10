@@ -7,7 +7,7 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace RandomLoadout
 {
@@ -185,59 +185,23 @@ namespace RandomLoadout
                 return values;
             }
 
-            MatchCollection matches = Regex.Matches(
-                rawJson,
-                "(?:\"(?<dqk>(?:\\\\.|[^\"])*)\"|'(?<sqk>(?:\\\\.|[^'])*)'|(?<bare>[A-Za-z0-9_.-]+))\\s*:\\s*(?:\"(?<dqv>(?:\\\\.|[^\"])*)\"|'(?<sqv>(?:\\\\.|[^'])*)')",
-                RegexOptions.Singleline);
-            for (int i = 0; i < matches.Count; i++)
+            JObject root = JObject.Parse(rawJson);
+            foreach (JProperty property in root.Properties())
             {
-                Match match = matches[i];
-                string key = GetGroupValue(match, "dqk", "sqk", "bare");
+                string key = property.Name;
                 if (string.IsNullOrEmpty(key))
                 {
                     continue;
                 }
 
-                string value = UnescapeJson5String(GetGroupValue(match, "dqv", "sqv"));
-                values[key] = value;
-            }
-
-            return values;
-        }
-
-        private static string GetGroupValue(Match match, params string[] groupNames)
-        {
-            if (match == null || groupNames == null)
-            {
-                return string.Empty;
-            }
-
-            for (int i = 0; i < groupNames.Length; i++)
-            {
-                Group group = match.Groups[groupNames[i]];
-                if (group != null && group.Success)
+                JToken token = property.Value;
+                if (token != null && token.Type == JTokenType.String)
                 {
-                    return group.Value;
+                    values[key] = token.Value<string>();
                 }
             }
 
-            return string.Empty;
-        }
-
-        private static string UnescapeJson5String(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return string.Empty;
-            }
-
-            return value
-                .Replace("\\\"", "\"")
-                .Replace("\\'", "'")
-                .Replace("\\\\", "\\")
-                .Replace("\\n", "\n")
-                .Replace("\\r", "\r")
-                .Replace("\\t", "\t");
+            return values;
         }
 
         private static string DetectLanguageCode()

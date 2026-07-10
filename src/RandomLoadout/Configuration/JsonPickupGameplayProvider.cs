@@ -5,19 +5,29 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 
 namespace RandomLoadout
 {
     internal sealed class JsonPickupGameplayProvider
     {
-        private readonly string _englishFilePath;
-        private readonly string _simplifiedChineseWorkFilePath;
+        private readonly string _gameplayFilePath;
+        private readonly string _termsFilePath;
 
-        public JsonPickupGameplayProvider(string englishFilePath, string simplifiedChineseWorkFilePath)
+        public JsonPickupGameplayProvider(string gameplayFilePath, string termsFilePath)
         {
-            _englishFilePath = englishFilePath;
-            _simplifiedChineseWorkFilePath = simplifiedChineseWorkFilePath;
+            _gameplayFilePath = gameplayFilePath;
+            _termsFilePath = termsFilePath;
+        }
+
+        public string GameplayFilePath
+        {
+            get { return _gameplayFilePath; }
+        }
+
+        public string TermsFilePath
+        {
+            get { return _termsFilePath; }
         }
 
         public PickupGameplayRegistry Load(out string message, out string warning)
@@ -25,41 +35,25 @@ namespace RandomLoadout
             message = string.Empty;
             warning = string.Empty;
 
-            if (!File.Exists(_englishFilePath))
+            if (!File.Exists(_gameplayFilePath))
             {
                 warning =
-                    "Pickup gameplay info file was not found at '" + _englishFilePath + "'. " +
+                    "Pickup gameplay info file was not found at '" + _gameplayFilePath + "'. " +
                     "Deploy the repository default catalog files again if you want gameplay-focused nearby pickup info.";
                 return PickupGameplayRegistry.Empty;
             }
 
             try
             {
-                string englishRawJson = File.ReadAllText(_englishFilePath, Encoding.UTF8);
-                List<PickupGameplayEntry> englishEntries = ParseEntries(englishRawJson, null);
-                Dictionary<int, PickupGameplayEntry> mergedEntries = BuildEntryDictionary(englishEntries);
-
-                bool loadedSimplifiedChineseWorkFile = false;
-                if (!string.IsNullOrEmpty(_simplifiedChineseWorkFilePath) && File.Exists(_simplifiedChineseWorkFilePath))
-                {
-                    string simplifiedChineseRawJson = File.ReadAllText(_simplifiedChineseWorkFilePath, Encoding.UTF8);
-                    List<PickupGameplayEntry> localizedEntries = ParseEntries(simplifiedChineseRawJson, mergedEntries);
-                    mergedEntries = MergeLocalizedEntries(mergedEntries, localizedEntries);
-                    loadedSimplifiedChineseWorkFile = true;
-                }
-
-                PickupGameplayRegistry registry = new PickupGameplayRegistry(ToEntryArray(mergedEntries));
-                message = "Loaded pickup gameplay info from '" + _englishFilePath + "' (" + registry.Count + " entries).";
-                if (loadedSimplifiedChineseWorkFile)
-                {
-                    message += " Merged Simplified Chinese gameplay info from '" + _simplifiedChineseWorkFilePath + "'.";
-                }
-
+                string rawJson = File.ReadAllText(_gameplayFilePath, Encoding.UTF8);
+                PickupGameplayEntry[] entries = ParsePickupGameplayEntries(rawJson);
+                PickupGameplayRegistry registry = new PickupGameplayRegistry(entries);
+                message = "Loaded pickup gameplay info v2 from '" + _gameplayFilePath + "' (" + registry.Count + " entries).";
                 return registry;
             }
             catch (Exception exception)
             {
-                warning = "Failed to parse pickup gameplay info file '" + _englishFilePath + "': " + exception.Message;
+                warning = "Failed to parse pickup gameplay info file '" + _gameplayFilePath + "': " + exception.Message;
                 return PickupGameplayRegistry.Empty;
             }
         }
@@ -69,482 +63,199 @@ namespace RandomLoadout
             message = string.Empty;
             warning = string.Empty;
 
-            if (string.IsNullOrEmpty(_simplifiedChineseWorkFilePath) || !File.Exists(_simplifiedChineseWorkFilePath))
+            if (string.IsNullOrEmpty(_termsFilePath) || !File.Exists(_termsFilePath))
             {
                 warning =
-                    "Pickup gameplay Simplified Chinese work file was not found at '" +
-                    _simplifiedChineseWorkFilePath +
+                    "Pickup info terms file was not found at '" +
+                    _termsFilePath +
                     "'. Nearby pickup gameplay terms will use built-in fallbacks.";
                 return PickupInfoTermsRegistry.Empty;
             }
 
             try
             {
-                string rawJson = File.ReadAllText(_simplifiedChineseWorkFilePath, Encoding.UTF8);
-                PickupInfoTermsTable simplifiedChinese = ParseTermsTable(rawJson);
-                PickupInfoTermsRegistry registry = new PickupInfoTermsRegistry(PickupInfoTermsTable.Empty, simplifiedChinese);
-                message = "Loaded pickup gameplay terms from '" + _simplifiedChineseWorkFilePath + "'.";
+                string rawJson = File.ReadAllText(_termsFilePath, Encoding.UTF8);
+                JObject root = ParseObject(rawJson);
+                PickupInfoTermsTable english = ParseTermsTable(root, "en");
+                PickupInfoTermsTable simplifiedChinese = ParseTermsTable(root, "zh-CN");
+                PickupInfoTermsRegistry registry = new PickupInfoTermsRegistry(english, simplifiedChinese);
+                message = "Loaded pickup gameplay terms v2 from '" + _termsFilePath + "'.";
                 return registry;
             }
             catch (Exception exception)
             {
-                warning = "Failed to parse pickup gameplay terms from '" + _simplifiedChineseWorkFilePath + "': " + exception.Message;
+                warning = "Failed to parse pickup gameplay terms from '" + _termsFilePath + "': " + exception.Message;
                 return PickupInfoTermsRegistry.Empty;
             }
         }
 
-        private static Dictionary<int, PickupGameplayEntry> BuildEntryDictionary(List<PickupGameplayEntry> entries)
+        private static PickupGameplayEntry[] ParsePickupGameplayEntries(string rawJson)
         {
-            Dictionary<int, PickupGameplayEntry> mergedEntries = new Dictionary<int, PickupGameplayEntry>();
-            for (int i = 0; i < entries.Count; i++)
+            JObject root = ParseObject(rawJson);
+            JObject pickups = root["pickups"] as JObject;
+            if (pickups == null)
             {
-                PickupGameplayEntry entry = entries[i];
-                if (entry == null || mergedEntries.ContainsKey(entry.PickupId))
-                {
-                    continue;
-                }
-
-                mergedEntries.Add(entry.PickupId, entry);
+                return new PickupGameplayEntry[0];
             }
 
-            return mergedEntries;
-        }
-
-        private static Dictionary<int, PickupGameplayEntry> MergeLocalizedEntries(
-            Dictionary<int, PickupGameplayEntry> baseEntries,
-            List<PickupGameplayEntry> localizedEntries)
-        {
-            Dictionary<int, PickupGameplayEntry> merged = new Dictionary<int, PickupGameplayEntry>(baseEntries);
-            for (int i = 0; i < localizedEntries.Count; i++)
+            List<PickupGameplayEntry> entries = new List<PickupGameplayEntry>();
+            foreach (JProperty property in pickups.Properties())
             {
-                PickupGameplayEntry localizedEntry = localizedEntries[i];
-                // ETG pickup IDs are zero-based. Keep 0 as a valid pickup ID and only reject negatives.
-                if (localizedEntry == null || localizedEntry.PickupId < 0)
+                JObject pickup = property.Value as JObject;
+                if (pickup == null)
                 {
                     continue;
                 }
 
-                PickupGameplayEntry baseEntry;
-                if (!merged.TryGetValue(localizedEntry.PickupId, out baseEntry))
+                int pickupId = ParseInt(property.Name, -1);
+                if (pickupId < 0)
                 {
-                    merged[localizedEntry.PickupId] = localizedEntry;
+                    pickupId = ParseInt(pickup["id"], -1);
+                }
+
+                if (pickupId < 0)
+                {
                     continue;
                 }
 
-                merged[localizedEntry.PickupId] = new PickupGameplayEntry(
-                    baseEntry.PickupId,
-                    baseEntry.EnglishDisplayName,
-                    baseEntry.WikiKey,
-                    baseEntry.Quality,
-                    baseEntry.PickupType,
-                    baseEntry.StatGroups,
-                    baseEntry.Unlock,
-                    baseEntry.EnglishGameplaySummary,
-                    baseEntry.EnglishEffectHighlights,
-                    baseEntry.EnglishSynergyHighlights,
-                    baseEntry.EnglishUsageNotes,
-                    GetMergedValue(localizedEntry.ChineseDisplayName, baseEntry.ChineseDisplayName),
-                    GetMergedValue(localizedEntry.ChineseGameplaySummary, baseEntry.ChineseGameplaySummary),
-                    GetMergedValue(localizedEntry.ChineseEffectHighlights, baseEntry.ChineseEffectHighlights),
-                    GetMergedValue(localizedEntry.ChineseSynergyHighlights, baseEntry.ChineseSynergyHighlights),
-                    GetMergedValue(localizedEntry.ChineseUsageNotes, baseEntry.ChineseUsageNotes));
+                JObject names = pickup["names"] as JObject;
+                JObject text = pickup["text"] as JObject;
+                entries.Add(
+                    new PickupGameplayEntry(
+                        pickupId,
+                        GetString(names, "en"),
+                        GetString(names, "zh-CN"),
+                        GetString(pickup, "wikiKey"),
+                        GetString(pickup, "quality"),
+                        GetString(pickup, "type"),
+                        ParseStatSections(pickup["statSections"] as JArray),
+                        GetLocalizedString(text, "summary", "en"),
+                        GetLocalizedString(text, "summary", "zh-CN"),
+                        GetLocalizedStringArray(text, "effects", "en"),
+                        GetLocalizedStringArray(text, "effects", "zh-CN"),
+                        GetLocalizedStringArray(text, "synergies", "en"),
+                        GetLocalizedStringArray(text, "synergies", "zh-CN"),
+                        GetLocalizedStringArray(text, "notes", "en"),
+                        GetLocalizedStringArray(text, "notes", "zh-CN")));
             }
 
-            return merged;
-        }
-
-        private static string GetMergedValue(string localizedValue, string baseValue)
-        {
-            return !string.IsNullOrEmpty(localizedValue) ? localizedValue : baseValue;
-        }
-
-        private static PickupGameplayEntry[] ToEntryArray(Dictionary<int, PickupGameplayEntry> entriesByPickupId)
-        {
-            List<PickupGameplayEntry> entries = new List<PickupGameplayEntry>(entriesByPickupId.Values);
             entries.Sort(CompareEntries);
             return entries.ToArray();
         }
 
         private static int CompareEntries(PickupGameplayEntry left, PickupGameplayEntry right)
         {
-            if (left == null && right == null)
-            {
-                return 0;
-            }
-
-            if (left == null)
-            {
-                return 1;
-            }
-
-            if (right == null)
-            {
-                return -1;
-            }
-
+            if (left == null && right == null) return 0;
+            if (left == null) return 1;
+            if (right == null) return -1;
             return left.PickupId.CompareTo(right.PickupId);
         }
 
-        private static List<PickupGameplayEntry> ParseEntries(
-            string rawJson,
-            Dictionary<int, PickupGameplayEntry> englishEntriesByPickupId)
+        private static PickupGameplayStatSection[] ParseStatSections(JArray sectionsArray)
         {
-            List<PickupGameplayEntry> entries = new List<PickupGameplayEntry>();
-            if (string.IsNullOrEmpty(rawJson))
+            if (sectionsArray == null) return new PickupGameplayStatSection[0];
+
+            List<PickupGameplayStatSection> sections = new List<PickupGameplayStatSection>();
+            foreach (JToken sectionToken in sectionsArray)
             {
-                return entries;
-            }
+                JObject section = sectionToken as JObject;
+                if (section == null) continue;
 
-            string entriesArrayBody = ExtractArrayBody(rawJson, "entries");
-            if (string.IsNullOrEmpty(entriesArrayBody))
-            {
-                return entries;
-            }
-
-            List<string> objectBodies = ExtractTopLevelObjectBodies(entriesArrayBody);
-            for (int i = 0; i < objectBodies.Count; i++)
-            {
-                string body = objectBodies[i];
-                int pickupId = ParseInt(body, "pickupId", -1);
-                // ETG pickup IDs are zero-based. Keep 0 as a valid pickup ID and only reject negatives.
-                if (pickupId < 0)
-                {
-                    continue;
-                }
-
-                PickupGameplayEntry englishEntry = null;
-                if (englishEntriesByPickupId != null)
-                {
-                    englishEntriesByPickupId.TryGetValue(pickupId, out englishEntry);
-                }
-
-                string englishDisplayName = englishEntry != null ? englishEntry.EnglishDisplayName : ParseString(body, "englishDisplayName");
-                string englishGameplaySummary = englishEntry != null ? englishEntry.EnglishGameplaySummary : ParseString(body, "englishGameplaySummary");
-                bool hasEnglishContent = !string.IsNullOrEmpty(englishDisplayName) || !string.IsNullOrEmpty(englishGameplaySummary);
-                bool hasChineseContent =
-                    !string.IsNullOrEmpty(ParseString(body, "chineseDisplayName")) ||
-                    !string.IsNullOrEmpty(ParseString(body, "chineseGameplaySummary")) ||
-                    !string.IsNullOrEmpty(ParseString(body, "chineseEffectHighlights")) ||
-                    !string.IsNullOrEmpty(ParseString(body, "chineseSynergyHighlights")) ||
-                    !string.IsNullOrEmpty(ParseString(body, "chineseUsageNotes"));
-
-                if (englishEntry == null && !hasEnglishContent)
-                {
-                    continue;
-                }
-
-                if (englishEntry != null && !hasChineseContent)
-                {
-                    continue;
-                }
-
-                entries.Add(
-                    new PickupGameplayEntry(
-                        pickupId,
-                        englishEntry != null ? englishEntry.EnglishDisplayName : englishDisplayName,
-                        englishEntry != null ? englishEntry.WikiKey : ParseString(body, "wikiKey"),
-                        englishEntry != null ? englishEntry.Quality : ParseString(body, "quality"),
-                        englishEntry != null ? englishEntry.PickupType : ParseString(body, "pickupType"),
-                        englishEntry != null ? englishEntry.StatGroups : ParseStatGroups(body),
-                        englishEntry != null ? englishEntry.Unlock : ParseString(body, "unlock"),
-                        englishEntry != null ? englishEntry.EnglishGameplaySummary : englishGameplaySummary,
-                        englishEntry != null ? englishEntry.EnglishEffectHighlights : ParseString(body, "englishEffectHighlights"),
-                        englishEntry != null ? englishEntry.EnglishSynergyHighlights : ParseString(body, "englishSynergyHighlights"),
-                        englishEntry != null ? englishEntry.EnglishUsageNotes : ParseString(body, "englishUsageNotes"),
-                        ParseString(body, "chineseDisplayName"),
-                        ParseString(body, "chineseGameplaySummary"),
-                        ParseString(body, "chineseEffectHighlights"),
-                        ParseString(body, "chineseSynergyHighlights"),
-                        ParseString(body, "chineseUsageNotes")));
-            }
-
-            return entries;
-        }
-
-        private static PickupGameplayStatGroup[] ParseStatGroups(string body)
-        {
-            string statGroupsBody = ExtractArrayBody(body, "statGroups");
-            if (string.IsNullOrEmpty(statGroupsBody))
-            {
-                return new PickupGameplayStatGroup[0];
-            }
-
-            List<string> groupBodies = ExtractTopLevelObjectBodies(statGroupsBody);
-            List<PickupGameplayStatGroup> groups = new List<PickupGameplayStatGroup>();
-            for (int i = 0; i < groupBodies.Count; i++)
-            {
-                string groupBody = groupBodies[i];
-                string statsArrayBody = ExtractArrayBody(groupBody, "stats");
+                JArray statsArray = section["stats"] as JArray;
                 List<PickupGameplayStatEntry> stats = new List<PickupGameplayStatEntry>();
-                if (!string.IsNullOrEmpty(statsArrayBody))
+                if (statsArray != null)
                 {
-                    List<string> statBodies = ExtractTopLevelObjectBodies(statsArrayBody);
-                    for (int j = 0; j < statBodies.Count; j++)
+                    foreach (JToken statToken in statsArray)
                     {
-                        string statBody = statBodies[j];
-                        string labelKey = ParseString(statBody, "labelKey");
-                        string value = ParseString(statBody, "value");
-                        if (string.IsNullOrEmpty(labelKey) || string.IsNullOrEmpty(value))
-                        {
-                            continue;
-                        }
+                        JObject stat = statToken as JObject;
+                        if (stat == null) continue;
 
-                        stats.Add(new PickupGameplayStatEntry(labelKey, value));
+                        string key = GetString(stat, "key");
+                        string value = GetString(stat, "value");
+                        if (!string.IsNullOrEmpty(key) && !string.IsNullOrEmpty(value))
+                        {
+                            stats.Add(new PickupGameplayStatEntry(key, value));
+                        }
                     }
                 }
 
-                if (stats.Count == 0)
+                if (stats.Count > 0)
                 {
-                    continue;
+                    sections.Add(new PickupGameplayStatSection(GetString(section, "key"), stats.ToArray()));
                 }
-
-                groups.Add(new PickupGameplayStatGroup(ParseString(groupBody, "groupKey"), stats.ToArray()));
             }
 
-            return groups.ToArray();
+            return sections.ToArray();
         }
 
-        private static PickupInfoTermsTable ParseTermsTable(string rawJson)
+        private static PickupInfoTermsTable ParseTermsTable(JObject root, string languageCode)
         {
             return new PickupInfoTermsTable(
-                ParseFlatStringObject(ExtractObjectBody(rawJson, "sectionLabels")),
-                ParseFlatStringObject(ExtractObjectBody(rawJson, "statLabels")),
-                ParseFlatStringObject(ExtractObjectBody(rawJson, "valueMappings")));
+                ParseLocalizedLookupTable(root["sections"] as JObject, languageCode),
+                ParseLocalizedLookupTable(root["stats"] as JObject, languageCode),
+                ParseLocalizedLookupTable(root["displayValues"] as JObject, languageCode));
         }
 
-        private static Dictionary<string, string> ParseFlatStringObject(string rawJson)
+        private static Dictionary<string, string> ParseLocalizedLookupTable(JObject table, string languageCode)
         {
             Dictionary<string, string> values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-            if (string.IsNullOrEmpty(rawJson))
-            {
-                return values;
-            }
+            if (table == null) return values;
 
-            MatchCollection matches = Regex.Matches(
-                rawJson,
-                "(?:\"(?<dqk>(?:\\\\.|[^\"])*)\"|'(?<sqk>(?:\\\\.|[^'])*)'|(?<bare>[A-Za-z0-9_.-]+))\\s*:\\s*(?:\"(?<dqv>(?:\\\\.|[^\"])*)\"|'(?<sqv>(?:\\\\.|[^'])*)')",
-                RegexOptions.Singleline);
-            for (int i = 0; i < matches.Count; i++)
+            foreach (JProperty property in table.Properties())
             {
-                Match match = matches[i];
-                string key = GetGroupValue(match, "dqk", "sqk", "bare");
-                if (string.IsNullOrEmpty(key))
+                JObject localized = property.Value as JObject;
+                string value = GetString(localized, languageCode);
+                if (!string.IsNullOrEmpty(value))
                 {
-                    continue;
+                    values[property.Name] = value;
                 }
-
-                values[key] = UnescapeJsonString(GetGroupValue(match, "dqv", "sqv"));
             }
 
             return values;
         }
 
-        private static string ParseString(string body, string propertyName)
+        private static string GetLocalizedString(JObject root, string propertyName, string languageCode)
         {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "(?:\"(?<dq>(?:\\\\.|[^\"])*)\"|'(?<sq>(?:\\\\.|[^'])*)')",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                return string.Empty;
-            }
-
-            string value = match.Groups["dq"].Success ? match.Groups["dq"].Value : match.Groups["sq"].Value;
-            return UnescapeJsonString(value);
+            return GetString(root != null ? root[propertyName] as JObject : null, languageCode);
         }
 
-        private static int ParseInt(string body, string propertyName, int defaultValue)
+        private static string[] GetLocalizedStringArray(JObject root, string propertyName, string languageCode)
         {
-            Match match = Regex.Match(
-                body,
-                GetPropertyPrefixPattern(propertyName) + "(?<value>-?\\d+)",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
+            JObject localized = root != null ? root[propertyName] as JObject : null;
+            JArray valuesArray = localized != null ? localized[languageCode] as JArray : null;
+            if (valuesArray == null) return new string[0];
+
+            List<string> values = new List<string>();
+            foreach (JToken valueToken in valuesArray)
             {
-                return defaultValue;
+                string value = valueToken.Type == JTokenType.String ? valueToken.Value<string>().Trim() : string.Empty;
+                if (!string.IsNullOrEmpty(value)) values.Add(value);
             }
 
-            int value;
-            return int.TryParse(match.Groups["value"].Value, out value) ? value : defaultValue;
+            return values.ToArray();
         }
 
-        private static string GetPropertyPrefixPattern(string propertyName)
+        private static string GetString(JObject objectValue, string propertyName)
         {
-            string escaped = Regex.Escape(propertyName);
-            return "(?:\"" + escaped + "\"|'"+ escaped + "'|\\b" + escaped + "\\b)\\s*:\\s*";
+            return objectValue == null ? string.Empty : GetString(objectValue[propertyName]);
         }
 
-        private static string ExtractArrayBody(string text, string propertyName)
+        private static string GetString(JToken value)
         {
-            Match match = Regex.Match(text, GetPropertyPrefixPattern(propertyName) + "\\[", RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                return string.Empty;
-            }
-
-            int arrayStartIndex = match.Index + match.Length - 1;
-            return ExtractBracketBody(text, arrayStartIndex, '[', ']');
+            if (value == null || value.Type == JTokenType.Null) return string.Empty;
+            return value.Type == JTokenType.String ? value.Value<string>() : value.ToString();
         }
 
-        private static string ExtractObjectBody(string text, string propertyName)
+        private static int ParseInt(JToken value, int defaultValue)
         {
-            Match match = Regex.Match(text, GetPropertyPrefixPattern(propertyName) + "\\{", RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                return string.Empty;
-            }
-
-            int objectStartIndex = match.Index + match.Length - 1;
-            return ExtractBracketBody(text, objectStartIndex, '{', '}');
+            int parsed;
+            return int.TryParse(GetString(value), out parsed) ? parsed : defaultValue;
         }
 
-        private static string ExtractBracketBody(string text, int startIndex, char openChar, char closeChar)
+        private static JObject ParseObject(string rawJson)
         {
-            if (string.IsNullOrEmpty(text) || startIndex < 0 || startIndex >= text.Length || text[startIndex] != openChar)
-            {
-                return string.Empty;
-            }
-
-            int depth = 0;
-            bool inString = false;
-            char stringDelimiter = '\0';
-            for (int i = startIndex; i < text.Length; i++)
-            {
-                char current = text[i];
-                if (inString)
-                {
-                    if (current == '\\')
-                    {
-                        i++;
-                        continue;
-                    }
-
-                    if (current == stringDelimiter)
-                    {
-                        inString = false;
-                    }
-
-                    continue;
-                }
-
-                if (current == '"' || current == '\'')
-                {
-                    inString = true;
-                    stringDelimiter = current;
-                    continue;
-                }
-
-                if (current == openChar)
-                {
-                    depth++;
-                    continue;
-                }
-
-                if (current == closeChar)
-                {
-                    depth--;
-                    if (depth == 0)
-                    {
-                        return text.Substring(startIndex + 1, i - startIndex - 1);
-                    }
-                }
-            }
-
-            return string.Empty;
-        }
-
-        private static List<string> ExtractTopLevelObjectBodies(string arrayBody)
-        {
-            List<string> objectBodies = new List<string>();
-            if (string.IsNullOrEmpty(arrayBody))
-            {
-                return objectBodies;
-            }
-
-            bool inString = false;
-            char stringDelimiter = '\0';
-            int depth = 0;
-            int objectStartIndex = -1;
-            for (int i = 0; i < arrayBody.Length; i++)
-            {
-                char current = arrayBody[i];
-                if (inString)
-                {
-                    if (current == '\\')
-                    {
-                        i++;
-                        continue;
-                    }
-
-                    if (current == stringDelimiter)
-                    {
-                        inString = false;
-                    }
-
-                    continue;
-                }
-
-                if (current == '"' || current == '\'')
-                {
-                    inString = true;
-                    stringDelimiter = current;
-                    continue;
-                }
-
-                if (current == '{')
-                {
-                    if (depth == 0)
-                    {
-                        objectStartIndex = i;
-                    }
-
-                    depth++;
-                    continue;
-                }
-
-                if (current == '}')
-                {
-                    depth--;
-                    if (depth == 0 && objectStartIndex >= 0)
-                    {
-                        objectBodies.Add(arrayBody.Substring(objectStartIndex + 1, i - objectStartIndex - 1));
-                        objectStartIndex = -1;
-                    }
-                }
-            }
-
-            return objectBodies;
-        }
-
-        private static string GetGroupValue(Match match, params string[] groupNames)
-        {
-            if (match == null || groupNames == null)
-            {
-                return string.Empty;
-            }
-
-            for (int i = 0; i < groupNames.Length; i++)
-            {
-                Group group = match.Groups[groupNames[i]];
-                if (group != null && group.Success)
-                {
-                    return group.Value;
-                }
-            }
-
-            return string.Empty;
-        }
-
-        private static string UnescapeJsonString(string value)
-        {
-            return (value ?? string.Empty)
-                .Replace("\\\"", "\"")
-                .Replace("\\'", "'")
-                .Replace("\\\\", "\\")
-                .Replace("\\n", "\n")
-                .Replace("\\r", "\r")
-                .Replace("\\t", "\t");
+            JObject root = JObject.Parse(rawJson);
+            return root ?? new JObject();
         }
     }
 }

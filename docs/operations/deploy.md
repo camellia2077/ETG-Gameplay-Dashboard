@@ -94,8 +94,8 @@ Important files:
 - `RandomLoadout.pickups.json`
 - `RandomLoadout.pickups.by-category.json`
 - `RandomLoadout.pickup-names.game-language.json`
-- `RandomLoadout.pickup-gameplay.en.json`
-- `RandomLoadout.pickup-gameplay.zh-CN.work.json`
+- `RandomLoadout.pickup-gameplay.json`
+- `RandomLoadout.pickup-info-terms.json`
 - `RandomLoadout.rules.full-pool.json5`
 
 Default behavior:

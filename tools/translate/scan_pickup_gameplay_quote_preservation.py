@@ -10,7 +10,7 @@ from gameplay_translation_workflow import REPO_ROOT, TRANSLATABLE_FIELD_PAIRS, l
 
 QUOTE_PATTERN = re.compile(r'"([^"\r\n]+)"')
 TRAILING_QUOTE_PUNCTUATION_PATTERN = re.compile(r"[.,;:!?]+$")
-DEFAULT_INPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
+DEFAULT_INPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
 MAX_QUOTE_WORDS_TO_PRESERVE = 5
 
 

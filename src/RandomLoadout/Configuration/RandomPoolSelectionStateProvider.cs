@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using System.Text.RegularExpressions;
+using Newtonsoft.Json.Linq;
 using RandomLoadout.Core;
 
 namespace RandomLoadout
@@ -89,19 +89,34 @@ namespace RandomLoadout
 
         private static RandomPoolSelectionStateFileModel ParseFile(string rawJson)
         {
+            JObject root = JObject.Parse(rawJson);
             RandomPoolSelectionStateFileModel fileModel = new RandomPoolSelectionStateFileModel();
-            string presetsArrayBody = ExtractPropertyArrayBody(rawJson, "presets");
-            List<string> presetBodies = ExtractObjectBodies(presetsArrayBody);
             List<RandomPoolSelectionStatePresetModel> presets = new List<RandomPoolSelectionStatePresetModel>();
-            for (int i = 0; i < presetBodies.Count; i++)
+            JArray presetsArray = root["presets"] as JArray;
+            if (presetsArray == null)
             {
-                string presetBody = presetBodies[i];
-                string randomPoolsArrayBody = ExtractPropertyArrayBody(presetBody, "randomPools");
+                fileModel.Presets = presets.ToArray();
+                return fileModel;
+            }
+
+            int presetIndex = 0;
+            foreach (JToken presetToken in presetsArray)
+            {
+                presetIndex++;
+                JObject presetObject = presetToken as JObject;
+                if (presetObject == null)
+                {
+                    continue;
+                }
+
                 presets.Add(
                     new RandomPoolSelectionStatePresetModel
                     {
-                        Id = StartItemsPresetNames.CreatePresetId(ParseString(presetBody, "id"), ParseString(presetBody, "name"), i + 1),
-                        RandomPools = ParseRandomPools(randomPoolsArrayBody),
+                        Id = StartItemsPresetNames.CreatePresetId(
+                            GetString(presetObject, "id"),
+                            GetString(presetObject, "name"),
+                            presetIndex),
+                        RandomPools = ParseRandomPools(presetObject["randomPools"] as JArray),
                     });
             }
 
@@ -109,19 +124,28 @@ namespace RandomLoadout
             return fileModel;
         }
 
-        private static RandomPoolSelectionState[] ParseRandomPools(string arrayBody)
+        private static RandomPoolSelectionState[] ParseRandomPools(JArray poolsArray)
         {
-            List<string> poolBodies = ExtractObjectBodies(arrayBody);
             List<RandomPoolSelectionState> states = new List<RandomPoolSelectionState>();
-            for (int i = 0; i < poolBodies.Count; i++)
+            if (poolsArray == null)
             {
-                string poolBody = poolBodies[i];
+                return states.ToArray();
+            }
+
+            foreach (JToken poolToken in poolsArray)
+            {
+                JObject poolObject = poolToken as JObject;
+                if (poolObject == null)
+                {
+                    continue;
+                }
+
                 states.Add(
                     new RandomPoolSelectionState(
-                        ParseInt(poolBody, "ruleIndex", -1),
-                        ParseString(poolBody, "poolSignature"),
-                        ParseIntArray(poolBody, "shuffledPickupIds"),
-                        ParseInt(poolBody, "nextIndex", 0)));
+                        GetInt(poolObject, "ruleIndex", -1),
+                        GetString(poolObject, "poolSignature"),
+                        GetIntArray(poolObject["shuffledPickupIds"]),
+                        GetInt(poolObject, "nextIndex", 0)));
             }
 
             return states.ToArray();
@@ -177,146 +201,46 @@ namespace RandomLoadout
             builder.Append(indent + "}");
         }
 
-        private static string ExtractPropertyArrayBody(string rawJson, string propertyName)
+        private static string GetString(JObject objectValue, string propertyName)
         {
-            Match match = Regex.Match(rawJson ?? string.Empty, GetPropertyPrefixPattern(propertyName) + "\\[", RegexOptions.IgnoreCase);
-            if (!match.Success)
+            return objectValue == null ? string.Empty : GetString(objectValue[propertyName]);
+        }
+
+        private static string GetString(JToken value)
+        {
+            if (value == null || value.Type == JTokenType.Null)
             {
                 return string.Empty;
             }
 
-            int arrayStart = match.Index + match.Length - 1;
-            int arrayEnd = FindMatchingClose(rawJson, arrayStart, '[', ']');
-            return arrayEnd > arrayStart ? rawJson.Substring(arrayStart + 1, arrayEnd - arrayStart - 1) : string.Empty;
+            return value.Type == JTokenType.String ? value.Value<string>() : value.ToString();
         }
 
-        private static List<string> ExtractObjectBodies(string arrayBody)
+        private static int GetInt(JObject objectValue, string propertyName, int defaultValue)
         {
-            List<string> bodies = new List<string>();
-            if (string.IsNullOrEmpty(arrayBody))
-            {
-                return bodies;
-            }
-
-            for (int index = 0; index < arrayBody.Length; index++)
-            {
-                if (arrayBody[index] != '{')
-                {
-                    continue;
-                }
-
-                int objectEnd = FindMatchingClose(arrayBody, index, '{', '}');
-                if (objectEnd <= index)
-                {
-                    continue;
-                }
-
-                bodies.Add(arrayBody.Substring(index + 1, objectEnd - index - 1));
-                index = objectEnd;
-            }
-
-            return bodies;
+            int parsed;
+            return int.TryParse(GetString(objectValue, propertyName), out parsed) ? parsed : defaultValue;
         }
 
-        private static int FindMatchingClose(string text, int openIndex, char openChar, char closeChar)
+        private static int[] GetIntArray(JToken value)
         {
-            int depth = 0;
-            bool inString = false;
-            char stringQuote = '\0';
-            bool escaped = false;
-            for (int index = openIndex; index < text.Length; index++)
-            {
-                char current = text[index];
-                if (inString)
-                {
-                    if (escaped)
-                    {
-                        escaped = false;
-                    }
-                    else if (current == '\\')
-                    {
-                        escaped = true;
-                    }
-                    else if (current == stringQuote)
-                    {
-                        inString = false;
-                    }
-
-                    continue;
-                }
-
-                if (current == '"' || current == '\'')
-                {
-                    inString = true;
-                    stringQuote = current;
-                    continue;
-                }
-
-                if (current == openChar)
-                {
-                    depth++;
-                }
-                else if (current == closeChar)
-                {
-                    depth--;
-                    if (depth == 0)
-                    {
-                        return index;
-                    }
-                }
-            }
-
-            return -1;
-        }
-
-        private static string ParseString(string body, string propertyName)
-        {
-            Match match = Regex.Match(
-                body ?? string.Empty,
-                GetPropertyPrefixPattern(propertyName) + "(?:\"(?<dq>(?:\\\\.|[^\"])*)\"|'(?<sq>(?:\\\\.|[^'])*)')",
-                RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                return string.Empty;
-            }
-
-            return UnescapeJsonString(match.Groups["dq"].Success ? match.Groups["dq"].Value : match.Groups["sq"].Value);
-        }
-
-        private static int ParseInt(string body, string propertyName, int defaultValue)
-        {
-            Match match = Regex.Match(body ?? string.Empty, GetPropertyPrefixPattern(propertyName) + "(?<value>-?\\d+)", RegexOptions.IgnoreCase);
-            if (!match.Success)
-            {
-                return defaultValue;
-            }
-
-            int value;
-            return int.TryParse(match.Groups["value"].Value, out value) ? value : defaultValue;
-        }
-
-        private static int[] ParseIntArray(string body, string propertyName)
-        {
-            Match match = Regex.Match(body ?? string.Empty, GetPropertyPrefixPattern(propertyName) + "\\[(?<value>[\\s\\S]*?)\\]", RegexOptions.IgnoreCase);
-            if (!match.Success)
+            JArray array = value as JArray;
+            if (array == null)
             {
                 return new int[0];
             }
 
-            MatchCollection itemMatches = Regex.Matches(match.Groups["value"].Value, "-?\\d+");
-            int[] values = new int[itemMatches.Count];
-            for (int i = 0; i < itemMatches.Count; i++)
+            List<int> values = new List<int>();
+            foreach (JToken item in array)
             {
-                int value;
-                values[i] = int.TryParse(itemMatches[i].Value, out value) ? value : 0;
+                int parsed;
+                if (int.TryParse(GetString(item), out parsed))
+                {
+                    values.Add(parsed);
+                }
             }
 
-            return values;
-        }
-
-        private static string GetPropertyPrefixPattern(string propertyName)
-        {
-            return "(?:^|[,\\{\\s])(?:\"" + Regex.Escape(propertyName) + "\"|" + Regex.Escape(propertyName) + ")\\s*:\\s*";
+            return values.ToArray();
         }
 
         private static string FormatIntArray(int[] values)
@@ -350,17 +274,6 @@ namespace RandomLoadout
                 .Replace("\r", "\\r")
                 .Replace("\n", "\\n")
                 .Replace("\t", "\\t");
-        }
-
-        private static string UnescapeJsonString(string value)
-        {
-            return (value ?? string.Empty)
-                .Replace("\\\"", "\"")
-                .Replace("\\'", "'")
-                .Replace("\\\\", "\\")
-                .Replace("\\r", "\r")
-                .Replace("\\n", "\n")
-                .Replace("\\t", "\t");
         }
 
         private sealed class RandomPoolSelectionStateFileModel

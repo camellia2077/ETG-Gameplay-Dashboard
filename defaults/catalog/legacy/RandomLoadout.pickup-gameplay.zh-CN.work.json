@@ -1,6 +1,6 @@
 {
   "generatedUtc": "2026-07-05 01:51:31",
-  "sourceEnglishGameplayFile": "defaults/catalog/RandomLoadout.pickup-gameplay.en.json",
+  "sourceEnglishGameplayFile": "defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json",
   "sourceLegacyChineseTipsFile": "defaults/catalog/RandomLoadout.pickup-wiki-tips.zh-CN.work.json",
   "gameLanguageCode": "zh-CN",
   "entryCount": 668,

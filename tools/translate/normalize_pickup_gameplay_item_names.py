@@ -25,7 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--name-source",
         default=str(DEFAULT_WORK_FILE_PATH),
-        help="Path to RandomLoadout.pickup-gameplay.zh-CN.work.json used as the English-to-Chinese pickup name source.",
+        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json used as the English-to-Chinese pickup name source.",
     )
     return parser.parse_args()
 

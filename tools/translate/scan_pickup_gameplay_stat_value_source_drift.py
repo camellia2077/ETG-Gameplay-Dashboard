@@ -8,7 +8,7 @@ from gameplay_translation_workflow import DEFAULT_WORK_FILE_PATH, REPO_ROOT, loa
 
 
 DEFAULT_INPUT_PATH = DEFAULT_WORK_FILE_PATH
-DEFAULT_ENGLISH_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.en.json"
+DEFAULT_ENGLISH_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.en.json"
 
 
 def parse_args() -> argparse.Namespace:
@@ -18,12 +18,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--input",
         default=str(DEFAULT_INPUT_PATH),
-        help="Path to RandomLoadout.pickup-gameplay.zh-CN.work.json.",
+        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json.",
     )
     parser.add_argument(
         "--english-source",
         default=str(DEFAULT_ENGLISH_SOURCE_PATH),
-        help="Path to RandomLoadout.pickup-gameplay.en.json.",
+        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json.",
     )
     parser.add_argument(
         "--output",

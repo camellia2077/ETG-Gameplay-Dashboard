@@ -19,15 +19,20 @@ Turn it back off after reproducing the issue.
 
 ## What It Captures
 
-When enabled, the mod writes `[RandomLoadout][Run]` lines for:
+When enabled, the mod writes nearby-pickup diagnostics for both startup file loading and in-run pickup detection.
 
-- refresh skips caused by missing player, room, or gameplay catalog data
-- dropped-pickup scan counts and accepted candidates
-- shop-item scan counts and accepted candidates
-- reward-pedestal scan counts and accepted candidates
-- gameplay-catalog hits and misses for nearby pickups
-- candidate skip reasons such as out-of-range, already picked up, or invalid object state
-- final overlay target selection, including whether the source was debris or a shop item
+Current nearby-pickup diagnostics include:
+
+- startup input-file inspection for:
+  - `RandomLoadout.pickup-gameplay.json`
+  - `RandomLoadout.pickup-info-terms.json`
+- file existence and byte-size snapshots for those inputs
+- nearby-pickup registry hit / miss diagnostics when a pickup enters range
+- overlay render-path warnings when the service has a visible pickup target but no gameplay entry can be resolved
+- event-driven tip show / clear traces for:
+  - dropped pickups
+  - shop items
+  - reward pedestals
 
 ## Good Repro Cases
 
@@ -42,15 +47,30 @@ Use these to narrow the failure:
 
 Healthy behavior usually includes:
 
-- `Nearby pickup scan started. ...`
-- `Nearby pickup candidate accepted. Source=ShopItem ...` or `Source=Debris ...`
-- `Nearby pickup selected. Source=...`
+- `Pickup gameplay Gameplay file: Path='...', Exists=True, SizeBytes=...`
+- `Pickup gameplay Terms file: Path='...', Exists=True, SizeBytes=...`
+- `Loaded pickup gameplay info v2 from '...' (668 entries).`
+- `Loaded pickup gameplay terms v2 from '...'.`
+- `Nearby pickup tip shown. Source=pickup ... HasGameplayEntry=True.`
 
 Useful failure clues include:
 
-- `Nearby pickup scan cleared because player, room, or gameplay registry was unavailable.`
-- `Nearby pickup candidate missing gameplay entry. Source=ShopItem ...`
-- `Nearby pickup scan completed without a visible target.`
+- `Pickup gameplay info file was not found at '...'.`
+- `Pickup info terms file was not found at '...'.`
+- `Loaded pickup gameplay info v2 from '...' (0 entries).`
+- `Nearby pickup entered range but gameplay entry was not found. Source=...`
+- `Nearby pickup overlay had a visible tip source, but no gameplay entry was resolved for rendering.`
+
+Interpretation hints:
+
+- file missing:
+  the new schema-v2 runtime files were not deployed into `BepInEx\config\`
+- `0 entries`:
+  the runtime file was found, but the loader parsed no pickup records
+- `entered range but gameplay entry was not found`:
+  the ETG runtime event fired, but the loaded gameplay registry did not contain that `pickupId`
+- `visible tip source, but no gameplay entry was resolved`:
+  the service selected a target, but the overlay draw path still failed to resolve a matching gameplay record
 
 ## Follow-Up
 

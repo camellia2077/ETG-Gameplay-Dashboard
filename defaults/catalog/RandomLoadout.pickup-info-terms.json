@@ -1,0 +1,890 @@
+{
+  "schemaVersion": 2,
+  "generatedUtc": "2026-07-05 01:51:31",
+  "languages": [
+    "en",
+    "zh-CN"
+  ],
+  "sections": {
+    "quality": {
+      "en": "Quality:",
+      "zh-CN": "品质："
+    },
+    "type": {
+      "en": "Type:",
+      "zh-CN": "类型："
+    },
+    "summary": {
+      "en": "Summary:",
+      "zh-CN": "摘要："
+    },
+    "effects": {
+      "en": "Effects:",
+      "zh-CN": "效果："
+    },
+    "synergies": {
+      "en": "Synergies:",
+      "zh-CN": "协同："
+    },
+    "notes": {
+      "en": "Notes:",
+      "zh-CN": "备注："
+    }
+  },
+  "stats": {
+    "quality": {
+      "en": "Q",
+      "zh-CN": "品质"
+    },
+    "type": {
+      "en": "Type",
+      "zh-CN": "类型"
+    },
+    "class": {
+      "en": "Class",
+      "zh-CN": "类别"
+    },
+    "dps": {
+      "en": "DPS",
+      "zh-CN": "DPS"
+    },
+    "damage": {
+      "en": "DMG",
+      "zh-CN": "伤害"
+    },
+    "magazine": {
+      "en": "Mag",
+      "zh-CN": "弹匣"
+    },
+    "ammo": {
+      "en": "Ammo",
+      "zh-CN": "备弹"
+    },
+    "reload": {
+      "en": "Reload",
+      "zh-CN": "换弹"
+    },
+    "fire_rate": {
+      "en": "Fire",
+      "zh-CN": "射速"
+    },
+    "shot_speed": {
+      "en": "Speed",
+      "zh-CN": "弹速"
+    },
+    "range": {
+      "en": "Range",
+      "zh-CN": "射程"
+    },
+    "force": {
+      "en": "Force",
+      "zh-CN": "击退"
+    },
+    "spread": {
+      "en": "Spread",
+      "zh-CN": "散布"
+    },
+    "duration": {
+      "en": "Duration",
+      "zh-CN": "持续"
+    },
+    "recharge": {
+      "en": "Recharge",
+      "zh-CN": "充能"
+    },
+    "sell": {
+      "en": "Sell",
+      "zh-CN": "售价"
+    }
+  },
+  "displayValues": {
+    "A": {
+      "en": "A",
+      "zh-CN": "A级"
+    },
+    "Active": {
+      "en": "Active",
+      "zh-CN": "主动"
+    },
+    "After 1s": {
+      "en": "After 1s",
+      "zh-CN": "1秒后"
+    },
+    "After 3s": {
+      "en": "After 3s",
+      "zh-CN": "3秒后"
+    },
+    "After Full Clip": {
+      "en": "After Full Clip",
+      "zh-CN": "打完整个弹匣后"
+    },
+    "after piercing": {
+      "en": "after piercing",
+      "zh-CN": "穿透后"
+    },
+    "After split": {
+      "en": "After split",
+      "zh-CN": "分裂后"
+    },
+    "all 6 hits": {
+      "en": "all 6 hits",
+      "zh-CN": "全部6次命中"
+    },
+    "All Leaves Hit": {
+      "en": "All Leaves Hit",
+      "zh-CN": "所有叶片命中"
+    },
+    "all three hits rare": {
+      "en": "all three hits rare",
+      "zh-CN": "三次全中"
+    },
+    "Arrow": {
+      "en": "Arrow",
+      "zh-CN": "箭矢"
+    },
+    "at 0 reloads": {
+      "en": "at 0 reloads",
+      "zh-CN": "0次装填时"
+    },
+    "Automatic": {
+      "en": "Automatic",
+      "zh-CN": "自动"
+    },
+    "Average": {
+      "en": "Average",
+      "zh-CN": "平均"
+    },
+    "Average damage": {
+      "en": "Average damage",
+      "zh-CN": "平均伤害"
+    },
+    "B": {
+      "en": "B",
+      "zh-CN": "B级"
+    },
+    "B/A (multi-tier)": {
+      "en": "B/A (multi-tier)",
+      "zh-CN": "B/A级（多档）"
+    },
+    "Ball": {
+      "en": "Ball",
+      "zh-CN": "主弹"
+    },
+    "Beam": {
+      "en": "Beam",
+      "zh-CN": "光束"
+    },
+    "BEAM": {
+      "en": "BEAM",
+      "zh-CN": "光束"
+    },
+    "Beam & Slash": {
+      "en": "Beam & Slash",
+      "zh-CN": "光束与斩击"
+    },
+    "Beam OR Slash Only": {
+      "en": "Beam OR Slash Only",
+      "zh-CN": "仅光束或仅斩击"
+    },
+    "Bees": {
+      "en": "Bees",
+      "zh-CN": "蜜蜂"
+    },
+    "Before split": {
+      "en": "Before split",
+      "zh-CN": "分裂前"
+    },
+    "blank": {
+      "en": "blank",
+      "zh-CN": "空响弹"
+    },
+    "Blank": {
+      "en": "Blank",
+      "zh-CN": "空响弹"
+    },
+    "both": {
+      "en": "both",
+      "zh-CN": "双模式"
+    },
+    "Both": {
+      "en": "Both",
+      "zh-CN": "双模式"
+    },
+    "both modes": {
+      "en": "both modes",
+      "zh-CN": "两种模式合计"
+    },
+    "bounced hit": {
+      "en": "bounced hit",
+      "zh-CN": "弹跳命中"
+    },
+    "Bullet": {
+      "en": "Bullet",
+      "zh-CN": "子弹"
+    },
+    "bullet": {
+      "en": "bullet",
+      "zh-CN": "子弹"
+    },
+    "Bullets": {
+      "en": "Bullets",
+      "zh-CN": "子弹"
+    },
+    "Burst": {
+      "en": "Burst",
+      "zh-CN": "点射"
+    },
+    "C": {
+      "en": "C",
+      "zh-CN": "C级"
+    },
+    "C/B/A (multi-tier)": {
+      "en": "C/B/A (multi-tier)",
+      "zh-CN": "C/B/A级（多档）"
+    },
+    "CBA": {
+      "en": "CBA",
+      "zh-CN": "C/B/A级"
+    },
+    "CHARGE": {
+      "en": "CHARGE",
+      "zh-CN": "蓄力"
+    },
+    "Charged": {
+      "en": "Charged",
+      "zh-CN": "蓄力"
+    },
+    "charged": {
+      "en": "charged",
+      "zh-CN": "蓄力"
+    },
+    "Charm": {
+      "en": "Charm",
+      "zh-CN": "魅惑"
+    },
+    "CHARM": {
+      "en": "CHARM",
+      "zh-CN": "魅惑"
+    },
+    "Cheese ball": {
+      "en": "Cheese ball",
+      "zh-CN": "芝士球"
+    },
+    "Cheese wheel": {
+      "en": "Cheese wheel",
+      "zh-CN": "芝士轮"
+    },
+    "Combined": {
+      "en": "Combined",
+      "zh-CN": "合计"
+    },
+    "Common": {
+      "en": "Common",
+      "zh-CN": "普通"
+    },
+    "Critical Hit": {
+      "en": "Critical Hit",
+      "zh-CN": "暴击"
+    },
+    "Crystal": {
+      "en": "Crystal",
+      "zh-CN": "晶体"
+    },
+    "Crystals": {
+      "en": "Crystals",
+      "zh-CN": "晶体"
+    },
+    "D": {
+      "en": "D",
+      "zh-CN": "D级"
+    },
+    "D/N (multi-tier)": {
+      "en": "D/N (multi-tier)",
+      "zh-CN": "D/N级（多档）"
+    },
+    "D/S (multi-tier)": {
+      "en": "D/S (multi-tier)",
+      "zh-CN": "D/S级（多档）"
+    },
+    "Dart": {
+      "en": "Dart",
+      "zh-CN": "飞镖"
+    },
+    "depends on firing speed of player": {
+      "en": "depends on firing speed of player",
+      "zh-CN": "取决于玩家射速"
+    },
+    "Double Reload": {
+      "en": "Double Reload",
+      "zh-CN": "双重装填"
+    },
+    "Duck": {
+      "en": "Duck",
+      "zh-CN": "鸭子"
+    },
+    "Egg": {
+      "en": "Egg",
+      "zh-CN": "蛋"
+    },
+    "Electric Beam": {
+      "en": "Electric Beam",
+      "zh-CN": "电流光束"
+    },
+    "Energy Ball": {
+      "en": "Energy Ball",
+      "zh-CN": "能量球"
+    },
+    "Energy ball": {
+      "en": "Energy ball",
+      "zh-CN": "能量球"
+    },
+    "Explosion": {
+      "en": "Explosion",
+      "zh-CN": "爆炸"
+    },
+    "explosion": {
+      "en": "explosion",
+      "zh-CN": "爆炸"
+    },
+    "Explosions": {
+      "en": "Explosions",
+      "zh-CN": "爆炸"
+    },
+    "explosions": {
+      "en": "explosions",
+      "zh-CN": "爆炸伤害"
+    },
+    "Explosive": {
+      "en": "Explosive",
+      "zh-CN": "爆炸"
+    },
+    "EXPLOSIVE": {
+      "en": "EXPLOSIVE",
+      "zh-CN": "爆炸"
+    },
+    "extra hits": {
+      "en": "extra hits",
+      "zh-CN": "额外命中"
+    },
+    "Final Shot": {
+      "en": "Final Shot",
+      "zh-CN": "最后一发"
+    },
+    "final shot": {
+      "en": "final shot",
+      "zh-CN": "最后一发"
+    },
+    "Fire": {
+      "en": "Fire",
+      "zh-CN": "火焰"
+    },
+    "FIRE": {
+      "en": "FIRE",
+      "zh-CN": "火焰"
+    },
+    "Fireball": {
+      "en": "Fireball",
+      "zh-CN": "火球"
+    },
+    "First Stage": {
+      "en": "First Stage",
+      "zh-CN": "第一阶段"
+    },
+    "full health": {
+      "en": "full health",
+      "zh-CN": "满血时"
+    },
+    "FULLAUTO": {
+      "en": "FULLAUTO",
+      "zh-CN": "全自动"
+    },
+    "Genie": {
+      "en": "Genie",
+      "zh-CN": "灯神"
+    },
+    "Ghost": {
+      "en": "Ghost",
+      "zh-CN": "幽灵"
+    },
+    "Ghost Shots": {
+      "en": "Ghost Shots",
+      "zh-CN": "幽灵子弹"
+    },
+    "Grappling Hook": {
+      "en": "Grappling Hook",
+      "zh-CN": "抓钩"
+    },
+    "Grenade Impact": {
+      "en": "Grenade Impact",
+      "zh-CN": "榴弹直击"
+    },
+    "Grenade Launcher": {
+      "en": "Grenade Launcher",
+      "zh-CN": "榴弹发射器"
+    },
+    "Grenade Launcher/Bullet Bore": {
+      "en": "Grenade Launcher/Bullet Bore",
+      "zh-CN": "榴弹发射器/钻头枪"
+    },
+    "Gun": {
+      "en": "Gun",
+      "zh-CN": "枪体"
+    },
+    "Guns": {
+      "en": "Guns",
+      "zh-CN": "枪体"
+    },
+    "Hammer": {
+      "en": "Hammer",
+      "zh-CN": "铁锤"
+    },
+    "hit once normal": {
+      "en": "hit once normal",
+      "zh-CN": "普通单次命中"
+    },
+    "hit seven times rare": {
+      "en": "hit seven times rare",
+      "zh-CN": "罕见七次命中"
+    },
+    "hit then bounced hit": {
+      "en": "hit then bounced hit",
+      "zh-CN": "命中后再弹跳命中"
+    },
+    "hit thrice": {
+      "en": "hit thrice",
+      "zh-CN": "命中三次"
+    },
+    "hit twice": {
+      "en": "hit twice",
+      "zh-CN": "命中两次"
+    },
+    "Ice": {
+      "en": "Ice",
+      "zh-CN": "冰"
+    },
+    "ICE": {
+      "en": "ICE",
+      "zh-CN": "寒冰"
+    },
+    "Ice Bullets": {
+      "en": "Ice Bullets",
+      "zh-CN": "冰霜子弹"
+    },
+    "if all bullets hit": {
+      "en": "if all bullets hit",
+      "zh-CN": "若全部子弹命中"
+    },
+    "ignoring ammo": {
+      "en": "ignoring ammo",
+      "zh-CN": "不计弹药限制"
+    },
+    "Ignoring Fire Aura": {
+      "en": "Ignoring Fire Aura",
+      "zh-CN": "不计火焰光环"
+    },
+    "ignoring recharge": {
+      "en": "ignoring recharge",
+      "zh-CN": "不计充能时间"
+    },
+    "Impact": {
+      "en": "Impact",
+      "zh-CN": "撞击"
+    },
+    "impact": {
+      "en": "impact",
+      "zh-CN": "撞击"
+    },
+    "Including Explosions": {
+      "en": "Including Explosions",
+      "zh-CN": "包含爆炸伤害"
+    },
+    "initial": {
+      "en": "initial",
+      "zh-CN": "初始命中"
+    },
+    "Large": {
+      "en": "Large",
+      "zh-CN": "大型"
+    },
+    "Laser": {
+      "en": "Laser",
+      "zh-CN": "激光"
+    },
+    "Leaves": {
+      "en": "Leaves",
+      "zh-CN": "叶片"
+    },
+    "Level 1": {
+      "en": "Level 1",
+      "zh-CN": "1级"
+    },
+    "Level 2": {
+      "en": "Level 2",
+      "zh-CN": "2级"
+    },
+    "Level 3": {
+      "en": "Level 3",
+      "zh-CN": "3级"
+    },
+    "Light": {
+      "en": "Light",
+      "zh-CN": "光束"
+    },
+    "Light Beams": {
+      "en": "Light Beams",
+      "zh-CN": "光束"
+    },
+    "line piece": {
+      "en": "line piece",
+      "zh-CN": "直线段"
+    },
+    "Machine Gun": {
+      "en": "Machine Gun",
+      "zh-CN": "机枪"
+    },
+    "Manual": {
+      "en": "Manual",
+      "zh-CN": "手动"
+    },
+    "maximum hits": {
+      "en": "maximum hits",
+      "zh-CN": "最大命中数"
+    },
+    "Medium": {
+      "en": "Medium",
+      "zh-CN": "中型"
+    },
+    "Melee": {
+      "en": "Melee",
+      "zh-CN": "近战"
+    },
+    "N": {
+      "en": "N",
+      "zh-CN": "N级"
+    },
+    "N/A": {
+      "en": "N/A",
+      "zh-CN": "不适用"
+    },
+    "Nail": {
+      "en": "Nail",
+      "zh-CN": "钉子"
+    },
+    "no extras": {
+      "en": "no extras",
+      "zh-CN": "无额外弹体时"
+    },
+    "no Fireball": {
+      "en": "no Fireball",
+      "zh-CN": "不含火球"
+    },
+    "No Leaves Hit": {
+      "en": "No Leaves Hit",
+      "zh-CN": "没有叶片命中"
+    },
+    "no souls collected": {
+      "en": "no souls collected",
+      "zh-CN": "未收集灵魂时"
+    },
+    "No Swing": {
+      "en": "No Swing",
+      "zh-CN": "不挥动"
+    },
+    "None": {
+      "en": "None",
+      "zh-CN": "无"
+    },
+    "NONE": {
+      "en": "NONE",
+      "zh-CN": "无"
+    },
+    "Normal": {
+      "en": "Normal",
+      "zh-CN": "常规"
+    },
+    "normal hit": {
+      "en": "normal hit",
+      "zh-CN": "普通命中"
+    },
+    "not counting the Beadie": {
+      "en": "not counting the Beadie",
+      "zh-CN": "不计小眼怪"
+    },
+    "Not listed": {
+      "en": "Not listed",
+      "zh-CN": "未列出"
+    },
+    "Oil": {
+      "en": "Oil",
+      "zh-CN": "油液"
+    },
+    "on 1st reload": {
+      "en": "on 1st reload",
+      "zh-CN": "第1次装填时"
+    },
+    "on extra hits": {
+      "en": "on extra hits",
+      "zh-CN": "额外命中时"
+    },
+    "Passive": {
+      "en": "Passive",
+      "zh-CN": "被动"
+    },
+    "Pinecone": {
+      "en": "Pinecone",
+      "zh-CN": "松果"
+    },
+    "PISTOL": {
+      "en": "PISTOL",
+      "zh-CN": "手枪"
+    },
+    "Pistol": {
+      "en": "Pistol",
+      "zh-CN": "手枪"
+    },
+    "pistol": {
+      "en": "pistol",
+      "zh-CN": "手枪"
+    },
+    "Pointy cheese": {
+      "en": "Pointy cheese",
+      "zh-CN": "尖角芝士"
+    },
+    "Poison": {
+      "en": "Poison",
+      "zh-CN": "毒"
+    },
+    "POISON": {
+      "en": "POISON",
+      "zh-CN": "毒性"
+    },
+    "Pots": {
+      "en": "Pots",
+      "zh-CN": "罐子"
+    },
+    "Projectile": {
+      "en": "Projectile",
+      "zh-CN": "弹丸"
+    },
+    "Red Beam": {
+      "en": "Red Beam",
+      "zh-CN": "红色光束"
+    },
+    "Regular": {
+      "en": "Regular",
+      "zh-CN": "常规"
+    },
+    "Regular & Poison": {
+      "en": "Regular & Poison",
+      "zh-CN": "常规与毒液"
+    },
+    "Regular Hit": {
+      "en": "Regular Hit",
+      "zh-CN": "普通命中"
+    },
+    "RIFLE": {
+      "en": "RIFLE",
+      "zh-CN": "步枪"
+    },
+    "Rifle": {
+      "en": "Rifle",
+      "zh-CN": "步枪"
+    },
+    "Rocket": {
+      "en": "Rocket",
+      "zh-CN": "火箭"
+    },
+    "RPG": {
+      "en": "RPG",
+      "zh-CN": "火箭推进式榴弹"
+    },
+    "S": {
+      "en": "S",
+      "zh-CN": "S级"
+    },
+    "Second Stage": {
+      "en": "Second Stage",
+      "zh-CN": "第二阶段"
+    },
+    "Seekers": {
+      "en": "Seekers",
+      "zh-CN": "追踪弹"
+    },
+    "Semiautomatic": {
+      "en": "Semiautomatic",
+      "zh-CN": "半自动"
+    },
+    "Semiautomatic (functionally Automatic)": {
+      "en": "Semiautomatic (functionally Automatic)",
+      "zh-CN": "半自动（机制上近似全自动）"
+    },
+    "Semiautomatic Charged": {
+      "en": "Semiautomatic Charged",
+      "zh-CN": "半自动蓄力"
+    },
+    "SHITTY": {
+      "en": "SHITTY",
+      "zh-CN": "破烂"
+    },
+    "SHOTGUN": {
+      "en": "SHOTGUN",
+      "zh-CN": "霰弹枪"
+    },
+    "shotgun": {
+      "en": "shotgun",
+      "zh-CN": "霰弹枪"
+    },
+    "Shotguns": {
+      "en": "Shotguns",
+      "zh-CN": "霰弹"
+    },
+    "Shots": {
+      "en": "Shots",
+      "zh-CN": "子弹"
+    },
+    "SILLY": {
+      "en": "SILLY",
+      "zh-CN": "特殊"
+    },
+    "Single": {
+      "en": "Single",
+      "zh-CN": "单发"
+    },
+    "single black hole": {
+      "en": "single black hole",
+      "zh-CN": "单个黑洞"
+    },
+    "single hit": {
+      "en": "single hit",
+      "zh-CN": "单次命中"
+    },
+    "Single Reload": {
+      "en": "Single Reload",
+      "zh-CN": "单次装填"
+    },
+    "Skull": {
+      "en": "Skull",
+      "zh-CN": "骷髅"
+    },
+    "Slash": {
+      "en": "Slash",
+      "zh-CN": "斩击"
+    },
+    "slow": {
+      "en": "slow",
+      "zh-CN": "缓速模式"
+    },
+    "Slow Bolts": {
+      "en": "Slow Bolts",
+      "zh-CN": "缓速弹束"
+    },
+    "Slug": {
+      "en": "Slug",
+      "zh-CN": "独头弹"
+    },
+    "Small": {
+      "en": "Small",
+      "zh-CN": "小型"
+    },
+    "Small Crystals": {
+      "en": "Small Crystals",
+      "zh-CN": "小晶体"
+    },
+    "Small Explosion": {
+      "en": "Small Explosion",
+      "zh-CN": "小爆炸"
+    },
+    "Small Rocket": {
+      "en": "Small Rocket",
+      "zh-CN": "小火箭"
+    },
+    "souls collected non-boss": {
+      "en": "souls collected non-boss",
+      "zh-CN": "对非Boss收集灵魂时"
+    },
+    "souls collected on bosses": {
+      "en": "souls collected on bosses",
+      "zh-CN": "对Boss收集灵魂时"
+    },
+    "Special": {
+      "en": "Special",
+      "zh-CN": "特殊"
+    },
+    "Split": {
+      "en": "Split",
+      "zh-CN": "分裂后"
+    },
+    "Split Shots": {
+      "en": "Split Shots",
+      "zh-CN": "分裂弹"
+    },
+    "Staff": {
+      "en": "Staff",
+      "zh-CN": "法杖"
+    },
+    "Steak": {
+      "en": "Steak",
+      "zh-CN": "牛排"
+    },
+    "Super": {
+      "en": "Super",
+      "zh-CN": "超级"
+    },
+    "Third Stage": {
+      "en": "Third Stage",
+      "zh-CN": "第三阶段"
+    },
+    "three hits": {
+      "en": "three hits",
+      "zh-CN": "命中三次"
+    },
+    "Thrown": {
+      "en": "Thrown",
+      "zh-CN": "投掷"
+    },
+    "Tiger": {
+      "en": "Tiger",
+      "zh-CN": "老虎"
+    },
+    "to bosses": {
+      "en": "to bosses",
+      "zh-CN": "对Boss时"
+    },
+    "Total": {
+      "en": "Total",
+      "zh-CN": "总计"
+    },
+    "Triple": {
+      "en": "Triple",
+      "zh-CN": "三连发"
+    },
+    "triple": {
+      "en": "triple",
+      "zh-CN": "三连发"
+    },
+    "Triple Bolts": {
+      "en": "Triple Bolts",
+      "zh-CN": "三重弹束"
+    },
+    "twice hit": {
+      "en": "twice hit",
+      "zh-CN": "命中两次"
+    },
+    "Uncharged": {
+      "en": "Uncharged",
+      "zh-CN": "未蓄力"
+    },
+    "uncharged": {
+      "en": "uncharged",
+      "zh-CN": "未蓄力"
+    },
+    "Varies heavily": {
+      "en": "Varies heavily",
+      "zh-CN": "浮动很大"
+    },
+    "with 3 extras": {
+      "en": "with 3 extras",
+      "zh-CN": "有3个额外弹体时"
+    }
+  }
+}

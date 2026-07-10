@@ -5,6 +5,7 @@
 
 开始前先读：
 
+- [Pickup Gameplay Schema v2](C:/code/ETG-Gameplay-Dashboard/docs/reference/pickup-gameplay-schema-v2.md)
 - [MUST.md](C:/code/ETG-Gameplay-Dashboard/tools/translate/MUST.md)
 - [GLOSSARY.md](C:/code/ETG-Gameplay-Dashboard/tools/translate/GLOSSARY.md)
 
@@ -20,6 +21,20 @@ python .\tools\translate\main.py --help
 python .\tools\translate\main.py translate ...
 python .\tools\translate\main.py postcheck ...
 ```
+
+## 目标格式
+
+当前 nearby-pickup gameplay 翻译流程的最终目标不是旧 bilingual work 文件本身，而是这两个 runtime v2 输出：
+
+- `defaults/catalog/RandomLoadout.pickup-gameplay.json`
+- `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+
+翻译工作文件、临时批次和检查报告都只是辅助产物。
+
+判断“这一批是否完成”时，应该用下面这个标准理解：
+
+- 中文正文是否已经达到可以安全写入 schema v2 runtime 字段的质量
+- 术语和显示值映射是否还能正确落回 `pickup-info-terms.json`
 
 ## 处理范围
 
@@ -39,8 +54,11 @@ python .\tools\translate\main.py postcheck ...
 
 ## 关键文件
 
-- 主工作文件：
-  - `defaults/catalog/RandomLoadout.pickup-gameplay.zh-CN.work.json`
+- runtime 目标文件：
+  - `defaults/catalog/RandomLoadout.pickup-gameplay.json`
+  - `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+- 辅助工作文件：
+  - `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json`
 - 临时批次目录：
   - `temp/pickup-gameplay-translation-batches/`
 
@@ -54,8 +72,8 @@ python .\tools\translate\main.py translate --count 5 --only-missing --summary
 ```
 
 2. 只修改生成的 `.check.json` 批次文件。
-3. 不要直接改主工作文件。
-4. `localizedEnglish*` 只作为参考，不回写主工作文件。
+3. 不要直接改 runtime v2 输出文件。
+4. `localizedEnglish*` 只作为参考，不回写 runtime v2 输出文件。
 5. 翻译过程中，反复检查并替换：
 
 ```powershell
@@ -91,7 +109,7 @@ python .\tools\translate\main.py postcheck --input .\temp\pickup-gameplay-transl
 python .\tools\translate\main.py postcheck --input .\temp\pickup-gameplay-translation-batches\<batch>.check.json --apply
 ```
 
-6. 完成后，`defaults/catalog/RandomLoadout.pickup-gameplay.zh-CN.work.json` 才算这一批已完成。
+6. 完成后，应把这一批视为“可安全映射回 schema v2 runtime 字段”，而不是把旧 work 文件本身当成最终产物。
 
 ## 代码优先
 
@@ -99,7 +117,7 @@ python .\tools\translate\main.py postcheck --input .\temp\pickup-gameplay-transl
 - 键位名、控制器名、UI/HUD 这类英文残留，先看 `check` 里的 `UI/controls` 项。
 - 结构化 `stat value` 标签问题，先跑 `scan-stat-values` / `localize-stat-values`。
 - 如果 `stats[*].value` 被误改成中文，用 `restore-stat-values` 按 `en.json` 恢复英文源值。
-- 文档只负责说明入口、顺序和边界；细则尽量沉淀进脚本，而不是继续堆在 Markdown 里。
+- 文档只负责说明入口、顺序、边界和 runtime 目标；细则尽量沉淀进脚本，而不是继续堆在 Markdown 里。
 
 ## 额外说明
 

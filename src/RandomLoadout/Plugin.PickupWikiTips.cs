@@ -56,6 +56,22 @@ namespace RandomLoadout
             PickupGameplayEntry gameplayEntry = GetCurrentPickupGameplayEntry();
             if (gameplayEntry == null)
             {
+                if (_nearbyPickupTipService != null &&
+                    _nearbyPickupTipService.HasVisibleTip &&
+                    Logger != null &&
+                    IsNearbyPickupVerboseLoggingEnabled())
+                {
+                    Logger.LogWarning(
+                        RandomLoadoutLog.Run(
+                            "Nearby pickup overlay had a visible tip source, but no gameplay entry was resolved for rendering. " +
+                            "PickupId=" +
+                            _nearbyPickupTipService.CurrentPickupId +
+                            ", RuntimeLabel=" +
+                            Quote(_nearbyPickupTipService.CurrentDisplayName) +
+                            ", RegistryCount=" +
+                            (_pickupGameplayRegistry != null ? _pickupGameplayRegistry.Count : 0) +
+                            "."));
+                }
                 return;
             }
 
@@ -182,18 +198,18 @@ namespace RandomLoadout
 
             if (IsPickupInfoTypeEnabled())
             {
-                AppendSection(builder, "type", GetPickupInfoDisplayValue(entry.PickupType));
+                AppendSection(builder, "type", GetPickupInfoDisplayValue(entry.Type));
             }
 
-            AppendStatGroups(builder, entry.StatGroups);
+            AppendStatGroups(builder, entry.StatSections);
             if (IsPickupInfoEffectsEnabled())
             {
-                AppendSection(builder, "effects", GetLocalizedGameplayValue(entry.EnglishEffectHighlights, entry.ChineseEffectHighlights));
+                AppendSection(builder, "effects", GetLocalizedGameplayValue(entry.EnglishEffects, entry.ChineseEffects));
             }
 
             if (IsPickupInfoSynergiesEnabled())
             {
-                AppendSection(builder, "synergies", GetLocalizedGameplayValue(entry.EnglishSynergyHighlights, entry.ChineseSynergyHighlights));
+                AppendSection(builder, "synergies", GetLocalizedGameplayValue(entry.EnglishSynergies, entry.ChineseSynergies));
             }
             if (IsPickupInfoSummaryEnabled())
             {
@@ -202,13 +218,13 @@ namespace RandomLoadout
 
             if (IsPickupInfoNotesEnabled())
             {
-                AppendSection(builder, "notes", GetLocalizedGameplayValue(entry.EnglishUsageNotes, entry.ChineseUsageNotes));
+                AppendSection(builder, "notes", GetLocalizedGameplayValue(entry.EnglishNotes, entry.ChineseNotes));
             }
 
             return builder.ToString().Trim();
         }
 
-        private void AppendStatGroups(StringBuilder builder, PickupGameplayStatGroup[] statGroups)
+        private void AppendStatGroups(StringBuilder builder, PickupGameplayStatSection[] statGroups)
         {
             if (builder == null || statGroups == null || statGroups.Length == 0)
             {
@@ -217,7 +233,7 @@ namespace RandomLoadout
 
             for (int i = 0; i < statGroups.Length; i++)
             {
-                PickupGameplayStatGroup statGroup = statGroups[i];
+                PickupGameplayStatSection statGroup = statGroups[i];
                 if (statGroup == null || statGroup.Stats == null || statGroup.Stats.Length == 0)
                 {
                     continue;
@@ -227,12 +243,12 @@ namespace RandomLoadout
                 for (int j = 0; j < statGroup.Stats.Length; j++)
                 {
                     PickupGameplayStatEntry stat = statGroup.Stats[j];
-                    if (stat == null || string.IsNullOrEmpty(stat.LabelKey) || string.IsNullOrEmpty(stat.Value))
+                    if (stat == null || string.IsNullOrEmpty(stat.Key) || string.IsNullOrEmpty(stat.Value))
                     {
                         continue;
                     }
 
-                    values.Add(BuildLabeledValue(GetPickupInfoLabel(stat.LabelKey), GetPickupInfoDisplayValue(stat.Value)));
+                    values.Add(BuildLabeledValue(GetPickupInfoLabel(stat.Key), GetPickupInfoDisplayValue(stat.Value)));
                 }
 
                 AppendInlineStats(builder, values.ToArray());
@@ -321,6 +337,47 @@ namespace RandomLoadout
             }
 
             return englishValue ?? string.Empty;
+        }
+
+        private static string GetLocalizedGameplayValue(string[] englishValues, string[] chineseValues)
+        {
+            bool isChinese = string.Equals(GuiText.CurrentLanguageCode, "zh-CN", System.StringComparison.OrdinalIgnoreCase);
+            string[] values = isChinese && chineseValues != null && chineseValues.Length > 0
+                ? chineseValues
+                : englishValues;
+            return JoinGameplayLines(values);
+        }
+
+        private static string JoinGameplayLines(string[] values)
+        {
+            if (values == null || values.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            StringBuilder builder = new StringBuilder();
+            for (int i = 0; i < values.Length; i++)
+            {
+                string value = values[i] != null ? values[i].Trim() : string.Empty;
+                if (string.IsNullOrEmpty(value))
+                {
+                    continue;
+                }
+
+                if (builder.Length > 0)
+                {
+                    builder.Append("; ");
+                }
+
+                builder.Append(value);
+            }
+
+            return builder.ToString();
+        }
+
+        private static string Quote(string value)
+        {
+            return "\"" + (value ?? string.Empty) + "\"";
         }
 
         private string GetPickupInfoSectionLabel(string sectionKey)

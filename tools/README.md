@@ -30,8 +30,8 @@ webpage dumps.
 
 Gameplay-focused nearby-pickup data follows the same pattern:
 
-- `defaults/catalog/RandomLoadout.pickup-gameplay.en.json`
-- `defaults/catalog/RandomLoadout.pickup-gameplay.zh-CN.work.json`
+- `defaults/catalog/RandomLoadout.pickup-gameplay.json`
+- `defaults/catalog/RandomLoadout.pickup-info-terms.json`
 
 Legacy wiki-tip localization helpers still live in `tools/translate/`, but they are no longer part of the active
 runtime nearby-pickup display path. Current examples:
@@ -47,6 +47,12 @@ runtime nearby-pickup display path. Current examples:
 Gameplay localization workflow helpers also live in `tools/translate/`. Current example:
 
 - `init_pickup_gameplay_zh_cn_work.py`: initialize or refresh `RandomLoadout.pickup-gameplay.zh-CN.work.json` while preserving Chinese prose progress and top-level gameplay term mappings
+  Default work-file path: `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json`
+
+Schema-v2 runtime conversion lives in `tools/data/`:
+
+- `build_pickup_gameplay_v2.py`: merge the legacy English gameplay source and the zh-CN translation work file into the runtime `pickup-gameplay.json` and `pickup-info-terms.json` outputs
+  Legacy source defaults: `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json` and `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json`
 
 Legacy wiki-tip localization data is intentionally bilingual:
 
@@ -59,6 +65,7 @@ Legacy wiki-tip localization data is intentionally bilingual:
 `tools/data/` still owns generation of shipped catalog snapshots, for example:
 
 - `generate_pickup_gameplay_info.py`: build the English gameplay-info catalog sample
+  Default output path: `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json`
 - `generate_pickup_wiki_tips.py`: build the legacy English wiki-tip snapshot
 
 ## 30-Second Commands

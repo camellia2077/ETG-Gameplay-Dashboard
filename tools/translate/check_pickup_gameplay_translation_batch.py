@@ -9,7 +9,7 @@ from pathlib import Path
 from gameplay_translation_workflow import REPO_ROOT, TRANSLATABLE_FIELD_PAIRS, build_default_batch_output_path, load_json, write_json
 
 
-DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
+DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
 DEFAULT_BATCH_DIR = REPO_ROOT / "temp" / "pickup-gameplay-translation-batches"
 EXPORT_SCRIPT_PATH = REPO_ROOT / "tools" / "translate" / "new" / "export_pickup_gameplay_translation_batch.py"
 QUOTE_SCAN_SCRIPT_PATH = REPO_ROOT / "tools" / "translate" / "new" / "scan_pickup_gameplay_quote_preservation.py"
@@ -25,7 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--work-file",
         default=str(DEFAULT_WORK_FILE_PATH),
-        help="Path to RandomLoadout.pickup-gameplay.zh-CN.work.json.",
+        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json.",
     )
     parser.add_argument(
         "--input",

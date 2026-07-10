@@ -63,7 +63,7 @@
 
 如果文本里提到的是游戏内可拾取物品、枪械、被动、主动、协同相关道具名：
 
-- 优先使用 `defaults/catalog/RandomLoadout.pickup-gameplay.zh-CN.work.json` 里已有的 `chineseDisplayName`
+- 优先使用 `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json` 里已有的 `chineseDisplayName`
 - 不要自己另起译名
 - 一般不需要额外保留英文原名
 - 如果只是协同标题、梗名、缩写说明中的英文，不要机械替换
@@ -137,7 +137,7 @@
 
 ### 枪械类别 / 属性术语
 
-这些术语优先和 `defaults/catalog/RandomLoadout.pickup-gameplay.zh-CN.work.json` 顶层 `valueMappings` 保持一致。
+这些术语优先和 `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json` 顶层 `valueMappings` 保持一致。
 
 - `SHOTGUN` -> `霰弹枪`
 - `RIFLE` -> `步枪`

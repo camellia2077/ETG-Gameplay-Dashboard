@@ -148,14 +148,27 @@ namespace RandomLoadout
             HasVisibleTip = true;
             CurrentPickupId = pickup.PickupObjectId;
             CurrentDisplayName = GetPickupLabelForGameLanguage(pickup);
-            PickupGameplayEntry ignoredEntry;
+            PickupGameplayEntry gameplayEntry;
+            bool hasGameplayEntry = _gameplayRegistry.TryGetEntry(CurrentPickupId, out gameplayEntry);
             LogInfo(
                 "Nearby pickup tip shown. " +
                 "Source=" + source +
                 ", PickupId=" + CurrentPickupId +
                 ", Label=" + Quote(CurrentDisplayName) +
-                ", HasGameplayEntry=" + _gameplayRegistry.TryGetEntry(CurrentPickupId, out ignoredEntry) +
+                ", HasGameplayEntry=" + hasGameplayEntry +
                 ".");
+
+            if (!hasGameplayEntry && IsVerboseLoggingEnabled() && _logger != null)
+            {
+                _logger.LogWarning(
+                    RandomLoadoutLog.Run(
+                        "Nearby pickup entered range but gameplay entry was not found. " +
+                        "Source=" + source +
+                        ", PickupId=" + CurrentPickupId +
+                        ", Label=" + Quote(CurrentDisplayName) +
+                        ", RegistryCount=" + _gameplayRegistry.Count +
+                        "."));
+            }
         }
 
         private void ClearTip(Object rangeSource, string reason)

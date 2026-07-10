@@ -10,8 +10,8 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_ENGLISH_GAMEPLAY_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.en.json"
-DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
+DEFAULT_ENGLISH_GAMEPLAY_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.en.json"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
 DEFAULT_LEGACY_ZH_TIPS_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-wiki-tips.zh-CN.work.json"
 
 DEFAULT_SECTION_LABELS = OrderedDict(
@@ -104,7 +104,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--english-gameplay",
         default=str(DEFAULT_ENGLISH_GAMEPLAY_PATH),
-        help="Path to RandomLoadout.pickup-gameplay.en.json.",
+        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json.",
     )
     parser.add_argument(
         "--legacy-zh-tips",

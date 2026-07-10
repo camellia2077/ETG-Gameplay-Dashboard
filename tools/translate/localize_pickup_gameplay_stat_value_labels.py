@@ -12,12 +12,12 @@ DEFAULT_INPUT_PATH = DEFAULT_WORK_FILE_PATH
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Localize structured English stat-value labels in RandomLoadout.pickup-gameplay.zh-CN.work.json and sync the same mappings into valueMappings."
+        description="Localize structured English stat-value labels in defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json and sync the same mappings into valueMappings."
     )
     parser.add_argument(
         "--input",
         default=str(DEFAULT_INPUT_PATH),
-        help="Path to RandomLoadout.pickup-gameplay.zh-CN.work.json.",
+        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json.",
     )
     parser.add_argument(
         "--output",

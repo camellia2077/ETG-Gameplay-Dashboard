@@ -54,6 +54,7 @@ I am changing Start Items presets or JSON config:
 I am changing language switching or localization:
 
 - [Localization And Language Switching](./reference/localization.md)
+- [Pickup Gameplay Schema v2](./reference/pickup-gameplay-schema-v2.md)
 - [Commands](./reference/commands.md)
 - [Config Format (JSON5)](./reference/config-format.md)
 - [Pickups](./reference/pickups.md)
@@ -108,6 +109,7 @@ I am changing build, deploy, or tools:
 - [Muncher Spawn](./reference/runtime-internals/muncher-spawn.md)
 - [Map Reveal And Teleporter Promotion](./reference/map-teleport.md)
 - [Localization And Language Switching](./reference/localization.md)
+- [Pickup Gameplay Schema v2](./reference/pickup-gameplay-schema-v2.md)
 - [Terminology And Naming](./reference/terminology.md)
 - [Testing Matrix](./reference/testing-matrix.md)
 - [Config Format (JSON5)](./reference/config-format.md)

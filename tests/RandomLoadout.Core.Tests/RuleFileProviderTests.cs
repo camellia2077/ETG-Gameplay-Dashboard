@@ -10,8 +10,13 @@ namespace RandomLoadout.Core.Tests
     {
         public static void ParsesSpecificAliasRule()
         {
-            string filePath = CreateTempFile(
+            string presetDirectory = Path.Combine(Path.GetTempPath(), "RandomLoadout.presets.tests." + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(presetDirectory);
+            string presetPath = Path.Combine(presetDirectory, "preset.specific-alias.json");
+            File.WriteAllText(
+                presetPath,
                 "{\n" +
+                "  \"id\": \"specific-alias\",\n" +
                 "  \"rules\": [\n" +
                 "    {\n" +
                 "      \"enabled\": true,\n" +
@@ -24,22 +29,33 @@ namespace RandomLoadout.Core.Tests
 
             try
             {
-                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(filePath);
+                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(
+                    Path.Combine(presetDirectory, "anchor.json"),
+                    presetDirectory);
+                provider.ActivePresetName = "specific-alias";
                 LoadoutRuleFileLoadResult result = provider.Load();
 
-                AssertEx.Equal(1, result.Definitions.Length, "The rule file should produce one definition.");
+                AssertEx.Equal(1, result.Definitions.Length, "The preset rule should produce one definition.");
                 AssertEx.Equal("casey_bat", result.Definitions[0].SpecificAlias, "The specific alias should be preserved.");
             }
             finally
             {
-                File.Delete(filePath);
+                if (Directory.Exists(presetDirectory))
+                {
+                    Directory.Delete(presetDirectory, true);
+                }
             }
         }
 
         public static void ParsesRandomPoolAliasesAlongsideIdsAndNames()
         {
-            string filePath = CreateTempFile(
+            string presetDirectory = Path.Combine(Path.GetTempPath(), "RandomLoadout.presets.tests." + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(presetDirectory);
+            string presetPath = Path.Combine(presetDirectory, "preset.random-pool.json");
+            File.WriteAllText(
+                presetPath,
                 "{\n" +
+                "  \"id\": \"random-pool\",\n" +
                 "  \"rules\": [\n" +
                 "    {\n" +
                 "      \"enabled\": true,\n" +
@@ -55,7 +71,10 @@ namespace RandomLoadout.Core.Tests
 
             try
             {
-                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(filePath);
+                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(
+                    Path.Combine(presetDirectory, "anchor.json"),
+                    presetDirectory);
+                provider.ActivePresetName = "random-pool";
                 LoadoutRuleFileLoadResult result = provider.Load();
 
                 AssertEx.Equal(1, result.Definitions.Length, "The random rule should be preserved.");
@@ -65,7 +84,10 @@ namespace RandomLoadout.Core.Tests
             }
             finally
             {
-                File.Delete(filePath);
+                if (Directory.Exists(presetDirectory))
+                {
+                    Directory.Delete(presetDirectory, true);
+                }
             }
         }
 
@@ -109,6 +131,41 @@ namespace RandomLoadout.Core.Tests
                 if (Directory.Exists(presetDirectory))
                 {
                     Directory.Delete(presetDirectory);
+                }
+            }
+        }
+
+        public static void ParsesRuleFromPresetFileWithJson5Syntax()
+        {
+            string presetDirectory = Path.Combine(Path.GetTempPath(), "RandomLoadout.presets.tests." + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(presetDirectory);
+            string presetPath = Path.Combine(presetDirectory, "preset.with-rule.json");
+            File.WriteAllText(
+                presetPath,
+                "{\n" +
+                "  // Preset comment\n" +
+                "  \"id\": \"with-rule\",\n" +
+                "  \"rules\": [\n" +
+                "    { \"enabled\": true, \"mode\": \"specific\", \"category\": \"gun\", \"alias\": \"casey_bat\", },\n" +
+                "  ],\n" +
+                "}\n");
+
+            try
+            {
+                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(
+                    Path.Combine(presetDirectory, "anchor.json"),
+                    presetDirectory);
+                provider.ActivePresetName = "with-rule";
+                LoadoutRuleFileLoadResult result = provider.Load();
+
+                AssertEx.Equal(1, result.Definitions.Length, "The preset rule should produce one definition.");
+                AssertEx.Equal("casey_bat", result.Definitions[0].SpecificAlias, "The preset rule alias should be preserved.");
+            }
+            finally
+            {
+                if (Directory.Exists(presetDirectory))
+                {
+                    Directory.Delete(presetDirectory, true);
                 }
             }
         }
@@ -170,11 +227,16 @@ namespace RandomLoadout.Core.Tests
             AssertEx.True(result.Warnings.Length > 0, "Falling back to built-in aliases should produce a warning.");
         }
 
-        public static void MissingPrimaryRuleFileFallsBackToFullPoolFile()
+        public static void LoadsPresetDirectoryWhenAnchorFileIsMissing()
         {
             string missingPrimaryPath = Path.Combine(Path.GetTempPath(), "RandomLoadout.rules.tests." + Guid.NewGuid().ToString("N") + ".json");
-            string fallbackPath = CreateTempFile(
+            string presetDirectory = Path.Combine(Path.GetTempPath(), "RandomLoadout.presets.tests." + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(presetDirectory);
+            string presetPath = Path.Combine(presetDirectory, "preset.full-pool.json");
+            File.WriteAllText(
+                presetPath,
                 "{\n" +
+                "  \"id\": \"full-pool\",\n" +
                 "  \"rules\": [\n" +
                 "    {\n" +
                 "      \"enabled\": true,\n" +
@@ -195,26 +257,34 @@ namespace RandomLoadout.Core.Tests
 
             try
             {
-                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(missingPrimaryPath, fallbackPath);
+                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(missingPrimaryPath, presetDirectory);
+                provider.ActivePresetName = "full-pool";
                 LoadoutRuleFileLoadResult result = provider.Load();
 
-                AssertEx.Equal(2, result.Definitions.Length, "The fallback full-pool file should provide rules when the primary file is missing.");
-                AssertEx.Equal(GrantMode.Random, result.Definitions[0].Mode, "The fallback rule should preserve random mode.");
-                AssertEx.SequenceEqual(new[] { 541, 616 }, result.Definitions[0].PoolIds, "The fallback rule should preserve the pool IDs.");
-                AssertEx.True(result.Messages.Length > 0, "Using the fallback full-pool file should produce an informational message.");
-                AssertEx.True(result.Warnings.Length > 0, "A missing primary rule file should still produce a warning.");
+                AssertEx.Equal(2, result.Definitions.Length, "The preset directory should provide both rules when the anchor file is missing.");
+                AssertEx.Equal(GrantMode.Random, result.Definitions[0].Mode, "The preset rule should preserve random mode.");
+                AssertEx.SequenceEqual(new[] { 541, 616 }, result.Definitions[0].PoolIds, "The preset rule should preserve the pool IDs.");
+                AssertEx.True(result.Messages.Length > 0, "Loading a preset should produce an informational message.");
             }
             finally
             {
-                File.Delete(fallbackPath);
+                if (Directory.Exists(presetDirectory))
+                {
+                    Directory.Delete(presetDirectory, true);
+                }
             }
         }
 
-        public static void InvalidPrimaryRuleFileFallsBackToFullPoolFile()
+        public static void LoadsPresetDirectoryWhenAnchorFileIsInvalid()
         {
             string invalidPrimaryPath = CreateTempFile("{ invalid json");
-            string fallbackPath = CreateTempFile(
+            string presetDirectory = Path.Combine(Path.GetTempPath(), "RandomLoadout.presets.tests." + Guid.NewGuid().ToString("N"));
+            Directory.CreateDirectory(presetDirectory);
+            string presetPath = Path.Combine(presetDirectory, "preset.active-pool.json");
+            File.WriteAllText(
+                presetPath,
                 "{\n" +
+                "  \"id\": \"active-pool\",\n" +
                 "  \"rules\": [\n" +
                 "    {\n" +
                 "      \"enabled\": true,\n" +
@@ -228,19 +298,22 @@ namespace RandomLoadout.Core.Tests
 
             try
             {
-                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(invalidPrimaryPath, fallbackPath);
+                JsonLoadoutRuleFileProvider provider = new JsonLoadoutRuleFileProvider(invalidPrimaryPath, presetDirectory);
+                provider.ActivePresetName = "active-pool";
                 LoadoutRuleFileLoadResult result = provider.Load();
 
-                AssertEx.Equal(1, result.Definitions.Length, "The fallback full-pool file should provide rules when the primary file is invalid.");
-                AssertEx.Equal(PickupCategory.Active, result.Definitions[0].Category, "The fallback rule category should be preserved.");
-                AssertEx.SequenceEqual(new[] { 120 }, result.Definitions[0].PoolIds, "The fallback pool IDs should be preserved.");
-                AssertEx.True(result.Messages.Length > 0, "Using the fallback full-pool file should produce an informational message.");
-                AssertEx.True(result.Warnings.Length > 0, "An invalid primary rule file should still produce a warning.");
+                AssertEx.Equal(1, result.Definitions.Length, "The preset directory should provide a rule when the anchor file is invalid.");
+                AssertEx.Equal(PickupCategory.Active, result.Definitions[0].Category, "The preset rule category should be preserved.");
+                AssertEx.SequenceEqual(new[] { 120 }, result.Definitions[0].PoolIds, "The preset rule pool IDs should be preserved.");
+                AssertEx.True(result.Messages.Length > 0, "Loading a preset should produce an informational message.");
             }
             finally
             {
                 File.Delete(invalidPrimaryPath);
-                File.Delete(fallbackPath);
+                if (Directory.Exists(presetDirectory))
+                {
+                    Directory.Delete(presetDirectory, true);
+                }
             }
         }
 
