@@ -44,11 +44,12 @@ namespace RandomLoadout
             float left = panelRect.x + 14f;
             float top = panelRect.y + 78f;
             float width = panelRect.width - 28f;
-            DrawControllerHelpLine(left, top, width, GuiText.Get("gui.controller_help.open"));
+            DrawControllerHelpLine(left, top, width, GuiText.Get("gui.controller_help.open", GetControllerShortcutDisplayName()));
             DrawControllerHelpLine(left, top + 24f, width, GuiText.Get("gui.controller_help.confirm"));
             DrawControllerHelpLine(left, top + 48f, width, GuiText.Get("gui.controller_help.back"));
             DrawControllerHelpLine(left, top + 72f, width, GuiText.Get("gui.controller_help.move"));
             DrawControllerHelpLine(left, top + 96f, width, GuiText.Get("gui.controller_help.category"));
+            DrawControllerHelpLine(left, top + 120f, width, GuiText.Get("gui.controller_help.shortcut_order"));
         }
 
         private void DrawControllerHelpLine(float left, float top, float width, string text)

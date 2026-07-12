@@ -109,8 +109,11 @@ namespace RandomLoadout
             }
 
             float nextMaxHealth = maxHealth + SingleHeartAmount;
-            healthHaver.SetHealthMaximum(nextMaxHealth, null, false);
-            healthHaver.ApplyHealing(SingleHeartAmount);
+            // SetHealthMaximum can apply the gained heart and raise OnHealthChanged in one event.
+            // Do not follow it with ApplyHealing: that would raise the same event twice, and the
+            // HUD would replay both the heart-gained animation and its Armor UI refresh.
+            // Keeping this as one event also preserves the normal single-heart visual feedback.
+            healthHaver.SetHealthMaximum(nextMaxHealth, SingleHeartAmount, false);
             if (_playerHealthOverrideService != null)
             {
                 _playerHealthOverrideService.TrackOverride(player, healthHaver);

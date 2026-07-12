@@ -26,7 +26,10 @@ namespace RandomLoadout
         private ConfigEntry<bool> _enableRandomLoadoutConfig;
         private ConfigEntry<string> _uiLanguageConfig;
         private ConfigEntry<string> _commandPanelKeyConfig;
+        private ConfigEntry<string> _commandPanelControllerShortcutConfig;
+        private ConfigEntry<bool> _disableCommandPanelControllerShortcutConfig;
         private ConfigEntry<string> _uiScalePresetConfig;
+        private ConfigEntry<bool> _showStartItemsPresetIconsConfig;
         private ConfigEntry<bool> _showPlayerStatsPanelConfig;
         private ConfigEntry<bool> _showPickupInfoOverlayConfig;
         private ConfigEntry<bool> _showPickupInfoQualityConfig;
@@ -60,6 +63,7 @@ namespace RandomLoadout
         private EtgLoadoutConfigResolver _configResolver;
         private EtgPickupCatalogExporter _pickupCatalogExporter;
         private JsonLoadoutRuleFileProvider _ruleFileProvider;
+        private LoadoutPresetRandomService _loadoutPresetRandomService;
         private InGameCommandController _commandController;
         private PickupGameplayRegistry _pickupGameplayRegistry;
         private PickupInfoTermsRegistry _pickupInfoTermsRegistry;

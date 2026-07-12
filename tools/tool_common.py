@@ -19,8 +19,6 @@ DEFAULT_CONFIG_RELATIVE_PATHS = (
     Path("ETG-Gameplay-Dashboard.localization.en.json5"),
     Path("ETG-Gameplay-Dashboard.localization.zh-CN.json5"),
     Path("ETG-Gameplay-Dashboard.rules.json5"),
-    Path("presets") / "preset.default.json",
-    Path("presets") / "preset.casey_synergies.json",
 )
 DEFAULT_CATALOG_FILE_NAMES = (
     "RandomLoadout.pickups.json",
@@ -178,28 +176,23 @@ def get_default_config_dir(repo_root: Path) -> Path:
 
 def get_default_config_paths(repo_root: Path) -> list[Path]:
     config_dir = get_default_config_dir(repo_root)
+    resolved_paths = [config_dir / relative_path for relative_path in DEFAULT_CONFIG_RELATIVE_PATHS]
+    return resolved_paths + get_default_preset_paths(repo_root)
+
+
+def get_default_preset_paths(repo_root: Path) -> list[Path]:
     preset_dir = repo_root / DEFAULT_PRESET_DIRECTORY
-    resolved_paths: list[Path] = []
-    for relative_path in DEFAULT_CONFIG_RELATIVE_PATHS:
-        root_dir = preset_dir if relative_path.parts and relative_path.parts[0] == "presets" else config_dir
-        trimmed_relative_path = Path(*relative_path.parts[1:]) if relative_path.parts and relative_path.parts[0] == "presets" else relative_path
-        resolved_paths.append(root_dir / trimmed_relative_path)
-    return resolved_paths
+    return sorted(preset_dir.glob("*.json"), key=lambda path: path.name.lower())
 
 
 def get_default_config_sync_specs(repo_root: Path) -> list[tuple[Path, Path]]:
     config_dir = get_default_config_dir(repo_root)
-    preset_dir = repo_root / DEFAULT_PRESET_DIRECTORY
     specs: list[tuple[Path, Path]] = []
     for relative_path in DEFAULT_CONFIG_RELATIVE_PATHS:
-        if relative_path.parts and relative_path.parts[0] == "presets":
-            source_path = preset_dir / Path(*relative_path.parts[1:])
-            target_relative_path = relative_path
-        else:
-            source_path = config_dir / relative_path
-            target_relative_path = relative_path
+        specs.append((config_dir / relative_path, relative_path))
 
-        specs.append((source_path, target_relative_path))
+    for preset_path in get_default_preset_paths(repo_root):
+        specs.append((preset_path, Path("presets") / preset_path.name))
 
     return specs
 

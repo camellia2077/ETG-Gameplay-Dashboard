@@ -23,7 +23,7 @@ namespace RandomLoadout
                 if (rule != null)
                 {
                     EtgPickupCatalogEntry pickup = GetRulePickup(rule, catalogById);
-                    entries.Add(new LoadoutRuleEditorEntry(i, BuildPrimaryText(rule, pickup), BuildSecondaryText(rule, pickup), GetRuleRepresentativePickupId(rule, pickup), IsRandomPoolRule(rule)));
+                    entries.Add(new LoadoutRuleEditorEntry(i, BuildPrimaryText(rule, pickup), BuildSecondaryText(rule, pickup), GetRuleRepresentativePickupId(rule, pickup), IsRandomPoolRule(rule), string.Empty, 1, false, rule.Enabled));
                 }
             }
 

@@ -5,7 +5,7 @@ namespace RandomLoadout
 {
     internal sealed class LoadoutPresetEditorEntry
     {
-        public LoadoutPresetEditorEntry(string id, string displayName, bool isActive, int ruleCount, int specificCount, int randomCount, int pickupCount)
+        public LoadoutPresetEditorEntry(string id, string displayName, bool isActive, int ruleCount, int specificCount, int randomCount, int pickupCount, LoadoutPresetPreviewRow[] previewRows)
         {
             Id = id ?? string.Empty;
             DisplayName = displayName ?? string.Empty;
@@ -14,6 +14,7 @@ namespace RandomLoadout
             SpecificCount = specificCount;
             RandomCount = randomCount;
             PickupCount = pickupCount;
+            PreviewRows = previewRows ?? new LoadoutPresetPreviewRow[0];
         }
 
         public string Id { get; private set; }
@@ -29,5 +30,7 @@ namespace RandomLoadout
         public int RandomCount { get; private set; }
 
         public int PickupCount { get; private set; }
+
+        public LoadoutPresetPreviewRow[] PreviewRows { get; private set; }
     }
 }

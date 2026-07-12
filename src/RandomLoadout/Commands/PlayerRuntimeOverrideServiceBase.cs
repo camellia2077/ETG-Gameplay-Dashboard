@@ -101,6 +101,26 @@ namespace RandomLoadout
             return _overrides.TryGetValue(player.GetInstanceID(), out trackedOverride);
         }
 
+        protected bool TryGetTrackedOverrideByHealthHaver(HealthHaver healthHaver, out TOverrideState trackedOverride)
+        {
+            trackedOverride = null;
+            if ((object)healthHaver == null)
+            {
+                return false;
+            }
+
+            foreach (KeyValuePair<int, TOverrideState> pair in _overrides)
+            {
+                if (pair.Value != null && ReferenceEquals(pair.Value.Player != null ? pair.Value.Player.healthHaver : null, healthHaver))
+                {
+                    trackedOverride = pair.Value;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         protected TOverrideState GetOrCreateTrackedOverride(PlayerController player)
         {
             int playerId = player.GetInstanceID();

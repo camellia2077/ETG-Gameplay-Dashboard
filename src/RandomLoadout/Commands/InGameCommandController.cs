@@ -24,6 +24,7 @@ namespace RandomLoadout
             AmmoModeToggleService ammoModeToggleService,
             AmmonomiconFastOpenToggleService ammonomiconFastOpenToggleService,
             LoadoutRuleEditorService loadoutRuleEditorService,
+            LoadoutPresetRandomService loadoutPresetRandomService,
             System.Func<EtgPickupCatalogEntry[]> pickupCatalogProvider,
             System.Func<PickupAliasRegistry> aliasRegistryProvider,
             System.Func<string> languageProvider,
@@ -32,8 +33,14 @@ namespace RandomLoadout
             System.Func<KeyCode> toggleKeyProvider,
             System.Func<string> toggleKeyNameProvider,
             System.Action<string> toggleKeySetter,
+            System.Func<string> controllerShortcutProvider,
+            System.Action<string> controllerShortcutSetter,
+            System.Func<bool> controllerShortcutEnabledProvider,
+            System.Action<bool> controllerShortcutEnabledSetter,
             System.Func<string> uiScalePresetProvider,
             System.Action<string> uiScalePresetSetter,
+            System.Func<bool> startItemsPresetIconsEnabledProvider,
+            System.Action<bool> startItemsPresetIconsEnabledSetter,
             System.Func<bool> playerStatsPanelShownProvider,
             System.Action<bool> playerStatsPanelShownSetter,
             System.Func<bool> pickupInfoOverlayEnabledProvider,
@@ -74,6 +81,7 @@ namespace RandomLoadout
             _ammoModeToggleService = ammoModeToggleService;
             _ammonomiconFastOpenToggleService = ammonomiconFastOpenToggleService;
             _loadoutRuleEditorService = loadoutRuleEditorService;
+            _loadoutPresetRandomService = loadoutPresetRandomService;
             _pickupCatalogProvider = pickupCatalogProvider;
             _aliasRegistryProvider = aliasRegistryProvider;
             _languageProvider = languageProvider;
@@ -82,8 +90,14 @@ namespace RandomLoadout
             _toggleKeyProvider = toggleKeyProvider;
             _toggleKeyNameProvider = toggleKeyNameProvider;
             _toggleKeySetter = toggleKeySetter;
+            _controllerShortcutProvider = controllerShortcutProvider;
+            _controllerShortcutSetter = controllerShortcutSetter;
+            _controllerShortcutEnabledProvider = controllerShortcutEnabledProvider;
+            _controllerShortcutEnabledSetter = controllerShortcutEnabledSetter;
             _uiScalePresetProvider = uiScalePresetProvider;
             _uiScalePresetSetter = uiScalePresetSetter;
+            _startItemsPresetIconsEnabledProvider = startItemsPresetIconsEnabledProvider;
+            _startItemsPresetIconsEnabledSetter = startItemsPresetIconsEnabledSetter;
             _playerStatsPanelShownProvider = playerStatsPanelShownProvider;
             _playerStatsPanelShownSetter = playerStatsPanelShownSetter;
             _pickupInfoOverlayEnabledProvider = pickupInfoOverlayEnabledProvider;
@@ -127,6 +141,7 @@ namespace RandomLoadout
             SyncPanelInputOverride();
             LogJoystickButtonStateChanges();
             LogControllerStickStateChanges();
+            LogHealthDiagnosticStateChanges();
             LogCursorVisibilityStateChanges();
             UpdateMapFeatureActivationState();
             LogMapDirectTeleportRoomTransitionIfNeeded();
@@ -1037,32 +1052,85 @@ namespace RandomLoadout
 
         private bool IsGamepadToggleShortcutPressed()
         {
-            const int leftStickButtonIndex = 8;
-            const int rightStickButtonIndex = 9;
-            KeyCode leftStickButtonKeyCode = GetJoystickButtonKeyCode(leftStickButtonIndex);
-            KeyCode rightStickButtonKeyCode = GetJoystickButtonKeyCode(rightStickButtonIndex);
-            bool isLeftStickPressed = Input.GetKey(leftStickButtonKeyCode);
-            bool isRightStickPressed = Input.GetKeyDown(rightStickButtonKeyCode);
-
-            if (_isVisible || isLeftStickPressed || !isRightStickPressed)
+            if (!IsControllerShortcutEnabled())
             {
-                if (isRightStickPressed)
+                _controllerShortcutR3PressedAt = -1f;
+                _controllerShortcutHoldTriggered = false;
+                return false;
+            }
+
+            const int rightStickButtonIndex = 9;
+            KeyCode rightStickButtonKeyCode = GetJoystickButtonKeyCode(rightStickButtonIndex);
+            string shortcut = GetConfiguredControllerShortcut();
+            bool isRightStickPressed = Input.GetKey(rightStickButtonKeyCode);
+            bool isRightStickDown = Input.GetKeyDown(rightStickButtonKeyCode);
+
+            if (!isRightStickPressed)
+            {
+                _controllerShortcutR3PressedAt = -1f;
+                _controllerShortcutHoldTriggered = false;
+            }
+
+            if (shortcut == "R3")
+            {
+                if (isRightStickDown)
+                {
+                    _controllerShortcutR3PressedAt = Time.unscaledTime;
+                    _controllerShortcutHoldTriggered = false;
+
+                    if (_isVisible)
+                    {
+                        _controllerShortcutHoldTriggered = true;
+                        LogGamepadShortcutState("Detected command panel R3 press while open. Closing command panel.");
+                        return true;
+                    }
+                }
+
+                if (!isRightStickPressed || _controllerShortcutHoldTriggered || _controllerShortcutR3PressedAt < 0f)
+                {
+                    return false;
+                }
+
+                if (Time.unscaledTime - _controllerShortcutR3PressedAt < 0.5f)
+                {
+                    return false;
+                }
+
+                _controllerShortcutHoldTriggered = true;
+                LogGamepadShortcutState("Detected command panel R3 hold for 0.5 seconds. Opening command panel.");
+                return true;
+            }
+
+            int triggerButtonIndex = shortcut == "LB+X" ? 2 : (shortcut == "LB+Y" ? 3 : 9);
+            bool isTriggerDown = Input.GetKeyDown(GetJoystickButtonKeyCode(triggerButtonIndex));
+            bool modifierPressed = Input.GetKey(GetJoystickButtonKeyCode(4));
+
+            if (!isTriggerDown || !modifierPressed)
+            {
+                if (isTriggerDown)
                 {
                     LogGamepadShortcutState(
-                        "Ignored command panel R3 short press. Visible=" +
+                        "Ignored command panel controller shortcut press. Shortcut=" +
+                        shortcut +
+                        ", ModifierPressed=" +
+                        modifierPressed +
+                        ", Visible=" +
                         _isVisible +
-                        ", L3Pressed=" +
-                        isLeftStickPressed +
-                        ", R3Down=" +
-                        isRightStickPressed +
+                        ", TriggerDown=" +
+                        isTriggerDown +
                         ".");
                 }
 
                 return false;
             }
 
-            LogGamepadShortcutState("Detected command panel R3 short press. Opening command panel.");
+            LogGamepadShortcutState("Detected command panel " + shortcut + " press. Opening command panel.");
             return true;
+        }
+
+        private bool IsControllerShortcutEnabled()
+        {
+            return _controllerShortcutEnabledProvider == null || _controllerShortcutEnabledProvider();
         }
 
         private void LogJoystickButtonStateChanges()
@@ -1235,6 +1303,99 @@ namespace RandomLoadout
                 healthHaver.Armor.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
                 ", Blanks=" +
                 player.Blanks.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        private void LogHealthDiagnosticStateChanges()
+        {
+            if (!IsCommandPanelHealthVerboseLoggingEnabled())
+            {
+                ResetHealthDiagnosticState();
+                return;
+            }
+
+            PlayerController player = GetCurrentPlayer();
+            if ((object)player == null || (object)player.healthHaver == null)
+            {
+                ResetHealthDiagnosticState();
+                return;
+            }
+
+            HealthHaver healthHaver = player.healthHaver;
+            Gun currentGun = player.CurrentGun;
+            int gunId = (object)currentGun != null ? currentGun.GetInstanceID() : 0;
+            string gunName = (object)currentGun != null ? currentGun.name : "<none>";
+            float currentHealth = healthHaver.GetCurrentHealth();
+            float maxHealth = healthHaver.GetMaxHealth();
+            float armor = healthHaver.Armor;
+            bool playerChanged = !ReferenceEquals(_lastHealthDiagnosticPlayer, player);
+            bool gunChanged = playerChanged || gunId != _lastHealthDiagnosticGunId;
+            bool vitalsChanged = playerChanged ||
+                float.IsNaN(_lastHealthDiagnosticCurrentHealth) ||
+                Mathf.Abs(currentHealth - _lastHealthDiagnosticCurrentHealth) > 0.001f ||
+                Mathf.Abs(maxHealth - _lastHealthDiagnosticMaxHealth) > 0.001f ||
+                Mathf.Abs(armor - _lastHealthDiagnosticArmor) > 0.001f;
+
+            if (gunChanged || vitalsChanged)
+            {
+                LogCommandPanelHealthDiagnostic(
+                    "Observed player health state change. PreviousCurrentHealth=" +
+                    FormatDiagnosticFloat(_lastHealthDiagnosticCurrentHealth) +
+                    ", PreviousMaxHealth=" +
+                    FormatDiagnosticFloat(_lastHealthDiagnosticMaxHealth) +
+                    ", PreviousArmor=" +
+                    FormatDiagnosticFloat(_lastHealthDiagnosticArmor) +
+                    ", CurrentCurrentHealth=" +
+                    FormatDiagnosticFloat(currentHealth) +
+                    ", CurrentMaxHealth=" +
+                    FormatDiagnosticFloat(maxHealth) +
+                    ", CurrentArmor=" +
+                    FormatDiagnosticFloat(armor) +
+                    ", PreviousGunId=" +
+                    _lastHealthDiagnosticGunId +
+                    ", PreviousGunName=" +
+                    (_lastHealthDiagnosticGunName ?? "<none>") +
+                    ", CurrentGunId=" +
+                    gunId +
+                    ", CurrentGunName=" +
+                    gunName +
+                    ", GunChanged=" +
+                    gunChanged +
+                    ", VitalsChanged=" +
+                    vitalsChanged +
+                    ", Visible=" +
+                    _isVisible +
+                    ", Page=" +
+                    _currentPage +
+                    ", PlayerFocus=" +
+                    _commandPageFocusedControlId +
+                    ", SettingsFocus=" +
+                    _settingsPageFocusedControlId +
+                    ".");
+            }
+
+            _lastHealthDiagnosticPlayer = player;
+            _lastHealthDiagnosticCurrentHealth = currentHealth;
+            _lastHealthDiagnosticMaxHealth = maxHealth;
+            _lastHealthDiagnosticArmor = armor;
+            _lastHealthDiagnosticGunId = gunId;
+            _lastHealthDiagnosticGunName = gunName;
+        }
+
+        private void ResetHealthDiagnosticState()
+        {
+            _lastHealthDiagnosticPlayer = null;
+            _lastHealthDiagnosticCurrentHealth = float.NaN;
+            _lastHealthDiagnosticMaxHealth = float.NaN;
+            _lastHealthDiagnosticArmor = float.NaN;
+            _lastHealthDiagnosticGunId = -1;
+            _lastHealthDiagnosticGunName = string.Empty;
+        }
+
+        private static string FormatDiagnosticFloat(float value)
+        {
+            return float.IsNaN(value)
+                ? "<unset>"
+                : value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
         }
 
         private void LogNamedControllerAxisStateChange(
@@ -1839,10 +2000,14 @@ namespace RandomLoadout
 
         private Rect GetMainPanelRect(float panelHeight)
         {
+            float desiredPanelWidth = _currentPage == PanelPage.LoadoutEditor
+                ? LoadoutEditorPanelWidth
+                : PanelWidth;
+            float panelWidth = Mathf.Min(desiredPanelWidth, Mathf.Max(1f, GetScaledScreenWidth() - 24f));
             return new Rect(
-                (GetScaledScreenWidth() - PanelWidth) * 0.5f,
+                (GetScaledScreenWidth() - panelWidth) * 0.5f,
                 GetScaledScreenHeight() - PanelBottomMargin - panelHeight,
-                PanelWidth,
+                panelWidth,
                 panelHeight);
         }
 

@@ -563,6 +563,15 @@ namespace RandomLoadout
         {
             long operationStartedAt = BeginPerformanceSample();
             MarkPerformanceEvent("Automatic loadout grant in " + sceneName);
+            if (_loadoutPresetRandomService != null)
+            {
+                if (_loadoutPresetRandomService.IsEnabled)
+                {
+                    _loadoutPresetRandomService.SelectNextPresetForGrant(Logger);
+                }
+
+                Logger.LogInfo(RandomLoadoutLog.Grant(_loadoutPresetRandomService.GetDiagnostics()));
+            }
             EnsureResolvedLoadoutConfig();
             RefreshActivePresetPickupsForGrant();
 
@@ -582,6 +591,8 @@ namespace RandomLoadout
                 RandomLoadoutLog.Grant(
                     "Granting configured loadout. Scene=" +
                     sceneName +
+                    ", ActivePresetName=" +
+                    activePresetName +
                     ", Seed=" +
                     selectionResult.Seed +
                     ", ConfigRuleCount=" +
@@ -639,6 +650,15 @@ namespace RandomLoadout
             }
 
             GrantConfiguredPresetPickups(player);
+            if (_loadoutPresetRandomService != null && _loadoutPresetRandomService.IsEnabled)
+            {
+                // Random mode displays the preset that will be used next, not the
+                // preset that just finished granting. Advance only after all current
+                // pickups are done, and keep this draw pending for the next run so
+                // the UI and the next actual grant remain in sync.
+                _loadoutPresetRandomService.SelectNextPreset(Logger);
+                Logger.LogInfo(RandomLoadoutLog.Grant(_loadoutPresetRandomService.GetDiagnostics()));
+            }
             LogPerformanceOperation(
                 "GrantConfiguredLoadout",
                 operationStartedAt,

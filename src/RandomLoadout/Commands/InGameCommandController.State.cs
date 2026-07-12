@@ -137,6 +137,7 @@ namespace RandomLoadout
         private const float MinimumUiScale = 0.70f;
         private const float MaximumUiScale = 1.50f;
         private const float PanelWidth = 612f;
+        private const float LoadoutEditorPanelWidth = 900f;
         private const float BasePanelHeight = 284f;
         private const float PlayerStatsPanelWidth = 160f;
         private const float PlayerStatsPanelHeight = 330f;
@@ -147,10 +148,10 @@ namespace RandomLoadout
         private const float PickupBrowserPanelHeight = 496f;
         private const float LoadoutEditorPanelHeight = 440f;
         private const float AboutPanelHeight = 404f;
-        private const float SettingsPanelHeight = 732f;
+        private const float SettingsPanelHeight = 812f;
         private const float PickupInfoConfigPanelHeight = 428f;
         private const float AdvancedToolsPanelHeight = 254f;
-        private const float ControllerHelpPanelHeight = 332f;
+        private const float ControllerHelpPanelHeight = 356f;
         private const float KeyboardHelpPanelHeight = 356f;
         private const float CharacterPanelBaseHeaderHeight = 126f;
         private const float CharacterPanelFooterHeight = 26f;
@@ -177,6 +178,9 @@ namespace RandomLoadout
         private const float PickupFilterSmallButtonWidth = 58f;
         private const float PickupFilterGunClassButtonWidth = 82f;
         private const float PickupRowHeight = 48f;
+        private const float LoadoutPresetRowHeight = 48f;
+        private const float LoadoutPresetPreviewRowHeight = 24f;
+        private const int LoadoutPresetColumnCount = 2;
         private const float LoadoutRuleRowHeight = 60f;
         private const float PickupIconSize = 32f;
         private const float PickupGrantButtonWidth = 72f;
@@ -230,12 +234,14 @@ namespace RandomLoadout
         {
             new ControllerFocusEntry("settings.back", 0, 0),
             new ControllerFocusEntry("settings.toggle_key", 1, 0),
-            new ControllerFocusEntry("settings.controller_help", 2, 0),
-            new ControllerFocusEntry("settings.keyboard_help", 3, 0),
-            new ControllerFocusEntry("settings.advanced_tools", 4, 0),
-            new ControllerFocusEntry("settings.ui_scale", 5, 0),
-            new ControllerFocusEntry("settings.language", 6, 0),
-            new ControllerFocusEntry("settings.experimental_mode", 7, 0),
+            new ControllerFocusEntry("settings.keyboard_help", 2, 0),
+            new ControllerFocusEntry("settings.controller_shortcut", 3, 0),
+            new ControllerFocusEntry("settings.controller_shortcut_enabled", 4, 0),
+            new ControllerFocusEntry("settings.controller_help", 5, 0),
+            new ControllerFocusEntry("settings.ui_scale", 6, 0),
+            new ControllerFocusEntry("settings.language", 7, 0),
+            new ControllerFocusEntry("settings.advanced_tools", 8, 0),
+            new ControllerFocusEntry("settings.experimental_mode", 9, 0),
         };
 
         private static readonly ControllerFocusEntry[] PickupInfoConfigPageFocusEntries =
@@ -276,6 +282,7 @@ namespace RandomLoadout
         private readonly InvincibilityToggleService _invincibilityToggleService;
         private readonly AmmoModeToggleService _ammoModeToggleService;
         private readonly LoadoutRuleEditorService _loadoutRuleEditorService;
+        private readonly LoadoutPresetRandomService _loadoutPresetRandomService;
         private readonly Func<EtgPickupCatalogEntry[]> _pickupCatalogProvider;
         private readonly Func<PickupAliasRegistry> _aliasRegistryProvider;
         private readonly Func<string> _languageProvider;
@@ -284,8 +291,14 @@ namespace RandomLoadout
         private readonly Func<KeyCode> _toggleKeyProvider;
         private readonly Func<string> _toggleKeyNameProvider;
         private readonly Action<string> _toggleKeySetter;
+        private readonly Func<string> _controllerShortcutProvider;
+        private readonly Action<string> _controllerShortcutSetter;
+        private readonly Func<bool> _controllerShortcutEnabledProvider;
+        private readonly Action<bool> _controllerShortcutEnabledSetter;
         private readonly Func<string> _uiScalePresetProvider;
         private readonly Action<string> _uiScalePresetSetter;
+        private readonly Func<bool> _startItemsPresetIconsEnabledProvider;
+        private readonly Action<bool> _startItemsPresetIconsEnabledSetter;
         private readonly Func<bool> _playerStatsPanelShownProvider;
         private readonly Action<bool> _playerStatsPanelShownSetter;
         private readonly Func<bool> _pickupInfoOverlayEnabledProvider;
@@ -321,14 +334,17 @@ namespace RandomLoadout
         private GUIStyle _textFieldStyle;
         private GUIStyle _buttonStyle;
         private GUIStyle _enabledButtonStyle;
+        private GUIStyle _disabledToggleButtonStyle;
         private GUIStyle _statusStyle;
         private GUIStyle _statusSuccessStyle;
         private GUIStyle _statusErrorStyle;
         private GUIStyle _pickupRowStyle;
+        private GUIStyle _activePresetRowStyle;
         private GUIStyle _pickupRowButtonStyle;
         private GUIStyle _pickupPrimaryTextStyle;
         private GUIStyle _pickupSecondaryTextStyle;
         private GUIStyle _pickupSecondaryActiveTextStyle;
+        private GUIStyle _activePresetAccentTextStyle;
         private GUIStyle _pickupFilterButtonStyle;
         private GUIStyle _pickupFilterActiveButtonStyle;
         private GUIStyle _pickupFilterDisabledButtonStyle;
@@ -419,7 +435,15 @@ namespace RandomLoadout
         private bool _wasControllerHorizontalNavigationActive;
         private bool _wasControllerVerticalNavigationActive;
         private PlayerController _panelInputOverridePlayer;
+        private PlayerController _lastHealthDiagnosticPlayer;
+        private float _lastHealthDiagnosticCurrentHealth = float.NaN;
+        private float _lastHealthDiagnosticMaxHealth = float.NaN;
+        private float _lastHealthDiagnosticArmor = float.NaN;
+        private int _lastHealthDiagnosticGunId = -1;
+        private string _lastHealthDiagnosticGunName = string.Empty;
         private readonly bool[] _wasJoystickButtonPressed = new bool[20];
+        private float _controllerShortcutR3PressedAt = -1f;
+        private bool _controllerShortcutHoldTriggered;
         private readonly Dictionary<int, PickupIconData> _pickupIconCache = new Dictionary<int, PickupIconData>();
         private dfAtlas _gameUiAtlas;
         private bool _hasResolvedGameUiAtlas;
@@ -431,6 +455,7 @@ namespace RandomLoadout
             "Insert",
             "BackQuote",
         };
+        private static readonly string[] ControllerShortcutOptions = { "LB+R3", "LB+X", "LB+Y", "R3" };
         private sealed class TeleportOption
         {
             public TeleportOption(string commandToken, string labelKey, string commandText)

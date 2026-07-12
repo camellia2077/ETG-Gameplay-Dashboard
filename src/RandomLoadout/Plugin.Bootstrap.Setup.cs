@@ -30,12 +30,28 @@ namespace RandomLoadout
                 "F7",
                 "Command panel keyboard toggle key. Use a Unity KeyCode name such as F7, F8, Insert, or BackQuote.");
             _commandPanelKeyConfig.Value = NormalizeCommandPanelKeyName(_commandPanelKeyConfig.Value);
+            _commandPanelControllerShortcutConfig = Config.Bind(
+                "UI",
+                "CommandPanelControllerShortcut",
+                "LB+R3",
+                "Controller shortcut for opening the command panel. Supported values: LB+R3, LB+X, LB+Y, or R3.");
+            _commandPanelControllerShortcutConfig.Value = NormalizeCommandPanelControllerShortcut(_commandPanelControllerShortcutConfig.Value);
+            _disableCommandPanelControllerShortcutConfig = Config.Bind(
+                "UI",
+                "DisableCommandPanelControllerShortcut",
+                false,
+                "Disable the controller shortcut for opening or closing the command panel. The keyboard shortcut remains available.");
             _uiScalePresetConfig = Config.Bind(
                 "UI",
                 "PanelScalePreset",
                 UiScalePresetCatalog.DefaultPreset,
                 "Command panel UI size preset. Use x-small, small, medium-small, medium, medium-large, large, x-large, or xx-large.");
             _uiScalePresetConfig.Value = NormalizeUiScalePreset(_uiScalePresetConfig.Value);
+            _showStartItemsPresetIconsConfig = Config.Bind(
+                "UI",
+                "ShowStartItemsPresetIcons",
+                true,
+                "Show item icons in the Start Items preset list preview.");
             _showPlayerStatsPanelConfig = Config.Bind(
                 "UI",
                 "ShowPlayerStatsPanel",
@@ -277,6 +293,7 @@ namespace RandomLoadout
                 GetActiveStartItemsPreset,
                 SetActiveStartItemsPreset,
                 _ownedPickupReader);
+            _loadoutPresetRandomService = new LoadoutPresetRandomService(loadoutRuleEditorService);
 
             _commandController = new InGameCommandController(
                 grantCommandService,
@@ -294,6 +311,7 @@ namespace RandomLoadout
                 _ammoModeToggleService,
                 _ammonomiconFastOpenToggleService,
                 loadoutRuleEditorService,
+                _loadoutPresetRandomService,
                 _pickupResolver.GetGrantablePickupCatalog,
                 GetAliasRegistry,
                 GetUiLanguage,
@@ -302,8 +320,14 @@ namespace RandomLoadout
                 GetCommandPanelKey,
                 GetCommandPanelKeyName,
                 SetCommandPanelKey,
+                GetCommandPanelControllerShortcut,
+                SetCommandPanelControllerShortcut,
+                IsCommandPanelControllerShortcutEnabled,
+                SetCommandPanelControllerShortcutEnabled,
                 GetUiScalePreset,
                 SetUiScalePreset,
+                IsStartItemsPresetIconsEnabled,
+                SetStartItemsPresetIconsEnabled,
                 IsPlayerStatsPanelShown,
                 SetPlayerStatsPanelShown,
                 IsPickupInfoOverlayEnabled,
@@ -344,7 +368,8 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Init("Automatic random loadout is " + (_enableRandomLoadoutConfig.Value ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel language preference is " + GetUiLanguage() + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel keyboard toggle key is " + GetCommandPanelKey() + "."));
-            Logger.LogInfo(RandomLoadoutLog.Init("Command panel gamepad open input is 360 controller R3 short press."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Command panel gamepad open input is 360 controller " + GetCommandPanelControllerShortcut() + " press."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Command panel gamepad shortcut is " + (IsCommandPanelControllerShortcutEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel UI size preset is " + GetUiScalePreset() + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Player stats side panel is " + (IsPlayerStatsPanelShown() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Pickup info overlay is " + (IsPickupInfoOverlayEnabled() ? "enabled" : "disabled") + "."));

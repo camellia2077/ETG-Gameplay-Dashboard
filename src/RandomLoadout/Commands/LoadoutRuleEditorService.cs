@@ -87,6 +87,28 @@ namespace RandomLoadout
                 " [RuleFile=" + GetRuleFilePath() + "; RemovedIndex=" + index + "; RemovedRule=" + removedRule + "; RuleCount=" + rules.Count + "]");
         }
 
+        public GrantCommandExecutionResult ToggleRuleEnabled(int index)
+        {
+            LoadoutRuleFileModel model = LoadEditableModel();
+            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
+            if (index < 0 || index >= rules.Count || rules[index] == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.loadout_editor.rule_missing");
+            }
+
+            LoadoutRuleFileRuleModel rule = rules[index];
+            rule.Enabled = !rule.Enabled;
+            activePreset.Rules = rules.ToArray();
+            SaveEditableModel(model);
+            InvalidateResolvedConfig();
+
+            string statusKey = rule.Enabled
+                ? "result.loadout_editor.rule_enabled"
+                : "result.loadout_editor.rule_disabled";
+            return GrantCommandExecutionResult.Localized(true, statusKey);
+        }
+
         public GrantCommandExecutionResult AddRandomPoolRule()
         {
             LoadoutRuleFileModel model = LoadEditableModel();

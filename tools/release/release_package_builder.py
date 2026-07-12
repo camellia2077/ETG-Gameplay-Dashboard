@@ -16,7 +16,7 @@ from release_package_upstream import (
     extract_upstream_content,
     sha256_for_file,
 )
-from tool_common import get_default_sync_specs, get_plugin_output_path, read_repo_version, run_process, sync_generated_version_files, get_runtime_dependency_specs, get_local_dependency_path
+from tool_common import get_default_preset_paths, get_default_sync_specs, get_plugin_output_path, read_repo_version, run_process, sync_generated_version_files, get_runtime_dependency_specs, get_local_dependency_path
 
 
 FORBIDDEN_GAME_DLLS = {
@@ -211,7 +211,7 @@ def ensure_no_game_owned_dlls(staging_root: Path) -> None:
             raise OSError("Forbidden game-owned DLL found in release package staging area: {0}".format(path))
 
 
-def ensure_required_package_files_for_type(staging_root: Path, package_type: str) -> None:
+def ensure_required_package_files_for_type(staging_root: Path, package_type: str, repo_root: Path) -> None:
     required_paths = (
         staging_root / "BepInEx" / "plugins" / "RandomLoadout.dll",
         staging_root / "BepInEx" / "config" / "randomgun.randomloadout.cfg",
@@ -219,11 +219,12 @@ def ensure_required_package_files_for_type(staging_root: Path, package_type: str
         staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.localization.zh-CN.json5",
         staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.aliases.json5",
         staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.rules.json5",
-        staging_root / "BepInEx" / "config" / "presets" / "preset.default.json",
-        staging_root / "BepInEx" / "config" / "presets" / "preset.casey_synergies.json",
         staging_root / "THIRD_PARTY_NOTICES.md",
         staging_root / "README-INSTALL.txt",
         staging_root / "licenses" / "RandomLoadout-LICENSE.txt",
+    ) + tuple(
+        staging_root / "BepInEx" / "config" / "presets" / preset_path.name
+        for preset_path in get_default_preset_paths(repo_root)
     )
 
     extra_full_paths = (
@@ -345,7 +346,7 @@ def build_release_package(
         write_install_readme(version_tag, package_type, staging_root)
         write_third_party_notices(version_tag, metadata if include_runtime_dependencies else None, staged_components, repo_root, staging_root, package_type)
         ensure_no_game_owned_dlls(staging_root)
-        ensure_required_package_files_for_type(staging_root, package_type)
+        ensure_required_package_files_for_type(staging_root, package_type, repo_root)
 
         suffix = "standalone" if package_type == "standalone" else "mod-manager"
         output_path = repo_root / DIST_DIRECTORY / "ETG-Gameplay-Dashboard-{0}-{1}.zip".format(version_tag, suffix)

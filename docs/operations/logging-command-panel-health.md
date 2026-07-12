@@ -27,6 +27,7 @@ When enabled, the plugin emits detailed command-panel health diagnostics for:
 - max-health rollback detection
 - rollback restoration
 - focus-move snapshots that include current health, max health, armor, and blanks
+- per-frame state-change snapshots that correlate health/armor changes with current-gun instance changes, panel page, and focus
 
 Typical useful lines include:
 
@@ -39,8 +40,10 @@ Typical useful lines include:
 - `Observed tracked health changed callback`
 - `Detected unexpected max-health rollback`
 - `Restored tracked health override`
+- `Preserved tracked max health during gun change`
 - `Command page controller navigation moved focus`
 - `Currency page controller navigation moved focus`
+- `Observed player health state change`
 
 ## What Still Logs When Disabled
 
@@ -73,6 +76,7 @@ The command panel now applies a temporary input override while it is open to sto
    - whether a gun change happened near the same time as the replayed animation
    - whether `Detected unexpected max-health rollback` appeared
    - whether the rollback was immediately followed by `Restored tracked health override`
+   - whether `Observed player health state change` shows `GunChanged=true` together with a health, max-health, or armor change
 
 ## Interpreting Common Patterns
 

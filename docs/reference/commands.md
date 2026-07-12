@@ -16,7 +16,9 @@ Before changing command UI, pickup grant behavior, Boss Rush entry flow, or char
 ### Command Panel
 
 - Press the configured command-panel key to open or close the command panel. The default is `F7`; change `[UI] CommandPanelKey` in `randomgun.randomloadout.cfg` to another Unity `KeyCode` name such as `F8`, `Insert`, or `BackQuote`.
-- The panel also supports opening from a 360 controller by pressing `R3`.
+- The panel also supports opening from a configurable 360 controller shortcut. The default is `LB+R3`; `LB+X`, `LB+Y`, and `R3 (open 0.5s / close press)` are
+  available from `Settings`.
+- `Settings -> Controller` can disable the controller shortcut without disabling the keyboard command-panel key; it is enabled by default.
 - The panel is positioned near the bottom center of the screen to avoid the top-left HUD.
 - The UI uses a darker ETG-friendly color scheme with clearer text sizing.
 - The command page can show a separate side stats panel with current player vitals and combat stats from `HealthHaver` and `PlayerStats`.
@@ -24,8 +26,9 @@ Before changing command UI, pickup grant behavior, Boss Rush entry flow, or char
 
 ### Current Gamepad Support
 
-- Opening the command panel is supported from 360 controller `R3` short press.
-- The `Settings` page no longer exposes a gamepad-open binding selector.
+- Opening the command panel is supported from the configured 360 controller shortcut. Combination shortcuts trigger on the
+  `R3` press while the modifier is held; standalone R3 opens after a 0.5-second hold and closes on press.
+- The `Settings` page exposes the controller shortcut selector with `LB+R3`, `LB+X`, `LB+Y`, and `R3 (open 0.5s / close press)`.
 - Basic gamepad navigation currently exists only on the `Command` and `Settings` pages.
 - On those two pages, the current intended control scheme is:
   - d-pad style horizontal/vertical input moves focus

@@ -53,7 +53,7 @@ namespace RandomLoadout
                 LoadoutRuleFileRuleModel[] legacyRules = model.Rules ?? new LoadoutRuleFileRuleModel[0];
                 return new[]
                 {
-                    BuildPresetEntry(
+                    LoadoutPresetEditorEntryBuilder.Build(
                         StartItemsPresetNames.CreateBuiltInPreset(StartItemsPresetNames.DefaultPresetId, legacyRules),
                         activePresetId),
                 };
@@ -65,7 +65,7 @@ namespace RandomLoadout
                 LoadoutRuleFilePresetModel preset = model.Presets[i];
                 if (preset != null)
                 {
-                    entries.Add(BuildPresetEntry(preset, activePresetId));
+                    entries.Add(LoadoutPresetEditorEntryBuilder.Build(preset, activePresetId));
                 }
             }
 
@@ -73,7 +73,7 @@ namespace RandomLoadout
                 ? entries.ToArray()
                 : new[]
                 {
-                    BuildPresetEntry(
+                    LoadoutPresetEditorEntryBuilder.Build(
                         StartItemsPresetNames.CreateBuiltInPreset(StartItemsPresetNames.DefaultPresetId, new LoadoutRuleFileRuleModel[0]),
                         activePresetId),
                 };
@@ -273,43 +273,6 @@ namespace RandomLoadout
             }
 
             InvalidateResolvedConfig();
-        }
-
-        private static LoadoutPresetEditorEntry BuildPresetEntry(LoadoutRuleFilePresetModel preset, string activePresetId)
-        {
-            LoadoutRuleFileRuleModel[] safeRules = preset != null && preset.Rules != null
-                ? preset.Rules
-                : new LoadoutRuleFileRuleModel[0];
-            int specificCount = 0;
-            int randomCount = 0;
-            int pickupCount = StartItemPickupCatalog.MergePickups(preset != null ? preset.Pickups : null).Length;
-            for (int i = 0; i < safeRules.Length; i++)
-            {
-                LoadoutRuleFileRuleModel rule = safeRules[i];
-                if (rule == null)
-                {
-                    continue;
-                }
-
-                if (string.Equals(rule.Mode, "specific", StringComparison.OrdinalIgnoreCase))
-                {
-                    specificCount++;
-                }
-                else if (string.Equals(rule.Mode, "random", StringComparison.OrdinalIgnoreCase))
-                {
-                    randomCount++;
-                }
-            }
-
-            string presetId = StartItemsPresetNames.NormalizePresetId(preset != null ? preset.Id : string.Empty);
-            return new LoadoutPresetEditorEntry(
-                presetId,
-                StartItemsPresetNames.GetDisplayName(preset),
-                string.Equals(presetId, activePresetId, StringComparison.OrdinalIgnoreCase),
-                safeRules.Length,
-                specificCount,
-                randomCount,
-                pickupCount);
         }
 
         private static int FindPresetIndex(List<LoadoutRuleFilePresetModel> presets, string presetId)

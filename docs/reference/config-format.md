@@ -273,6 +273,8 @@ The command panel language and keyboard toggle key are stored in `randomgun.rand
 [UI]
 Language = auto
 CommandPanelKey = F7
+CommandPanelControllerShortcut = LB+R3
+DisableCommandPanelControllerShortcut = false
 ```
 
 Supported language values:
@@ -287,8 +289,12 @@ files, while pickup names still come from the runtime pickup catalog. See
 
 Use a Unity `KeyCode` name such as `F7`, `F8`, `Insert`, or `BackQuote`. Invalid values fall back to `F7`.
 
-The gamepad open input is fixed to 360 controller `R3` short press (`JoystickButton9`). The command panel no longer exposes a
-configurable gamepad-open button.
+`UI.CommandPanelControllerShortcut` controls the controller shortcut used to open the panel. Supported values are `LB+R3`,
+`LB+X`, `LB+Y`, and `R3`; the default is `LB+R3`. `LB+R3`, `LB+X`, and `LB+Y` trigger when the second button is pressed
+while LB is held. `R3` opens after holding R3 for 0.5 seconds and closes immediately when R3 is pressed.
+
+`UI.DisableCommandPanelControllerShortcut` disables the controller shortcut when set to `true`, while leaving the keyboard
+command-panel key available. The default is `false`.
 
 ## Example: Aliases
 
@@ -306,6 +312,7 @@ configurable gamepad-open button.
 - Missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `RandomLoadout.rules.full-pool.json5`, then to built-in defaults.
 - `UI.Language` accepts `auto`, `en`, or `zh-CN`.
 - `UI.CommandPanelKey` chooses the key that opens and closes the in-game command panel.
-- The in-game command panel opens from 360 controller `R3` short press and is not configurable.
+- The in-game command panel opens from the configured 360 controller shortcut (`LB+R3` by default). The standalone R3 mode
+  requires a 0.5-second hold to open and closes immediately on the next R3 press.
 - `StartItems.ActivePreset` stores the active preset id, not the localized display text.
 - Missing or invalid `ETG-Gameplay-Dashboard.aliases.json5` falls back to built-in default aliases.

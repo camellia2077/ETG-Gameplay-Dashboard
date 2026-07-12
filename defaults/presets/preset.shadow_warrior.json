@@ -1,0 +1,30 @@
+{
+  "id": "shadow_warrior",
+  "display_name_key": "preset.shadow_warrior",
+  "rules": [
+    {
+      "enabled": true,
+      "mode": "specific",
+      "category": "gun",
+      "id": 16
+    },
+    {
+      "enabled": true,
+      "mode": "specific",
+      "category": "gun",
+      "id": 329
+    },
+    {
+      "enabled": true,
+      "mode": "specific",
+      "category": "gun",
+      "id": 358
+    },
+    {
+      "enabled": true,
+      "mode": "specific",
+      "category": "active",
+      "id": 105
+    }
+  ]
+}

@@ -40,7 +40,7 @@ namespace RandomLoadout
             float left = panelRect.x + 14f;
             float rowWidth = panelRect.width - 28f;
             float rowTop = panelRect.y + 78f;
-            DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.panel"));
+            DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.keyboard"));
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 28f, rowWidth, 34f),
                 "settings.toggle_key",
@@ -49,27 +49,34 @@ namespace RandomLoadout
                 delegate { ExecuteCycleCommandPanelKey(logger); });
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 68f, rowWidth, 34f),
-                "settings.controller_help",
-                GuiText.Get("gui.settings.setting.controller_help"),
-                GuiText.Get("gui.settings.value.controller_help"),
-                GuiText.Get("gui.settings.button.view_details"),
-                delegate { OpenControllerHelpPage(); });
-            DrawSettingsActionRow(
-                new Rect(left, rowTop + 108f, rowWidth, 34f),
                 "settings.keyboard_help",
                 GuiText.Get("gui.settings.setting.keyboard_help"),
                 GuiText.Get("gui.settings.value.keyboard_help"),
                 GuiText.Get("gui.settings.button.view_details"),
                 delegate { OpenKeyboardHelpPage(); });
-            DrawSettingsActionRow(
-                new Rect(left, rowTop + 148f, rowWidth, 34f),
-                "settings.advanced_tools",
-                GuiText.Get("gui.settings.setting.advanced_tools"),
-                GuiText.Get("gui.settings.value.advanced_tools"),
-                GuiText.Get("gui.settings.button.view_details"),
-                delegate { OpenAdvancedToolsPage(); });
 
-            rowTop += 214f;
+            rowTop += 122f;
+            DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.controller"));
+            DrawSettingsActionRow(
+                new Rect(left, rowTop + 28f, rowWidth, 34f),
+                "settings.controller_shortcut",
+                GuiText.Get("gui.settings.setting.controller_shortcut"),
+                GetControllerShortcutDisplayName(),
+                delegate { ExecuteCycleControllerShortcut(logger); });
+            DrawSettingsToggleRow(
+                new Rect(left, rowTop + 68f, rowWidth, 34f),
+                "settings.controller_shortcut_enabled",
+                GuiText.Get("gui.settings.setting.controller_shortcut_enabled"),
+                IsControllerShortcutEnabled(),
+                delegate { ExecuteToggleControllerShortcutEnabled(logger); });
+            DrawSettingsActionRow(
+                new Rect(left, rowTop + 108f, rowWidth, 34f),
+                "settings.controller_help",
+                GuiText.Get("gui.settings.setting.controller_help"),
+                GuiText.Get("gui.settings.value.controller_help"),
+                GuiText.Get("gui.settings.button.view_details"),
+                delegate { OpenControllerHelpPage(); });
+            rowTop += 174f;
             DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.display"));
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 28f, rowWidth, 34f),
@@ -87,33 +94,39 @@ namespace RandomLoadout
             DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.experimental"));
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 28f, rowWidth, 34f),
+                "settings.advanced_tools",
+                GuiText.Get("gui.settings.setting.advanced_tools"),
+                GuiText.Get("gui.settings.value.advanced_tools"),
+                GuiText.Get("gui.settings.button.view_details"),
+                delegate { OpenAdvancedToolsPage(); });
+            DrawSettingsToggleRow(
+                new Rect(left, rowTop + 68f, rowWidth, 34f),
                 "settings.experimental_mode",
                 GuiText.Get("gui.settings.setting.experimental_mode"),
-                GetOnOffStatusLabel(IsExperimentalModeEnabled()),
-                GetExperimentalModeButtonLabel(),
+                IsExperimentalModeEnabled(),
                 delegate { ExecuteExperimentalModeToggle(logger); });
             GUI.Label(
-                new Rect(left, rowTop + 74f, rowWidth, 20f),
+                new Rect(left, rowTop + 114f, rowWidth, 20f),
                 GuiText.Get("gui.settings.version", Plugin.VERSION),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 98f, rowWidth, 20f),
+                new Rect(left, rowTop + 138f, rowWidth, 20f),
                 GuiText.Get("gui.settings.author"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 122f, rowWidth, 20f),
+                new Rect(left, rowTop + 162f, rowWidth, 20f),
                 GuiText.Get("gui.settings.author_github"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 146f, rowWidth, 20f),
+                new Rect(left, rowTop + 186f, rowWidth, 20f),
                 GuiText.Get("gui.settings.repo"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 170f, rowWidth, 20f),
+                new Rect(left, rowTop + 210f, rowWidth, 20f),
                 GuiText.Get("gui.settings.releases"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 194f, rowWidth, 72f),
+                new Rect(left, rowTop + 234f, rowWidth, 72f),
                 GetProjectDisclaimerText(),
                 _settingsInfoTextStyle);
         }
@@ -158,11 +171,23 @@ namespace RandomLoadout
             }
         }
 
-        private string GetExperimentalModeButtonLabel()
+        private void DrawSettingsToggleRow(Rect rowRect, string controlId, string label, bool isEnabled, System.Action onClick)
         {
-            return IsExperimentalModeEnabled()
-                ? GuiText.Get("gui.settings.button.disable")
-                : GuiText.Get("gui.settings.button.enable");
+            const float buttonWidth = 132f;
+            GUI.Label(new Rect(rowRect.x, rowRect.y + 7f, rowRect.width - buttonWidth - ButtonGap, 20f), label, _hintStyle);
+            if (onClick == null)
+            {
+                return;
+            }
+
+            string buttonLabel = isEnabled
+                ? GuiText.Get("gui.settings.button.enable")
+                : GuiText.Get("gui.settings.button.disable");
+            GUIStyle buttonStyle = isEnabled ? _enabledButtonStyle : _buttonStyle;
+            if (GUI.Button(new Rect(rowRect.xMax - buttonWidth, rowRect.y, buttonWidth, rowRect.height), buttonLabel, GetControllerButtonStyle(controlId, buttonStyle)))
+            {
+                onClick();
+            }
         }
 
         private void ExecuteExperimentalModeToggle(ManualLogSource logger)
@@ -276,6 +301,47 @@ namespace RandomLoadout
             return _toggleKeyNameProvider != null ? _toggleKeyNameProvider() : "F7";
         }
 
+        private string GetConfiguredControllerShortcut()
+        {
+            return _controllerShortcutProvider != null ? _controllerShortcutProvider() : "LB+R3";
+        }
+
+        private void ExecuteToggleControllerShortcutEnabled(ManualLogSource logger)
+        {
+            if (_controllerShortcutEnabledSetter == null)
+            {
+                return;
+            }
+
+            bool isEnabled = !IsControllerShortcutEnabled();
+            _controllerShortcutEnabledSetter(isEnabled);
+            string status = GetOnOffStatusLabel(isEnabled);
+            ShowStatus(GuiText.Get("result.controller_shortcut_enabled.changed", status), false);
+            if (logger != null)
+            {
+                logger.LogInfo(
+                    RandomLoadoutLog.Command(
+                        GuiText.GetEnglish("result.controller_shortcut_enabled.changed", isEnabled ? "ON" : "OFF")));
+            }
+        }
+
+        private string GetControllerShortcutDisplayName()
+        {
+            return GetConfiguredControllerShortcut() == "R3" ? "R3 (open 0.5s / close press)" : GetConfiguredControllerShortcut();
+        }
+
+        private void ExecuteCycleControllerShortcut(ManualLogSource logger)
+        {
+            if (_controllerShortcutSetter == null) return;
+            string current = GetConfiguredControllerShortcut();
+            int index = System.Array.IndexOf(ControllerShortcutOptions, current);
+            string next = ControllerShortcutOptions[(index + 1 + ControllerShortcutOptions.Length) % ControllerShortcutOptions.Length];
+            _controllerShortcutSetter(next);
+            string displayName = next == "R3" ? "R3 (open 0.5s / close press)" : next;
+            ShowStatus(GuiText.Get("result.controller_shortcut.changed", displayName), false);
+            if (logger != null) logger.LogInfo(RandomLoadoutLog.Command(GuiText.GetEnglish("result.controller_shortcut.changed", displayName)));
+        }
+
         private void ExecuteCycleUiScalePreset(ManualLogSource logger)
         {
             if (_uiScalePresetSetter == null)
@@ -365,6 +431,12 @@ namespace RandomLoadout
                     return;
                 case "settings.toggle_key":
                     ExecuteCycleCommandPanelKey(null);
+                    return;
+                case "settings.controller_shortcut":
+                    ExecuteCycleControllerShortcut(null);
+                    return;
+                case "settings.controller_shortcut_enabled":
+                    ExecuteToggleControllerShortcutEnabled(null);
                     return;
                 case "settings.controller_help":
                     OpenControllerHelpPage();

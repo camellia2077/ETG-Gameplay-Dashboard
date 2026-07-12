@@ -1,8 +1,7 @@
 {
   // Lightweight Start Items config anchor.
   // On a fresh deploy, the actual default preset content is loaded from:
-  // - presets/preset.default.json
-  // - presets/preset.casey_synergies.json
+  // - every *.json file under presets/
   // Built-in preset names come from localization keys in those preset files,
   // not from a literal "name" field in the preset JSON.
   // User-created presets can still use a plain "name" for their display text.

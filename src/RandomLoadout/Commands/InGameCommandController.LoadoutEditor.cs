@@ -80,6 +80,8 @@ namespace RandomLoadout
             Rect deletePresetButtonRect = new Rect(duplicatePresetButtonRect.xMax + ButtonGap, newPresetButtonRect.y, presetActionButtonWidth, 28f);
             const float fillCurrentPresetButtonWidth = 124f;
             Rect fillCurrentPresetButtonRect = new Rect(deletePresetButtonRect.xMax + ButtonGap, newPresetButtonRect.y, fillCurrentPresetButtonWidth, 28f);
+            const float randomPresetButtonWidth = 124f;
+            Rect randomPresetButtonRect = new Rect(fillCurrentPresetButtonRect.xMax + ButtonGap, newPresetButtonRect.y, randomPresetButtonWidth, 28f);
             if (GUI.Button(newPresetButtonRect, GuiText.Get("gui.loadout_editor.button.new_preset"), GetControllerButtonStyle("loadout.preset_list.new", _buttonStyle)))
             {
                 ExecuteLoadoutEditorCreatePreset(logger);
@@ -100,8 +102,27 @@ namespace RandomLoadout
                 ExecuteLoadoutEditorFillCurrentPreset(player, logger);
             }
 
+            if (GUI.Button(
+                randomPresetButtonRect,
+                GetLoadoutPresetRandomButtonLabel(),
+                GetControllerButtonStyle("loadout.preset_list.random", IsLoadoutPresetRandomEnabled() ? _enabledButtonStyle : _disabledToggleButtonStyle)))
+            {
+                ExecuteToggleLoadoutPresetRandom(logger);
+            }
+
+            Rect iconToggleRowRect = new Rect(panelRect.x + 14f, panelRect.y + 102f, panelRect.width - 28f, 28f);
+            const float iconToggleButtonWidth = 180f;
+            bool areIconsEnabled = IsStartItemsPresetIconsEnabled();
+            if (GUI.Button(
+                new Rect(iconToggleRowRect.xMax - iconToggleButtonWidth, iconToggleRowRect.y, iconToggleButtonWidth, iconToggleRowRect.height),
+                GetStartItemsPresetIconsButtonLabel(areIconsEnabled),
+                GetControllerButtonStyle("loadout.preset_list.icons", areIconsEnabled ? _enabledButtonStyle : _disabledToggleButtonStyle)))
+            {
+                ExecuteToggleStartItemsPresetIcons(logger);
+            }
+
             const float renameButtonWidth = 92f;
-            Rect renameLabelRect = new Rect(panelRect.x + 14f, panelRect.y + 102f, 92f, 28f);
+            Rect renameLabelRect = new Rect(panelRect.x + 14f, panelRect.y + 136f, 92f, 28f);
             Rect renameButtonRect = new Rect(panelRect.x + panelRect.width - renameButtonWidth - 14f, renameLabelRect.y, renameButtonWidth, 28f);
             Rect renameFieldRect = new Rect(renameLabelRect.xMax + ButtonGap, renameLabelRect.y, renameButtonRect.x - renameLabelRect.xMax - (ButtonGap * 2f), 28f);
             GUI.Label(renameLabelRect, GuiText.Get("gui.loadout_editor.rename_label"), _hintStyle);
@@ -111,7 +132,34 @@ namespace RandomLoadout
                 ExecuteLoadoutEditorRenamePreset(logger);
             }
 
-            DrawLoadoutPresetRows(new Rect(panelRect.x + 14f, panelRect.y + 142f, panelRect.width - 28f, panelRect.height - 156f), logger);
+            DrawLoadoutPresetRows(new Rect(panelRect.x + 14f, panelRect.y + 176f, panelRect.width - 28f, panelRect.height - 190f), logger);
+        }
+
+        private bool IsStartItemsPresetIconsEnabled()
+        {
+            return _startItemsPresetIconsEnabledProvider != null && _startItemsPresetIconsEnabledProvider();
+        }
+
+        private string GetStartItemsPresetIconsButtonLabel(bool isEnabled)
+        {
+            return isEnabled
+                ? GuiText.Get("gui.loadout_editor.button.item_icons_on")
+                : GuiText.Get("gui.loadout_editor.button.item_icons_off");
+        }
+
+        private void ExecuteToggleStartItemsPresetIcons(ManualLogSource logger)
+        {
+            if (_startItemsPresetIconsEnabledSetter == null)
+            {
+                return;
+            }
+
+            bool isEnabled = !IsStartItemsPresetIconsEnabled();
+            _startItemsPresetIconsEnabledSetter(isEnabled);
+            if (logger != null)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command("Start Items preset icons " + (isEnabled ? "enabled" : "disabled") + "."));
+            }
         }
 
         private void DrawLoadoutPresetDetailPage(Rect panelRect, PlayerController player, ManualLogSource logger)
@@ -235,11 +283,45 @@ namespace RandomLoadout
                 return;
             }
 
-            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (_cachedLoadoutPresetEntries.Length * PickupRowHeight) + 4f);
-            _loadoutPresetScrollPosition = BeginCommandScrollView(listRect, _loadoutPresetScrollPosition, viewRect);
-            for (int i = 0; i < _cachedLoadoutPresetEntries.Length; i++)
+            float cardWidth = (listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth - ButtonGap) / LoadoutPresetColumnCount;
+            int presetRowCount = (_cachedLoadoutPresetEntries.Length + LoadoutPresetColumnCount - 1) / LoadoutPresetColumnCount;
+            float contentHeight = 4f;
+            for (int rowIndex = 0; rowIndex < presetRowCount; rowIndex++)
             {
-                DrawLoadoutPresetRow(new Rect(0f, 2f + (i * PickupRowHeight), viewRect.width, PickupRowHeight - 4f), _cachedLoadoutPresetEntries[i], logger);
+                int leftIndex = rowIndex * LoadoutPresetColumnCount;
+                int rightIndex = leftIndex + 1;
+                float rowHeight = GetLoadoutPresetRowHeight(_cachedLoadoutPresetEntries[leftIndex]);
+                if (rightIndex < _cachedLoadoutPresetEntries.Length)
+                {
+                    rowHeight = Mathf.Max(rowHeight, GetLoadoutPresetRowHeight(_cachedLoadoutPresetEntries[rightIndex]));
+                }
+
+                contentHeight += rowHeight;
+            }
+
+            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, contentHeight);
+            _loadoutPresetScrollPosition = BeginCommandScrollView(listRect, _loadoutPresetScrollPosition, viewRect);
+            float rowTop = 2f;
+            for (int rowIndex = 0; rowIndex < presetRowCount; rowIndex++)
+            {
+                int leftIndex = rowIndex * LoadoutPresetColumnCount;
+                int rightIndex = leftIndex + 1;
+                float rowHeight = GetLoadoutPresetRowHeight(_cachedLoadoutPresetEntries[leftIndex]);
+                if (rightIndex < _cachedLoadoutPresetEntries.Length)
+                {
+                    rowHeight = Mathf.Max(rowHeight, GetLoadoutPresetRowHeight(_cachedLoadoutPresetEntries[rightIndex]));
+                }
+
+                DrawLoadoutPresetRow(new Rect(0f, rowTop, cardWidth, rowHeight - 4f), _cachedLoadoutPresetEntries[leftIndex], logger);
+                if (rightIndex < _cachedLoadoutPresetEntries.Length)
+                {
+                    DrawLoadoutPresetRow(
+                        new Rect(cardWidth + ButtonGap, rowTop, cardWidth, rowHeight - 4f),
+                        _cachedLoadoutPresetEntries[rightIndex],
+                        logger);
+                }
+
+                rowTop += rowHeight;
             }
 
             GUI.EndScrollView();
@@ -247,12 +329,15 @@ namespace RandomLoadout
 
         private void DrawLoadoutPresetRow(Rect rowRect, LoadoutPresetEditorEntry entry, ManualLogSource logger)
         {
-            GUIStyle rowStyle = entry != null && entry.IsActive ? _pickupFilterActiveButtonStyle : _pickupRowStyle;
+            bool isActive = entry != null && entry.IsActive;
+            GUIStyle rowStyle = isActive ? _activePresetRowStyle : _pickupRowStyle;
             GUI.Box(rowRect, GUIContent.none, rowStyle);
 
             const float selectWidth = 82f;
             const float openWidth = 82f;
-            Rect openButtonRect = new Rect(rowRect.x + rowRect.width - openWidth - 8f, rowRect.y + 8f, openWidth, rowRect.height - 16f);
+            const float presetActionHeight = 32f;
+            const float cardContentPadding = 10f;
+            Rect openButtonRect = new Rect(rowRect.x + rowRect.width - openWidth - cardContentPadding, rowRect.y + cardContentPadding, openWidth, presetActionHeight);
             Rect selectButtonRect = new Rect(openButtonRect.x - ButtonGap - selectWidth, openButtonRect.y, selectWidth, openButtonRect.height);
             Rect rowButtonRect = new Rect(rowRect.x, rowRect.y, selectButtonRect.x - rowRect.x - ButtonGap, rowRect.height);
             if (GUI.Button(rowButtonRect, GUIContent.none, _pickupRowButtonStyle))
@@ -260,19 +345,41 @@ namespace RandomLoadout
                 OpenLoadoutPresetDetail(entry, logger);
             }
 
-            string primaryText = entry != null && entry.IsActive
-                ? GuiText.Get("gui.loadout_editor.preset_active_name", entry.DisplayName)
-                : (entry != null ? entry.DisplayName : string.Empty);
+            string primaryText = entry != null ? entry.DisplayName : string.Empty;
             string secondaryText = entry != null
                 ? GuiText.Get("gui.loadout_editor.preset_summary", entry.RuleCount, entry.SpecificCount, entry.RandomCount, entry.PickupCount)
                 : string.Empty;
             GUIStyle secondaryTextStyle = entry != null && entry.IsActive
                 ? _pickupSecondaryActiveTextStyle
                 : _pickupSecondaryTextStyle;
-            GUI.Label(new Rect(rowRect.x + 10f, rowRect.y + 5f, rowButtonRect.width - 20f, 20f), primaryText, _pickupPrimaryTextStyle);
-            GUI.Label(new Rect(rowRect.x + 10f, rowRect.y + 24f, rowButtonRect.width - 20f, 18f), secondaryText, secondaryTextStyle);
+            float primaryTextLeft = rowRect.x + cardContentPadding;
+            float primaryTextWidth = rowButtonRect.width - (cardContentPadding * 2f);
+            if (isActive)
+            {
+                const float activeIndicatorWidth = 20f;
+                GUI.Label(new Rect(primaryTextLeft, rowRect.y + 7f, activeIndicatorWidth, 20f), "✓", _activePresetAccentTextStyle);
+                primaryTextLeft += activeIndicatorWidth;
+                primaryTextWidth -= activeIndicatorWidth;
+                GUI.Label(new Rect(primaryTextLeft, rowRect.y + 7f, primaryTextWidth, 20f), primaryText, _pickupPrimaryTextStyle);
+                float nameWidth = _pickupPrimaryTextStyle.CalcSize(new GUIContent(primaryText)).x;
+                GUI.Label(
+                    new Rect(primaryTextLeft + nameWidth + 4f, rowRect.y + 7f, primaryTextWidth - nameWidth - 4f, 20f),
+                    GuiText.Get("gui.loadout_editor.preset_active_suffix"),
+                    _activePresetAccentTextStyle);
+            }
+            else
+            {
+                GUI.Label(new Rect(primaryTextLeft, rowRect.y + 7f, primaryTextWidth, 20f), primaryText, _pickupPrimaryTextStyle);
+            }
+            GUI.Label(new Rect(rowRect.x + cardContentPadding, rowRect.y + 26f, rowButtonRect.width - (cardContentPadding * 2f), 18f), secondaryText, secondaryTextStyle);
+            if (IsStartItemsPresetIconsEnabled())
+            {
+                DrawLoadoutPresetPreviewRows(new Rect(rowRect.x + cardContentPadding, rowRect.y + 47f, rowRect.width - (cardContentPadding * 2f), rowRect.height - 50f), entry);
+            }
 
-            if (GUI.Button(selectButtonRect, GuiText.Get("gui.loadout_editor.button.select_preset"), GetControllerButtonStyle(GetLoadoutPresetSelectControlId(entry), _buttonStyle)))
+            GUIStyle selectButtonStyle = IsLoadoutPresetRandomEnabled() ? _pickupFilterDisabledButtonStyle : _buttonStyle;
+            if (GUI.Button(selectButtonRect, GuiText.Get("gui.loadout_editor.button.select_preset"), GetControllerButtonStyle(GetLoadoutPresetSelectControlId(entry), selectButtonStyle)) &&
+                !IsLoadoutPresetRandomEnabled())
             {
                 if (entry != null)
                 {
@@ -283,6 +390,71 @@ namespace RandomLoadout
             if (GUI.Button(openButtonRect, GuiText.Get("gui.loadout_editor.button.open_preset"), GetControllerButtonStyle(GetLoadoutPresetOpenControlId(entry), _buttonStyle)))
             {
                 OpenLoadoutPresetDetail(entry, logger);
+            }
+        }
+
+        private float GetLoadoutPresetRowHeight(LoadoutPresetEditorEntry entry)
+        {
+            if (!IsStartItemsPresetIconsEnabled())
+            {
+                return LoadoutPresetRowHeight;
+            }
+
+            int previewRowCount = entry != null && entry.PreviewRows != null ? entry.PreviewRows.Length : 0;
+            return LoadoutPresetRowHeight + (previewRowCount * LoadoutPresetPreviewRowHeight) + (previewRowCount > 0 ? 4f : 0f);
+        }
+
+        private void DrawLoadoutPresetPreviewRows(Rect previewRect, LoadoutPresetEditorEntry entry)
+        {
+            if (entry == null || entry.PreviewRows == null)
+            {
+                return;
+            }
+
+            for (int rowIndex = 0; rowIndex < entry.PreviewRows.Length; rowIndex++)
+            {
+                LoadoutPresetPreviewRow previewRow = entry.PreviewRows[rowIndex];
+                if (previewRow == null)
+                {
+                    continue;
+                }
+
+                Rect rowRect = new Rect(previewRect.x, previewRect.y + (rowIndex * LoadoutPresetPreviewRowHeight), previewRect.width, LoadoutPresetPreviewRowHeight);
+                const float labelWidth = 92f;
+                GUI.Label(new Rect(rowRect.x, rowRect.y + 2f, labelWidth, 20f), GuiText.Get(previewRow.LabelKey), _pickupSecondaryTextStyle);
+                DrawLoadoutPresetPreviewIcons(
+                    new Rect(rowRect.x + labelWidth + 6f, rowRect.y + 1f, rowRect.width - labelWidth - 6f, 22f),
+                    previewRow.PickupIds);
+            }
+        }
+
+        private void DrawLoadoutPresetPreviewIcons(Rect iconsRect, int[] pickupIds)
+        {
+            if (pickupIds == null)
+            {
+                return;
+            }
+
+            const float iconSize = 22f;
+            const float iconGap = 3f;
+            for (int index = 0; index < pickupIds.Length; index++)
+            {
+                float x = iconsRect.x + (index * (iconSize + iconGap));
+                if (x + iconSize > iconsRect.xMax)
+                {
+                    break;
+                }
+
+                Rect iconRect = new Rect(x, iconsRect.y, iconSize, iconSize);
+                PickupIconData iconData;
+                if (TryGetPickupIcon(pickupIds[index], out iconData))
+                {
+                    GUI.DrawTextureWithTexCoords(iconRect, iconData.Texture, iconData.TextureCoords, true);
+                }
+                else
+                {
+                    GUI.Box(iconRect, "?", _pickupIconFallbackStyle);
+                }
             }
         }
 
@@ -316,15 +488,27 @@ namespace RandomLoadout
             Rect removeButtonRect = new Rect(rowRect.x + rowRect.width - removeWidth - 8f, rowRect.y + 8f, removeWidth, rowRect.height - 16f);
             const float editWidth = 82f;
             Rect editButtonRect = new Rect(removeButtonRect.x - ButtonGap - editWidth, removeButtonRect.y, editWidth, removeButtonRect.height);
+            const float toggleWidth = 82f;
+            bool hasToggleButton = entry != null && !entry.IsPresetPickupCollection && entry.Index >= 0;
+            Rect toggleButtonRect = new Rect(editButtonRect.x - ButtonGap - toggleWidth, removeButtonRect.y, toggleWidth, removeButtonRect.height);
             Rect iconRect = new Rect(rowRect.x + 8f, rowRect.y + ((rowRect.height - PickupIconSize) * 0.5f), PickupIconSize, PickupIconSize);
             DrawLoadoutEditorIcon(iconRect, entry);
 
             float textLeft = iconRect.xMax + 8f;
             bool hasEditButton = entry != null && (entry.IsRandomPool || entry.IsPresetPickupCollection || !string.IsNullOrEmpty(entry.PickupType));
-            float actionWidth = removeWidth + (hasEditButton ? editWidth + ButtonGap : 0f);
+            float actionWidth = removeWidth + (hasEditButton ? editWidth + ButtonGap : 0f) + (hasToggleButton ? toggleWidth + ButtonGap : 0f);
             float textWidth = rowRect.width - actionWidth - PickupIconSize - 44f;
             GUI.Label(new Rect(textLeft, rowRect.y + 8f, textWidth, 22f), entry.PrimaryText, _pickupPrimaryTextStyle);
             GUI.Label(new Rect(textLeft, rowRect.y + 32f, textWidth, 20f), entry.SecondaryText, _pickupSecondaryTextStyle);
+
+            if (hasToggleButton &&
+                GUI.Button(
+                    toggleButtonRect,
+                    entry.IsEnabled ? GuiText.Get("gui.settings.button.enable") : GuiText.Get("gui.settings.button.disable"),
+                    GetControllerButtonStyle(GetLoadoutRuleToggleControlId(entry), entry.IsEnabled ? _enabledButtonStyle : _buttonStyle)))
+            {
+                ExecuteLoadoutEditorToggleRule(entry.Index, logger);
+            }
 
             if (entry != null &&
                 entry.IsRandomPool &&
@@ -432,6 +616,38 @@ namespace RandomLoadout
             _cachedLoadoutPresetEntries = _loadoutRuleEditorService != null
                 ? _loadoutRuleEditorService.GetPresetEntries()
                 : EmptyLoadoutPresetEditorEntries;
+        }
+
+        private bool IsLoadoutPresetRandomEnabled()
+        {
+            return _loadoutPresetRandomService != null && _loadoutPresetRandomService.IsEnabled;
+        }
+
+        private void ExecuteToggleLoadoutPresetRandom(ManualLogSource logger)
+        {
+            if (_loadoutPresetRandomService == null)
+            {
+                return;
+            }
+
+            bool isEnabled = _loadoutPresetRandomService.Toggle(logger);
+            _loadoutEditorFocusedControlId = "loadout.preset_list.random";
+            RefreshLoadoutPresetEntries();
+            RefreshLoadoutEditorEntries();
+            RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
+            _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
+            if (logger != null)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command("Start Items random preset selection " + (isEnabled ? "enabled" : "disabled") + "."));
+            }
+        }
+
+        private string GetLoadoutPresetRandomButtonLabel()
+        {
+            return IsLoadoutPresetRandomEnabled()
+                ? GuiText.Get("gui.loadout_editor.button.random_on")
+                : GuiText.Get("gui.loadout_editor.button.random_off");
         }
 
         private void RefreshLoadoutRandomPoolEntries()
@@ -644,6 +860,23 @@ namespace RandomLoadout
             LogLoadoutEditorResult(result, logger);
         }
 
+        private void ExecuteLoadoutEditorToggleRule(int index, ManualLogSource logger)
+        {
+            if (_loadoutRuleEditorService == null)
+            {
+                ShowStatus(GuiText.Get("result.loadout_editor.unavailable"), true);
+                return;
+            }
+
+            GrantCommandExecutionResult result = _loadoutRuleEditorService.ToggleRuleEnabled(index);
+            RefreshLoadoutPresetEntries();
+            RefreshLoadoutEditorEntries();
+            RefreshLoadoutRandomPoolEntries();
+            RefreshLoadoutPickupEntries();
+            ShowStatus(result.Message, !result.Succeeded);
+            LogLoadoutEditorResult(result, logger);
+        }
+
         private void ExecuteLoadoutEditorCreateRandomPool(ManualLogSource logger)
         {
             if (_loadoutRuleEditorService == null)
@@ -777,6 +1010,10 @@ namespace RandomLoadout
                 for (int index = 0; index < _cachedLoadoutRuleEntries.Length; index++)
                 {
                     dynamicCount++;
+                    if (_cachedLoadoutRuleEntries[index] != null && !_cachedLoadoutRuleEntries[index].IsPresetPickupCollection)
+                    {
+                        dynamicCount++;
+                    }
                     if (DoesLoadoutRuleEntryHaveEditAction(_cachedLoadoutRuleEntries[index]))
                     {
                         dynamicCount++;
@@ -795,12 +1032,19 @@ namespace RandomLoadout
                 {
                     LoadoutRuleEditorEntry entry = _cachedLoadoutRuleEntries[index];
                     int row = 2 + index;
-                    if (DoesLoadoutRuleEntryHaveEditAction(entry))
+                    if (entry != null && !entry.IsPresetPickupCollection)
                     {
-                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutRuleEditControlId(entry), row, 0);
+                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutRuleToggleControlId(entry), row, 0);
                     }
 
-                    entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutRuleRemoveControlId(entry), row, 1);
+                    if (DoesLoadoutRuleEntryHaveEditAction(entry))
+                    {
+                        int editColumn = entry != null && !entry.IsPresetPickupCollection ? 1 : 0;
+                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutRuleEditControlId(entry), row, editColumn);
+                    }
+
+                    int removeColumn = entry != null && !entry.IsPresetPickupCollection ? 2 : 1;
+                    entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutRuleRemoveControlId(entry), row, removeColumn);
                 }
 
                 return entries;
@@ -864,19 +1108,29 @@ namespace RandomLoadout
             }
 
             int presetCount = _cachedLoadoutPresetEntries != null ? _cachedLoadoutPresetEntries.Length : 0;
-            ControllerFocusEntry[] presetListEntries = new ControllerFocusEntry[7 + (presetCount * 2)];
+            bool manualPresetSelectionEnabled = !IsLoadoutPresetRandomEnabled();
+            ControllerFocusEntry[] presetListEntries = new ControllerFocusEntry[9 + (presetCount * (manualPresetSelectionEnabled ? 2 : 1))];
             presetListEntries[0] = new ControllerFocusEntry("loadout.back", 0, 1);
             presetListEntries[1] = new ControllerFocusEntry("loadout.preset_list.reload", 0, 0);
             presetListEntries[2] = new ControllerFocusEntry("loadout.preset_list.new", 1, 0);
             presetListEntries[3] = new ControllerFocusEntry("loadout.preset_list.duplicate", 1, 1);
             presetListEntries[4] = new ControllerFocusEntry("loadout.preset_list.delete", 1, 2);
             presetListEntries[5] = new ControllerFocusEntry("loadout.preset_list.fill", 1, 3);
-            presetListEntries[6] = new ControllerFocusEntry("loadout.preset_list.rename", 2, 0);
+            presetListEntries[6] = new ControllerFocusEntry("loadout.preset_list.random", 1, 4);
+            presetListEntries[7] = new ControllerFocusEntry("loadout.preset_list.rename", 2, 0);
+            presetListEntries[8] = new ControllerFocusEntry("loadout.preset_list.icons", 2, 1);
             for (int index = 0; index < presetCount; index++)
             {
-                int baseIndex = 7 + (index * 2);
-                presetListEntries[baseIndex] = new ControllerFocusEntry(GetLoadoutPresetSelectControlId(_cachedLoadoutPresetEntries[index]), 3 + index, 0);
-                presetListEntries[baseIndex + 1] = new ControllerFocusEntry(GetLoadoutPresetOpenControlId(_cachedLoadoutPresetEntries[index]), 3 + index, 1);
+                int baseIndex = 9 + (index * (manualPresetSelectionEnabled ? 2 : 1));
+                int presetColumn = index % LoadoutPresetColumnCount;
+                int presetRow = 3 + (index / LoadoutPresetColumnCount);
+                int focusColumn = presetColumn * 2;
+                if (manualPresetSelectionEnabled)
+                {
+                    presetListEntries[baseIndex++] = new ControllerFocusEntry(GetLoadoutPresetSelectControlId(_cachedLoadoutPresetEntries[index]), presetRow, focusColumn);
+                }
+
+                presetListEntries[baseIndex] = new ControllerFocusEntry(GetLoadoutPresetOpenControlId(_cachedLoadoutPresetEntries[index]), presetRow, focusColumn + 1);
             }
 
             return presetListEntries;
@@ -1014,8 +1268,14 @@ namespace RandomLoadout
                 case "loadout.preset_detail.fill":
                     ExecuteLoadoutEditorFillCurrentPreset(player, logger);
                     return;
+                case "loadout.preset_list.random":
+                    ExecuteToggleLoadoutPresetRandom(logger);
+                    return;
                 case "loadout.preset_list.rename":
                     ExecuteLoadoutEditorRenamePreset(logger);
+                    return;
+                case "loadout.preset_list.icons":
+                    ExecuteToggleStartItemsPresetIcons(logger);
                     return;
                 case "loadout.preset_detail.add_item":
                     OpenPickupAddToStartItemsPage(logger);
@@ -1055,6 +1315,14 @@ namespace RandomLoadout
             for (int index = 0; index < _cachedLoadoutRuleEntries.Length; index++)
             {
                 LoadoutRuleEditorEntry entry = _cachedLoadoutRuleEntries[index];
+                if (entry != null &&
+                    !entry.IsPresetPickupCollection &&
+                    string.Equals(_loadoutEditorFocusedControlId, GetLoadoutRuleToggleControlId(entry), System.StringComparison.Ordinal))
+                {
+                    ExecuteLoadoutEditorToggleRule(entry.Index, logger);
+                    return;
+                }
+
                 if (DoesLoadoutRuleEntryHaveEditAction(entry) &&
                     string.Equals(_loadoutEditorFocusedControlId, GetLoadoutRuleEditControlId(entry), System.StringComparison.Ordinal))
                 {
@@ -1200,6 +1468,11 @@ namespace RandomLoadout
         private static string GetLoadoutRuleEditControlId(LoadoutRuleEditorEntry entry)
         {
             return "loadout.rule.edit." + GetLoadoutRuleEntryKey(entry);
+        }
+
+        private static string GetLoadoutRuleToggleControlId(LoadoutRuleEditorEntry entry)
+        {
+            return "loadout.rule.toggle." + GetLoadoutRuleEntryKey(entry);
         }
 
         private static string GetLoadoutRuleRemoveControlId(LoadoutRuleEditorEntry entry)

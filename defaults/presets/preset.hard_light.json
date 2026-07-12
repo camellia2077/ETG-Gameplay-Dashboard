@@ -1,0 +1,55 @@
+{
+  "id": "hard_light",
+  "display_name_key": "preset.hard_light",
+  "rules": [
+    {
+      "enabled": true,
+      "mode": "specific",
+      "category": "gun",
+      "id": 27
+    },
+    {
+      "enabled": true,
+      "mode": "specific",
+      "category": "gun",
+      "id": 504
+    },
+    {
+      "enabled": true,
+      "mode": "random",
+      "name": "active",
+      "category": "active",
+      "count": 1,
+      "poolIds": [
+        168,
+        174
+      ]
+    },
+    {
+      "enabled": true,
+      "mode": "random",
+      "name": "子弹",
+      "category": "passive",
+      "count": 1,
+      "poolIds": [
+        241,
+        568,
+        530,
+        288
+      ]
+    },
+    {
+      "enabled": true,
+      "mode": "random",
+      "name": "passive",
+      "category": "passive",
+      "count": 1,
+      "poolIds": [
+        287,
+        352,
+        632,
+        500
+      ]
+    }
+  ]
+}

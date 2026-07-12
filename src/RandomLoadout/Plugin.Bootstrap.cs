@@ -276,6 +276,49 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Command("Command panel keyboard toggle key changed to " + normalized + "."));
         }
 
+        private string GetCommandPanelControllerShortcut()
+        {
+            return NormalizeCommandPanelControllerShortcut(_commandPanelControllerShortcutConfig != null ? _commandPanelControllerShortcutConfig.Value : "LB+R3");
+        }
+
+        private void SetCommandPanelControllerShortcut(string shortcut)
+        {
+            string normalized = NormalizeCommandPanelControllerShortcut(shortcut);
+            if (_commandPanelControllerShortcutConfig != null)
+            {
+                _commandPanelControllerShortcutConfig.Value = normalized;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Command panel controller shortcut changed to " + normalized + "."));
+        }
+
+        private bool IsCommandPanelControllerShortcutEnabled()
+        {
+            return _disableCommandPanelControllerShortcutConfig == null ||
+                !_disableCommandPanelControllerShortcutConfig.Value;
+        }
+
+        private void SetCommandPanelControllerShortcutEnabled(bool isEnabled)
+        {
+            if (_disableCommandPanelControllerShortcutConfig != null)
+            {
+                _disableCommandPanelControllerShortcutConfig.Value = !isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Command panel controller shortcut is " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private static string NormalizeCommandPanelControllerShortcut(string shortcut)
+        {
+            if (string.Equals(shortcut, "LB+R3", System.StringComparison.OrdinalIgnoreCase)) return "LB+R3";
+            if (string.Equals(shortcut, "LB+X", System.StringComparison.OrdinalIgnoreCase)) return "LB+X";
+            if (string.Equals(shortcut, "LB+Y", System.StringComparison.OrdinalIgnoreCase)) return "LB+Y";
+            if (string.Equals(shortcut, "R3", System.StringComparison.OrdinalIgnoreCase)) return "R3";
+            return "LB+R3";
+        }
+
         private string GetUiScalePreset()
         {
             return NormalizeUiScalePreset(_uiScalePresetConfig != null ? _uiScalePresetConfig.Value : UiScalePresetCatalog.DefaultPreset);
@@ -301,6 +344,11 @@ namespace RandomLoadout
         private bool IsPlayerStatsPanelShown()
         {
             return _showPlayerStatsPanelConfig != null && _showPlayerStatsPanelConfig.Value;
+        }
+
+        private bool IsStartItemsPresetIconsEnabled()
+        {
+            return _showStartItemsPresetIconsConfig != null && _showStartItemsPresetIconsConfig.Value;
         }
 
         private bool IsPickupInfoOverlayEnabled()
@@ -347,6 +395,17 @@ namespace RandomLoadout
             }
 
             Logger.LogInfo(RandomLoadoutLog.Command("Player stats side panel " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetStartItemsPresetIconsEnabled(bool isEnabled)
+        {
+            if (_showStartItemsPresetIconsConfig != null)
+            {
+                _showStartItemsPresetIconsConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(RandomLoadoutLog.Command("Start Items preset icons " + (isEnabled ? "enabled" : "disabled") + "."));
         }
 
         private void SetPickupInfoOverlayEnabled(bool isEnabled)

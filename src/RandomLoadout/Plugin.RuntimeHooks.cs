@@ -15,6 +15,7 @@ namespace RandomLoadout
             _runtimeHookRegistry.Register(".ammonomicon_animation", InstallAmmonomiconRuntimeHooks, null);
             _runtimeHookRegistry.Register(".currency_no_consume", InstallCurrencyNoConsumeRuntimeHooks, ClearCurrencyNoConsumeRuntimeHookConfiguration);
             _runtimeHookRegistry.Register(".nearby_pickup_tip", InstallNearbyPickupTipRuntimeHooks, ClearNearbyPickupTipRuntimeHookConfiguration);
+            _runtimeHookRegistry.Register(".player_health_override", InstallPlayerHealthOverrideRuntimeHooks, ClearPlayerHealthOverrideRuntimeHookConfiguration);
         }
 
         private void InstallRuntimeHooks()
@@ -56,6 +57,17 @@ namespace RandomLoadout
         {
             NearbyPickupTipHooks.Configure(_nearbyPickupTipService);
             NearbyPickupTipHooks.Install(harmony, logger);
+        }
+
+        private void InstallPlayerHealthOverrideRuntimeHooks(Harmony harmony, ManualLogSource logger)
+        {
+            PlayerHealthOverrideHooks.Configure(_playerHealthOverrideService);
+            PlayerHealthOverrideHooks.Install(harmony, logger);
+        }
+
+        private static void ClearPlayerHealthOverrideRuntimeHookConfiguration()
+        {
+            PlayerHealthOverrideHooks.ClearConfiguration();
         }
 
         private static void ClearCurrencyNoConsumeRuntimeHookConfiguration()

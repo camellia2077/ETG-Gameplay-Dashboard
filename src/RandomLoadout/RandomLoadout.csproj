@@ -197,6 +197,10 @@
     <Compile Include="Commands\PlayerActiveItemCapacityOverrideService.cs" />
     <Compile Include="Commands\RoomDebugCommandService.cs" />
     <Compile Include="Commands\LoadoutPresetEditorEntry.cs" />
+    <Compile Include="Commands\LoadoutPresetEditorEntryBuilder.cs" />
+    <Compile Include="Commands\LoadoutPresetDeck.cs" />
+    <Compile Include="Commands\LoadoutPresetPreviewRow.cs" />
+    <Compile Include="Commands\LoadoutPresetRandomService.cs" />
     <Compile Include="Commands\LoadoutRandomPoolEditorEntry.cs" />
     <Compile Include="Commands\LoadoutRuleEditorEntry.cs" />
     <Compile Include="Commands\LoadoutRuleEditorService.cs" />
@@ -249,6 +253,7 @@
     <Compile Include="Runtime\LockedAmmoHooks.cs" />
     <Compile Include="Runtime\NearbyPickupTipService.cs" />
     <Compile Include="Runtime\NearbyPickupTipHooks.cs" />
+    <Compile Include="Runtime\PlayerHealthOverrideHooks.cs" />
     <Compile Include="Runtime\PerformanceDiagnostics.cs" />
     <Compile Include="Runtime\RuntimeHookRegistry.cs" />
     <Compile Include="Runtime\BossRushService.cs" />

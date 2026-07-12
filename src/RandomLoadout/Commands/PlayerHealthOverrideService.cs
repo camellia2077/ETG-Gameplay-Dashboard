@@ -2,6 +2,7 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 namespace RandomLoadout
@@ -13,6 +14,12 @@ namespace RandomLoadout
         : PlayerRuntimeOverrideServiceBase<PlayerHealthOverrideService.TrackedHealthOverride>
     {
         private readonly System.Func<bool> _verboseLoggingEnabledProvider;
+        private static readonly FieldInfo MaximumHealthField = typeof(HealthHaver).GetField(
+            "maximumHealth",
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly FieldInfo CurrentHealthField = typeof(HealthHaver).GetField(
+            "currentHealth",
+            BindingFlags.Instance | BindingFlags.NonPublic);
 
         internal sealed class TrackedHealthOverride : PlayerRuntimeOverrideState
         {
@@ -37,6 +44,30 @@ namespace RandomLoadout
             }
 
             base.TrackOverride(player);
+        }
+
+        internal bool TryPreserveMaxHealthDuringGunChange(HealthHaver healthHaver, ref float targetValue, ref float? amountOfHealthToGain)
+        {
+            TrackedHealthOverride trackedOverride;
+            if (!TryGetTrackedOverrideByHealthHaver(healthHaver, out trackedOverride) || trackedOverride == null)
+            {
+                return false;
+            }
+
+            if (targetValue >= trackedOverride.DesiredMaxHealth)
+            {
+                return false;
+            }
+
+            targetValue = trackedOverride.DesiredMaxHealth;
+            amountOfHealthToGain = null;
+            LogVerbose(
+                "Preserved tracked max health during gun change. PlayerId=" +
+                (trackedOverride.Player != null ? trackedOverride.Player.GetInstanceID().ToString() : "<null>") +
+                ", PreservedMaxHealth=" +
+                trackedOverride.DesiredMaxHealth +
+                ".");
+            return true;
         }
 
         protected override bool CanTrack(PlayerController player)
@@ -182,14 +213,32 @@ namespace RandomLoadout
                     source +
                     ". Restoring tracked health override.");
 
-                healthHaver.SetHealthMaximum(trackedOverride.DesiredMaxHealth, null, false);
-                healthHaver.ForceSetCurrentHealth(desiredCurrentHealth);
+                // This is a defensive fallback for runtimes where the earlier gun-change hook did
+                // not intercept the stat recalculation. Write the fields without raising another
+                // OnHealthChanged event, otherwise the HUD can animate a second time while the
+                // service repairs ETG's temporary base-health rollback.
+                bool restoredSilently = TryRestoreHealthFieldsSilently(
+                    healthHaver,
+                    trackedOverride.DesiredMaxHealth,
+                    desiredCurrentHealth);
+                if (!restoredSilently)
+                {
+                    healthHaver.SetHealthMaximum(trackedOverride.DesiredMaxHealth, null, false);
+                    healthHaver.ForceSetCurrentHealth(desiredCurrentHealth);
+                    LogVerboseWarning(
+                        "Silent health restore was unavailable; used event-raising fallback. " +
+                        "PlayerId=" +
+                        trackedOverride.Player.GetInstanceID() +
+                        ".");
+                }
                 trackedOverride.IsRestoring = false;
 
                 currentHealth = healthHaver.GetCurrentHealth();
                 maxHealth = healthHaver.GetMaxHealth();
                 LogVerbose(
-                    "Restored tracked health override. PlayerId=" +
+                    "Restored tracked health override. Silent=" +
+                    restoredSilently +
+                    ", PlayerId=" +
                     trackedOverride.Player.GetInstanceID() +
                     ", CurrentHealth=" +
                     currentHealth +
@@ -206,6 +255,25 @@ namespace RandomLoadout
             if (maxHealth > trackedOverride.DesiredMaxHealth)
             {
                 trackedOverride.DesiredMaxHealth = maxHealth;
+            }
+        }
+
+        private static bool TryRestoreHealthFieldsSilently(HealthHaver healthHaver, float desiredMaxHealth, float desiredCurrentHealth)
+        {
+            if ((object)healthHaver == null || MaximumHealthField == null || CurrentHealthField == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                MaximumHealthField.SetValue(healthHaver, desiredMaxHealth);
+                CurrentHealthField.SetValue(healthHaver, Mathf.Min(desiredCurrentHealth, healthHaver.GetMaxHealth()));
+                return true;
+            }
+            catch (System.Exception)
+            {
+                return false;
             }
         }
 

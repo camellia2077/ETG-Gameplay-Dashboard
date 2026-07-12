@@ -74,6 +74,14 @@ namespace RandomLoadout
             _enabledButtonStyle.hover.background = MakeTexture(1, 1, EnabledButtonHoverColor);
             _enabledButtonStyle.active.background = MakeTexture(1, 1, EnabledButtonActiveColor);
 
+            _disabledToggleButtonStyle = new GUIStyle(_buttonStyle);
+            _disabledToggleButtonStyle.normal.background = MakeTexture(1, 1, ButtonBackgroundColor);
+            _disabledToggleButtonStyle.hover.background = MakeTexture(1, 1, ButtonHoverColor);
+            _disabledToggleButtonStyle.active.background = MakeTexture(1, 1, ButtonActiveColor);
+            _disabledToggleButtonStyle.normal.textColor = PrimaryTextColor;
+            _disabledToggleButtonStyle.hover.textColor = PrimaryTextColor;
+            _disabledToggleButtonStyle.active.textColor = PrimaryTextColor;
+
             _statusStyle = new GUIStyle(GUI.skin.box);
             _statusStyle.normal.textColor = PrimaryTextColor;
             _statusStyle.alignment = TextAnchor.MiddleCenter;
@@ -91,6 +99,13 @@ namespace RandomLoadout
             _pickupRowStyle.normal.background = MakeTexture(1, 1, new Color(0.10f, 0.11f, 0.14f, 0.92f));
             _pickupRowStyle.border = new RectOffset(1, 1, 1, 1);
 
+            _activePresetRowStyle = new GUIStyle(_pickupRowStyle);
+            _activePresetRowStyle.normal.background = MakeBorderedTexture(
+                new Color(0.10f, 0.11f, 0.14f, 1f),
+                PanelBorderColor,
+                2);
+            _activePresetRowStyle.border = new RectOffset(2, 2, 2, 2);
+
             _pickupRowButtonStyle = new GUIStyle(GUI.skin.button);
             _pickupRowButtonStyle.normal.background = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0f));
             _pickupRowButtonStyle.hover.background = MakeTexture(1, 1, new Color(0.18f, 0.16f, 0.11f, 0.30f));
@@ -107,6 +122,9 @@ namespace RandomLoadout
 
             _pickupSecondaryActiveTextStyle = new GUIStyle(_pickupSecondaryTextStyle);
             _pickupSecondaryActiveTextStyle.normal.textColor = Color.white;
+
+            _activePresetAccentTextStyle = new GUIStyle(_pickupPrimaryTextStyle);
+            _activePresetAccentTextStyle.normal.textColor = PanelBorderColor;
 
             _pickupFilterButtonStyle = new GUIStyle(_buttonStyle);
             _pickupFilterButtonStyle.fontSize = 13;
@@ -323,20 +341,30 @@ namespace RandomLoadout
 
         private static Texture2D MakeBorderedTexture(Color fillColor, Color borderColor)
         {
+            return MakeBorderedTexture(fillColor, borderColor, 1);
+        }
+
+        private static Texture2D MakeBorderedTexture(Color fillColor, Color borderColor, int borderThickness)
+        {
             Texture2D texture = new Texture2D(8, 8);
             texture.hideFlags = HideFlags.HideAndDontSave;
 
             Color[] pixels = new Color[64];
+            int thickness = Mathf.Clamp(borderThickness, 1, 3);
             for (int y = 0; y < 8; y++)
             {
                 for (int x = 0; x < 8; x++)
                 {
-                    bool isBorderPixel = x == 0 || x == 7 || y == 0 || y == 7;
+                    bool isBorderPixel = x < thickness || x >= 8 - thickness || y < thickness || y >= 8 - thickness;
                     pixels[(y * 8) + x] = isBorderPixel ? borderColor : fillColor;
                 }
             }
 
             texture.SetPixels(pixels);
+            // Keep the bordered texture crisp when Unity stretches it with nine-slice rendering;
+            // bilinear sampling would blend the border color into the solid fill.
+            texture.filterMode = FilterMode.Point;
+            texture.wrapMode = TextureWrapMode.Clamp;
             texture.Apply();
             return texture;
         }

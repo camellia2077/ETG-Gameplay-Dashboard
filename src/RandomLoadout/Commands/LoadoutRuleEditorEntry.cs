@@ -16,6 +16,11 @@ namespace RandomLoadout
         }
 
         public LoadoutRuleEditorEntry(int index, string primaryText, string secondaryText, int? pickupId, bool isRandomPool, string pickupType, int count, bool isPresetPickupCollection)
+            : this(index, primaryText, secondaryText, pickupId, isRandomPool, pickupType, count, isPresetPickupCollection, true)
+        {
+        }
+
+        public LoadoutRuleEditorEntry(int index, string primaryText, string secondaryText, int? pickupId, bool isRandomPool, string pickupType, int count, bool isPresetPickupCollection, bool isEnabled)
         {
             Index = index;
             PrimaryText = primaryText ?? string.Empty;
@@ -25,6 +30,7 @@ namespace RandomLoadout
             PickupType = pickupType ?? string.Empty;
             Count = count > 0 ? count : 1;
             IsPresetPickupCollection = isPresetPickupCollection;
+            IsEnabled = isEnabled;
         }
 
         public int Index { get; private set; }
@@ -42,5 +48,7 @@ namespace RandomLoadout
         public int Count { get; private set; }
 
         public bool IsPresetPickupCollection { get; private set; }
+
+        public bool IsEnabled { get; private set; }
     }
 }

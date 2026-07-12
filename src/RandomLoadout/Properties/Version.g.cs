@@ -3,14 +3,14 @@
 
 using System.Reflection;
 
-[assembly: AssemblyVersion("0.3.7")]
-[assembly: AssemblyFileVersion("0.3.7")]
-[assembly: AssemblyInformationalVersion("0.3.7")]
+[assembly: AssemblyVersion("0.3.8")]
+[assembly: AssemblyFileVersion("0.3.8")]
+[assembly: AssemblyInformationalVersion("0.3.8")]
 
 namespace RandomLoadout
 {
     internal static class BuildVersionInfo
     {
-        public const string Version = "0.3.7";
+        public const string Version = "0.3.8";
     }
 }

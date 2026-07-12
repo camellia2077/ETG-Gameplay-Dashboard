@@ -50,7 +50,7 @@ namespace RandomLoadout
 
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
-                GuiText.Get("gui.command.hint.toggle", GetConfiguredToggleKeyName()),
+                GuiText.Get("gui.command.hint.toggle", GetConfiguredToggleKeyName(), GetControllerShortcutDisplayName()),
                 _hintStyle);
 
             float categoryTop = panelRect.y + 72f;
@@ -151,6 +151,11 @@ namespace RandomLoadout
             if (normalStyle == _pickupFilterButtonStyle || normalStyle == _pickupFilterDisabledButtonStyle)
             {
                 return _pickupFilterActiveButtonStyle;
+            }
+
+            if (normalStyle == _disabledToggleButtonStyle)
+            {
+                return _disabledToggleButtonStyle;
             }
 
             return _enabledButtonStyle;
