@@ -32,7 +32,11 @@ namespace RandomLoadout
             {
                 LoadoutPresetEditorEntry[] entries = GetPresetEntries();
                 _deck.Reset(GetPresetIds(entries));
-                SelectNextPreset(logger, _lastSelectedPresetId, entries);
+                // On the first toggle _lastSelectedPresetId is empty, so use the
+                // preset currently displayed by the editor as the exclusion.
+                // This also keeps re-enabling Random correct if the active preset
+                // was changed while Random mode was disabled.
+                SelectNextPreset(logger, GetActivePresetId(entries), entries);
             }
 
             return IsEnabled;
@@ -172,6 +176,24 @@ namespace RandomLoadout
             return _editorService != null
                 ? _editorService.GetPresetEntries()
                 : new LoadoutPresetEditorEntry[0];
+        }
+
+        private static string GetActivePresetId(LoadoutPresetEditorEntry[] entries)
+        {
+            if (entries == null)
+            {
+                return string.Empty;
+            }
+
+            for (int index = 0; index < entries.Length; index++)
+            {
+                if (entries[index] != null && entries[index].IsActive)
+                {
+                    return entries[index].Id ?? string.Empty;
+                }
+            }
+
+            return string.Empty;
         }
 
         private static string[] GetPresetIds(LoadoutPresetEditorEntry[] entries)

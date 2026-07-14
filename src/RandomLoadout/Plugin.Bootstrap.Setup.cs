@@ -47,6 +47,12 @@ namespace RandomLoadout
                 UiScalePresetCatalog.DefaultPreset,
                 "Command panel UI size preset. Use x-small, small, medium-small, medium, medium-large, large, x-large, or xx-large.");
             _uiScalePresetConfig.Value = NormalizeUiScalePreset(_uiScalePresetConfig.Value);
+            _themePresetConfig = Config.Bind(
+                "UI",
+                "ThemePreset",
+                DashboardThemeCatalog.DefaultThemeId,
+                "Stable dashboard theme ID. Theme names and colors are defined by the plugin and are not stored in config.");
+            _themePresetConfig.Value = DashboardThemeCatalog.Normalize(_themePresetConfig.Value);
             _showStartItemsPresetIconsConfig = Config.Bind(
                 "UI",
                 "ShowStartItemsPresetIcons",
@@ -132,6 +138,31 @@ namespace RandomLoadout
                 "EnableCommandPanelCursorVerboseLogs",
                 false,
                 "Enable verbose command-panel cursor diagnostics, including cursor visibility changes, active input-device switches, and mouse click attempts while the panel is open. Keep disabled for normal play and enable only when debugging controller-to-mouse handoff issues.");
+            _commandPanelGameplayInputVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableCommandPanelGameplayInputVerboseLogs",
+                false,
+                "Enable sampled command-panel gameplay keyboard diagnostics. Logs WASD key state changes together with panel visibility, player input override state, and PlayerInputState. Keep disabled for normal play and enable only when debugging gameplay movement while the panel is open.");
+            _commandPanelControllerGameplayInputVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableCommandPanelControllerGameplayInputVerboseLogs",
+                false,
+                "Enable sampled command-panel gameplay controller diagnostics. Logs the active controller, D-pad, left stick, right stick, player input override state, and PlayerInputState. Keep disabled for normal play and enable only when debugging controller movement while the panel is open.");
+            _commandPanelCursorRenderVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableCommandPanelCursorRenderVerboseLogs",
+                false,
+                "Enable sampled command-panel cursor render-order diagnostics for ETG GameCursorController.OnGUI and RandomLoadout.OnGUI. Keep disabled for normal play and enable only when debugging cursor layering.");
+            _commandPanelCursorRenderProbeConfig = Config.Bind(
+                "Debug",
+                "EnableCommandPanelCursorRenderProbe",
+                false,
+                "Temporarily draw a white, exact-position copy of the ETG mouse cursor after the Control Panel to verify cursor layering. This does not disable the original cursor and should be disabled after testing.");
+            _enableCommandPanelCursorAbovePanelConfig = Config.Bind(
+                "UI",
+                "EnableCommandPanelCursorAbovePanel",
+                false,
+                "Draw the ETG mouse cursor above the Control Panel while it is open. The original mouse cursor is suppressed only while the panel is visible; controller navigation remains panel-controlled.");
             _activeItemGrantVerboseLogsConfig = Config.Bind(
                 "Debug",
                 "EnableActiveItemGrantVerboseLogs",
@@ -157,6 +188,17 @@ namespace RandomLoadout
                 "ActivePreset",
                 StartItemsPresetNames.DefaultPresetId,
                 "Active start-items preset id from ETG-Gameplay-Dashboard.rules.json5.");
+            _combatCursorColorEnabledConfig = Config.Bind(
+                "Combat",
+                "CursorColorEnabled",
+                false,
+                "Enable the custom combat cursor color, including the cursor above the Control Panel. Disabled by default.");
+            _combatCursorColorPresetConfig = Config.Bind(
+                "Combat",
+                "CursorColorPreset",
+                CombatCursorColorCatalog.DefaultPresetId,
+                "Stable combat cursor color preset ID. Display names and HEX values are defined by the plugin and are not stored in config.");
+            _combatCursorColorPresetConfig.Value = CombatCursorColorCatalog.Normalize(_combatCursorColorPresetConfig.Value);
         }
 
         private void InitializeResolversAndProviders()
@@ -295,6 +337,7 @@ namespace RandomLoadout
                 _ownedPickupReader);
             _loadoutPresetRandomService = new LoadoutPresetRandomService(loadoutRuleEditorService);
 
+            DashboardTheme.Select(GetThemePreset());
             _commandController = new InGameCommandController(
                 grantCommandService,
                 _playerDebugCommandService,
@@ -326,6 +369,8 @@ namespace RandomLoadout
                 SetCommandPanelControllerShortcutEnabled,
                 GetUiScalePreset,
                 SetUiScalePreset,
+                GetThemePreset,
+                SetThemePreset,
                 IsStartItemsPresetIconsEnabled,
                 SetStartItemsPresetIconsEnabled,
                 IsPlayerStatsPanelShown,
@@ -351,6 +396,10 @@ namespace RandomLoadout
                 IsFloorTeleportVerboseLoggingEnabled,
                 IsCommandPanelHealthVerboseLoggingEnabled,
                 IsCommandPanelCursorVerboseLoggingEnabled,
+                IsCommandPanelGameplayInputVerboseLoggingEnabled,
+                IsCommandPanelControllerGameplayInputVerboseLoggingEnabled,
+                GetCombatCursorColor,
+                SetCombatCursorColor,
                 BeginDeferredTeleportFromFoyer);
         }
 

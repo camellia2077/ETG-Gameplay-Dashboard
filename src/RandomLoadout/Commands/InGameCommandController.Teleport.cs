@@ -23,7 +23,7 @@ namespace RandomLoadout
                 panelTop,
                 TeleportPanelWidth,
                 TeleportPanelHeight);
-            GUI.Box(panelRect, GUIContent.none, _panelStyle);
+            GUI.Box(ExpandPanelBorderRect(panelRect), GUIContent.none, _panelStyle);
 
             Rect closeButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             if (GUI.Button(closeButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
@@ -55,7 +55,9 @@ namespace RandomLoadout
         private void DrawTeleportOptionButton(Rect panelRect, ref float rowY, TeleportOption option, int optionIndex, ManualLogSource logger)
         {
             Rect buttonRect = new Rect(panelRect.x + 14f, rowY, panelRect.width - 28f, 28f);
-            GUIStyle buttonStyle = optionIndex == _teleportSelectedIndex ? _enabledButtonStyle : _buttonStyle;
+            GUIStyle buttonStyle = optionIndex == _teleportSelectedIndex
+                ? _commandContentFocusButtonStyle
+                : _commandContentButtonStyle;
             if (GUI.Button(buttonRect, GuiText.Get(option.LabelKey), buttonStyle))
             {
                 _teleportSelectedIndex = optionIndex;

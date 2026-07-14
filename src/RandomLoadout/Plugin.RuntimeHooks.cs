@@ -16,6 +16,7 @@ namespace RandomLoadout
             _runtimeHookRegistry.Register(".currency_no_consume", InstallCurrencyNoConsumeRuntimeHooks, ClearCurrencyNoConsumeRuntimeHookConfiguration);
             _runtimeHookRegistry.Register(".nearby_pickup_tip", InstallNearbyPickupTipRuntimeHooks, ClearNearbyPickupTipRuntimeHookConfiguration);
             _runtimeHookRegistry.Register(".player_health_override", InstallPlayerHealthOverrideRuntimeHooks, ClearPlayerHealthOverrideRuntimeHookConfiguration);
+            _runtimeHookRegistry.Register(".cursor_render_diagnostics", InstallCursorRenderDiagnosticsHooks, ClearCursorRenderDiagnosticsHookConfiguration);
         }
 
         private void InstallRuntimeHooks()
@@ -63,6 +64,22 @@ namespace RandomLoadout
         {
             PlayerHealthOverrideHooks.Configure(_playerHealthOverrideService);
             PlayerHealthOverrideHooks.Install(harmony, logger);
+        }
+
+        private void InstallCursorRenderDiagnosticsHooks(Harmony harmony, ManualLogSource logger)
+        {
+            CommandPanelCursorRenderHooks.Configure(
+                IsCommandPanelCursorRenderVerboseLoggingEnabled,
+                IsCommandPanelCursorRenderProbeEnabled,
+                IsCommandPanelCursorAbovePanelEnabled,
+                GetCombatCursorColorValue,
+                logger);
+            CommandPanelCursorRenderHooks.Install(harmony, logger);
+        }
+
+        private static void ClearCursorRenderDiagnosticsHookConfiguration()
+        {
+            CommandPanelCursorRenderHooks.Configure(null, null, null, null, null);
         }
 
         private static void ClearPlayerHealthOverrideRuntimeHookConfiguration()

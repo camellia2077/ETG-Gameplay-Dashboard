@@ -9,7 +9,7 @@ namespace RandomLoadout
     {
         public const float ViewportScrollbarReserveWidth = 18f;
 
-        private static readonly Color ThumbColor = new Color(0.69f, 0.45f, 0.10f, 0.98f);
+        private static string _themeId = string.Empty;
 
         private static GUIStyle _scrollViewStyle;
         private static GUIStyle _scrollbarBackgroundStyle;
@@ -62,10 +62,12 @@ namespace RandomLoadout
 
         private static void EnsureStyles()
         {
-            if (_scrollViewStyle != null)
+            if (_scrollViewStyle != null && string.Equals(_themeId, DashboardTheme.CurrentId, System.StringComparison.Ordinal))
             {
                 return;
             }
+
+            _themeId = DashboardTheme.CurrentId;
 
             _scrollViewStyle = new GUIStyle(GUI.skin.scrollView);
             _scrollViewStyle.normal.background = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0f));
@@ -73,7 +75,7 @@ namespace RandomLoadout
             _scrollViewStyle.padding = new RectOffset(0, 0, 0, 0);
 
             Texture2D transparentScrollbarTexture = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0f));
-            Texture2D selectedScrollbarTexture = MakeTexture(1, 1, ThumbColor);
+            Texture2D selectedScrollbarTexture = MakeTexture(1, 1, DashboardTheme.ScrollThumb);
 
             _scrollbarBackgroundStyle = new GUIStyle(GUI.skin.verticalScrollbar);
             _scrollbarBackgroundStyle.normal.background = transparentScrollbarTexture;

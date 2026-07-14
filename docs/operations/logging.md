@@ -63,6 +63,10 @@ EnableFloorTeleportVerboseLogs = false
 EnableBossRushVerboseLogs = false
 EnableCommandPanelHealthVerboseLogs = false
 EnableCommandPanelCursorVerboseLogs = false
+EnableCommandPanelGameplayInputVerboseLogs = false
+EnableCommandPanelControllerGameplayInputVerboseLogs = false
+EnableCommandPanelCursorRenderVerboseLogs = false
+EnableCommandPanelCursorRenderProbe = false
 EnableActiveItemGrantVerboseLogs = false
 EnableNearbyPickupVerboseLogs = false
 EnableStartupWindowFocusVerboseLogs = false
@@ -79,6 +83,9 @@ Feature guides:
 - [Boss Rush Logging](./logging-boss-rush.md)
 - [Command-Panel Health Logging](./logging-command-panel-health.md)
 - [Command-Panel Cursor Logging](./logging-command-panel-cursor.md)
+- [Command-Panel Gameplay Input Logging](./logging-command-panel-gameplay-input.md)
+- [Command-Panel Controller Gameplay Input Logging](./logging-command-panel-controller-gameplay-input.md)
+- [Command-Panel Cursor Render Logging](./logging-command-panel-cursor-render.md)
 - [Active-Item Grant Logging](./logging-active-item-grant.md)
 - [Nearby Pickup Logging](./logging-nearby-pickup.md)
 - [Startup Window Focus](./startup-window-focus.md)
@@ -114,6 +121,8 @@ After any hook, scene, Boss Rush, character-select-hub, reward, pause-flow, or c
 - feature-specific warnings from `[RandomLoadout][Command]`
 - command-panel health rollback diagnostics when heart or armor HUD animations replay unexpectedly
 - command-panel cursor diagnostics when controller-to-mouse handoff makes the in-game cursor disappear or flicker
+- command-panel gameplay input diagnostics when WASD movement stops working while the command panel is open
+- command-panel cursor render diagnostics when the ETG cursor appears below the Control Panel
 - active-item grant diagnostics when active items drop near the player instead of entering the active-item bar
 - nearby-pickup diagnostics when the overlay does not appear for dropped loot or shop merchandise
   this now also includes schema-v2 gameplay/terms input-file path and existence diagnostics when nearby-pickup verbose logs are enabled
@@ -160,6 +169,10 @@ python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common
   [./logging-command-panel-health.md](./logging-command-panel-health.md)
 - Command-panel cursor diagnostics:
   [./logging-command-panel-cursor.md](./logging-command-panel-cursor.md)
+- Command-panel gameplay input diagnostics:
+  [./logging-command-panel-gameplay-input.md](./logging-command-panel-gameplay-input.md)
+- Command-panel cursor render diagnostics:
+  [./logging-command-panel-cursor-render.md](./logging-command-panel-cursor-render.md)
 - Active-item grant diagnostics:
   [./logging-active-item-grant.md](./logging-active-item-grant.md)
 - Nearby pickup diagnostics:

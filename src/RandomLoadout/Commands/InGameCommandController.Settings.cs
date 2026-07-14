@@ -37,18 +37,23 @@ namespace RandomLoadout
                 GuiText.Get("gui.settings.subtitle"),
                 _hintStyle);
 
-            float left = panelRect.x + 14f;
-            float rowWidth = panelRect.width - 28f;
+            float contentLeft = panelRect.x + 14f;
+            float contentWidth = panelRect.width - 28f;
+            float columnGap = 18f;
+            float columnWidth = (contentWidth - columnGap) * 0.5f;
+            float left = contentLeft;
+            float right = contentLeft + columnWidth + columnGap;
             float rowTop = panelRect.y + 78f;
-            DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.keyboard"));
+
+            DrawSettingsSectionLabel(left, rowTop, columnWidth, GuiText.Get("gui.settings.section.keyboard"));
             DrawSettingsActionRow(
-                new Rect(left, rowTop + 28f, rowWidth, 34f),
+                new Rect(left, rowTop + 28f, columnWidth, 34f),
                 "settings.toggle_key",
                 GuiText.Get("gui.settings.setting.toggle_key"),
                 GetConfiguredToggleKeyName(),
                 delegate { ExecuteCycleCommandPanelKey(logger); });
             DrawSettingsActionRow(
-                new Rect(left, rowTop + 68f, rowWidth, 34f),
+                new Rect(left, rowTop + 68f, columnWidth, 34f),
                 "settings.keyboard_help",
                 GuiText.Get("gui.settings.setting.keyboard_help"),
                 GuiText.Get("gui.settings.value.keyboard_help"),
@@ -56,77 +61,88 @@ namespace RandomLoadout
                 delegate { OpenKeyboardHelpPage(); });
 
             rowTop += 122f;
-            DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.controller"));
+            DrawSettingsSectionLabel(left, rowTop, columnWidth, GuiText.Get("gui.settings.section.controller"));
             DrawSettingsActionRow(
-                new Rect(left, rowTop + 28f, rowWidth, 34f),
+                new Rect(left, rowTop + 28f, columnWidth, 34f),
                 "settings.controller_shortcut",
                 GuiText.Get("gui.settings.setting.controller_shortcut"),
                 GetControllerShortcutDisplayName(),
                 delegate { ExecuteCycleControllerShortcut(logger); });
             DrawSettingsToggleRow(
-                new Rect(left, rowTop + 68f, rowWidth, 34f),
+                new Rect(left, rowTop + 68f, columnWidth, 34f),
                 "settings.controller_shortcut_enabled",
                 GuiText.Get("gui.settings.setting.controller_shortcut_enabled"),
                 IsControllerShortcutEnabled(),
                 delegate { ExecuteToggleControllerShortcutEnabled(logger); });
             DrawSettingsActionRow(
-                new Rect(left, rowTop + 108f, rowWidth, 34f),
+                new Rect(left, rowTop + 108f, columnWidth, 34f),
                 "settings.controller_help",
                 GuiText.Get("gui.settings.setting.controller_help"),
                 GuiText.Get("gui.settings.value.controller_help"),
                 GuiText.Get("gui.settings.button.view_details"),
                 delegate { OpenControllerHelpPage(); });
-            rowTop += 174f;
-            DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.display"));
             DrawSettingsActionRow(
-                new Rect(left, rowTop + 28f, rowWidth, 34f),
+                new Rect(left, rowTop + 148f, columnWidth, 34f),
+                "settings.about",
+                GuiText.Get("gui.command.button.about"),
+                GuiText.Get("gui.about.subtitle"),
+                GuiText.Get("gui.settings.button.view_details"),
+                delegate { OpenAboutPage(); });
+            rowTop = panelRect.y + 78f;
+            DrawSettingsSectionLabel(right, rowTop, columnWidth, GuiText.Get("gui.settings.section.display"));
+            DrawSettingsActionRow(
+                new Rect(right, rowTop + 28f, columnWidth, 34f),
                 "settings.ui_scale",
                 GetLocalizedFallback("gui.settings.setting.ui_scale", "UI Size", "界面大小"),
                 GetUiScalePresetDisplayName(GetConfiguredUiScalePreset()),
                 delegate { ExecuteCycleUiScalePreset(logger); });
             DrawSettingsActionRow(
-                new Rect(left, rowTop + 68f, rowWidth, 34f),
+                new Rect(right, rowTop + 68f, columnWidth, 34f),
                 "settings.language",
                 GuiText.Get("gui.settings.setting.language"),
                 GetLanguageDisplayName(GetConfiguredLanguage()),
                 delegate { ExecuteToggleLanguage(logger); });
-            rowTop += 134f;
-            DrawSettingsSectionLabel(left, rowTop, rowWidth, GuiText.Get("gui.settings.section.experimental"));
+            rowTop += 128f;
+            DrawSettingsSectionLabel(right, rowTop, columnWidth, GuiText.Get("gui.settings.section.experimental"));
             DrawSettingsActionRow(
-                new Rect(left, rowTop + 28f, rowWidth, 34f),
+                new Rect(right, rowTop + 28f, columnWidth, 34f),
                 "settings.advanced_tools",
                 GuiText.Get("gui.settings.setting.advanced_tools"),
                 GuiText.Get("gui.settings.value.advanced_tools"),
                 GuiText.Get("gui.settings.button.view_details"),
                 delegate { OpenAdvancedToolsPage(); });
             DrawSettingsToggleRow(
-                new Rect(left, rowTop + 68f, rowWidth, 34f),
+                new Rect(right, rowTop + 68f, columnWidth, 34f),
                 "settings.experimental_mode",
                 GuiText.Get("gui.settings.setting.experimental_mode"),
                 IsExperimentalModeEnabled(),
                 delegate { ExecuteExperimentalModeToggle(logger); });
             GUI.Label(
-                new Rect(left, rowTop + 114f, rowWidth, 20f),
+                new Rect(right, rowTop + 108f, columnWidth, 24f),
                 GuiText.Get("gui.settings.version", Plugin.VERSION),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 138f, rowWidth, 20f),
+                new Rect(right, rowTop + 136f, columnWidth, 24f),
                 GuiText.Get("gui.settings.author"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 162f, rowWidth, 20f),
+                new Rect(right, rowTop + 164f, columnWidth, 24f),
                 GuiText.Get("gui.settings.author_github"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 186f, rowWidth, 20f),
+                new Rect(right, rowTop + 192f, columnWidth, 24f),
                 GuiText.Get("gui.settings.repo"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 210f, rowWidth, 20f),
+                new Rect(right, rowTop + 220f, columnWidth, 24f),
                 GuiText.Get("gui.settings.releases"),
                 _settingsInfoTextStyle);
             GUI.Label(
-                new Rect(left, rowTop + 234f, rowWidth, 72f),
+                new Rect(right, rowTop + 244f, columnWidth, 24f),
+                "https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases",
+                _settingsInfoTextStyle);
+            GUI.Label(
+                new Rect(right, rowTop + 272f, columnWidth, 72f),
                 GetProjectDisclaimerText(),
                 _settingsInfoTextStyle);
         }
@@ -141,7 +157,7 @@ namespace RandomLoadout
 
         private void DrawSettingsSectionLabel(float left, float top, float width, string text)
         {
-            GUI.Label(new Rect(left, top, width, 20f), text, _pickupPrimaryTextStyle);
+            GUI.Label(new Rect(left, top, width, 24f), text, _pickupPrimaryTextStyle);
         }
 
         private void DrawSettingsActionRow(Rect rowRect, string controlId, string label, string value, System.Action onClick)
@@ -153,9 +169,9 @@ namespace RandomLoadout
         {
             const float labelWidth = 160f;
             const float buttonWidth = 132f;
-            GUI.Label(new Rect(rowRect.x, rowRect.y + 7f, labelWidth, 20f), label, _hintStyle);
+            GUI.Label(new Rect(rowRect.x, rowRect.y + 5f, labelWidth, 24f), label, _hintStyle);
             GUI.Label(
-                new Rect(rowRect.x + labelWidth + ButtonGap, rowRect.y + 7f, rowRect.width - labelWidth - buttonWidth - (ButtonGap * 2f), 20f),
+                new Rect(rowRect.x + labelWidth + ButtonGap, rowRect.y + 5f, rowRect.width - labelWidth - buttonWidth - (ButtonGap * 2f), 24f),
                 value,
                 _hintStyle);
 
@@ -174,7 +190,7 @@ namespace RandomLoadout
         private void DrawSettingsToggleRow(Rect rowRect, string controlId, string label, bool isEnabled, System.Action onClick)
         {
             const float buttonWidth = 132f;
-            GUI.Label(new Rect(rowRect.x, rowRect.y + 7f, rowRect.width - buttonWidth - ButtonGap, 20f), label, _hintStyle);
+            GUI.Label(new Rect(rowRect.x, rowRect.y + 5f, rowRect.width - buttonWidth - ButtonGap, 24f), label, _hintStyle);
             if (onClick == null)
             {
                 return;
@@ -234,7 +250,7 @@ namespace RandomLoadout
                 panelRect.y + 54f,
                 dialogWidth,
                 dialogHeight);
-            GUI.Box(dialogRect, GUIContent.none, _modalPanelStyle);
+            GUI.Box(ExpandPanelBorderRect(dialogRect), GUIContent.none, _modalPanelStyle);
 
             GUI.Label(
                 new Rect(dialogRect.x + 14f, dialogRect.y + 14f, dialogRect.width - 28f, 24f),
@@ -440,6 +456,9 @@ namespace RandomLoadout
                     return;
                 case "settings.controller_help":
                     OpenControllerHelpPage();
+                    return;
+                case "settings.about":
+                    OpenAboutPage();
                     return;
                 case "settings.keyboard_help":
                     OpenKeyboardHelpPage();

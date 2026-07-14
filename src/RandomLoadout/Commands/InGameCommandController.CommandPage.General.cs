@@ -21,6 +21,7 @@ namespace RandomLoadout
             new ControllerFocusEntry("cmd.general.stats", 4, 0),
             new ControllerFocusEntry("cmd.general.pickup_info", 4, 1),
             new ControllerFocusEntry("cmd.general.pickup_info_config", 4, 2),
+            new ControllerFocusEntry("cmd.general.cursor_color", 4, 3),
         };
 
         private void DrawGeneralContent(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
@@ -91,10 +92,16 @@ namespace RandomLoadout
                 ExecuteTogglePickupInfoOverlay();
             }
 
-            if (DrawControllerButton(new Rect(thirdColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.general.pickup_info_config", GetLocalizedFallback("gui.command.button.pickup_info_config", "Pickup Info Config", "物品图鉴设置"), _buttonStyle))
+            if (DrawControllerButton(new Rect(thirdColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.general.pickup_info_config", GetLocalizedFallback("gui.command.button.pickup_info_config", "Info Options", "物品图鉴设置"), _buttonStyle))
             {
                 OpenPickupInfoConfigPage();
             }
+
+            if (DrawControllerButton(new Rect(fourthColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.general.cursor_color", GuiText.Get("gui.command.setting.cursor_color"), _buttonStyle))
+            {
+                OpenCursorColorPage();
+            }
+
         }
 
         private CommandPageActionBinding[] GetGeneralCommandPageActionBindings(PlayerController player)
@@ -112,7 +119,31 @@ namespace RandomLoadout
                 new CommandPageActionBinding("cmd.general.stats", delegate { SetPlayerStatsPanelShown(!_showPlayerStatsPanel); }),
                 new CommandPageActionBinding("cmd.general.pickup_info", delegate { ExecuteTogglePickupInfoOverlay(); }),
                 new CommandPageActionBinding("cmd.general.pickup_info_config", delegate { OpenPickupInfoConfigPage(); }),
+                new CommandPageActionBinding("cmd.general.cursor_color", delegate { OpenCursorColorPage(); }),
             };
+        }
+
+        private string GetThemePreset()
+        {
+            return DashboardThemeCatalog.Normalize(_themeProvider != null ? _themeProvider() : DashboardThemeCatalog.DefaultThemeId);
+        }
+
+        private string GetThemeDisplayName()
+        {
+            return DashboardThemeCatalog.GetDisplayName(GetThemePreset());
+        }
+
+        private void ExecuteCycleTheme()
+        {
+            string nextTheme = DashboardThemeCatalog.GetNext(GetThemePreset());
+            if (_themeSetter != null)
+            {
+                _themeSetter(nextTheme);
+            }
+
+            ShowStatus(
+                GuiText.Get("result.theme.changed", DashboardThemeCatalog.GetDisplayName(nextTheme)),
+                false);
         }
 
         private void ExecuteTogglePickupInfoOverlay()

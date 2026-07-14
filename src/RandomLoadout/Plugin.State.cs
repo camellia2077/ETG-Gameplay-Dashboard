@@ -29,6 +29,7 @@ namespace RandomLoadout
         private ConfigEntry<string> _commandPanelControllerShortcutConfig;
         private ConfigEntry<bool> _disableCommandPanelControllerShortcutConfig;
         private ConfigEntry<string> _uiScalePresetConfig;
+        private ConfigEntry<string> _themePresetConfig;
         private ConfigEntry<bool> _showStartItemsPresetIconsConfig;
         private ConfigEntry<bool> _showPlayerStatsPanelConfig;
         private ConfigEntry<bool> _showPickupInfoOverlayConfig;
@@ -46,11 +47,18 @@ namespace RandomLoadout
         private ConfigEntry<bool> _bossRushVerboseLogsConfig;
         private ConfigEntry<bool> _commandPanelHealthVerboseLogsConfig;
         private ConfigEntry<bool> _commandPanelCursorVerboseLogsConfig;
+        private ConfigEntry<bool> _commandPanelGameplayInputVerboseLogsConfig;
+        private ConfigEntry<bool> _commandPanelControllerGameplayInputVerboseLogsConfig;
+        private ConfigEntry<bool> _commandPanelCursorRenderVerboseLogsConfig;
+        private ConfigEntry<bool> _commandPanelCursorRenderProbeConfig;
+        private ConfigEntry<bool> _enableCommandPanelCursorAbovePanelConfig;
         private ConfigEntry<bool> _activeItemGrantVerboseLogsConfig;
         private ConfigEntry<bool> _nearbyPickupVerboseLogsConfig;
         private ConfigEntry<bool> _startupWindowFocusVerboseLogsConfig;
         private ConfigEntry<bool> _performanceVerboseLogsConfig;
         private ConfigEntry<string> _activeStartItemsPresetConfig;
+        private ConfigEntry<bool> _combatCursorColorEnabledConfig;
+        private ConfigEntry<string> _combatCursorColorPresetConfig;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
         private LoadoutRuleFilePickupModel[] _activePresetPickups;

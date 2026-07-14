@@ -19,8 +19,9 @@ namespace RandomLoadout
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
             {
-                _currentPage = PanelPage.Command;
-                _focusInputField = true;
+                _currentPage = PanelPage.Settings;
+                _settingsPageFocusedControlId = "settings.about";
+                _focusInputField = false;
                 return;
             }
 

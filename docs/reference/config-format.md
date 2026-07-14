@@ -274,6 +274,7 @@ The command panel language and keyboard toggle key are stored in `randomgun.rand
 Language = auto
 CommandPanelKey = F7
 CommandPanelControllerShortcut = LB+R3
+ThemePreset = theme1
 DisableCommandPanelControllerShortcut = false
 ```
 
@@ -295,6 +296,25 @@ while LB is held. `R3` opens after holding R3 for 0.5 seconds and closes immedia
 
 `UI.DisableCommandPanelControllerShortcut` disables the controller shortcut when set to `true`, while leaving the keyboard
 command-panel key available. The default is `false`.
+
+`UI.ThemePreset` stores only a stable theme ID, such as `theme1`, `theme2`, `theme3`, `theme4`, or `theme5`. The current IDs are `theme1` for the default
+theme, `theme2` for the Mars Relic theme, `theme3` for the Cyberpunk theme, `theme4` for the Snowfield theme, and `theme5` for the Hazard theme. Theme names and color values are defined by the plugin and are not part of the
+configuration identity, so they can be changed without requiring config migration.
+
+`UI.EnableCommandPanelCursorAbovePanel` draws the ETG mouse cursor after the Control Panel so it remains visible above
+the panel. Controller cursor behavior is left to ETG, while Control Panel navigation remains controller-driven. It is
+disabled by default while this behavior is being validated.
+
+The combat cursor color uses two settings under `[Combat]`: `CursorColorEnabled` and `CursorColorPreset`. Custom coloring is
+disabled by default; selecting a color in the Combat cursor page enables it. The page also has an explicit enable/disable button. `OFF` disables only custom coloring;
+the original ETG mouse cursor continues to be drawn above the Control Panel independently of the Combat Cursor color state.
+
+`CursorColorPreset` stores only a stable opaque preset ID: `preset_01` through `preset_08`. The current target HEX values are
+`preset_01=#00E5FF`, `preset_02=#39FF14`, `preset_03=#FFF000`, `preset_04=#FF1493`, `preset_05=#FF0000`,
+`preset_06=#FF8C00`, `preset_07=#9900FF`, and `preset_08=#0066FF`. Display names and HEX values are not config identity;
+they can change without invalidating a preset. To preserve an old visual color while introducing a new one, add a new preset
+ID instead of changing the existing preset's meaning. Selecting a color writes the preset ID and enables the feature;
+turning the page off writes `CursorColorEnabled=false`. Turning it back on selects `preset_01` if no enabled preset is selected.
 
 ## Example: Aliases
 

@@ -48,6 +48,11 @@ namespace RandomLoadout
             return Format("Performance", message);
         }
 
+        public static string CursorRender(string message)
+        {
+            return Format("CursorRender", message);
+        }
+
         public static string Alias(string message)
         {
             return Format("Alias", message);

@@ -268,12 +268,14 @@ namespace RandomLoadout
                 return;
             }
 
-            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (matches.Length * PickupRowHeight) + 4f);
+            float contentHeight = (matches.Length * PickupBrowserRowHeight) + (Mathf.Max(0, matches.Length - 1) * PickupBrowserRowGap) + 4f;
+            Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, contentHeight);
             EnsurePickupBrowserFocusedResultVisible(matches, listRect.height);
             _pickupScrollPosition = BeginCommandScrollView(listRect, _pickupScrollPosition, viewRect);
             for (int i = 0; i < matches.Length; i++)
             {
-                DrawPickupRow(new Rect(0f, 2f + (i * PickupRowHeight), viewRect.width, PickupRowHeight - 4f), matches[i], player, logger);
+                float rowTop = 2f + (i * (PickupBrowserRowHeight + PickupBrowserRowGap));
+                DrawPickupRow(new Rect(0f, rowTop, viewRect.width, PickupBrowserRowHeight - 4f), matches[i], player, logger);
             }
 
             GUI.EndScrollView();
@@ -281,7 +283,7 @@ namespace RandomLoadout
 
         private void DrawPickupRow(Rect rowRect, PickupBrowserEntry entry, PlayerController player, ManualLogSource logger)
         {
-            GUI.Box(rowRect, GUIContent.none, _pickupRowStyle);
+            GUI.Box(rowRect, GUIContent.none, _pickupBrowserRowStyle);
 
             const float addButtonWidth = 64f;
             bool isAddMode = _pickupBrowserMode == PickupBrowserMode.AddToStartItems || _pickupBrowserMode == PickupBrowserMode.AddToRandomPool;
@@ -336,7 +338,7 @@ namespace RandomLoadout
             }
 
             Rect grantButtonRect = new Rect(rowRect.x + rowRect.width - PickupGrantButtonWidth - 8f, rowRect.y + 8f, PickupGrantButtonWidth, rowRect.height - 16f);
-            if (GUI.Button(grantButtonRect, GuiText.Get("gui.command.button.grant"), GetControllerButtonStyle(GetPickupRowActionControlId(entry), _buttonStyle)))
+            if (GUI.Button(grantButtonRect, GuiText.Get("gui.command.button.grant"), GetControllerButtonStyle(GetPickupRowActionControlId(entry), _pickupGrantButtonStyle)))
             {
                 ExecutePickupBrowserGrant(entry, player, logger);
             }
@@ -368,6 +370,8 @@ namespace RandomLoadout
 
         private void DrawPickupIcon(Rect iconRect, PickupBrowserEntry entry)
         {
+            GUI.Box(iconRect, GUIContent.none, _pickupIconBackgroundStyle);
+
             PickupIconData iconData;
             if (TryGetPickupIcon(entry.CatalogEntry.PickupId, out iconData))
             {
@@ -748,8 +752,8 @@ namespace RandomLoadout
                 return;
             }
 
-            float itemTop = 2f + (focusedResultIndex * PickupRowHeight);
-            float itemBottom = itemTop + (PickupRowHeight - 4f);
+            float itemTop = 2f + (focusedResultIndex * (PickupBrowserRowHeight + PickupBrowserRowGap));
+            float itemBottom = itemTop + (PickupBrowserRowHeight - 4f);
             if (_pickupScrollPosition.y > itemTop)
             {
                 _pickupScrollPosition.y = itemTop;

@@ -10,9 +10,9 @@ namespace RandomLoadout
     {
         private static readonly ControllerFocusEntry[] CommandPageSharedFocusEntries =
         {
-            new ControllerFocusEntry("cmd.about", 0, 0),
-            new ControllerFocusEntry("cmd.settings", 0, 1),
-            new ControllerFocusEntry("cmd.language", 0, 2),
+            new ControllerFocusEntry("cmd.settings", 0, 0),
+            new ControllerFocusEntry("cmd.language", 0, 1),
+            new ControllerFocusEntry("cmd.theme", 0, 2),
             new ControllerFocusEntry("cmd.category.general", 1, 0),
             new ControllerFocusEntry("cmd.category.combat", 1, 1),
             new ControllerFocusEntry("cmd.category.player", 1, 2),
@@ -25,19 +25,15 @@ namespace RandomLoadout
             const float categoryButtonWidth = 92f;
             const float categoryButtonHeight = 28f;
             const float contentButtonWidth = 132f;
-            Rect languageButtonRect = new Rect(panelRect.x + panelRect.width - LanguageButtonWidth - 14f, panelRect.y + 12f, LanguageButtonWidth, 30f);
+            const float themeButtonWidth = 180f;
+            Rect themeButtonRect = new Rect(panelRect.x + panelRect.width - themeButtonWidth - 14f, panelRect.y + 12f, themeButtonWidth, 30f);
+            Rect languageButtonRect = new Rect(themeButtonRect.x - ButtonGap - LanguageButtonWidth, themeButtonRect.y, LanguageButtonWidth, 30f);
             Rect settingsButtonRect = new Rect(languageButtonRect.x - ButtonGap - ButtonWidth, languageButtonRect.y, ButtonWidth, 30f);
-            Rect aboutButtonRect = new Rect(settingsButtonRect.x - ButtonGap - ButtonWidth, languageButtonRect.y, ButtonWidth, 30f);
 
             GUI.Label(
-                new Rect(panelRect.x + 14f, panelRect.y + 12f, aboutButtonRect.x - panelRect.x - 28f, 24f),
+                new Rect(panelRect.x + 14f, panelRect.y + 12f, settingsButtonRect.x - panelRect.x - 28f, 24f),
                 GuiText.Get("gui.command.title"),
                 _titleStyle);
-            if (DrawControllerButton(aboutButtonRect, "cmd.about", GuiText.Get("gui.command.button.about"), _buttonStyle))
-            {
-                OpenAboutPage();
-            }
-
             if (DrawControllerButton(settingsButtonRect, "cmd.settings", GuiText.Get("gui.command.button.settings"), _buttonStyle))
             {
                 OpenSettingsPage();
@@ -48,6 +44,12 @@ namespace RandomLoadout
                 ExecuteToggleLanguage(logger);
             }
 
+            string themeButtonLabel = GetLocalizedFallback("gui.command.button.theme", "Theme", "主题") + ": " + GetThemeDisplayName();
+            if (DrawControllerButton(themeButtonRect, "cmd.theme", themeButtonLabel, _buttonStyle))
+            {
+                ExecuteCycleTheme();
+            }
+
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
                 GuiText.Get("gui.command.hint.toggle", GetConfiguredToggleKeyName(), GetControllerShortcutDisplayName()),
@@ -56,9 +58,9 @@ namespace RandomLoadout
             float categoryTop = panelRect.y + 72f;
             float segmentLeft = panelRect.x + 14f;
             Rect generalCategoryButtonRect = new Rect(segmentLeft, categoryTop, categoryButtonWidth, categoryButtonHeight);
-            Rect combatCategoryButtonRect = new Rect(generalCategoryButtonRect.xMax + 2f, categoryTop, categoryButtonWidth, categoryButtonHeight);
-            Rect playerCategoryButtonRect = new Rect(combatCategoryButtonRect.xMax + 2f, categoryTop, categoryButtonWidth, categoryButtonHeight);
-            Rect roomCategoryButtonRect = new Rect(playerCategoryButtonRect.xMax + 2f, categoryTop, categoryButtonWidth, categoryButtonHeight);
+            Rect combatCategoryButtonRect = new Rect(generalCategoryButtonRect.xMax + 6f, categoryTop, categoryButtonWidth, categoryButtonHeight);
+            Rect playerCategoryButtonRect = new Rect(combatCategoryButtonRect.xMax + 6f, categoryTop, categoryButtonWidth, categoryButtonHeight);
+            Rect roomCategoryButtonRect = new Rect(playerCategoryButtonRect.xMax + 6f, categoryTop, categoryButtonWidth, categoryButtonHeight);
             DrawCommandCategoryButton(generalCategoryButtonRect, "cmd.category.general", CommandMenuCategory.General, GuiText.Get("gui.command.category.general"));
             DrawCommandCategoryButton(combatCategoryButtonRect, "cmd.category.combat", CommandMenuCategory.Combat, GuiText.Get("gui.command.category.combat"));
             DrawCommandCategoryButton(playerCategoryButtonRect, "cmd.category.player", CommandMenuCategory.Player, GuiText.Get("gui.command.category.player"));
@@ -83,8 +85,8 @@ namespace RandomLoadout
         {
             switch (_commandMenuCategory)
             {
-                case CommandMenuCategory.Combat:
-                    return 3;
+            case CommandMenuCategory.Combat:
+                return 3;
                 case CommandMenuCategory.Player:
                     return _playerMenuSection == PlayerMenuSection.Stats ? 3 : 8;
                 case CommandMenuCategory.Room:
@@ -98,10 +100,16 @@ namespace RandomLoadout
 
         private void DrawCommandCategoryButton(Rect rect, string controlId, CommandMenuCategory category, string label)
         {
-            GUIStyle style = _commandMenuCategory == category || IsControllerFocusActive("cmd", controlId)
-                ? _pickupFilterActiveButtonStyle
-                : _pickupFilterButtonStyle;
-            if (GUI.Button(rect, label, style))
+            bool isSelected = _commandMenuCategory == category;
+            GUIStyle style = isSelected
+                ? _commandCategoryActiveButtonStyle
+                : IsControllerFocusActive("cmd", controlId)
+                ? _commandCategoryFocusButtonStyle
+                : _commandCategoryButtonStyle;
+            Rect drawRect = isSelected
+                ? new Rect(rect.x - 4f, rect.y - 6f, rect.width + 8f, rect.height + 8f)
+                : rect;
+            if (GUI.Button(drawRect, label, style))
             {
                 _commandMenuCategory = category;
             }
@@ -137,20 +145,69 @@ namespace RandomLoadout
 
         private GUIStyle GetControllerButtonStyle(string controlId, GUIStyle normalStyle)
         {
-            if (!IsControllerFocusActive("cmd", controlId) &&
-                !IsControllerFocusActive("settings", controlId) &&
-                !IsControllerFocusActive("pickup_info_config", controlId) &&
-                !IsControllerFocusActive("characters", controlId) &&
-                !IsControllerFocusActive("loadout", controlId) &&
-                !IsControllerFocusActive("pickups", controlId) &&
-                !IsControllerFocusActive("currency", controlId))
+            bool isCommandContentButton = IsCommandContentControlId(controlId);
+            bool isControllerFocusActive = IsControllerFocusActive("cmd", controlId);
+            bool hasControllerFocus = isControllerFocusActive ||
+                IsControllerFocusActive("settings", controlId) ||
+                IsControllerFocusActive("pickup_info_config", controlId) ||
+                IsControllerFocusActive("characters", controlId) ||
+                IsControllerFocusActive("loadout", controlId) ||
+                IsControllerFocusActive("pickups", controlId) ||
+                IsControllerFocusActive("currency", controlId) ||
+                IsControllerFocusActive("cursor_color", controlId);
+            bool isHeaderActionButton = IsHeaderActionControlId(controlId);
+            if (isHeaderActionButton)
             {
+                return isControllerFocusActive ? _headerActionFocusButtonStyle : _headerActionButtonStyle;
+            }
+
+            if (!hasControllerFocus)
+            {
+                if (isCommandContentButton)
+                {
+                    return normalStyle == _enabledButtonStyle
+                        ? _commandContentActiveButtonStyle
+                        : normalStyle == _buttonStyle ? _commandContentButtonStyle : normalStyle;
+                }
+
+                if (normalStyle == _enabledButtonStyle)
+                {
+                    return _commandContentActiveButtonStyle;
+                }
+
                 return normalStyle;
             }
 
             if (normalStyle == _pickupFilterButtonStyle || normalStyle == _pickupFilterDisabledButtonStyle)
             {
-                return _pickupFilterActiveButtonStyle;
+                return normalStyle == _pickupFilterButtonStyle ? _pickupFilterFocusButtonStyle : _pickupFilterDisabledButtonStyle;
+            }
+
+            if (normalStyle == _pickupFilterActiveButtonStyle)
+            {
+                return _pickupFilterActiveFocusButtonStyle;
+            }
+
+            if (isCommandContentButton)
+            {
+                if (normalStyle == _enabledButtonStyle)
+                {
+                    return _commandContentActiveFocusButtonStyle;
+                }
+
+                return IsControllerFocusActive("cmd", controlId)
+                    ? _commandContentFocusButtonStyle
+                    : _commandContentButtonStyle;
+            }
+
+            if (normalStyle == _enabledButtonStyle)
+            {
+                return _commandContentActiveFocusButtonStyle;
+            }
+
+            if (normalStyle == _buttonStyle)
+            {
+                return _commandContentFocusButtonStyle;
             }
 
             if (normalStyle == _disabledToggleButtonStyle)
@@ -159,6 +216,22 @@ namespace RandomLoadout
             }
 
             return _enabledButtonStyle;
+        }
+
+        private static bool IsCommandContentControlId(string controlId)
+        {
+            return !string.IsNullOrEmpty(controlId) &&
+                (controlId.StartsWith("cmd.general.", System.StringComparison.Ordinal) ||
+                 controlId.StartsWith("cmd.combat.", System.StringComparison.Ordinal) ||
+                 controlId.StartsWith("cmd.player.", System.StringComparison.Ordinal) ||
+                 controlId.StartsWith("cmd.room.", System.StringComparison.Ordinal));
+        }
+
+        private static bool IsHeaderActionControlId(string controlId)
+        {
+            return string.Equals(controlId, "cmd.settings", System.StringComparison.Ordinal) ||
+                string.Equals(controlId, "cmd.language", System.StringComparison.Ordinal) ||
+                string.Equals(controlId, "cmd.theme", System.StringComparison.Ordinal);
         }
 
         private bool IsControllerFocusActive(string pagePrefix, string controlId)
@@ -196,6 +269,11 @@ namespace RandomLoadout
             if (_currentPage == PanelPage.Currency && string.Equals(pagePrefix, "currency", System.StringComparison.Ordinal))
             {
                 return string.Equals(_currencyPageFocusedControlId, controlId, System.StringComparison.Ordinal);
+            }
+
+            if (_currentPage == PanelPage.CursorColor && string.Equals(pagePrefix, "cursor_color", System.StringComparison.Ordinal))
+            {
+                return string.Equals(_cursorColorPageFocusedControlId, controlId, System.StringComparison.Ordinal);
             }
 
             return false;
@@ -315,9 +393,9 @@ namespace RandomLoadout
         {
             return new[]
             {
-                new CommandPageActionBinding("cmd.about", delegate { OpenAboutPage(); }),
                 new CommandPageActionBinding("cmd.settings", delegate { OpenSettingsPage(); }),
                 new CommandPageActionBinding("cmd.language", delegate { ExecuteToggleLanguage(null); }),
+                new CommandPageActionBinding("cmd.theme", delegate { ExecuteCycleTheme(); }),
                 new CommandPageActionBinding("cmd.category.general", delegate { SetCommandMenuCategory(CommandMenuCategory.General); }),
                 new CommandPageActionBinding("cmd.category.combat", delegate { SetCommandMenuCategory(CommandMenuCategory.Combat); }),
                 new CommandPageActionBinding("cmd.category.player", delegate { SetCommandMenuCategory(CommandMenuCategory.Player); }),

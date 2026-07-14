@@ -101,6 +101,8 @@ I am changing build, deploy, or tools:
 - [Boss Rush Logging](./operations/logging-boss-rush.md)
 - [Command-Panel Health Logging](./operations/logging-command-panel-health.md)
 - [Command-Panel Cursor Logging](./operations/logging-command-panel-cursor.md)
+- [Command-Panel Gameplay Input Logging](./operations/logging-command-panel-gameplay-input.md)
+- [Command-Panel Controller Gameplay Input Logging](./operations/logging-command-panel-controller-gameplay-input.md)
 - [Smoke Checklist](./operations/smoke-checklist.md)
 - [Command Notes](./notes/cmd.md)
 - [Code Index](./reference/code-index.md)

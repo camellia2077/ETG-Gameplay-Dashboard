@@ -104,6 +104,8 @@ namespace RandomLoadout
 
         private void DrawPickupActionIcon(Rect iconRect, string spriteName)
         {
+            GUI.Box(iconRect, GUIContent.none, _pickupIconBackgroundStyle);
+
             PickupIconData iconData;
             if (TryGetGameUiAtlasIcon(spriteName, out iconData))
             {

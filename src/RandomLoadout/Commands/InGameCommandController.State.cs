@@ -10,6 +10,11 @@ namespace RandomLoadout
 {
     internal sealed partial class InGameCommandController
     {
+        internal bool IsVisibleForDiagnostics
+        {
+            get { return _isVisible; }
+        }
+
         private enum PanelPage
         {
             Command,
@@ -24,6 +29,7 @@ namespace RandomLoadout
             AdvancedTools,
             ControllerHelp,
             KeyboardHelp,
+            CursorColor,
         }
 
         private enum CharacterActionMode
@@ -138,6 +144,7 @@ namespace RandomLoadout
         private const float MaximumUiScale = 1.50f;
         private const float PanelWidth = 612f;
         private const float LoadoutEditorPanelWidth = 900f;
+        private const float SettingsPanelWidth = 1100f;
         private const float BasePanelHeight = 284f;
         private const float PlayerStatsPanelWidth = 160f;
         private const float PlayerStatsPanelHeight = 330f;
@@ -148,11 +155,12 @@ namespace RandomLoadout
         private const float PickupBrowserPanelHeight = 496f;
         private const float LoadoutEditorPanelHeight = 440f;
         private const float AboutPanelHeight = 404f;
-        private const float SettingsPanelHeight = 812f;
+        private const float SettingsPanelHeight = 560f;
         private const float PickupInfoConfigPanelHeight = 428f;
         private const float AdvancedToolsPanelHeight = 254f;
         private const float ControllerHelpPanelHeight = 356f;
         private const float KeyboardHelpPanelHeight = 356f;
+        private const float CursorColorPanelHeight = 430f;
         private const float CharacterPanelBaseHeaderHeight = 126f;
         private const float CharacterPanelFooterHeight = 26f;
         private const float CurrencyPanelHeight = 430f;
@@ -178,6 +186,8 @@ namespace RandomLoadout
         private const float PickupFilterSmallButtonWidth = 58f;
         private const float PickupFilterGunClassButtonWidth = 82f;
         private const float PickupRowHeight = 48f;
+        private const float PickupBrowserRowHeight = 48f;
+        private const float PickupBrowserRowGap = 6f;
         private const float LoadoutPresetRowHeight = 48f;
         private const float LoadoutPresetPreviewRowHeight = 24f;
         private const int LoadoutPresetColumnCount = 2;
@@ -185,22 +195,35 @@ namespace RandomLoadout
         private const float PickupIconSize = 32f;
         private const float PickupGrantButtonWidth = 72f;
 
-        private static readonly Color PanelBackgroundColor = new Color(0.07f, 0.08f, 0.10f, 0.88f);
-        private static readonly Color PlayerStatsPanelBackgroundColor = new Color(0.03f, 0.04f, 0.05f, 0.97f);
-        private static readonly Color PlayerStatsRowBackgroundColor = new Color(0.01f, 0.01f, 0.02f, 0.78f);
-        private static readonly Color PanelBorderColor = new Color(0.97f, 0.63f, 0.10f, 0.96f);
-        private static readonly Color InputBackgroundColor = new Color(0.11f, 0.12f, 0.15f, 0.96f);
-        private static readonly Color ButtonBackgroundColor = new Color(0.19f, 0.14f, 0.08f, 0.96f);
-        private static readonly Color ButtonHoverColor = new Color(0.40f, 0.27f, 0.08f, 0.98f);
-        private static readonly Color ButtonActiveColor = new Color(0.78f, 0.50f, 0.10f, 1f);
-        private static readonly Color EnabledButtonBackgroundColor = new Color(0.69f, 0.45f, 0.10f, 0.98f);
-        private static readonly Color EnabledButtonHoverColor = new Color(0.84f, 0.55f, 0.10f, 1f);
-        private static readonly Color EnabledButtonActiveColor = new Color(0.97f, 0.63f, 0.10f, 1f);
-        private static readonly Color PrimaryTextColor = new Color(0.90f, 0.87f, 0.79f, 1f);
-        private static readonly Color PlayerStatsTextColor = Color.white;
-        private static readonly Color SecondaryTextColor = new Color(0.65f, 0.62f, 0.54f, 1f);
-        private static readonly Color SuccessBackgroundColor = new Color(0.23f, 0.31f, 0.22f, 0.95f);
-        private static readonly Color ErrorBackgroundColor = new Color(0.44f, 0.24f, 0.21f, 0.95f);
+        private static Color PanelBackgroundColor { get { return DashboardTheme.PanelBackground; } }
+        private static Color SecondaryColor { get { return DashboardTheme.Secondary; } }
+        private static Color PlayerStatsPanelBackgroundColor { get { return DashboardTheme.PanelBackground; } }
+        private static Color PlayerStatsRowBackgroundColor { get { return DashboardTheme.PanelRowBackground; } }
+        private static Color PanelBorderColor { get { return DashboardTheme.PanelOuterBorder; } }
+        private static Color InnerBorderColor { get { return DashboardTheme.PanelInnerBorder; } }
+        private static Color InputBackgroundColor { get { return DashboardTheme.InputBackground; } }
+        private static Color ButtonBackgroundColor { get { return DashboardTheme.ButtonBackground; } }
+        private static Color ButtonBorderColor { get { return DashboardTheme.ButtonBorder; } }
+        private static Color ButtonSelectedBorderColor { get { return DashboardTheme.ButtonSelectedBorder; } }
+        private static Color ButtonHoverColor { get { return DashboardTheme.ButtonHoverBackground; } }
+        private static Color ButtonActiveColor { get { return DashboardTheme.ButtonActiveBackground; } }
+        private static Color CommandCategoryButtonBackgroundColor { get { return DashboardTheme.CommandCategoryNormalBackground; } }
+        private static Color CommandCategoryButtonBorderColor { get { return DashboardTheme.CommandCategoryNormalBorder; } }
+        private static Color CommandCategoryHoverButtonBackgroundColor { get { return DashboardTheme.CommandCategoryHoverBackground; } }
+        private static Color CommandCategoryHoverButtonBorderColor { get { return DashboardTheme.CommandCategoryHoverBorder; } }
+        private static Color CommandCategoryActiveButtonBackgroundColor { get { return DashboardTheme.CommandCategorySelectedBackground; } }
+        private static Color CommandCategoryActiveButtonBorderColor { get { return DashboardTheme.CommandCategorySelectedBorder; } }
+        private static Color DisabledButtonBackgroundColor { get { return DashboardTheme.DisabledButtonBackground; } }
+        private static Color EnabledButtonBackgroundColor { get { return DashboardTheme.EnabledButtonBackground; } }
+        private static Color EnabledButtonHoverColor { get { return DashboardTheme.EnabledButtonHoverBackground; } }
+        private static Color EnabledButtonActiveColor { get { return DashboardTheme.EnabledButtonActiveBackground; } }
+        private static Color PrimaryTextColor { get { return DashboardTheme.PrimaryText; } }
+        private static Color PlayerStatsTextColor { get { return DashboardTheme.PrimaryText; } }
+        private static Color SecondaryTextColor { get { return DashboardTheme.SecondaryText; } }
+        private static Color SuccessBackgroundColor { get { return DashboardTheme.SuccessBackground; } }
+        private static Color SuccessTextColor { get { return DashboardTheme.SuccessText; } }
+        private static Color ErrorBackgroundColor { get { return DashboardTheme.ErrorBackground; } }
+        private static Color ErrorTextColor { get { return DashboardTheme.ErrorText; } }
         private readonly AmmonomiconFastOpenToggleService _ammonomiconFastOpenToggleService;
         private static readonly FoyerCharacterOption[] EmptyCharacterOptions = new FoyerCharacterOption[0];
         private static readonly PickupBrowserEntry[] EmptyPickupBrowserEntries = new PickupBrowserEntry[0];
@@ -238,10 +261,25 @@ namespace RandomLoadout
             new ControllerFocusEntry("settings.controller_shortcut", 3, 0),
             new ControllerFocusEntry("settings.controller_shortcut_enabled", 4, 0),
             new ControllerFocusEntry("settings.controller_help", 5, 0),
+            new ControllerFocusEntry("settings.about", 10, 0),
             new ControllerFocusEntry("settings.ui_scale", 6, 0),
             new ControllerFocusEntry("settings.language", 7, 0),
             new ControllerFocusEntry("settings.advanced_tools", 8, 0),
             new ControllerFocusEntry("settings.experimental_mode", 9, 0),
+        };
+
+        private static readonly ControllerFocusEntry[] CursorColorPageFocusEntries =
+        {
+            new ControllerFocusEntry("cursor_color.back", 0, 0),
+            new ControllerFocusEntry("cursor_color.toggle", 1, 0),
+            new ControllerFocusEntry("cursor_color.preset_01", 2, 0),
+            new ControllerFocusEntry("cursor_color.preset_02", 2, 1),
+            new ControllerFocusEntry("cursor_color.preset_03", 3, 0),
+            new ControllerFocusEntry("cursor_color.preset_04", 3, 1),
+            new ControllerFocusEntry("cursor_color.preset_05", 4, 0),
+            new ControllerFocusEntry("cursor_color.preset_06", 4, 1),
+            new ControllerFocusEntry("cursor_color.preset_07", 5, 0),
+            new ControllerFocusEntry("cursor_color.preset_08", 5, 1),
         };
 
         private static readonly ControllerFocusEntry[] PickupInfoConfigPageFocusEntries =
@@ -297,6 +335,8 @@ namespace RandomLoadout
         private readonly Action<bool> _controllerShortcutEnabledSetter;
         private readonly Func<string> _uiScalePresetProvider;
         private readonly Action<string> _uiScalePresetSetter;
+        private readonly Func<string> _themeProvider;
+        private readonly Action<string> _themeSetter;
         private readonly Func<bool> _startItemsPresetIconsEnabledProvider;
         private readonly Action<bool> _startItemsPresetIconsEnabledSetter;
         private readonly Func<bool> _playerStatsPanelShownProvider;
@@ -322,6 +362,10 @@ namespace RandomLoadout
         private readonly Func<bool> _floorTeleportVerboseLoggingEnabledProvider;
         private readonly Func<bool> _commandPanelHealthVerboseLoggingEnabledProvider;
         private readonly Func<bool> _commandPanelCursorVerboseLoggingEnabledProvider;
+        private readonly Func<bool> _commandPanelGameplayInputVerboseLoggingEnabledProvider;
+        private readonly Func<bool> _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider;
+        private readonly Func<string> _combatCursorColorProvider;
+        private readonly Action<string> _combatCursorColorSetter;
         private readonly Func<EtgFloorDefinition, string, string, bool> _deferredTeleportRequestHandler;
 
         private GUIStyle _panelStyle;
@@ -334,11 +378,23 @@ namespace RandomLoadout
         private GUIStyle _textFieldStyle;
         private GUIStyle _buttonStyle;
         private GUIStyle _enabledButtonStyle;
+        private GUIStyle _pickupGrantButtonStyle;
         private GUIStyle _disabledToggleButtonStyle;
+        private GUIStyle _commandCategoryButtonStyle;
+        private GUIStyle _commandCategoryFocusButtonStyle;
+        private GUIStyle _commandCategoryActiveButtonStyle;
+        private GUIStyle _commandContentButtonStyle;
+        private GUIStyle _commandContentFocusButtonStyle;
+        private GUIStyle _commandContentActiveButtonStyle;
+        private GUIStyle _commandContentActiveFocusButtonStyle;
+        private GUIStyle _headerActionButtonStyle;
+        private GUIStyle _headerActionFocusButtonStyle;
         private GUIStyle _statusStyle;
         private GUIStyle _statusSuccessStyle;
         private GUIStyle _statusErrorStyle;
         private GUIStyle _pickupRowStyle;
+        private GUIStyle _loadoutEditorRowStyle;
+        private GUIStyle _pickupBrowserRowStyle;
         private GUIStyle _activePresetRowStyle;
         private GUIStyle _pickupRowButtonStyle;
         private GUIStyle _pickupPrimaryTextStyle;
@@ -346,8 +402,11 @@ namespace RandomLoadout
         private GUIStyle _pickupSecondaryActiveTextStyle;
         private GUIStyle _activePresetAccentTextStyle;
         private GUIStyle _pickupFilterButtonStyle;
+        private GUIStyle _pickupFilterFocusButtonStyle;
         private GUIStyle _pickupFilterActiveButtonStyle;
+        private GUIStyle _pickupFilterActiveFocusButtonStyle;
         private GUIStyle _pickupFilterDisabledButtonStyle;
+        private GUIStyle _pickupIconBackgroundStyle;
         private GUIStyle _pickupIconFallbackStyle;
         private GUIStyle _modalOverlayStyle;
         private GUIStyle _modalPanelStyle;
@@ -377,6 +436,8 @@ namespace RandomLoadout
         private string _loadoutEditorFocusedControlId = "loadout.back";
         private string _pickupPageFocusedControlId = "pickups.back";
         private string _currencyPageFocusedControlId = "currency.max_health";
+        private string _cursorColorPageFocusedControlId = "cursor_color.back";
+        private string _cursorColorCustomHexText = string.Empty;
         private ControllerNavDirection? _heldKeyboardNavigationDirection;
         private string _lastGuiLanguageCode = string.Empty;
         private string _revealMapActivatedSceneName = string.Empty;
@@ -434,6 +495,25 @@ namespace RandomLoadout
         private string _lastLoggedActiveInputDeviceClass = string.Empty;
         private bool _wasControllerHorizontalNavigationActive;
         private bool _wasControllerVerticalNavigationActive;
+        private bool _hasLoggedGameplayInputState;
+        private bool _lastLoggedGameplayPanelVisible;
+        private bool _lastLoggedGameplayW;
+        private bool _lastLoggedGameplayA;
+        private bool _lastLoggedGameplayS;
+        private bool _lastLoggedGameplayD;
+        private bool _lastLoggedGameplayInputOverridden;
+        private string _lastLoggedGameplayInputState = string.Empty;
+        private bool _hasLoggedControllerGameplayInputState;
+        private bool _lastLoggedControllerGameplayPanelVisible;
+        private bool _lastLoggedControllerGameplayInputOverridden;
+        private string _lastLoggedControllerGameplayInputState = string.Empty;
+        private string _lastLoggedControllerGameplayDevice = string.Empty;
+        private float _lastLoggedControllerGameplayDpadHorizontal = float.NaN;
+        private float _lastLoggedControllerGameplayDpadVertical = float.NaN;
+        private float _lastLoggedControllerGameplayLeftStickHorizontal = float.NaN;
+        private float _lastLoggedControllerGameplayLeftStickVertical = float.NaN;
+        private float _lastLoggedControllerGameplayRightStickHorizontal = float.NaN;
+        private float _lastLoggedControllerGameplayRightStickVertical = float.NaN;
         private PlayerController _panelInputOverridePlayer;
         private PlayerController _lastHealthDiagnosticPlayer;
         private float _lastHealthDiagnosticCurrentHealth = float.NaN;

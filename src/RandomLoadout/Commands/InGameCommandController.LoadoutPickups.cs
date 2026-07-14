@@ -83,7 +83,7 @@ namespace RandomLoadout
         {
             if (_cachedLoadoutPickupEntries.Length == 0)
             {
-                GUI.Box(listRect, GUIContent.none, _pickupRowStyle);
+                GUI.Box(listRect, GUIContent.none, _loadoutEditorRowStyle);
                 GUI.Label(
                     new Rect(listRect.x + 12f, listRect.y + 12f, listRect.width - 24f, listRect.height - 24f),
                     GuiText.Get("gui.loadout_editor.pickups_empty"),
@@ -103,7 +103,7 @@ namespace RandomLoadout
 
         private void DrawLoadoutPresetPickupRow(Rect rowRect, LoadoutRuleEditorEntry entry, ManualLogSource logger)
         {
-            GUI.Box(rowRect, GUIContent.none, _pickupRowStyle);
+            GUI.Box(rowRect, GUIContent.none, _loadoutEditorRowStyle);
 
             const float removeWidth = 82f;
             const float countButtonWidth = 36f;
@@ -158,7 +158,7 @@ namespace RandomLoadout
 
         private void DrawLoadoutPresetPickupOptionRow(Rect rowRect, string pickupType, string controlId, string buttonLabel, System.Action onClick)
         {
-            GUI.Box(rowRect, GUIContent.none, _pickupRowStyle);
+            GUI.Box(rowRect, GUIContent.none, _loadoutEditorRowStyle);
 
             const float optionIconSize = 30f;
             const float addButtonWidth = 156f;

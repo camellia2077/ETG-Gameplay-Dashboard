@@ -11,6 +11,56 @@ namespace RandomLoadout
 {
     internal sealed partial class InGameCommandController
     {
+        internal void RefreshTheme()
+        {
+            _panelStyle = null;
+            _playerStatsPanelStyle = null;
+            _playerStatsRowStyle = null;
+            _titleStyle = null;
+            _hintStyle = null;
+            _playerStatsTextStyle = null;
+            _wrappedHintStyle = null;
+            _textFieldStyle = null;
+            _buttonStyle = null;
+            _enabledButtonStyle = null;
+            _pickupGrantButtonStyle = null;
+            _disabledToggleButtonStyle = null;
+            _commandCategoryButtonStyle = null;
+            _commandCategoryFocusButtonStyle = null;
+            _commandCategoryActiveButtonStyle = null;
+            _commandContentButtonStyle = null;
+            _commandContentFocusButtonStyle = null;
+            _commandContentActiveButtonStyle = null;
+            _commandContentActiveFocusButtonStyle = null;
+            _headerActionButtonStyle = null;
+            _headerActionFocusButtonStyle = null;
+            _statusStyle = null;
+            _statusSuccessStyle = null;
+            _statusErrorStyle = null;
+            _pickupRowStyle = null;
+            _loadoutEditorRowStyle = null;
+            _pickupBrowserRowStyle = null;
+            _activePresetRowStyle = null;
+            _pickupRowButtonStyle = null;
+            _pickupPrimaryTextStyle = null;
+            _pickupSecondaryTextStyle = null;
+            _pickupSecondaryActiveTextStyle = null;
+            _activePresetAccentTextStyle = null;
+            _pickupFilterButtonStyle = null;
+            _pickupFilterFocusButtonStyle = null;
+            _pickupFilterActiveButtonStyle = null;
+            _pickupFilterActiveFocusButtonStyle = null;
+            _pickupFilterDisabledButtonStyle = null;
+            _pickupIconBackgroundStyle = null;
+            _pickupIconFallbackStyle = null;
+            _modalOverlayStyle = null;
+            _modalPanelStyle = null;
+            _modalBodyStyle = null;
+            _settingsInfoTextStyle = null;
+            _controllerHelpTitleStyle = null;
+            _controllerHelpTextStyle = null;
+        }
+
         private void EnsureStyles()
         {
             if (_panelStyle != null)
@@ -19,8 +69,15 @@ namespace RandomLoadout
             }
 
             _panelStyle = new GUIStyle(GUI.skin.box);
-            _panelStyle.normal.background = MakeBorderedTexture(PanelBackgroundColor, PanelBorderColor);
-            _panelStyle.border = new RectOffset(2, 2, 2, 2);
+            _panelStyle.normal.background = MakeTripleBorderedTexture(
+                PanelBackgroundColor,
+                PanelBorderColor,
+                DashboardTheme.PanelMiddleBorder,
+                InnerBorderColor,
+                5,
+                7,
+                5);
+            _panelStyle.border = new RectOffset(17, 17, 17, 17);
             _panelStyle.padding = new RectOffset(12, 12, 12, 12);
 
             _playerStatsPanelStyle = new GUIStyle(GUI.skin.box);
@@ -60,9 +117,21 @@ namespace RandomLoadout
             _textFieldStyle.fontSize = 15;
 
             _buttonStyle = new GUIStyle(GUI.skin.button);
-            _buttonStyle.normal.background = MakeTexture(1, 1, ButtonBackgroundColor);
-            _buttonStyle.hover.background = MakeTexture(1, 1, ButtonHoverColor);
-            _buttonStyle.active.background = MakeTexture(1, 1, ButtonActiveColor);
+            _buttonStyle.normal.background = MakeInsetBorderedTexture(
+                DashboardTheme.NonFunctionalButtonBackground,
+                DashboardTheme.NonFunctionalButtonBorder,
+                2,
+                2);
+            _buttonStyle.hover.background = MakeInsetBorderedTexture(
+                ButtonHoverColor,
+                DashboardTheme.NonFunctionalButtonSelectedBorder,
+                2,
+                2);
+            _buttonStyle.active.background = MakeInsetBorderedTexture(
+                ButtonActiveColor,
+                DashboardTheme.NonFunctionalButtonSelectedBorder,
+                2,
+                2);
             _buttonStyle.normal.textColor = PrimaryTextColor;
             _buttonStyle.hover.textColor = PrimaryTextColor;
             _buttonStyle.active.textColor = PrimaryTextColor;
@@ -70,17 +139,105 @@ namespace RandomLoadout
             _buttonStyle.fontSize = 14;
 
             _enabledButtonStyle = new GUIStyle(_buttonStyle);
-            _enabledButtonStyle.normal.background = MakeTexture(1, 1, EnabledButtonBackgroundColor);
-            _enabledButtonStyle.hover.background = MakeTexture(1, 1, EnabledButtonHoverColor);
-            _enabledButtonStyle.active.background = MakeTexture(1, 1, EnabledButtonActiveColor);
+            _enabledButtonStyle.normal.background = MakeInsetBorderedTexture(EnabledButtonBackgroundColor, ButtonSelectedBorderColor, 2, 2);
+            _enabledButtonStyle.hover.background = MakeInsetBorderedTexture(EnabledButtonHoverColor, ButtonSelectedBorderColor, 2, 2);
+            _enabledButtonStyle.active.background = MakeInsetBorderedTexture(EnabledButtonActiveColor, ButtonSelectedBorderColor, 2, 2);
+            _enabledButtonStyle.normal.textColor = DashboardTheme.EnabledButtonText;
+            _enabledButtonStyle.hover.textColor = DashboardTheme.EnabledButtonText;
+            _enabledButtonStyle.active.textColor = DashboardTheme.EnabledButtonText;
+
+            _pickupGrantButtonStyle = new GUIStyle(_buttonStyle);
+            _pickupGrantButtonStyle.normal.background = MakeInsetBorderedTexture(
+                EnabledButtonBackgroundColor,
+                DashboardTheme.Outline,
+                2,
+                2);
+            _pickupGrantButtonStyle.hover.background = MakeInsetBorderedTexture(
+                EnabledButtonHoverColor,
+                ButtonSelectedBorderColor,
+                2,
+                2);
+            _pickupGrantButtonStyle.active.background = MakeInsetBorderedTexture(
+                EnabledButtonActiveColor,
+                ButtonSelectedBorderColor,
+                2,
+                2);
+            Color pickupGrantTextColor = DashboardTheme.GetContrastingText(EnabledButtonBackgroundColor);
+            _pickupGrantButtonStyle.normal.textColor = pickupGrantTextColor;
+            _pickupGrantButtonStyle.hover.textColor = pickupGrantTextColor;
+            _pickupGrantButtonStyle.active.textColor = pickupGrantTextColor;
 
             _disabledToggleButtonStyle = new GUIStyle(_buttonStyle);
             _disabledToggleButtonStyle.normal.background = MakeTexture(1, 1, ButtonBackgroundColor);
             _disabledToggleButtonStyle.hover.background = MakeTexture(1, 1, ButtonHoverColor);
             _disabledToggleButtonStyle.active.background = MakeTexture(1, 1, ButtonActiveColor);
+            _disabledToggleButtonStyle.border = new RectOffset(0, 0, 0, 0);
             _disabledToggleButtonStyle.normal.textColor = PrimaryTextColor;
             _disabledToggleButtonStyle.hover.textColor = PrimaryTextColor;
             _disabledToggleButtonStyle.active.textColor = PrimaryTextColor;
+
+            _commandCategoryButtonStyle = new GUIStyle(_buttonStyle);
+            _commandCategoryButtonStyle.normal.background = MakeInsetBorderedTexture(CommandCategoryButtonBackgroundColor, CommandCategoryButtonBorderColor, 2, 2);
+            _commandCategoryButtonStyle.hover.background = MakeInsetBorderedTexture(CommandCategoryHoverButtonBackgroundColor, CommandCategoryHoverButtonBorderColor, 2, 2);
+            _commandCategoryButtonStyle.active.background = _commandCategoryButtonStyle.hover.background;
+            _commandCategoryButtonStyle.normal.textColor = DashboardTheme.CommandCategoryNormalText;
+            _commandCategoryButtonStyle.hover.textColor = DashboardTheme.CommandCategoryNormalText;
+            _commandCategoryButtonStyle.active.textColor = DashboardTheme.CommandCategoryNormalText;
+
+            _commandCategoryFocusButtonStyle = new GUIStyle(_commandCategoryButtonStyle);
+            _commandCategoryFocusButtonStyle.normal.background = MakeInsetBorderedTexture(CommandCategoryActiveButtonBackgroundColor, CommandCategoryActiveButtonBorderColor, 2, 2);
+            _commandCategoryFocusButtonStyle.hover.background = _commandCategoryFocusButtonStyle.normal.background;
+            _commandCategoryFocusButtonStyle.active.background = _commandCategoryFocusButtonStyle.normal.background;
+            _commandCategoryFocusButtonStyle.normal.textColor = DashboardTheme.CommandCategorySelectedText;
+            _commandCategoryFocusButtonStyle.hover.textColor = DashboardTheme.CommandCategorySelectedText;
+            _commandCategoryFocusButtonStyle.active.textColor = DashboardTheme.CommandCategorySelectedText;
+
+            _commandCategoryActiveButtonStyle = new GUIStyle(_commandCategoryButtonStyle);
+            _commandCategoryActiveButtonStyle.normal.background = MakeInsetBorderedTexture(CommandCategoryActiveButtonBackgroundColor, CommandCategoryActiveButtonBorderColor, 2, 2);
+            _commandCategoryActiveButtonStyle.hover.background = _commandCategoryActiveButtonStyle.normal.background;
+            _commandCategoryActiveButtonStyle.active.background = _commandCategoryActiveButtonStyle.normal.background;
+            _commandCategoryActiveButtonStyle.normal.textColor = DashboardTheme.CommandCategorySelectedText;
+            _commandCategoryActiveButtonStyle.hover.textColor = DashboardTheme.CommandCategorySelectedText;
+            _commandCategoryActiveButtonStyle.active.textColor = DashboardTheme.CommandCategorySelectedText;
+
+            _commandContentButtonStyle = new GUIStyle(_buttonStyle);
+            _commandContentButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.NonFunctionalButtonBackground, DashboardTheme.NonFunctionalButtonBorder, 2, 2);
+            _commandContentButtonStyle.hover.background = MakeInsetBorderedTexture(ButtonHoverColor, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+            _commandContentButtonStyle.active.background = MakeInsetBorderedTexture(ButtonActiveColor, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+
+            _commandContentFocusButtonStyle = new GUIStyle(_commandContentButtonStyle);
+            _commandContentFocusButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.ControllerFocusButtonBackground, DashboardTheme.NonFunctionalButtonBorder, 2, 2);
+            _commandContentFocusButtonStyle.hover.background = _commandContentFocusButtonStyle.normal.background;
+            _commandContentFocusButtonStyle.active.background = _commandContentFocusButtonStyle.normal.background;
+            _commandContentFocusButtonStyle.normal.textColor = DashboardTheme.GetContrastingText(DashboardTheme.ControllerFocusButtonBackground);
+            _commandContentFocusButtonStyle.hover.textColor = _commandContentFocusButtonStyle.normal.textColor;
+            _commandContentFocusButtonStyle.active.textColor = _commandContentFocusButtonStyle.normal.textColor;
+
+            _commandContentActiveButtonStyle = new GUIStyle(_commandContentButtonStyle);
+            _commandContentActiveButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.NonFunctionalButtonBackground, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+            _commandContentActiveButtonStyle.hover.background = MakeInsetBorderedTexture(ButtonHoverColor, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+            _commandContentActiveButtonStyle.active.background = MakeInsetBorderedTexture(ButtonActiveColor, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+
+            _commandContentActiveFocusButtonStyle = new GUIStyle(_commandContentActiveButtonStyle);
+            _commandContentActiveFocusButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.ControllerFocusButtonBackground, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+            _commandContentActiveFocusButtonStyle.hover.background = _commandContentActiveFocusButtonStyle.normal.background;
+            _commandContentActiveFocusButtonStyle.active.background = _commandContentActiveFocusButtonStyle.normal.background;
+            _commandContentActiveFocusButtonStyle.normal.textColor = DashboardTheme.GetContrastingText(DashboardTheme.ControllerFocusButtonBackground);
+            _commandContentActiveFocusButtonStyle.hover.textColor = _commandContentActiveFocusButtonStyle.normal.textColor;
+            _commandContentActiveFocusButtonStyle.active.textColor = _commandContentActiveFocusButtonStyle.normal.textColor;
+
+            _headerActionButtonStyle = new GUIStyle(_buttonStyle);
+            _headerActionButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.HeaderActionBackground, DashboardTheme.HeaderActionBorder, 2, 2);
+            _headerActionButtonStyle.hover.background = MakeInsetBorderedTexture(DashboardTheme.HeaderActionHoverBackground, DashboardTheme.HeaderActionHoverBorder, 2, 2);
+            _headerActionButtonStyle.active.background = MakeInsetBorderedTexture(DashboardTheme.HeaderActionHoverBackground, DashboardTheme.HeaderActionHoverBorder, 2, 2);
+
+            _headerActionFocusButtonStyle = new GUIStyle(_headerActionButtonStyle);
+            _headerActionFocusButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.ControllerFocusButtonBackground, DashboardTheme.HeaderActionBorder, 2, 2);
+            _headerActionFocusButtonStyle.hover.background = _headerActionFocusButtonStyle.normal.background;
+            _headerActionFocusButtonStyle.active.background = _headerActionFocusButtonStyle.normal.background;
+            _headerActionFocusButtonStyle.normal.textColor = DashboardTheme.GetContrastingText(DashboardTheme.ControllerFocusButtonBackground);
+            _headerActionFocusButtonStyle.hover.textColor = _headerActionFocusButtonStyle.normal.textColor;
+            _headerActionFocusButtonStyle.active.textColor = _headerActionFocusButtonStyle.normal.textColor;
 
             _statusStyle = new GUIStyle(GUI.skin.box);
             _statusStyle.normal.textColor = PrimaryTextColor;
@@ -91,25 +248,41 @@ namespace RandomLoadout
 
             _statusSuccessStyle = new GUIStyle(_statusStyle);
             _statusSuccessStyle.normal.background = MakeTexture(1, 1, SuccessBackgroundColor);
+            _statusSuccessStyle.normal.textColor = SuccessTextColor;
 
             _statusErrorStyle = new GUIStyle(_statusStyle);
             _statusErrorStyle.normal.background = MakeTexture(1, 1, ErrorBackgroundColor);
+            _statusErrorStyle.normal.textColor = ErrorTextColor;
 
             _pickupRowStyle = new GUIStyle(GUI.skin.box);
-            _pickupRowStyle.normal.background = MakeTexture(1, 1, new Color(0.10f, 0.11f, 0.14f, 0.92f));
+            _pickupRowStyle.normal.background = MakeTexture(1, 1, PanelBackgroundColor);
             _pickupRowStyle.border = new RectOffset(1, 1, 1, 1);
+
+            _loadoutEditorRowStyle = new GUIStyle(GUI.skin.box);
+            _loadoutEditorRowStyle.normal.background = MakeBorderedTexture(
+                PanelBackgroundColor,
+                ButtonBorderColor,
+                1);
+            _loadoutEditorRowStyle.border = new RectOffset(1, 1, 1, 1);
+
+            _pickupBrowserRowStyle = new GUIStyle(GUI.skin.box);
+            _pickupBrowserRowStyle.normal.background = MakeBorderedTexture(
+                PanelBackgroundColor,
+                DashboardTheme.ItemRowBorder,
+                2);
+            _pickupBrowserRowStyle.border = new RectOffset(2, 2, 2, 2);
 
             _activePresetRowStyle = new GUIStyle(_pickupRowStyle);
             _activePresetRowStyle.normal.background = MakeBorderedTexture(
-                new Color(0.10f, 0.11f, 0.14f, 1f),
-                PanelBorderColor,
-                2);
-            _activePresetRowStyle.border = new RectOffset(2, 2, 2, 2);
+                PanelBackgroundColor,
+                ButtonSelectedBorderColor,
+                1);
+            _activePresetRowStyle.border = new RectOffset(1, 1, 1, 1);
 
             _pickupRowButtonStyle = new GUIStyle(GUI.skin.button);
             _pickupRowButtonStyle.normal.background = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0f));
-            _pickupRowButtonStyle.hover.background = MakeTexture(1, 1, new Color(0.18f, 0.16f, 0.11f, 0.30f));
-            _pickupRowButtonStyle.active.background = MakeTexture(1, 1, new Color(0.28f, 0.22f, 0.14f, 0.38f));
+            _pickupRowButtonStyle.hover.background = MakeTexture(1, 1, DashboardTheme.PickupRowHoverBackground);
+            _pickupRowButtonStyle.active.background = MakeTexture(1, 1, DashboardTheme.PickupRowActiveBackground);
 
             _pickupPrimaryTextStyle = new GUIStyle(GUI.skin.label);
             _pickupPrimaryTextStyle.normal.textColor = PrimaryTextColor;
@@ -121,56 +294,86 @@ namespace RandomLoadout
             _pickupSecondaryTextStyle.fontSize = 11;
 
             _pickupSecondaryActiveTextStyle = new GUIStyle(_pickupSecondaryTextStyle);
-            _pickupSecondaryActiveTextStyle.normal.textColor = Color.white;
+            _pickupSecondaryActiveTextStyle.normal.textColor = PrimaryTextColor;
 
             _activePresetAccentTextStyle = new GUIStyle(_pickupPrimaryTextStyle);
-            _activePresetAccentTextStyle.normal.textColor = PanelBorderColor;
+            _activePresetAccentTextStyle.normal.textColor = SecondaryColor;
 
             _pickupFilterButtonStyle = new GUIStyle(_buttonStyle);
+            _pickupFilterButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.NonFunctionalButtonBackground, DashboardTheme.NonFunctionalButtonBackground, 2, 2);
+            _pickupFilterButtonStyle.hover.background = MakeInsetBorderedTexture(ButtonHoverColor, DashboardTheme.NonFunctionalButtonBackground, 2, 2);
+            _pickupFilterButtonStyle.active.background = MakeInsetBorderedTexture(ButtonActiveColor, DashboardTheme.NonFunctionalButtonBackground, 2, 2);
             _pickupFilterButtonStyle.fontSize = 13;
 
+            _pickupFilterFocusButtonStyle = new GUIStyle(_pickupFilterButtonStyle);
+            _pickupFilterFocusButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.ControllerFocusButtonBackground, DashboardTheme.NonFunctionalButtonBackground, 2, 2);
+            _pickupFilterFocusButtonStyle.hover.background = _pickupFilterFocusButtonStyle.normal.background;
+            _pickupFilterFocusButtonStyle.active.background = _pickupFilterFocusButtonStyle.normal.background;
+            _pickupFilterFocusButtonStyle.normal.textColor = DashboardTheme.GetContrastingText(DashboardTheme.ControllerFocusButtonBackground);
+            _pickupFilterFocusButtonStyle.hover.textColor = _pickupFilterFocusButtonStyle.normal.textColor;
+            _pickupFilterFocusButtonStyle.active.textColor = _pickupFilterFocusButtonStyle.normal.textColor;
+
             _pickupFilterActiveButtonStyle = new GUIStyle(_buttonStyle);
-            _pickupFilterActiveButtonStyle.normal.background = MakeTexture(1, 1, ButtonActiveColor);
-            _pickupFilterActiveButtonStyle.hover.background = MakeTexture(1, 1, ButtonActiveColor);
-            _pickupFilterActiveButtonStyle.active.background = MakeTexture(1, 1, ButtonActiveColor);
+            _pickupFilterActiveButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.NonFunctionalButtonBackground, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+            _pickupFilterActiveButtonStyle.hover.background = MakeInsetBorderedTexture(ButtonHoverColor, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+            _pickupFilterActiveButtonStyle.active.background = MakeInsetBorderedTexture(ButtonActiveColor, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
             _pickupFilterActiveButtonStyle.fontSize = 13;
 
+            _pickupFilterActiveFocusButtonStyle = new GUIStyle(_pickupFilterActiveButtonStyle);
+            _pickupFilterActiveFocusButtonStyle.normal.background = MakeInsetBorderedTexture(DashboardTheme.ControllerFocusButtonBackground, DashboardTheme.NonFunctionalButtonSelectedBorder, 2, 2);
+            _pickupFilterActiveFocusButtonStyle.hover.background = _pickupFilterActiveFocusButtonStyle.normal.background;
+            _pickupFilterActiveFocusButtonStyle.active.background = _pickupFilterActiveFocusButtonStyle.normal.background;
+            _pickupFilterActiveFocusButtonStyle.normal.textColor = DashboardTheme.GetContrastingText(DashboardTheme.ControllerFocusButtonBackground);
+            _pickupFilterActiveFocusButtonStyle.hover.textColor = _pickupFilterActiveFocusButtonStyle.normal.textColor;
+            _pickupFilterActiveFocusButtonStyle.active.textColor = _pickupFilterActiveFocusButtonStyle.normal.textColor;
+
             _pickupFilterDisabledButtonStyle = new GUIStyle(_buttonStyle);
-            _pickupFilterDisabledButtonStyle.normal.background = MakeTexture(1, 1, new Color(0.16f, 0.13f, 0.09f, 0.72f));
+            _pickupFilterDisabledButtonStyle.normal.background = MakeTexture(1, 1, DisabledButtonBackgroundColor);
             _pickupFilterDisabledButtonStyle.hover.background = _pickupFilterDisabledButtonStyle.normal.background;
             _pickupFilterDisabledButtonStyle.active.background = _pickupFilterDisabledButtonStyle.normal.background;
-            _pickupFilterDisabledButtonStyle.normal.textColor = new Color(0.60f, 0.57f, 0.50f, 0.92f);
+            _pickupFilterDisabledButtonStyle.border = new RectOffset(0, 0, 0, 0);
+            _pickupFilterDisabledButtonStyle.normal.textColor = PanelBackgroundColor;
             _pickupFilterDisabledButtonStyle.hover.textColor = _pickupFilterDisabledButtonStyle.normal.textColor;
             _pickupFilterDisabledButtonStyle.active.textColor = _pickupFilterDisabledButtonStyle.normal.textColor;
             _pickupFilterDisabledButtonStyle.fontSize = 13;
 
-            _pickupIconFallbackStyle = new GUIStyle(GUI.skin.box);
-            _pickupIconFallbackStyle.normal.background = MakeTexture(1, 1, ButtonBackgroundColor);
+            _pickupIconBackgroundStyle = new GUIStyle(GUI.skin.box);
+            _pickupIconBackgroundStyle.normal.background = MakeTexture(1, 1, PanelBackgroundColor);
+            _pickupIconBackgroundStyle.border = new RectOffset(0, 0, 0, 0);
+
+            _pickupIconFallbackStyle = new GUIStyle(_pickupIconBackgroundStyle);
             _pickupIconFallbackStyle.normal.textColor = PrimaryTextColor;
             _pickupIconFallbackStyle.alignment = TextAnchor.MiddleCenter;
             _pickupIconFallbackStyle.fontStyle = FontStyle.Bold;
 
             _modalOverlayStyle = new GUIStyle(GUI.skin.box);
-            _modalOverlayStyle.normal.background = MakeTexture(1, 1, new Color(0f, 0f, 0f, 0.56f));
+            _modalOverlayStyle.normal.background = MakeTexture(1, 1, DashboardTheme.ModalOverlay);
             _modalOverlayStyle.border = new RectOffset(0, 0, 0, 0);
 
             _modalPanelStyle = new GUIStyle(GUI.skin.box);
-            _modalPanelStyle.normal.background = MakeBorderedTexture(new Color(0.10f, 0.11f, 0.14f, 0.97f), PanelBorderColor);
-            _modalPanelStyle.border = new RectOffset(2, 2, 2, 2);
+            _modalPanelStyle.normal.background = MakeTripleBorderedTexture(
+                PanelBackgroundColor,
+                PanelBorderColor,
+                DashboardTheme.PanelMiddleBorder,
+                InnerBorderColor,
+                5,
+                7,
+                5);
+            _modalPanelStyle.border = new RectOffset(17, 17, 17, 17);
             _modalPanelStyle.padding = new RectOffset(14, 14, 14, 14);
 
             _modalBodyStyle = new GUIStyle(_hintStyle);
             _modalBodyStyle.wordWrap = true;
 
             _settingsInfoTextStyle = new GUIStyle(_hintStyle);
-            _settingsInfoTextStyle.normal.textColor = Color.white;
+            _settingsInfoTextStyle.normal.textColor = PrimaryTextColor;
             _settingsInfoTextStyle.wordWrap = true;
 
             _controllerHelpTitleStyle = new GUIStyle(_titleStyle);
-            _controllerHelpTitleStyle.normal.textColor = Color.white;
+            _controllerHelpTitleStyle.normal.textColor = PrimaryTextColor;
 
             _controllerHelpTextStyle = new GUIStyle(_hintStyle);
-            _controllerHelpTextStyle.normal.textColor = Color.white;
+            _controllerHelpTextStyle.normal.textColor = PrimaryTextColor;
 
         }
 
@@ -363,6 +566,113 @@ namespace RandomLoadout
             texture.SetPixels(pixels);
             // Keep the bordered texture crisp when Unity stretches it with nine-slice rendering;
             // bilinear sampling would blend the border color into the solid fill.
+            texture.filterMode = FilterMode.Point;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.Apply();
+            return texture;
+        }
+
+        private static Texture2D MakeInsetBorderedTexture(
+            Color fillColor,
+            Color borderColor,
+            int inset,
+            int borderThickness)
+        {
+            Texture2D texture = new Texture2D(16, 16);
+            texture.hideFlags = HideFlags.HideAndDontSave;
+
+            Color[] pixels = new Color[256];
+            int borderInset = Mathf.Clamp(inset, 1, 5);
+            int thickness = Mathf.Clamp(borderThickness, 1, 4);
+            int borderStart = borderInset;
+            int borderEnd = 16 - borderInset;
+
+            for (int y = 0; y < 16; y++)
+            {
+                for (int x = 0; x < 16; x++)
+                {
+                    bool isBorderPixel = x >= borderStart
+                        && x < borderStart + thickness
+                        && y >= borderStart
+                        && y < borderEnd
+                        || x < borderEnd
+                        && x >= borderEnd - thickness
+                        && y >= borderStart
+                        && y < borderEnd
+                        || y >= borderStart
+                        && y < borderStart + thickness
+                        && x >= borderStart
+                        && x < borderEnd
+                        || y < borderEnd
+                        && y >= borderEnd - thickness
+                        && x >= borderStart
+                        && x < borderEnd;
+
+                    pixels[(y * 16) + x] = isBorderPixel ? borderColor : fillColor;
+                }
+            }
+
+            texture.SetPixels(pixels);
+            texture.filterMode = FilterMode.Point;
+            texture.wrapMode = TextureWrapMode.Clamp;
+            texture.Apply();
+            return texture;
+        }
+
+        private static Texture2D MakeTripleBorderedTexture(
+            Color fillColor,
+            Color outerBorderColor,
+            Color middleBorderColor,
+            Color innerBorderColor,
+            int outerBorderThickness,
+            int middleBorderThickness,
+            int innerBorderThickness)
+        {
+            Texture2D texture = new Texture2D(32, 32);
+            texture.hideFlags = HideFlags.HideAndDontSave;
+
+            Color[] pixels = new Color[1024];
+            int outerThickness = Mathf.Clamp(outerBorderThickness, 1, 4);
+            int middleThickness = Mathf.Clamp(middleBorderThickness, 1, 8);
+            int innerThickness = Mathf.Clamp(innerBorderThickness, 1, 4);
+            int middleStart = outerThickness;
+            int innerStart = middleStart + middleThickness;
+            int innerEnd = 32 - innerStart;
+
+            for (int y = 0; y < 32; y++)
+            {
+                for (int x = 0; x < 32; x++)
+                {
+                    bool isOuterBorder = x < outerThickness
+                        || x >= 32 - outerThickness
+                        || y < outerThickness
+                        || y >= 32 - outerThickness;
+                    bool isMiddleBorder = x >= middleStart
+                        && x < middleStart + middleThickness
+                        || x < 32 - middleStart
+                        && x >= 32 - middleStart - middleThickness
+                        || y >= middleStart
+                        && y < middleStart + middleThickness
+                        || y < 32 - middleStart
+                        && y >= 32 - middleStart - middleThickness;
+                    bool isInnerBorder = x >= innerStart
+                        && x < innerStart + innerThickness
+                        || x < innerEnd
+                        && x >= innerEnd - innerThickness
+                        || y >= innerStart
+                        && y < innerStart + innerThickness
+                        || y < innerEnd
+                        && y >= innerEnd - innerThickness;
+
+                    pixels[(y * 32) + x] = isOuterBorder
+                        ? outerBorderColor
+                        : (isMiddleBorder
+                            ? middleBorderColor
+                            : (isInnerBorder ? innerBorderColor : fillColor));
+                }
+            }
+
+            texture.SetPixels(pixels);
             texture.filterMode = FilterMode.Point;
             texture.wrapMode = TextureWrapMode.Clamp;
             texture.Apply();

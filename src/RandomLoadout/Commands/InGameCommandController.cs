@@ -39,6 +39,8 @@ namespace RandomLoadout
             System.Action<bool> controllerShortcutEnabledSetter,
             System.Func<string> uiScalePresetProvider,
             System.Action<string> uiScalePresetSetter,
+            System.Func<string> themeProvider,
+            System.Action<string> themeSetter,
             System.Func<bool> startItemsPresetIconsEnabledProvider,
             System.Action<bool> startItemsPresetIconsEnabledSetter,
             System.Func<bool> playerStatsPanelShownProvider,
@@ -64,6 +66,10 @@ namespace RandomLoadout
             System.Func<bool> floorTeleportVerboseLoggingEnabledProvider,
             System.Func<bool> commandPanelHealthVerboseLoggingEnabledProvider,
             System.Func<bool> commandPanelCursorVerboseLoggingEnabledProvider,
+            System.Func<bool> commandPanelGameplayInputVerboseLoggingEnabledProvider,
+            System.Func<bool> commandPanelControllerGameplayInputVerboseLoggingEnabledProvider,
+            System.Func<string> combatCursorColorProvider,
+            System.Action<string> combatCursorColorSetter,
             System.Func<EtgFloorDefinition, string, string, bool> deferredTeleportRequestHandler)
         {
             _commandService = commandService;
@@ -96,6 +102,8 @@ namespace RandomLoadout
             _controllerShortcutEnabledSetter = controllerShortcutEnabledSetter;
             _uiScalePresetProvider = uiScalePresetProvider;
             _uiScalePresetSetter = uiScalePresetSetter;
+            _themeProvider = themeProvider;
+            _themeSetter = themeSetter;
             _startItemsPresetIconsEnabledProvider = startItemsPresetIconsEnabledProvider;
             _startItemsPresetIconsEnabledSetter = startItemsPresetIconsEnabledSetter;
             _playerStatsPanelShownProvider = playerStatsPanelShownProvider;
@@ -121,6 +129,10 @@ namespace RandomLoadout
             _floorTeleportVerboseLoggingEnabledProvider = floorTeleportVerboseLoggingEnabledProvider;
             _commandPanelHealthVerboseLoggingEnabledProvider = commandPanelHealthVerboseLoggingEnabledProvider;
             _commandPanelCursorVerboseLoggingEnabledProvider = commandPanelCursorVerboseLoggingEnabledProvider;
+            _commandPanelGameplayInputVerboseLoggingEnabledProvider = commandPanelGameplayInputVerboseLoggingEnabledProvider;
+            _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider = commandPanelControllerGameplayInputVerboseLoggingEnabledProvider;
+            _combatCursorColorProvider = combatCursorColorProvider;
+            _combatCursorColorSetter = combatCursorColorSetter;
             _deferredTeleportRequestHandler = deferredTeleportRequestHandler;
             _showPlayerStatsPanel = _playerStatsPanelShownProvider != null && _playerStatsPanelShownProvider();
             _showPickupInfoOverlay = _pickupInfoOverlayEnabledProvider == null || _pickupInfoOverlayEnabledProvider();
@@ -139,6 +151,8 @@ namespace RandomLoadout
         public void Update()
         {
             SyncPanelInputOverride();
+            LogGameplayKeyboardInputState();
+            LogControllerGameplayInputState();
             LogJoystickButtonStateChanges();
             LogControllerStickStateChanges();
             LogHealthDiagnosticStateChanges();
@@ -225,6 +239,10 @@ namespace RandomLoadout
             {
                 panelHeight = KeyboardHelpPanelHeight;
             }
+            else if (_isVisible && _currentPage == PanelPage.CursorColor)
+            {
+                panelHeight = CursorColorPanelHeight;
+            }
 
             Matrix4x4 previousGuiMatrix = GUI.matrix;
             GUI.matrix = GetAutoScaledGuiMatrix();
@@ -238,7 +256,7 @@ namespace RandomLoadout
                 }
 
                 Rect panelRect = GetMainPanelRect(panelHeight);
-                GUI.Box(panelRect, GUIContent.none, _panelStyle);
+                GUI.Box(ExpandPanelBorderRect(panelRect), GUIContent.none, _panelStyle);
                 DrawTeleportPanelIfEnabled(panelRect, logger);
                 if (_currentPage == PanelPage.Characters)
                 {
@@ -291,6 +309,12 @@ namespace RandomLoadout
                 if (_currentPage == PanelPage.KeyboardHelp)
                 {
                     DrawKeyboardHelpPage(panelRect);
+                    return;
+                }
+
+                if (_currentPage == PanelPage.CursorColor)
+                {
+                    DrawCursorColorPage(panelRect);
                     return;
                 }
 
@@ -399,6 +423,9 @@ namespace RandomLoadout
                     return;
                 case PanelPage.KeyboardHelp:
                     HandleKeyboardHelpPageControllerNavigation(isControllerBackPressed);
+                    return;
+                case PanelPage.CursorColor:
+                    HandleCursorColorPageControllerNavigation(isControllerBackPressed);
                     return;
                 case PanelPage.Pickups:
                     HandlePickupPageControllerNavigation(isControllerBackPressed);
@@ -1225,6 +1252,155 @@ namespace RandomLoadout
             }
         }
 
+        private void LogGameplayKeyboardInputState()
+        {
+            if (!IsCommandPanelGameplayInputVerboseLoggingEnabled())
+            {
+                _hasLoggedGameplayInputState = false;
+                return;
+            }
+
+            bool isWPressed = Input.GetKey(KeyCode.W);
+            bool isAPressed = Input.GetKey(KeyCode.A);
+            bool isSPressed = Input.GetKey(KeyCode.S);
+            bool isDPressed = Input.GetKey(KeyCode.D);
+            PlayerController player = GetCurrentPlayer();
+            bool isInputOverridden = (object)player != null && player.IsInputOverridden;
+            string inputState = (object)player != null ? player.CurrentInputState.ToString() : "<none>";
+            bool stateChanged = !_hasLoggedGameplayInputState ||
+                _lastLoggedGameplayPanelVisible != _isVisible ||
+                _lastLoggedGameplayW != isWPressed ||
+                _lastLoggedGameplayA != isAPressed ||
+                _lastLoggedGameplayS != isSPressed ||
+                _lastLoggedGameplayD != isDPressed ||
+                _lastLoggedGameplayInputOverridden != isInputOverridden ||
+                !string.Equals(_lastLoggedGameplayInputState, inputState, System.StringComparison.Ordinal);
+            if (!stateChanged)
+            {
+                return;
+            }
+
+            LogGamepadShortcutState(
+                "Observed gameplay keyboard input state. PanelVisible=" +
+                _isVisible +
+                ", Page=" +
+                _currentPage +
+                ", W=" +
+                isWPressed +
+                ", A=" +
+                isAPressed +
+                ", S=" +
+                isSPressed +
+                ", D=" +
+                isDPressed +
+                ", PlayerId=" +
+                ((object)player != null ? player.GetInstanceID().ToString() : "<none>") +
+                ", IsInputOverridden=" +
+                isInputOverridden +
+                ", CurrentInputState=" +
+                inputState +
+                ", CurrentFocus=" +
+                GUIUtility.keyboardControl +
+                ".");
+
+            _hasLoggedGameplayInputState = true;
+            _lastLoggedGameplayPanelVisible = _isVisible;
+            _lastLoggedGameplayW = isWPressed;
+            _lastLoggedGameplayA = isAPressed;
+            _lastLoggedGameplayS = isSPressed;
+            _lastLoggedGameplayD = isDPressed;
+            _lastLoggedGameplayInputOverridden = isInputOverridden;
+            _lastLoggedGameplayInputState = inputState;
+        }
+
+        private void LogControllerGameplayInputState()
+        {
+            if (!IsCommandPanelControllerGameplayInputVerboseLoggingEnabled())
+            {
+                _hasLoggedControllerGameplayInputState = false;
+                return;
+            }
+
+            BraveInput braveInput = BraveInput.PrimaryPlayerInstance;
+            if ((object)braveInput == null)
+            {
+                braveInput = BraveInput.PlayerlessInstance;
+            }
+
+            InControl.InputDevice activeDevice =
+                (object)braveInput != null && braveInput.ActiveActions != null
+                    ? braveInput.ActiveActions.Device
+                    : null;
+            string device = activeDevice == null
+                ? "<none>"
+                : activeDevice.DeviceClass + "/" + activeDevice.GetType().Name;
+            float dpadX = activeDevice != null && activeDevice.DPadX != null ? activeDevice.DPadX.Value : 0f;
+            float dpadY = activeDevice != null && activeDevice.DPadY != null ? activeDevice.DPadY.Value : 0f;
+            float leftStickX = activeDevice != null && activeDevice.LeftStickX != null ? activeDevice.LeftStickX.Value : 0f;
+            float leftStickY = activeDevice != null && activeDevice.LeftStickY != null ? activeDevice.LeftStickY.Value : 0f;
+            float rightStickX = activeDevice != null && activeDevice.RightStickX != null ? activeDevice.RightStickX.Value : 0f;
+            float rightStickY = activeDevice != null && activeDevice.RightStickY != null ? activeDevice.RightStickY.Value : 0f;
+            PlayerController player = GetCurrentPlayer();
+            bool isInputOverridden = (object)player != null && player.IsInputOverridden;
+            string inputState = (object)player != null ? player.CurrentInputState.ToString() : "<none>";
+            bool stateChanged = !_hasLoggedControllerGameplayInputState ||
+                _lastLoggedControllerGameplayPanelVisible != _isVisible ||
+                !string.Equals(_lastLoggedControllerGameplayDevice, device, System.StringComparison.Ordinal) ||
+                _lastLoggedControllerGameplayInputOverridden != isInputOverridden ||
+                !string.Equals(_lastLoggedControllerGameplayInputState, inputState, System.StringComparison.Ordinal) ||
+                Mathf.Abs(_lastLoggedControllerGameplayDpadHorizontal - dpadX) > 0.01f ||
+                Mathf.Abs(_lastLoggedControllerGameplayDpadVertical - dpadY) > 0.01f ||
+                Mathf.Abs(_lastLoggedControllerGameplayLeftStickHorizontal - leftStickX) > 0.01f ||
+                Mathf.Abs(_lastLoggedControllerGameplayLeftStickVertical - leftStickY) > 0.01f ||
+                Mathf.Abs(_lastLoggedControllerGameplayRightStickHorizontal - rightStickX) > 0.01f ||
+                Mathf.Abs(_lastLoggedControllerGameplayRightStickVertical - rightStickY) > 0.01f;
+            if (!stateChanged)
+            {
+                return;
+            }
+
+            LogGamepadShortcutState(
+                "Observed gameplay controller input state. PanelVisible=" +
+                _isVisible +
+                ", Page=" +
+                _currentPage +
+                ", Device=" +
+                device +
+                ", DPad=" +
+                dpadX.ToString("F2") +
+                "," +
+                dpadY.ToString("F2") +
+                ", LeftStick=" +
+                leftStickX.ToString("F2") +
+                "," +
+                leftStickY.ToString("F2") +
+                ", RightStick=" +
+                rightStickX.ToString("F2") +
+                "," +
+                rightStickY.ToString("F2") +
+                ", PlayerId=" +
+                ((object)player != null ? player.GetInstanceID().ToString() : "<none>") +
+                ", IsInputOverridden=" +
+                isInputOverridden +
+                ", CurrentInputState=" +
+                inputState +
+                ", CurrentFocus=" +
+                GUIUtility.keyboardControl +
+                ".");
+
+            _hasLoggedControllerGameplayInputState = true;
+            _lastLoggedControllerGameplayPanelVisible = _isVisible;
+            _lastLoggedControllerGameplayDevice = device;
+            _lastLoggedControllerGameplayInputOverridden = isInputOverridden;
+            _lastLoggedControllerGameplayInputState = inputState;
+            _lastLoggedControllerGameplayDpadHorizontal = dpadX;
+            _lastLoggedControllerGameplayDpadVertical = dpadY;
+            _lastLoggedControllerGameplayLeftStickHorizontal = leftStickX;
+            _lastLoggedControllerGameplayLeftStickVertical = leftStickY;
+            _lastLoggedControllerGameplayRightStickHorizontal = rightStickX;
+            _lastLoggedControllerGameplayRightStickVertical = rightStickY;
+        }
+
         private void LogDisabledKeyboardNavigationKeyAttempt(KeyCode keyCode, string mappedDirection)
         {
             LogGamepadShortcutState(
@@ -1496,28 +1672,9 @@ namespace RandomLoadout
                 _panelInputOverridePlayer = null;
             }
 
-            if ((object)currentPlayer == null || ReferenceEquals(_panelInputOverridePlayer, currentPlayer))
-            {
-                return;
-            }
-
-            // While the command panel is open, controller and keyboard navigation must not also reach
-            // ETG gameplay input. If the same D-pad / left-right input leaks through to gun switching,
-            // ETG can briefly rebuild the player's runtime health state from the newly selected gun and
-            // roll max health back to the vanilla baseline. Our health-override service then restores it,
-            // which makes the HUD replay the "heart gained" / "armor gained" animation even though the
-            // visible values end up unchanged. The input override keeps panel navigation isolated so the
-            // menu can move focus without also causing hidden gameplay-side gun changes.
-            currentPlayer.SetInputOverride(PanelInputOverrideReason);
-            _panelInputOverridePlayer = currentPlayer;
-            LogCommandPanelHealthDiagnostic(
-                "Applied command panel input override. PlayerId=" +
-                currentPlayer.GetInstanceID() +
-                ", CurrentInputState=" +
-                currentPlayer.CurrentInputState +
-                ", IsInputOverridden=" +
-                currentPlayer.IsInputOverridden +
-                ".");
+            // Panel navigation reads D-pad input directly. Do not put the player into NoInput here:
+            // ETG's input override also blocks the controller left stick used for gameplay movement.
+            ClearPanelInputOverride();
         }
 
         private void ClearPanelInputOverride()
@@ -1549,6 +1706,18 @@ namespace RandomLoadout
         {
             return _commandPanelCursorVerboseLoggingEnabledProvider != null &&
                 _commandPanelCursorVerboseLoggingEnabledProvider();
+        }
+
+        private bool IsCommandPanelGameplayInputVerboseLoggingEnabled()
+        {
+            return _commandPanelGameplayInputVerboseLoggingEnabledProvider != null &&
+                _commandPanelGameplayInputVerboseLoggingEnabledProvider();
+        }
+
+        private bool IsCommandPanelControllerGameplayInputVerboseLoggingEnabled()
+        {
+            return _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider != null &&
+                _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider();
         }
 
         private void LogCommandPanelHealthDiagnostic(string message)
@@ -2002,13 +2171,21 @@ namespace RandomLoadout
         {
             float desiredPanelWidth = _currentPage == PanelPage.LoadoutEditor
                 ? LoadoutEditorPanelWidth
-                : PanelWidth;
+                : _currentPage == PanelPage.Settings
+                    ? SettingsPanelWidth
+                    : PanelWidth;
             float panelWidth = Mathf.Min(desiredPanelWidth, Mathf.Max(1f, GetScaledScreenWidth() - 24f));
             return new Rect(
                 (GetScaledScreenWidth() - panelWidth) * 0.5f,
                 GetScaledScreenHeight() - PanelBottomMargin - panelHeight,
                 panelWidth,
                 panelHeight);
+        }
+
+        private static Rect ExpandPanelBorderRect(Rect rect)
+        {
+            float border = DashboardTheme.PanelBorderThickness;
+            return new Rect(rect.x - border, rect.y - border, rect.width + (border * 2f), rect.height + (border * 2f));
         }
 
         private float GetUiScaleMultiplier()

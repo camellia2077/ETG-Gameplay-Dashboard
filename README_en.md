@@ -7,6 +7,8 @@
 
 `ETG-Gameplay-Dashboard` is an `Enter the Gungeon` gameplay experience optimization project built on `BepInEx`.
 
+This project is licensed as `GPL-3.0-only`; see [LICENSE](LICENSE).
+
 The project currently focuses on making run setup easier and more visual:
 
 - graphical item category browsing and selection
@@ -17,7 +19,7 @@ It is primarily designed to improve the gameplay workflow rather than only act a
 
 ## Installation & Usage
 
-1. Prefer downloading the latest release package (e.g., `ETG-Gameplay-Dashboard-vX.Y.Z-ETG.zip`) from the official [GitHub Releases](https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases) page so you can verify integrity and avoid repackaged builds with ads or tampering.
+1. Prefer downloading the latest release package (e.g., `ETG-Gameplay-Dashboard-vX.Y.Z-ETG.zip`) from [this project's GitHub repository Releases page](https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases) so you can verify integrity and avoid repackaged builds with ads or tampering.
 2. Find the game installation folder for `Enter the Gungeon` on Windows.
    - It is typically located at: `steam\steamapps\common\Enter the Gungeon`.
    - **Quick Tip**: In your Steam Library, right-click `Enter the Gungeon` -> **Manage** -> **Browse local files** to open the directory directly.
@@ -48,7 +50,7 @@ Some Chinese item-name text used during development was also partially reference
 
 - <https://github.com/Lynx3x/etg-itemtips-cn>
 
-That repository is published under the `MIT License`. This project only references and incorporates a subset of its Chinese text results and does not fully reuse or redistribute that repository as-is.
+That external repository is published under the `MIT License`; this applies only to that repository's content and does not change this project's overall `GPL-3.0-only` license. This project only references and incorporates a subset of its Chinese text results and does not fully reuse or redistribute that repository as-is.
 
 This is an unofficial community project and is not affiliated with `wiki.gg`, `Dodge Roll`, or `Devolver Digital`. Original content licensing and site terms should be interpreted according to the source pages and the relevant upstream project or site notices.
 

@@ -7,6 +7,8 @@
 
 `ETG-Gameplay-Dashboard` 是一个基于 `BepInEx` 的《挺进地牢》（Enter the Gungeon）游戏体验优化项目。
 
+本项目整体采用 `GPL-3.0-only` 许可证，详见 [LICENSE](LICENSE)。
+
 本项目目前主要专注于简化开局流程并提供更具视觉化的体验：
 
 - 图形化的物品类别浏览与筛选
@@ -17,7 +19,7 @@
 
 ## 安装与使用
 
-1. 建议优先从 [GitHub Releases 官方发布页](https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases) 下载最新版本的发布压缩包（如 `ETG-Gameplay-Dashboard-vX.Y.Z-ETG.zip`），这样更方便校验完整性，也能避免第三方打包版本被加广告或篡改。
+1. 建议优先从[本项目 GitHub 仓库的 Releases 页面](https://github.com/camellia2077/ETG-Gameplay-Dashboard/releases)下载最新版本的发布压缩包（如 `ETG-Gameplay-Dashboard-vX.Y.Z-ETG.zip`），这样更方便校验完整性，也能避免第三方打包版本被加广告或篡改。
 2. 找到 Windows 上《挺进地牢》（Enter the Gungeon）的游戏安装目录。
    - 通常位于：`steam\steamapps\common\Enter the Gungeon`。
    - **快速查找方法**：在 Steam 库中，右键点击左侧列表的《挺进地牢》游戏，选择 **管理** -> **浏览本地文件** 即可直接打开游戏目录。
@@ -48,7 +50,7 @@
 
 - <https://github.com/Lynx3x/etg-itemtips-cn>
 
-该仓库公开标注为 `MIT License`。本项目仅参考并吸收了其中的部分中文文本结果，并未完整复用或原样分发该仓库全部内容。
+该外部仓库公开标注为 `MIT License`；这仅适用于该仓库的内容，不改变本项目整体采用的 `GPL-3.0-only` 许可证。本项目仅参考并吸收了其中的部分中文文本结果，并未完整复用或原样分发该仓库全部内容。
 
 本项目为非官方社区项目，与 `wiki.gg`、`Dodge Roll` 或 `Devolver Digital` 无隶属关系。原始内容的许可与站点条款请以来源页面及 `wiki.gg` 的相关说明为准。
 

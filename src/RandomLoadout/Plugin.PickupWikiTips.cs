@@ -32,18 +32,91 @@ namespace RandomLoadout
         private const int PickupWikiTipTitleFontSize = 26;
         private const int PickupWikiTipSectionLabelFontSize = 22;
         private const int PickupWikiTipBodyFontSize = 18;
-        
+        private const float PickupWikiTipSectionLabelValueGap = 2f;
+        private const float PickupWikiTipSectionLabelOutlineSize = 1f;
 
-        private static readonly Color PickupWikiTipPanelColor = new Color(0.07f, 0.08f, 0.10f, 0.94f);
-        private static readonly Color PickupWikiTipBorderColor = new Color(0.97f, 0.63f, 0.10f, 0.96f);
-        private static readonly Color PickupWikiTipTitleColor = new Color(0.98f, 0.96f, 0.90f, 1f);
-        private static readonly Color PickupWikiTipBodyColor = new Color(0.93f, 0.92f, 0.88f, 1f);
-        private static readonly Color PickupInfoQualityLabelColor = new Color(0.99f, 0.86f, 0.38f, 1f);
-        private static readonly Color PickupInfoTypeLabelColor = new Color(0.67f, 0.84f, 0.98f, 1f);
-        private static readonly Color PickupInfoSummaryLabelColor = new Color(0.96f, 0.96f, 0.96f, 1f);
-        private static readonly Color PickupInfoEffectsLabelColor = new Color(0.62f, 0.92f, 0.65f, 1f);
-        private static readonly Color PickupInfoSynergiesLabelColor = new Color(0.52f, 0.92f, 0.88f, 1f);
-        private static readonly Color PickupInfoNotesLabelColor = new Color(0.79f, 0.85f, 0.95f, 1f);
+        private sealed class PickupInfoTextBlock
+        {
+            public PickupInfoTextBlock(string sectionKey, string label, string text, int labelFontSize, int fontSize, float spacingBefore)
+            {
+                SectionKey = sectionKey ?? string.Empty;
+                Label = label ?? string.Empty;
+                Text = text ?? string.Empty;
+                LabelFontSize = labelFontSize;
+                FontSize = fontSize;
+                SpacingBefore = spacingBefore;
+            }
+
+            // SectionKey selects only the localized label and its theme color.
+            // It must never affect Text or the neutral body color used to render Text.
+            public string SectionKey { get; private set; }
+            public string Label { get; private set; }
+            public string Text { get; private set; }
+            public int LabelFontSize { get; private set; }
+            public int FontSize { get; private set; }
+            public float SpacingBefore { get; private set; }
+
+            public bool HasLabel { get { return !string.IsNullOrEmpty(Label); } }
+        }
+
+        private sealed class PickupInfoTextBlockLayout
+        {
+            public PickupInfoTextBlockLayout(
+                PickupInfoTextBlock block,
+                GUIStyle labelStyle,
+                GUIStyle labelOutlineStyle,
+                GUIStyle textStyle,
+                float labelHeight,
+                float textHeight)
+            {
+                Block = block;
+                LabelStyle = labelStyle;
+                LabelOutlineStyle = labelOutlineStyle;
+                TextStyle = textStyle;
+                LabelHeight = labelHeight;
+                TextHeight = textHeight;
+            }
+
+            public PickupInfoTextBlock Block { get; private set; }
+            public GUIStyle LabelStyle { get; private set; }
+            public GUIStyle LabelOutlineStyle { get; private set; }
+            public GUIStyle TextStyle { get; private set; }
+            public float LabelHeight { get; private set; }
+            public float TextHeight { get; private set; }
+        }
+
+        private sealed class PickupInfoBodyLayout
+        {
+            public PickupInfoBodyLayout(PickupInfoTextBlockLayout[] blocks, float width, float height)
+            {
+                Blocks = blocks ?? new PickupInfoTextBlockLayout[0];
+                Width = width;
+                Height = height;
+            }
+
+            public PickupInfoTextBlockLayout[] Blocks { get; private set; }
+            public float Width { get; private set; }
+            public float Height { get; private set; }
+        }
+
+        private static Color PickupWikiTipPanelColor { get { return DashboardTheme.PanelBackground; } }
+        private static Color PickupWikiTipOuterBorderColor { get { return DashboardTheme.PanelOuterBorder; } }
+        private static Color PickupWikiTipInnerBorderColor { get { return DashboardTheme.PanelInnerBorder; } }
+        private static Color PickupWikiTipTitleColor { get { return DashboardTheme.PickupInfoTitle; } }
+        private static Color PickupWikiTipBodyColor { get { return DashboardTheme.PickupInfoBody; } }
+        private static Color PickupInfoQualityLabelColor { get { return DashboardTheme.PickupInfoQualityLabel; } }
+        private static Color PickupInfoTypeLabelColor { get { return DashboardTheme.PickupInfoTypeLabel; } }
+        private static Color PickupInfoSummaryLabelColor { get { return DashboardTheme.PickupInfoSummaryLabel; } }
+        private static Color PickupInfoEffectsLabelColor { get { return DashboardTheme.PickupInfoEffectsLabel; } }
+        private static Color PickupInfoSynergiesLabelColor { get { return DashboardTheme.PickupInfoSynergiesLabel; } }
+        private static Color PickupInfoNotesLabelColor { get { return DashboardTheme.PickupInfoNotesLabel; } }
+
+        internal void RefreshPickupWikiTipTheme()
+        {
+            _pickupWikiTipPanelStyle = null;
+            _pickupWikiTipTitleStyle = null;
+            _pickupWikiTipBodyStyle = null;
+        }
 
         private void DrawNearbyPickupTipOverlay()
         {
@@ -84,14 +157,15 @@ namespace RandomLoadout
                 float scaledScreenHeight = Screen.height / scale;
                 float contentWidth = Mathf.Min(PickupWikiTipMaxWidth - 24f, scaledScreenWidth - 48f);
                 string displayName = GetPickupGameplayDisplayName(gameplayEntry);
-                string bodyText = BuildPickupGameplayBodyText(gameplayEntry);
-                if (string.IsNullOrEmpty(displayName) || string.IsNullOrEmpty(bodyText))
+                List<PickupInfoTextBlock> bodyBlocks = BuildPickupGameplayBodyBlocks(gameplayEntry);
+                if (string.IsNullOrEmpty(displayName) || bodyBlocks.Count == 0)
                 {
                     return;
                 }
 
                 float titleHeight = _pickupWikiTipTitleStyle.CalcHeight(new GUIContent(displayName), contentWidth);
-                float bodyHeight = _pickupWikiTipBodyStyle.CalcHeight(new GUIContent(bodyText), contentWidth);
+                PickupInfoBodyLayout bodyLayout = BuildPickupInfoBodyLayout(bodyBlocks, contentWidth);
+                float bodyHeight = bodyLayout.Height;
                 float availableHeight = Mathf.Max(
                     PickupWikiTipMinHeight,
                     scaledScreenHeight - PickupWikiTipMarginTop - PickupWikiTipMarginBottom);
@@ -104,13 +178,28 @@ namespace RandomLoadout
 
                 float bodyViewportHeight = panelHeight - titleHeight - 22f;
                 bool needsScrollView = bodyHeight > bodyViewportHeight;
+                float scrollContentWidth = Mathf.Max(
+                    1f,
+                    contentWidth - SharedScrollViewStyles.ViewportScrollbarReserveWidth);
+                if (needsScrollView)
+                {
+                    bodyLayout = BuildPickupInfoBodyLayout(bodyBlocks, scrollContentWidth);
+                    bodyHeight = bodyLayout.Height;
+                }
+
                 Rect panelRect = new Rect(
                     scaledScreenWidth - PickupWikiTipMarginRight - PickupWikiTipMaxWidth,
                     PickupWikiTipMarginTop,
                     PickupWikiTipMaxWidth,
                     panelHeight);
 
-                GUI.Box(panelRect, GUIContent.none, _pickupWikiTipPanelStyle);
+                float border = DashboardTheme.PanelBorderThickness;
+                Rect panelBorderRect = new Rect(
+                    panelRect.x - border,
+                    panelRect.y - border,
+                    panelRect.width + (border * 2f),
+                    panelRect.height + (border * 2f));
+                GUI.Box(panelBorderRect, GUIContent.none, _pickupWikiTipPanelStyle);
                 Rect titleRect = new Rect(panelRect.x + 12f, panelRect.y + 10f, panelRect.width - 24f, titleHeight);
                 Rect bodyRect = new Rect(
                     panelRect.x + 12f,
@@ -128,14 +217,28 @@ namespace RandomLoadout
                 if (!needsScrollView)
                 {
                     _pickupWikiTipScrollPosition = Vector2.zero;
-                    GUI.Label(bodyRect, bodyText, _pickupWikiTipBodyStyle);
+                    GUI.BeginGroup(bodyRect);
+                    try
+                    {
+                        DrawPickupInfoBodyLayout(Vector2.zero, bodyLayout);
+                    }
+                    finally
+                    {
+                        GUI.EndGroup();
+                    }
                 }
                 else
                 {
-                    Rect viewRect = new Rect(0f, 0f, bodyRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, bodyHeight + 4f);
+                    Rect viewRect = new Rect(0f, 0f, scrollContentWidth, bodyHeight + 4f);
                     _pickupWikiTipScrollPosition = SharedScrollViewStyles.Begin(bodyRect, _pickupWikiTipScrollPosition, viewRect);
-                    GUI.Label(new Rect(0f, 0f, viewRect.width, bodyHeight), bodyText, _pickupWikiTipBodyStyle);
-                    GUI.EndScrollView();
+                    try
+                    {
+                        DrawPickupInfoBodyLayout(Vector2.zero, bodyLayout);
+                    }
+                    finally
+                    {
+                        GUI.EndScrollView();
+                    }
                 }
             }
             finally
@@ -183,50 +286,68 @@ namespace RandomLoadout
             return _nearbyPickupTipService != null ? _nearbyPickupTipService.CurrentDisplayName : string.Empty;
         }
 
-        private string BuildPickupGameplayBodyText(PickupGameplayEntry entry)
+        private List<PickupInfoTextBlock> BuildPickupGameplayBodyBlocks(PickupGameplayEntry entry)
         {
+            List<PickupInfoTextBlock> blocks = new List<PickupInfoTextBlock>();
             if (entry == null)
             {
-                return string.Empty;
+                return blocks;
             }
 
-            StringBuilder builder = new StringBuilder();
             if (IsPickupInfoQualityEnabled())
             {
-                AppendSection(builder, "quality", GetPickupInfoDisplayValue(entry.Quality));
+                AppendPickupInfoSectionBlock(blocks, "quality", GetPickupInfoDisplayValue(entry.Quality));
             }
 
             if (IsPickupInfoTypeEnabled())
             {
-                AppendSection(builder, "type", GetPickupInfoDisplayValue(entry.Type));
+                AppendPickupInfoSectionBlock(blocks, "type", GetPickupInfoDisplayValue(entry.Type));
             }
 
-            AppendStatGroups(builder, entry.StatSections);
+            AppendPickupInfoStatBlocks(blocks, entry.StatSections);
             if (IsPickupInfoEffectsEnabled())
             {
-                AppendSection(builder, "effects", GetLocalizedGameplayValue(entry.EnglishEffects, entry.ChineseEffects));
+                AppendPickupInfoSectionBlock(blocks, "effects", GetLocalizedGameplayValue(entry.EnglishEffects, entry.ChineseEffects));
             }
 
             if (IsPickupInfoSynergiesEnabled())
             {
-                AppendSection(builder, "synergies", GetLocalizedGameplayValue(entry.EnglishSynergies, entry.ChineseSynergies));
+                AppendPickupInfoSectionBlock(blocks, "synergies", GetLocalizedGameplayValue(entry.EnglishSynergies, entry.ChineseSynergies));
             }
             if (IsPickupInfoSummaryEnabled())
             {
-                AppendSection(builder, "summary", GetLocalizedGameplayValue(entry.EnglishGameplaySummary, entry.ChineseGameplaySummary));
+                AppendPickupInfoSectionBlock(blocks, "summary", GetLocalizedGameplayValue(entry.EnglishGameplaySummary, entry.ChineseGameplaySummary));
             }
 
             if (IsPickupInfoNotesEnabled())
             {
-                AppendSection(builder, "notes", GetLocalizedGameplayValue(entry.EnglishNotes, entry.ChineseNotes));
+                AppendPickupInfoSectionBlock(blocks, "notes", GetLocalizedGameplayValue(entry.EnglishNotes, entry.ChineseNotes));
             }
 
-            return builder.ToString().Trim();
+            return blocks;
         }
 
-        private void AppendStatGroups(StringBuilder builder, PickupGameplayStatSection[] statGroups)
+        private void AppendPickupInfoSectionBlock(List<PickupInfoTextBlock> blocks, string sectionKey, string value)
         {
-            if (builder == null || statGroups == null || statGroups.Length == 0)
+            string label = GetPickupInfoSectionLabel(sectionKey);
+            string trimmedValue = value != null ? value.Trim() : string.Empty;
+            if (blocks == null || string.IsNullOrEmpty(label) || string.IsNullOrEmpty(trimmedValue))
+            {
+                return;
+            }
+
+            blocks.Add(new PickupInfoTextBlock(
+                sectionKey,
+                label,
+                trimmedValue,
+                PickupWikiTipSectionLabelFontSize,
+                PickupWikiTipBodyFontSize,
+                blocks.Count > 0 ? 16f : 0f));
+        }
+
+        private void AppendPickupInfoStatBlocks(List<PickupInfoTextBlock> blocks, PickupGameplayStatSection[] statGroups)
+        {
+            if (blocks == null || statGroups == null || statGroups.Length == 0)
             {
                 return;
             }
@@ -251,63 +372,152 @@ namespace RandomLoadout
                     values.Add(BuildLabeledValue(GetPickupInfoLabel(stat.Key), GetPickupInfoDisplayValue(stat.Value)));
                 }
 
-                AppendInlineStats(builder, values.ToArray());
+                string statText = string.Join(" | ", values.ToArray());
+                if (!string.IsNullOrEmpty(statText))
+                {
+                    blocks.Add(new PickupInfoTextBlock(
+                        string.Empty,
+                        string.Empty,
+                        statText,
+                        0,
+                        PickupWikiTipBodyFontSize,
+                        blocks.Count > 0 ? 16f : 0f));
+                }
             }
         }
 
-        private static void AppendInlineStats(StringBuilder builder, string[] values)
+        private PickupInfoBodyLayout BuildPickupInfoBodyLayout(List<PickupInfoTextBlock> blocks, float width)
         {
-            if (builder == null || values == null || values.Length == 0)
+            float layoutWidth = Mathf.Max(1f, width);
+            List<PickupInfoTextBlockLayout> layouts = new List<PickupInfoTextBlockLayout>();
+            float height = 0f;
+            for (int i = 0; i < blocks.Count; i++)
             {
-                return;
-            }
-
-            StringBuilder lineBuilder = new StringBuilder();
-            for (int i = 0; i < values.Length; i++)
-            {
-                string value = values[i];
-                if (string.IsNullOrEmpty(value))
+                PickupInfoTextBlock block = blocks[i];
+                height += block.SpacingBefore;
+                GUIStyle labelStyle = null;
+                GUIStyle labelOutlineStyle = null;
+                float labelHeight = 0f;
+                if (block.HasLabel)
                 {
-                    continue;
+                    labelStyle = CreatePickupInfoTextBlockStyle(
+                        block.LabelFontSize,
+                        GetPickupInfoSectionLabelColor(block.SectionKey),
+                        false,
+                        FontStyle.Bold);
+                    if (DashboardTheme.UsePickupInfoLabelOutline)
+                    {
+                        labelOutlineStyle = CreatePickupInfoTextBlockStyle(
+                            block.LabelFontSize,
+                            DashboardTheme.PickupInfoLabelOutline,
+                            false,
+                            FontStyle.Bold);
+                    }
+                    labelHeight = labelStyle.CalcHeight(new GUIContent(block.Label), layoutWidth);
+                    height += labelHeight + PickupWikiTipSectionLabelValueGap;
                 }
 
-                if (lineBuilder.Length > 0)
-                {
-                    lineBuilder.Append(" | ");
-                }
-
-                lineBuilder.Append(value);
+                GUIStyle textStyle = CreatePickupInfoTextBlockStyle(
+                    block.FontSize,
+                    PickupWikiTipBodyColor,
+                    true,
+                    FontStyle.Normal);
+                float textHeight = textStyle.CalcHeight(new GUIContent(block.Text), layoutWidth);
+                height += textHeight;
+                layouts.Add(new PickupInfoTextBlockLayout(
+                    block,
+                    labelStyle,
+                    labelOutlineStyle,
+                    textStyle,
+                    labelHeight,
+                    textHeight));
             }
 
-            if (lineBuilder.Length == 0)
-            {
-                return;
-            }
-
-            if (builder.Length > 0)
-            {
-                builder.Append("\n");
-            }
-
-            builder.Append(lineBuilder.ToString());
+            return new PickupInfoBodyLayout(layouts.ToArray(), layoutWidth, Mathf.Max(1f, height));
         }
 
-        private void AppendSection(StringBuilder builder, string sectionKey, string value)
+        private static void DrawPickupInfoBodyLayout(Vector2 localPosition, PickupInfoBodyLayout bodyLayout)
         {
-            string label = GetPickupInfoSectionLabel(sectionKey);
-            if (builder == null || string.IsNullOrEmpty(label) || string.IsNullOrEmpty(value))
+            float top = localPosition.y;
+            for (int i = 0; i < bodyLayout.Blocks.Length; i++)
             {
-                return;
+                PickupInfoTextBlockLayout blockLayout = bodyLayout.Blocks[i];
+                PickupInfoTextBlock block = blockLayout.Block;
+                top += block.SpacingBefore;
+                if (block.HasLabel)
+                {
+                    float outlineInset = blockLayout.LabelOutlineStyle != null
+                        ? PickupWikiTipSectionLabelOutlineSize
+                        : 0f;
+                    DrawPickupInfoOutlinedLabel(
+                        new Rect(
+                            localPosition.x + outlineInset,
+                            top + outlineInset,
+                            Mathf.Max(1f, bodyLayout.Width - (outlineInset * 2f)),
+                            blockLayout.LabelHeight),
+                        block.Label,
+                        blockLayout.LabelStyle,
+                        blockLayout.LabelOutlineStyle);
+                    top += blockLayout.LabelHeight + PickupWikiTipSectionLabelValueGap;
+                }
+
+                GUI.Label(
+                    new Rect(localPosition.x, top, bodyLayout.Width, blockLayout.TextHeight),
+                    block.Text,
+                    blockLayout.TextStyle);
+                top += blockLayout.TextHeight;
+            }
+        }
+
+        private static void DrawPickupInfoOutlinedLabel(
+            Rect rect,
+            string text,
+            GUIStyle labelStyle,
+            GUIStyle outlineStyle)
+        {
+            if (outlineStyle != null)
+            {
+                for (int verticalOffset = -1; verticalOffset <= 1; verticalOffset++)
+                {
+                    for (int horizontalOffset = -1; horizontalOffset <= 1; horizontalOffset++)
+                    {
+                        if (horizontalOffset == 0 && verticalOffset == 0)
+                        {
+                            continue;
+                        }
+
+                        GUI.Label(
+                            new Rect(
+                                rect.x + (horizontalOffset * PickupWikiTipSectionLabelOutlineSize),
+                                rect.y + (verticalOffset * PickupWikiTipSectionLabelOutlineSize),
+                                rect.width,
+                                rect.height),
+                            text,
+                            outlineStyle);
+                    }
+                }
             }
 
-            if (builder.Length > 0)
-            {
-                builder.Append("\n\n");
-            }
+            GUI.Label(rect, text, labelStyle);
+        }
 
-            builder.Append(GetPickupInfoColoredSectionLabel(sectionKey, label));
-            builder.Append(" ");
-            builder.Append(value.Trim());
+        private GUIStyle CreatePickupInfoTextBlockStyle(
+            int fontSize,
+            Color textColor,
+            bool wordWrap,
+            FontStyle fontStyle)
+        {
+            GUIStyle style = new GUIStyle(_pickupWikiTipBodyStyle);
+            style.fontSize = fontSize;
+            style.fontStyle = fontStyle;
+            style.normal.textColor = textColor;
+            style.padding = new RectOffset(0, 0, 0, 0);
+            style.margin = new RectOffset(0, 0, 0, 0);
+            style.wordWrap = wordWrap;
+            // If rich-text color tags are ever reintroduced, use stable #RRGGBB only.
+            // Do not use #RRGGBBAA because this game's Unity IMGUI parser may ignore the eight-digit form.
+            style.richText = false;
+            return style;
         }
 
         private static string BuildLabeledValue(string label, string value)
@@ -366,7 +576,7 @@ namespace RandomLoadout
 
                 if (builder.Length > 0)
                 {
-                    builder.Append("; ");
+                    builder.Append("\n");
                 }
 
                 builder.Append(value);
@@ -413,11 +623,6 @@ namespace RandomLoadout
                 : fallback;
         }
 
-        private string GetPickupInfoColoredSectionLabel(string sectionKey, string label)
-        {
-            return WrapWithColorAndSizeTag(label, GetPickupInfoSectionLabelColor(sectionKey), PickupWikiTipSectionLabelFontSize);
-        }
-
         private static Color GetPickupInfoSectionLabelColor(string sectionKey)
         {
             switch (sectionKey)
@@ -437,26 +642,6 @@ namespace RandomLoadout
                 default:
                     return PickupWikiTipBodyColor;
             }
-        }
-
-        private static string WrapWithColorAndSizeTag(string text, Color color, int fontSize)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return string.Empty;
-            }
-
-            Color32 color32 = color;
-            return "<size=" +
-                   fontSize +
-                   "><color=#" +
-                   color32.r.ToString("X2") +
-                   color32.g.ToString("X2") +
-                   color32.b.ToString("X2") +
-                   color32.a.ToString("X2") +
-                   ">" +
-                   text +
-                   "</color></size>";
         }
 
         private string GetPickupInfoLabel(string labelKey)
@@ -581,8 +766,15 @@ namespace RandomLoadout
             }
 
             _pickupWikiTipPanelStyle = new GUIStyle(GUI.skin.box);
-            _pickupWikiTipPanelStyle.normal.background = MakePickupWikiTipBorderedTexture(PickupWikiTipPanelColor, PickupWikiTipBorderColor);
-            _pickupWikiTipPanelStyle.border = new RectOffset(2, 2, 2, 2);
+            _pickupWikiTipPanelStyle.normal.background = MakePickupWikiTipTripleBorderedTexture(
+                PickupWikiTipPanelColor,
+                PickupWikiTipOuterBorderColor,
+                DashboardTheme.PanelMiddleBorder,
+                PickupWikiTipInnerBorderColor,
+                5,
+                7,
+                5);
+            _pickupWikiTipPanelStyle.border = new RectOffset(17, 17, 17, 17);
             _pickupWikiTipPanelStyle.padding = new RectOffset(12, 12, 10, 10);
 
             _pickupWikiTipTitleStyle = new GUIStyle(GUI.skin.label);
@@ -605,21 +797,61 @@ namespace RandomLoadout
             return Mathf.Clamp(Mathf.Min(widthScale, heightScale), PickupWikiTipMinimumScale, PickupWikiTipMaximumScale);
         }
 
-        private static Texture2D MakePickupWikiTipBorderedTexture(Color fillColor, Color borderColor)
+        private static Texture2D MakePickupWikiTipTripleBorderedTexture(
+            Color fillColor,
+            Color outerBorderColor,
+            Color middleBorderColor,
+            Color innerBorderColor,
+            int outerBorderThickness,
+            int middleBorderThickness,
+            int innerBorderThickness)
         {
-            Texture2D texture = new Texture2D(8, 8);
+            Texture2D texture = new Texture2D(32, 32);
             texture.hideFlags = HideFlags.HideAndDontSave;
-            Color[] pixels = new Color[64];
-            for (int y = 0; y < 8; y++)
+            Color[] pixels = new Color[1024];
+            int outerThickness = Mathf.Clamp(outerBorderThickness, 1, 4);
+            int middleThickness = Mathf.Clamp(middleBorderThickness, 1, 8);
+            int innerThickness = Mathf.Clamp(innerBorderThickness, 1, 4);
+            int middleStart = outerThickness;
+            int innerStart = middleStart + middleThickness;
+            int innerEnd = 32 - innerStart;
+
+            for (int y = 0; y < 32; y++)
             {
-                for (int x = 0; x < 8; x++)
+                for (int x = 0; x < 32; x++)
                 {
-                    bool isBorderPixel = x == 0 || x == 7 || y == 0 || y == 7;
-                    pixels[(y * 8) + x] = isBorderPixel ? borderColor : fillColor;
+                    bool isOuterBorder = x < outerThickness
+                        || x >= 32 - outerThickness
+                        || y < outerThickness
+                        || y >= 32 - outerThickness;
+                    bool isMiddleBorder = x >= middleStart
+                        && x < middleStart + middleThickness
+                        || x < 32 - middleStart
+                        && x >= 32 - middleStart - middleThickness
+                        || y >= middleStart
+                        && y < middleStart + middleThickness
+                        || y < 32 - middleStart
+                        && y >= 32 - middleStart - middleThickness;
+                    bool isInnerBorder = x >= innerStart
+                        && x < innerStart + innerThickness
+                        || x < innerEnd
+                        && x >= innerEnd - innerThickness
+                        || y >= innerStart
+                        && y < innerStart + innerThickness
+                        || y < innerEnd
+                        && y >= innerEnd - innerThickness;
+
+                    pixels[(y * 32) + x] = isOuterBorder
+                        ? outerBorderColor
+                        : (isMiddleBorder
+                            ? middleBorderColor
+                            : (isInnerBorder ? innerBorderColor : fillColor));
                 }
             }
 
             texture.SetPixels(pixels);
+            texture.filterMode = FilterMode.Point;
+            texture.wrapMode = TextureWrapMode.Clamp;
             texture.Apply();
             return texture;
         }

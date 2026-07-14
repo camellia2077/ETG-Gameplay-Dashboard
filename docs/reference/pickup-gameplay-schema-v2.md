@@ -248,6 +248,18 @@ Each value is a localized object:
 }
 ```
 
+### Section Labels And Values Stay Separate
+
+The nearby-pickup UI treats section labels and their values as separate data and visual roles:
+
+- `pickup-info-terms.json.sections.*` contains only localized section-label text such as `Quality:` or `Summary:`
+- quality, type, and stat values come from `pickup-gameplay.json` and may be translated through `pickup-info-terms.json.displayValues`
+- summary, effects, synergies, and notes content comes from `pickup-gameplay.json.text.*`
+- a section key selects the localized label and the matching `DashboardTheme.PickupInfo*Label` color only
+- section values, stat rows, and descriptive text always use the neutral `DashboardTheme.PickupInfoBody` color selected from the theme's `Primary` background
+
+Do not concatenate label and value into one styled field or let a section-label color propagate to its value. This separation is a runtime rendering contract, not a schema change, so preserving it does not require a new schema version. See [Dashboard UI Theme Rules](./ui-theme-rules.md) for the visual rules.
+
 ### `stats`
 
 `stats` translates stat identity keys used inside `statSections[*].stats[*].key`.

@@ -56,6 +56,7 @@ namespace RandomLoadout
             {
                 ExecuteRefillCurrentGunAmmo(player, logger);
             }
+
         }
 
         private void ExecuteCombatCommandPageFocusedControl(PlayerController player)
@@ -140,6 +141,19 @@ namespace RandomLoadout
             {
                 DrawCombatSettingRow(rows[index], labelWidth, buttonWidth);
             }
+        }
+
+        private string GetCombatCursorColorDisplayName()
+        {
+            string colorId = _combatCursorColorProvider != null
+                ? _combatCursorColorProvider()
+                : CombatCursorColorCatalog.DisabledId;
+            if (!CombatCursorColorCatalog.IsEnabled(colorId))
+            {
+                return GuiText.Get("gui.command.status.cursor_color.off");
+            }
+
+            return GuiText.Get(CombatCursorColorCatalog.Get(colorId).DisplayNameKey);
         }
 
         private void DrawCombatSettingRow(CombatSettingRow row, float labelWidth, float buttonWidth)

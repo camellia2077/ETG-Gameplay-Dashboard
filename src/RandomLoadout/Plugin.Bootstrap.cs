@@ -26,6 +26,7 @@ namespace RandomLoadout
 
         private void OnDestroy()
         {
+            CommandPanelCursorRenderHooks.ClearCursorOverride();
             ResetServices();
             UninstallRuntimeHooks();
 
@@ -135,6 +136,9 @@ namespace RandomLoadout
 
         private void OnGUI()
         {
+            CommandPanelCursorRenderHooks.LogPluginStage(
+                "Plugin.OnGUI.begin",
+                _commandController != null && _commandController.IsVisibleForDiagnostics);
             if (_commandController != null)
             {
                 PlayerController player = null;
@@ -145,9 +149,16 @@ namespace RandomLoadout
                 }
 
                 _commandController.OnGUI(player, Logger);
+                CommandPanelCursorRenderHooks.LogPluginStage(
+                    "Plugin.OnGUI.after_command_panel",
+                    _commandController.IsVisibleForDiagnostics);
+                CommandPanelCursorRenderHooks.DrawCursorAfterPanel(_commandController.IsVisibleForDiagnostics);
             }
 
             DrawNearbyPickupTipOverlay();
+            CommandPanelCursorRenderHooks.LogPluginStage(
+                "Plugin.OnGUI.end",
+                _commandController != null && _commandController.IsVisibleForDiagnostics);
         }
 
         private void EnsureResolvedLoadoutConfig()
@@ -334,6 +345,29 @@ namespace RandomLoadout
             }
 
             Logger.LogInfo(RandomLoadoutLog.Command("Command panel UI size preset changed to " + normalized + "."));
+        }
+
+        private string GetThemePreset()
+        {
+            return DashboardThemeCatalog.Normalize(_themePresetConfig != null ? _themePresetConfig.Value : DashboardThemeCatalog.DefaultThemeId);
+        }
+
+        private void SetThemePreset(string themeId)
+        {
+            string normalized = DashboardThemeCatalog.Normalize(themeId);
+            if (_themePresetConfig != null)
+            {
+                _themePresetConfig.Value = normalized;
+                Config.Save();
+            }
+
+            DashboardTheme.Select(normalized);
+            if (_commandController != null)
+            {
+                _commandController.RefreshTheme();
+            }
+
+            RefreshPickupWikiTipTheme();
         }
 
         private bool IsExperimentalModeEnabled()
@@ -553,6 +587,31 @@ namespace RandomLoadout
             return _commandPanelCursorVerboseLogsConfig != null && _commandPanelCursorVerboseLogsConfig.Value;
         }
 
+        private bool IsCommandPanelGameplayInputVerboseLoggingEnabled()
+        {
+            return _commandPanelGameplayInputVerboseLogsConfig != null && _commandPanelGameplayInputVerboseLogsConfig.Value;
+        }
+
+        private bool IsCommandPanelControllerGameplayInputVerboseLoggingEnabled()
+        {
+            return _commandPanelControllerGameplayInputVerboseLogsConfig != null && _commandPanelControllerGameplayInputVerboseLogsConfig.Value;
+        }
+
+        private bool IsCommandPanelCursorRenderVerboseLoggingEnabled()
+        {
+            return _commandPanelCursorRenderVerboseLogsConfig != null && _commandPanelCursorRenderVerboseLogsConfig.Value;
+        }
+
+        private bool IsCommandPanelCursorRenderProbeEnabled()
+        {
+            return _commandPanelCursorRenderProbeConfig != null && _commandPanelCursorRenderProbeConfig.Value;
+        }
+
+        private bool IsCommandPanelCursorAbovePanelEnabled()
+        {
+            return _enableCommandPanelCursorAbovePanelConfig != null && _enableCommandPanelCursorAbovePanelConfig.Value;
+        }
+
         private bool IsActiveItemGrantVerboseLoggingEnabled()
         {
             return _activeItemGrantVerboseLogsConfig != null && _activeItemGrantVerboseLogsConfig.Value;
@@ -646,6 +705,61 @@ namespace RandomLoadout
             InvalidateResolvedLoadoutConfig();
             Logger.LogInfo(RandomLoadoutLog.Command("Active start-items preset changed to " + normalized + "."));
         }
+
+        private string GetCombatCursorColor()
+        {
+            if (_combatCursorColorEnabledConfig == null || !_combatCursorColorEnabledConfig.Value)
+            {
+                return CombatCursorColorCatalog.DisabledId;
+            }
+
+            return _combatCursorColorPresetConfig != null
+                ? CombatCursorColorCatalog.Normalize(_combatCursorColorPresetConfig.Value)
+                : CombatCursorColorCatalog.DefaultPresetId;
+        }
+
+        private Color GetCombatCursorColorValue()
+        {
+            return CombatCursorColorCatalog.IsEnabled(GetCombatCursorColor())
+                ? CombatCursorColorCatalog.Get(GetCombatCursorColor()).Color
+                : Color.white;
+        }
+
+        private void SetCombatCursorColor(string colorId)
+        {
+            string normalized = CombatCursorColorCatalog.Normalize(colorId);
+            if (string.Equals(normalized, CombatCursorColorCatalog.DisabledId, System.StringComparison.OrdinalIgnoreCase))
+            {
+                if (_combatCursorColorEnabledConfig != null)
+                {
+                    _combatCursorColorEnabledConfig.Value = false;
+                }
+
+                Config.Save();
+                Logger.LogInfo(RandomLoadoutLog.Command("Combat cursor color disabled."));
+                return;
+            }
+
+            CombatCursorColorOption selectedOption = CombatCursorColorCatalog.Get(normalized);
+            if (_combatCursorColorPresetConfig != null)
+            {
+                _combatCursorColorPresetConfig.Value = normalized;
+            }
+
+            if (_combatCursorColorEnabledConfig != null)
+            {
+                _combatCursorColorEnabledConfig.Value = true;
+            }
+
+            Config.Save();
+
+            Logger.LogInfo(RandomLoadoutLog.Command(
+                "Combat cursor color changed to " + normalized + " " + selectedOption.Hex +
+                " RGB(" + selectedOption.Color.r.ToString("F3") + "," +
+                selectedOption.Color.g.ToString("F3") + "," +
+                selectedOption.Color.b.ToString("F3") + ")."));
+        }
+
 
         private void EnsureAliasRegistryLoaded()
         {

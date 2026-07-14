@@ -61,7 +61,9 @@ ETG can rebuild parts of the player runtime state while switching guns.
 
 If command-panel navigation input leaks into gameplay input, a left/right or D-pad press can move panel focus and also switch the current gun. That gun switch can temporarily rebuild the player's max-health state from the gun-side runtime context and roll it back to the vanilla baseline. Our health override then restores the intended value, which makes the HUD replay the "heart gained" or "armor gained" animation even though the final values settle back to the same numbers.
 
-The command panel now applies a temporary input override while it is open to stop menu navigation from also reaching gameplay gun-switch input. This logging exists to confirm that flow when debugging.
+The command panel no longer applies a player input override while it is open, because that override also blocks the
+controller left stick used for gameplay movement. Panel navigation reads the D-pad directly; this logging remains useful
+for detecting any unrelated gameplay-side gun-switch or health-state changes.
 
 ## Typical Workflow
 
@@ -71,7 +73,7 @@ The command panel now applies a temporary input override while it is open to sto
 4. Move selection around the command panel without intentionally changing health or armor.
 5. Read `BepInEx\LogOutput.log`.
 6. Check:
-   - whether `Applied command panel input override` appeared when the panel opened
+   - whether the player's input state stayed available while the panel was open
    - whether focus movement produced only navigation logs or also a health callback
    - whether a gun change happened near the same time as the replayed animation
    - whether `Detected unexpected max-health rollback` appeared
@@ -86,7 +88,7 @@ The command panel now applies a temporary input override while it is open to sto
 - If focus movement is followed by health-changed callbacks with a lower `MaxValue`, then `Detected unexpected max-health rollback`, then `Restored tracked health override`:
   menu navigation is still causing a gameplay-side state rebuild, usually through leaked gun-switch input.
 
-- If `Applied command panel input override` never appears while the panel is open:
+- If the player's input state changes to `NoInput` while the panel is open:
   the panel-side input isolation did not arm correctly, so investigate command-panel open / close lifecycle first.
 
 ## Read Next

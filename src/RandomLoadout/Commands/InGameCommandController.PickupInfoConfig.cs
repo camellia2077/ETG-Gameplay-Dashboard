@@ -7,12 +7,6 @@ namespace RandomLoadout
 {
     internal sealed partial class InGameCommandController
     {
-        private static readonly Color PickupInfoConfigQualityColor = new Color(0.99f, 0.86f, 0.38f, 1f);
-        private static readonly Color PickupInfoConfigTypeColor = new Color(0.67f, 0.84f, 0.98f, 1f);
-        private static readonly Color PickupInfoConfigEffectsColor = new Color(0.62f, 0.92f, 0.65f, 1f);
-        private static readonly Color PickupInfoConfigSynergiesColor = new Color(0.52f, 0.92f, 0.88f, 1f);
-        private static readonly Color PickupInfoConfigSummaryColor = new Color(0.96f, 0.96f, 0.96f, 1f);
-        private static readonly Color PickupInfoConfigNotesColor = new Color(0.79f, 0.85f, 0.95f, 1f);
         private const float PickupInfoConfigRowHeight = 42f;
         private const float PickupInfoConfigRowGap = 8f;
 
@@ -60,42 +54,42 @@ namespace RandomLoadout
                 new Rect(left, rowTop, rowWidth, PickupInfoConfigRowHeight),
                 "pickup_info_config.quality",
                 GetLocalizedFallback("gui.pickup_info_config.option.quality", "Quality", "品质"),
-                PickupInfoConfigQualityColor,
+                DashboardTheme.PickupInfoQualityLabel,
                 _showPickupInfoQuality,
                 delegate { TogglePickupInfoQuality(); });
             DrawPickupInfoConfigActionRow(
                 new Rect(left, rowTop + (PickupInfoConfigRowHeight + PickupInfoConfigRowGap) * 1f, rowWidth, PickupInfoConfigRowHeight),
                 "pickup_info_config.type",
                 GetLocalizedFallback("gui.pickup_info_config.option.type", "Type", "类型"),
-                PickupInfoConfigTypeColor,
+                DashboardTheme.PickupInfoTypeLabel,
                 _showPickupInfoType,
                 delegate { TogglePickupInfoType(); });
             DrawPickupInfoConfigActionRow(
                 new Rect(left, rowTop + (PickupInfoConfigRowHeight + PickupInfoConfigRowGap) * 2f, rowWidth, PickupInfoConfigRowHeight),
                 "pickup_info_config.effects",
                 GetLocalizedFallback("gui.pickup_info_config.option.effects", "Effects", "效果"),
-                PickupInfoConfigEffectsColor,
+                DashboardTheme.PickupInfoEffectsLabel,
                 _showPickupInfoEffects,
                 delegate { TogglePickupInfoEffects(); });
             DrawPickupInfoConfigActionRow(
                 new Rect(left, rowTop + (PickupInfoConfigRowHeight + PickupInfoConfigRowGap) * 3f, rowWidth, PickupInfoConfigRowHeight),
                 "pickup_info_config.synergies",
                 GetLocalizedFallback("gui.pickup_info_config.option.synergies", "Synergies", "协同"),
-                PickupInfoConfigSynergiesColor,
+                DashboardTheme.PickupInfoSynergiesLabel,
                 _showPickupInfoSynergies,
                 delegate { TogglePickupInfoSynergies(); });
             DrawPickupInfoConfigActionRow(
                 new Rect(left, rowTop + (PickupInfoConfigRowHeight + PickupInfoConfigRowGap) * 4f, rowWidth, PickupInfoConfigRowHeight),
                 "pickup_info_config.summary",
                 GetLocalizedFallback("gui.pickup_info_config.option.summary", "Summary", "摘要"),
-                PickupInfoConfigSummaryColor,
+                DashboardTheme.PickupInfoSummaryLabel,
                 _showPickupInfoSummary,
                 delegate { TogglePickupInfoSummary(); });
             DrawPickupInfoConfigActionRow(
                 new Rect(left, rowTop + (PickupInfoConfigRowHeight + PickupInfoConfigRowGap) * 5f, rowWidth, PickupInfoConfigRowHeight),
                 "pickup_info_config.notes",
                 GetLocalizedFallback("gui.pickup_info_config.option.notes", "Notes", "备注"),
-                PickupInfoConfigNotesColor,
+                DashboardTheme.PickupInfoNotesLabel,
                 _showPickupInfoNotes,
                 delegate { TogglePickupInfoNotes(); });
         }

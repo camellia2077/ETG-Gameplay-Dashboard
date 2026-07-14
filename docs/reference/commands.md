@@ -35,6 +35,7 @@ Before changing command UI, pickup grant behavior, Boss Rush entry flow, or char
   - `A` confirms the focused button
   - `B` goes back or closes the current page
   - `LB` switches categories on the main `Command` page
+- The General page Teleport list uses D-pad up/down to move its visible focused-floor highlight, `A` to teleport to the focused floor, and `B` to close the list. The list is single-column, so D-pad left/right does not change its selection.
 - Text-entry interactions are still keyboard/mouse-first. Opening the panel from a gamepad does not make the command input field or pickup-browser search field practical to use from a controller yet.
 - Subpages that rely on larger lists or more complex layouts, such as pickup browsing and editor-style pages, do not yet have full gamepad navigation support.
 
@@ -85,6 +86,38 @@ Recommended input style:
   Toggles hold-to-rapid-fire mode for the current gun.
 - `Reload OFF` / `Reload Fast` / `Reload Anim`
   Cycles automatic reload between off, instant reload, and vanilla animated reload when the current gun's clip is empty and ammo is available.
+- `General -> Cursor Color`
+  Opens the cursor color page. The page has an explicit enable/disable button and the color choices `Cyan`, `Lime`,
+  `Yellow`, `Pink`, `Red`, `Orange`, `Electric Violet`, and `Electric Blue`. Selecting a color enables custom coloring.
+  Disabling it restores the original cursor color; the original cursor remains drawn above the Control Panel by design.
+
+### Combat Cursor Color Implementation
+
+The selected color is stored as a stable preset ID under `[Combat] CursorColorPreset`. The catalog and user-facing HEX values are defined in
+`src/RandomLoadout/CombatCursorColorCatalog.cs`:
+
+| ID | Display name | HEX |
+| --- | --- | --- |
+| `preset_01` | Cyan / 青色 | `#00E5FF` |
+| `preset_02` | Lime / 亮绿 | `#39FF14` |
+| `preset_03` | Yellow / 金黄 | `#FFF000` |
+| `preset_04` | Pink / 粉色 | `#FF1493` |
+| `preset_05` | Red / 红色 | `#FF0000` |
+| `preset_06` | Orange / 橙色 | `#FF8C00` |
+| `preset_07` | Electric Violet / 电光紫 | `#9900FF` |
+| `preset_08` | Electric Blue / 电光蓝 | `#0066FF` |
+
+The cursor page is implemented in `InGameCommandController.CursorColor.cs`; its controller-focus order is maintained in
+`InGameCommandController.State.cs`. `OFF` is represented by `CombatCursorColorCatalog.DisabledId`. When the page is disabled,
+pressing the enable button selects the first catalog preset (`preset_01`); choosing any color directly also enables custom coloring.
+Display names and HEX values are presentation data and must not be used as config values.
+
+The runtime render path is owned by `Runtime/CommandPanelCursorRenderHooks.cs`. ETG's original `GameCursorController.OnGUI`
+pass is suppressed only while custom coloring is enabled. The selected original cursor texture and its screen rectangle are
+then drawn through a cached `UI/Default` material with `_Color` set to the selected color. This keeps the normal alpha blend
+path and preserves the hollow/transparent portions of ETG cursor textures. Do not replace this with the tk2d tintable shader:
+its blend behavior can draw RGB data from transparent pixels and change the cursor shape. If `UI/Default` cannot be found,
+the renderer logs `Cursor color shader unavailable` and falls back to the original tinted draw path for diagnostics.
 - `Stats OFF` / `Stats ON`
   Toggles the side player-stats panel.
 - `God OFF` / `God ON`
@@ -92,7 +125,9 @@ Recommended input style:
 - `Lang Auto` / `Lang EN` / `Lang CN`
   Cycles the command panel language preference through `auto`, `en`, and `zh-CN`, then persists it to `randomgun.randomloadout.cfg` under `[UI] Language`.
 - `Settings`
-  Opens panel preferences. The current settings page includes keyboard key selection, UI size, language, and experimental-mode controls.
+  Opens panel preferences. The current settings page includes keyboard key selection, UI size, language, experimental-mode controls, and the About page.
+- `Theme`
+  Cycles the selected dashboard theme. The theme action is grouped with `Settings` and `Language` in the command-panel header.
 - `Currency`
   Opens the resource-actions submenu.
 - `Room`

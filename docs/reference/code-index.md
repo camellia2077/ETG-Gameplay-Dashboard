@@ -64,18 +64,23 @@ All in-game command-panel work starts in `src/RandomLoadout/Commands/`.
 | `InGameCommandController.CharacterActions.cs` | character-related actions |
 | `InGameCommandController.BossRush.cs` | Boss Rush controls |
 | `InGameCommandController.Currency.cs` | money, keys, blanks, armor, health controls |
+| `InGameCommandController.CursorColor.cs` | combat cursor color page, enable/disable button, color selection, and controller navigation |
 | `InGameCommandController.Room.cs` | room tools such as chest spawning |
 | `InGameCommandController.PlayerStats.cs` | player stat panel |
 | `InGameCommandController.PickupBrowser.cs` | item browser, filters, item cards, add/select modes |
 | `InGameCommandController.LoadoutEditor.cs` | Start Items and preset editor UI |
 | `InGameCommandController.About.cs` | About / Credits page |
 | `InGameCommandController.Settings.cs` | settings page layout, keyboard key config, and first-stage controller navigation routing |
+| `Ui/DashboardTheme.cs` | centralized theme palettes and command-panel, category-button, disabled-state, pickup-info, and scroll-bar colors |
+| `Ui/DashboardThemeCatalog.cs` | stable theme IDs and localized theme display names |
 
 Supporting services:
 
 | File | Look here for |
 | --- | --- |
 | `GrantCommandService*.cs` | command execution, pickup resolution, user-facing result messages |
+| `CombatCursorColorCatalog.cs` | combat cursor color IDs, target HEX values, Unity colors, and normalization |
+| `Runtime/CommandPanelCursorRenderHooks.cs` | ETG cursor suppression, panel-layer redraw, and custom cursor color material rendering |
 | `PlayerDebugCommandService.cs` | player debug operations |
 | `PlayerRuntimeOverrideServiceBase.cs` | shared skeleton for player runtime property override services |
 | `PlayerHealthOverrideService.cs` | runtime max-health override tracking and rollback restoration |
@@ -90,6 +95,7 @@ Supporting services:
 Read next:
 
 - [Commands](./commands.md)
+- [Dashboard UI Theme](./ui-theme.md)
 - [UI Icon Reuse](./ui-icon-reuse.md)
 - [Muncher Spawn](./runtime-internals/muncher-spawn.md)
 - [Map Reveal And Teleporter Promotion](./map-teleport.md)

@@ -25,6 +25,7 @@ namespace RandomLoadout
             if (_commandController != null)
             {
                 _commandController.Update();
+                CommandPanelCursorRenderHooks.UpdateCursorOverride(_commandController.IsVisibleForDiagnostics);
             }
 
             if (_nearbyPickupTipService != null)

@@ -275,7 +275,7 @@ namespace RandomLoadout
         {
             if (_cachedLoadoutPresetEntries.Length == 0)
             {
-                GUI.Box(listRect, GUIContent.none, _pickupRowStyle);
+                GUI.Box(listRect, GUIContent.none, _loadoutEditorRowStyle);
                 GUI.Label(
                     new Rect(listRect.x + 12f, listRect.y + 12f, listRect.width - 24f, listRect.height - 24f),
                     GuiText.Get("gui.loadout_editor.empty_presets"),
@@ -377,7 +377,9 @@ namespace RandomLoadout
                 DrawLoadoutPresetPreviewRows(new Rect(rowRect.x + cardContentPadding, rowRect.y + 47f, rowRect.width - (cardContentPadding * 2f), rowRect.height - 50f), entry);
             }
 
-            GUIStyle selectButtonStyle = IsLoadoutPresetRandomEnabled() ? _pickupFilterDisabledButtonStyle : _buttonStyle;
+            GUIStyle selectButtonStyle = IsLoadoutPresetRandomEnabled()
+                ? _pickupFilterDisabledButtonStyle
+                : isActive ? _enabledButtonStyle : _buttonStyle;
             if (GUI.Button(selectButtonRect, GuiText.Get("gui.loadout_editor.button.select_preset"), GetControllerButtonStyle(GetLoadoutPresetSelectControlId(entry), selectButtonStyle)) &&
                 !IsLoadoutPresetRandomEnabled())
             {
@@ -462,7 +464,7 @@ namespace RandomLoadout
         {
             if (_cachedLoadoutRuleEntries.Length == 0)
             {
-                GUI.Box(listRect, GUIContent.none, _pickupRowStyle);
+                GUI.Box(listRect, GUIContent.none, _loadoutEditorRowStyle);
                 GUI.Label(
                     new Rect(listRect.x + 12f, listRect.y + 12f, listRect.width - 24f, listRect.height - 24f),
                     GuiText.Get("gui.loadout_editor.empty"),
@@ -482,7 +484,7 @@ namespace RandomLoadout
 
         private void DrawLoadoutEditorRow(Rect rowRect, LoadoutRuleEditorEntry entry, ManualLogSource logger)
         {
-            GUI.Box(rowRect, GUIContent.none, _pickupRowStyle);
+            GUI.Box(rowRect, GUIContent.none, _loadoutEditorRowStyle);
 
             float removeWidth = 82f;
             Rect removeButtonRect = new Rect(rowRect.x + rowRect.width - removeWidth - 8f, rowRect.y + 8f, removeWidth, rowRect.height - 16f);
