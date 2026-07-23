@@ -84,8 +84,8 @@ namespace RandomLoadout
             }
 
             string pickupInfoButtonLabel = _showPickupInfoOverlay
-                ? GetLocalizedFallback("gui.command.button.pickup_info_on", "Pickup Info: On", "物品图鉴：开")
-                : GetLocalizedFallback("gui.command.button.pickup_info_off", "Pickup Info: Off", "物品图鉴：关");
+                ? GetLocalizedFallback("gui.command.button.pickup_info_on", "Items Info: On", "物品图鉴：开")
+                : GetLocalizedFallback("gui.command.button.pickup_info_off", "Items Info: Off", "物品图鉴：关");
             GUIStyle pickupInfoButtonStyle = _showPickupInfoOverlay ? _enabledButtonStyle : _buttonStyle;
             if (DrawControllerButton(new Rect(secondColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.general.pickup_info", pickupInfoButtonLabel, pickupInfoButtonStyle))
             {
@@ -97,7 +97,10 @@ namespace RandomLoadout
                 OpenPickupInfoConfigPage();
             }
 
-            if (DrawControllerButton(new Rect(fourthColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.general.cursor_color", GuiText.Get("gui.command.setting.cursor_color"), _buttonStyle))
+            bool cursorColorEnabled = _combatCursorColorProvider != null &&
+                CombatCursorColorCatalog.IsEnabled(_combatCursorColorProvider());
+            GUIStyle cursorColorButtonStyle = cursorColorEnabled ? _cursorColorSelectedButtonStyle : _buttonStyle;
+            if (DrawControllerButton(new Rect(fourthColumnX, thirdRowY, buttonWidth, controlHeight), "cmd.general.cursor_color", GuiText.Get("gui.command.setting.cursor_color"), cursorColorButtonStyle))
             {
                 OpenCursorColorPage();
             }
@@ -151,8 +154,8 @@ namespace RandomLoadout
             SetPickupInfoOverlayShown(!_showPickupInfoOverlay);
             ShowStatus(
                 _showPickupInfoOverlay
-                    ? GetLocalizedFallback("result.pickup_info_overlay.enabled", "Pickup Info enabled. Show detailed item info when you approach dropped pickups.", "已开启物品图鉴。靠近掉落物时显示详细物品信息。")
-                    : GetLocalizedFallback("result.pickup_info_overlay.disabled", "Pickup Info disabled.", "已关闭物品图鉴。"),
+                    ? GetLocalizedFallback("result.pickup_info_overlay.enabled", "Items Info enabled. Show detailed item info when you approach dropped pickups.", "已开启物品图鉴。靠近掉落物时显示详细物品信息。")
+                    : GetLocalizedFallback("result.pickup_info_overlay.disabled", "Items Info disabled.", "已关闭物品图鉴。"),
                 false);
         }
     }

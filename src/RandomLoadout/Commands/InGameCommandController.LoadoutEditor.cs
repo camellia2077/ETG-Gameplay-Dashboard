@@ -301,6 +301,8 @@ namespace RandomLoadout
 
             Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, contentHeight);
             _loadoutPresetScrollPosition = BeginCommandScrollView(listRect, _loadoutPresetScrollPosition, viewRect);
+            float visibleTop = _loadoutPresetScrollPosition.y;
+            float visibleBottom = visibleTop + listRect.height;
             float rowTop = 2f;
             for (int rowIndex = 0; rowIndex < presetRowCount; rowIndex++)
             {
@@ -312,13 +314,16 @@ namespace RandomLoadout
                     rowHeight = Mathf.Max(rowHeight, GetLoadoutPresetRowHeight(_cachedLoadoutPresetEntries[rightIndex]));
                 }
 
-                DrawLoadoutPresetRow(new Rect(0f, rowTop, cardWidth, rowHeight - 4f), _cachedLoadoutPresetEntries[leftIndex], logger);
-                if (rightIndex < _cachedLoadoutPresetEntries.Length)
+                if (rowTop + rowHeight >= visibleTop - rowHeight && rowTop <= visibleBottom + rowHeight)
                 {
-                    DrawLoadoutPresetRow(
-                        new Rect(cardWidth + ButtonGap, rowTop, cardWidth, rowHeight - 4f),
-                        _cachedLoadoutPresetEntries[rightIndex],
-                        logger);
+                    DrawLoadoutPresetRow(new Rect(0f, rowTop, cardWidth, rowHeight - 4f), _cachedLoadoutPresetEntries[leftIndex], logger);
+                    if (rightIndex < _cachedLoadoutPresetEntries.Length)
+                    {
+                        DrawLoadoutPresetRow(
+                            new Rect(cardWidth + ButtonGap, rowTop, cardWidth, rowHeight - 4f),
+                            _cachedLoadoutPresetEntries[rightIndex],
+                            logger);
+                    }
                 }
 
                 rowTop += rowHeight;
@@ -474,7 +479,12 @@ namespace RandomLoadout
 
             Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (_cachedLoadoutRuleEntries.Length * LoadoutRuleRowHeight) + 4f);
             _loadoutEditorScrollPosition = BeginCommandScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
-            for (int i = 0; i < _cachedLoadoutRuleEntries.Length; i++)
+            float rowStride = LoadoutRuleRowHeight;
+            int firstVisibleIndex = Mathf.Max(0, Mathf.FloorToInt(_loadoutEditorScrollPosition.y / rowStride) - 1);
+            int lastVisibleIndex = Mathf.Min(
+                _cachedLoadoutRuleEntries.Length - 1,
+                Mathf.CeilToInt((_loadoutEditorScrollPosition.y + listRect.height) / rowStride) + 1);
+            for (int i = firstVisibleIndex; i <= lastVisibleIndex; i++)
             {
                 DrawLoadoutEditorRow(new Rect(0f, 2f + (i * LoadoutRuleRowHeight), viewRect.width, LoadoutRuleRowHeight - 4f), _cachedLoadoutRuleEntries[i], logger);
             }
@@ -558,7 +568,12 @@ namespace RandomLoadout
 
             Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (_cachedLoadoutRandomPoolEntries.Length * PickupRowHeight) + 4f);
             _loadoutEditorScrollPosition = BeginCommandScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
-            for (int i = 0; i < _cachedLoadoutRandomPoolEntries.Length; i++)
+            float rowStride = PickupRowHeight;
+            int firstVisibleIndex = Mathf.Max(0, Mathf.FloorToInt(_loadoutEditorScrollPosition.y / rowStride) - 1);
+            int lastVisibleIndex = Mathf.Min(
+                _cachedLoadoutRandomPoolEntries.Length - 1,
+                Mathf.CeilToInt((_loadoutEditorScrollPosition.y + listRect.height) / rowStride) + 1);
+            for (int i = firstVisibleIndex; i <= lastVisibleIndex; i++)
             {
                 DrawLoadoutRandomPoolRow(new Rect(0f, 2f + (i * PickupRowHeight), viewRect.width, PickupRowHeight - 4f), _cachedLoadoutRandomPoolEntries[i], logger);
             }

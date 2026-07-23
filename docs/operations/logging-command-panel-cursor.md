@@ -13,9 +13,8 @@ Set this in `BepInEx\config\ETG-Gameplay-Dashboard.cfg`:
 EnableCommandPanelCursorVerboseLogs = true
 ```
 
-Default:
-
-- `false`
+This switch is temporarily enabled for the current two-player input-handoff reproduction. Set it to `false` after
+collecting the log.
 
 ## What It Adds
 
@@ -24,6 +23,8 @@ When enabled, the plugin emits detailed cursor-handoff diagnostics for:
 - Unity cursor visibility changes
 - Unity cursor lock-mode changes
 - active input-device switches between controller and mouse / keyboard
+- P1/P2 player and input-object state, including active device and mouse capability
+- actual cursor tint and whether the custom cursor color path is active
 - mouse left-click and right-click attempts while the command panel is open
 
 Typical useful lines include:
@@ -31,6 +32,10 @@ Typical useful lines include:
 - `Observed cursor visibility state change`
 - `Observed active input device change`
 - `Observed mouse button press`
+
+The diagnostic also emits an immediate `Unity cursor state changed` line whenever `Cursor.visible` or
+`Cursor.lockState` changes. This is not sampled, so it can capture a brief cursor-hide transition that may be
+missed by the regular render-order samples.
 
 ## What Still Logs When Disabled
 
@@ -47,7 +52,7 @@ Normal command-panel success, failure, and other unrelated debug logs still beha
 5. Read `BepInEx\LogOutput.log`.
 6. Check:
    - whether `DeviceName` changed from controller to mouse / keyboard as expected
-   - whether `CursorVisible` changed unexpectedly during or after panel interaction
+   - whether `UnityOSCursorVisible` changed unexpectedly during or after panel interaction
    - whether `CursorLockMode` changed at the same time as the cursor disappearance
    - whether mouse-click attempts were still being observed while the cursor looked missing
 

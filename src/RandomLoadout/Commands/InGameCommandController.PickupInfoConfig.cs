@@ -40,11 +40,11 @@ namespace RandomLoadout
 
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 12f, backButtonRect.x - panelRect.x - 28f, 24f),
-                GetLocalizedFallback("gui.pickup_info_config.title", "Pickup Info Config", "物品图鉴设置"),
+                GetLocalizedFallback("gui.pickup_info_config.title", "Items Info Config", "物品图鉴设置"),
                 _titleStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 36f),
-                GetLocalizedFallback("gui.pickup_info_config.subtitle", "Choose which sections appear in the nearby pickup info overlay.", "选择靠近掉落物时显示哪些物品图鉴分段。"),
+                GetLocalizedFallback("gui.pickup_info_config.subtitle", "Choose which sections appear in the nearby items info overlay.", "选择靠近掉落物时显示哪些物品图鉴分段。"),
                 _wrappedHintStyle);
 
             float left = panelRect.x + 14f;
@@ -103,20 +103,39 @@ namespace RandomLoadout
             labelStyle.fontStyle = FontStyle.Bold;
             labelStyle.fontSize = 20;
 
-            GUI.Label(new Rect(rowRect.x, rowRect.y + 4f, labelWidth, rowRect.height - 8f), label, labelStyle);
+            Rect labelRect = new Rect(rowRect.x, rowRect.y + 4f, labelWidth, rowRect.height - 8f);
+            if (DashboardTheme.UsePickupInfoLabelOutline)
+            {
+                GUIStyle labelOutlineStyle = new GUIStyle(labelStyle);
+                labelOutlineStyle.normal.textColor = DashboardTheme.PickupInfoLabelOutline;
+                for (int verticalOffset = -1; verticalOffset <= 1; verticalOffset++)
+                {
+                    for (int horizontalOffset = -1; horizontalOffset <= 1; horizontalOffset++)
+                    {
+                        if (horizontalOffset == 0 && verticalOffset == 0)
+                        {
+                            continue;
+                        }
+
+                        GUI.Label(
+                            new Rect(
+                                labelRect.x + horizontalOffset,
+                                labelRect.y + verticalOffset,
+                                labelRect.width,
+                                labelRect.height),
+                            label,
+                            labelOutlineStyle);
+                    }
+                }
+            }
+
+            GUI.Label(labelRect, label, labelStyle);
 
             GUIStyle buttonStyle = isEnabled ? _enabledButtonStyle : _buttonStyle;
             Rect buttonRect = new Rect(rowRect.xMax - buttonWidth, rowRect.y, buttonWidth, rowRect.height);
-            if (IsControllerFocusActive("pickup_info_config", controlId))
-            {
-                GUI.Box(
-                    new Rect(buttonRect.x - 2f, buttonRect.y - 2f, buttonRect.width + 4f, buttonRect.height + 4f),
-                    GUIContent.none,
-                    _enabledButtonStyle);
-            }
-
-            if (GUI.Button(
+            if (DrawControllerButton(
                 buttonRect,
+                controlId,
                 GetOnOffStatusLabel(isEnabled),
                 buttonStyle))
             {

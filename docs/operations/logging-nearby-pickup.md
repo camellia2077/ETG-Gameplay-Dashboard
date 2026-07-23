@@ -33,6 +33,8 @@ Current nearby-pickup diagnostics include:
   - dropped pickups
   - shop items
   - reward pedestals
+- dropped-pickup enter-range, exit-range, and consumed callback traces, including pickup type, ID, and Unity instance ID
+- a fallback-clear warning when a visible tip's Unity range source has been destroyed without a matching consumed or exit-range callback; the service clears the tip immediately
 
 ## Good Repro Cases
 
@@ -52,6 +54,8 @@ Healthy behavior usually includes:
 - `Loaded pickup gameplay info v2 from '...' (668 entries).`
 - `Loaded pickup gameplay terms v2 from '...'.`
 - `Nearby pickup tip shown. Source=pickup ... HasGameplayEntry=True.`
+- `Nearby pickup consumed callback. PickupType=... PickupId=...`
+- `Nearby pickup tip cleared. Reason=pickup_consumed.`
 
 Useful failure clues include:
 
@@ -71,6 +75,8 @@ Interpretation hints:
   the ETG runtime event fired, but the loaded gameplay registry did not contain that `pickupId`
 - `visible tip source, but no gameplay entry was resolved`:
   the service selected a target, but the overlay draw path still failed to resolve a matching gameplay record
+- `range source was destroyed without a matching pickup-consumed or exit-range callback`:
+  the pickup disappeared through an override method that bypassed the hooked base callback. The service clears the stale tip through its update fallback.
 
 ## Follow-Up
 

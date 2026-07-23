@@ -6,15 +6,21 @@ namespace RandomLoadout
     internal sealed class GrantCommandExecutionResult
     {
         public GrantCommandExecutionResult(bool succeeded, string message)
-            : this(succeeded, message, message)
+            : this(succeeded, message, message, string.Empty)
         {
         }
 
         public GrantCommandExecutionResult(bool succeeded, string message, string logMessage)
+            : this(succeeded, message, logMessage, string.Empty)
+        {
+        }
+
+        public GrantCommandExecutionResult(bool succeeded, string message, string logMessage, string localizationKey)
         {
             Succeeded = succeeded;
             Message = message;
             LogMessage = logMessage;
+            LocalizationKey = localizationKey ?? string.Empty;
         }
 
         public bool Succeeded { get; private set; }
@@ -22,6 +28,8 @@ namespace RandomLoadout
         public string Message { get; private set; }
 
         public string LogMessage { get; private set; }
+
+        public string LocalizationKey { get; private set; }
 
         public static GrantCommandExecutionResult Localized(bool succeeded, string key)
         {
@@ -33,7 +41,8 @@ namespace RandomLoadout
             return new GrantCommandExecutionResult(
                 succeeded,
                 GuiText.Get(key, args),
-                GuiText.GetEnglish(key, args));
+                GuiText.GetEnglish(key, args),
+                key);
         }
     }
 }

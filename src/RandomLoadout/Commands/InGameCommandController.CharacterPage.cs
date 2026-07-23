@@ -15,6 +15,15 @@ namespace RandomLoadout
         {
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             Rect modeButtonRect = new Rect(backButtonRect.x - ButtonGap - CharacterModeButtonWidth, panelRect.y + 12f, CharacterModeButtonWidth, 30f);
+            Rect targetButtonRect = new Rect(modeButtonRect.x - ButtonGap - ButtonWidth, panelRect.y + 12f, ButtonWidth, 30f);
+            GUIStyle targetButtonStyle = _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer
+                ? _enabledButtonStyle
+                : _buttonStyle;
+            if (GUI.Button(targetButtonRect, GetCharacterSwitchTargetButtonLabel(), GetControllerButtonStyle("characters.target", targetButtonStyle)))
+            {
+                ToggleCharacterSwitchTarget(logger);
+            }
+
             if (GUI.Button(modeButtonRect, GetCharacterModeButtonLabel(), GetControllerButtonStyle("characters.mode", _buttonStyle)))
             {
                 ToggleCharacterActionMode(logger);
@@ -26,14 +35,14 @@ namespace RandomLoadout
                 return;
             }
 
-            GUI.Label(new Rect(panelRect.x + 14f, panelRect.y + 12f, panelRect.width - CharacterModeButtonWidth - ButtonWidth - 32f, 24f), GuiText.Get("gui.characters.title"), _titleStyle);
+            GUI.Label(new Rect(panelRect.x + 14f, panelRect.y + 12f, targetButtonRect.x - panelRect.x - 24f, 24f), GuiText.Get("gui.characters.title"), _titleStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
                 GuiText.Get("gui.characters.hint.apply_mode"),
                 _hintStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 58f, panelRect.width - 28f, 20f),
-                GetCharacterModeHint(),
+                GetCharacterModeHint() + " " + GetCharacterSwitchTargetHint(),
                 _hintStyle);
             float availabilityHeight = GetCharacterAvailabilityHeight(availabilityMessage, panelRect.width);
             GUI.Label(
@@ -96,7 +105,7 @@ namespace RandomLoadout
 
             Rect panelRect = GetMainPanelRect(panelHeight);
             float statusWidth = Mathf.Min(StatusMaxWidth, GetScaledScreenWidth() - 24f);
-            GUIStyle style = _statusIsError ? _statusErrorStyle : _statusSuccessStyle;
+            GUIStyle style = GetStatusStyle();
             float statusHeight = Mathf.Max(StatusMinHeight, style.CalcHeight(new GUIContent(_statusMessage), statusWidth));
             Rect statusRect = new Rect(
                 (GetScaledScreenWidth() - statusWidth) * 0.5f,
@@ -105,6 +114,22 @@ namespace RandomLoadout
                 statusHeight);
 
             GUI.Box(statusRect, _statusMessage, style);
+        }
+
+        private GUIStyle GetStatusStyle()
+        {
+            switch (_statusSeverity)
+            {
+                case StatusSeverity.Failure:
+                    return _statusErrorStyle;
+                case StatusSeverity.Warning:
+                    return _statusWarningStyle;
+                case StatusSeverity.Information:
+                    return _statusInformationStyle;
+                case StatusSeverity.Success:
+                default:
+                    return _statusSuccessStyle;
+            }
         }
 
         private float GetPanelHeight(FoyerCharacterOption[] characterOptions, string characterAvailability)
@@ -143,13 +168,14 @@ namespace RandomLoadout
         private ControllerFocusEntry[] GetCharacterPageFocusEntries(FoyerCharacterOption[] characterOptions)
         {
             int optionCount = characterOptions != null ? characterOptions.Length : 0;
-            ControllerFocusEntry[] entries = new ControllerFocusEntry[2 + optionCount];
-            entries[0] = new ControllerFocusEntry("characters.mode", 0, 0);
-            entries[1] = new ControllerFocusEntry("characters.back", 0, 1);
+            ControllerFocusEntry[] entries = new ControllerFocusEntry[3 + optionCount];
+            entries[0] = new ControllerFocusEntry("characters.target", 0, 0);
+            entries[1] = new ControllerFocusEntry("characters.mode", 0, 1);
+            entries[2] = new ControllerFocusEntry("characters.back", 0, 2);
 
             for (int index = 0; index < optionCount; index++)
             {
-                entries[index + 2] = new ControllerFocusEntry(
+                entries[index + 3] = new ControllerFocusEntry(
                     GetCharacterOptionControlId(index),
                     1 + (index / CharacterButtonsPerRow),
                     index % CharacterButtonsPerRow);
@@ -160,6 +186,12 @@ namespace RandomLoadout
 
         private void ExecuteCharacterPageFocusedControl(ManualLogSource logger)
         {
+            if (string.Equals(_characterPageFocusedControlId, "characters.target", StringComparison.Ordinal))
+            {
+                ToggleCharacterSwitchTarget(logger);
+                return;
+            }
+
             if (string.Equals(_characterPageFocusedControlId, "characters.mode", StringComparison.Ordinal))
             {
                 ToggleCharacterActionMode(logger);

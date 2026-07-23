@@ -60,7 +60,9 @@ namespace RandomLoadout
 
             const float iconSize = 30f;
             const float rowPadding = 8f;
-            const float labelWidth = 150f;
+            // Keep the full pickup label readable (including "Hegemony (+50)")
+            // while allowing the action buttons to stay compact.
+            const float labelWidth = 140f;
             Rect iconRect = new Rect(rowRect.x + rowPadding, rowRect.y + ((rowRect.height - iconSize) * 0.5f), iconSize, iconSize);
             DrawPickupActionIcon(iconRect, row.SpriteName);
 
@@ -76,7 +78,7 @@ namespace RandomLoadout
             }
 
             float actionAreaRight = rowRect.x + rowRect.width - rowPadding;
-            float actionAreaLeft = iconRect.xMax + 10f + labelWidth + 12f;
+            float actionAreaLeft = iconRect.xMax + 10f + labelWidth + 4f;
             float actionGap = 8f;
             float actionAreaWidth = actionAreaRight - actionAreaLeft;
             float actionButtonWidth = (actionAreaWidth - (actionGap * (actions.Length - 1))) / actions.Length;

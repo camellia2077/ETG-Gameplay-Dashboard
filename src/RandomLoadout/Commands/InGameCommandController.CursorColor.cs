@@ -41,13 +41,14 @@ namespace RandomLoadout
             float left = panelRect.x + 14f;
             Rect toggleRect = new Rect(panelRect.x + 14f, panelRect.y + 82f, panelRect.width - 28f, 34f);
             bool isEnabled = CombatCursorColorCatalog.IsEnabled(selectedId);
-            GUIStyle toggleStyle = isEnabled ? _enabledButtonStyle : _buttonStyle;
-            string toggleKey = isEnabled
-                ? "gui.combat.cursor_color.toggle.disable"
-                : "gui.combat.cursor_color.toggle.enable";
+            GUIStyle toggleStyle = isEnabled ? _cursorColorSelectedButtonStyle : _buttonStyle;
+            string toggleLabel = GuiText.Get("gui.command.setting.cursor_color") + ": " +
+                (isEnabled
+                    ? GetLocalizedFallback("gui.command.status.on", "ON", "开")
+                    : GetLocalizedFallback("gui.command.status.off", "OFF", "关"));
             if (GUI.Button(
                 toggleRect,
-                GuiText.Get(toggleKey),
+                toggleLabel,
                 GetControllerButtonStyle("cursor_color.toggle", toggleStyle)))
             {
                 ToggleCombatCursorColor(selectedId, options);
@@ -74,7 +75,7 @@ namespace RandomLoadout
                 GUI.color = previousColor;
 
                 bool isSelected = string.Equals(option.Id, selectedId, System.StringComparison.OrdinalIgnoreCase);
-                GUIStyle style = isSelected ? _enabledButtonStyle : _buttonStyle;
+                GUIStyle style = isSelected ? _cursorColorSelectedButtonStyle : _buttonStyle;
                 if (GUI.Button(
                     buttonRect,
                     GuiText.Get(option.DisplayNameKey) + "  " + option.Hex,

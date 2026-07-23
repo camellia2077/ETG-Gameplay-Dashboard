@@ -39,6 +39,8 @@ namespace RandomLoadout
 
         public void Update(PlayerController player, bool isOverlayEnabled)
         {
+            ClearDestroyedVisibleSourceIfNeeded();
+
             if (!isOverlayEnabled)
             {
                 ClearTip(null, "overlay_disabled");
@@ -59,6 +61,7 @@ namespace RandomLoadout
 
         public void HandlePickupEnteredRange(PickupObject pickup, PlayerController player)
         {
+            LogInfo("Nearby pickup entered-range callback. " + DescribePickup(pickup) + ".");
             if (!CanShowTip(player) || pickup == null)
             {
                 return;
@@ -69,11 +72,13 @@ namespace RandomLoadout
 
         public void HandlePickupExitedRange(PickupObject pickup)
         {
+            LogInfo("Nearby pickup exited-range callback. " + DescribePickup(pickup) + ".");
             ClearTip(pickup, "pickup_exit_range");
         }
 
         public void HandlePickupConsumed(PickupObject pickup)
         {
+            LogInfo("Nearby pickup consumed callback. " + DescribePickup(pickup) + ".");
             ClearTip(pickup, "pickup_consumed");
         }
 
@@ -190,6 +195,29 @@ namespace RandomLoadout
             CurrentPickupId = 0;
             CurrentDisplayName = string.Empty;
             _currentRangeSource = null;
+        }
+
+        private void ClearDestroyedVisibleSourceIfNeeded()
+        {
+            if (!HasVisibleTip || (object)_currentRangeSource == null || _currentRangeSource != null)
+            {
+                return;
+            }
+
+            // Some pickup types, including the Blank's SilencerItem, override Pickup instead
+            // of running PlayerItem.Pickup. That bypasses the base-method Harmony hook that
+            // normally calls HandlePickupConsumed, leaving the overlay pointed at a destroyed
+            // Unity object. Clear it here so custom pickup implementations cannot leave stale
+            // nearby-item information on screen.
+            LogInfo(
+                "Nearby pickup range source was destroyed without a matching pickup-consumed or exit-range callback. " +
+                "Clearing the visible tip. CurrentPickupId=" +
+                CurrentPickupId +
+                ", Label=" +
+                Quote(CurrentDisplayName) +
+                ".");
+
+            ClearTip(null, "range_source_destroyed");
         }
 
         private static string GetPickupLabelForGameLanguage(PickupObject pickup)
@@ -364,6 +392,16 @@ namespace RandomLoadout
         private static string Quote(string value)
         {
             return "\"" + (value ?? string.Empty) + "\"";
+        }
+
+        private static string DescribePickup(PickupObject pickup)
+        {
+            if ((object)pickup == null)
+            {
+                return "Pickup=<null>";
+            }
+
+            return "PickupType=" + pickup.GetType().Name + ", PickupId=" + pickup.PickupObjectId + ", InstanceId=" + pickup.GetInstanceID();
         }
     }
 }

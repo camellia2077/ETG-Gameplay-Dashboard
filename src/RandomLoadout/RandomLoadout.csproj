@@ -105,6 +105,15 @@
     <Compile Include="..\RandomLoadout.Core\GrantMode.cs">
       <Link>Core\GrantMode.cs</Link>
     </Compile>
+    <Compile Include="..\RandomLoadout.Core\Cursor\CursorRenderOwnershipService.cs">
+      <Link>Core\Cursor\CursorRenderOwnershipService.cs</Link>
+    </Compile>
+    <Compile Include="..\RandomLoadout.Core\Input\PlayerInputOwnershipService.cs">
+      <Link>Core\Input\PlayerInputOwnershipService.cs</Link>
+    </Compile>
+    <Compile Include="..\RandomLoadout.Core\Input\KeyboardAimAssistSettings.cs">
+      <Link>Core\Input\KeyboardAimAssistSettings.cs</Link>
+    </Compile>
     <Compile Include="..\RandomLoadout.Core\PickupCategory.cs">
       <Link>Core\PickupCategory.cs</Link>
     </Compile>
@@ -167,6 +176,7 @@
     <Compile Include="Commands\FoyerCharacterSwitchService.Switching.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.Unlocking.cs" />
     <Compile Include="Commands\InGameCommandController.cs" />
+    <Compile Include="Commands\InGameCommandController.Performance.cs" />
     <Compile Include="Commands\InGameCommandController.AdvancedTools.cs" />
     <Compile Include="Commands\InGameCommandController.About.cs" />
     <Compile Include="Commands\InGameCommandController.BossRush.cs" />
@@ -195,8 +205,15 @@
     <Compile Include="Commands\PlayerDebugCommandService.cs" />
     <Compile Include="Commands\PlayerRuntimeOverrideServiceBase.cs" />
     <Compile Include="Commands\PlayerHealthOverrideService.cs" />
+    <Compile Include="Commands\PlayerStatMultiplierService.cs" />
+    <Compile Include="Commands\DamageDiagnosticsService.cs" />
     <Compile Include="Commands\PlayerActiveItemCapacityOverrideService.cs" />
     <Compile Include="Commands\RoomDebugCommandService.cs" />
+    <Compile Include="Commands\RoomDebugCommandService.RoomReplay.cs" />
+    <Compile Include="Commands\RoomDebugCommandService.Muncher.cs" />
+    <Compile Include="Commands\RoomDebugCommandService.BossSelection.cs" />
+    <Compile Include="Commands\RoomDebugCommandService.Map.cs" />
+    <Compile Include="Commands\RoomDebugCommandService.Helpers.cs" />
     <Compile Include="Commands\LoadoutPresetEditorEntry.cs" />
     <Compile Include="Commands\LoadoutPresetEditorEntryBuilder.cs" />
     <Compile Include="Commands\LoadoutPresetDeck.cs" />
@@ -214,6 +231,11 @@
     <Compile Include="Commands\AutoReloadToggleService.cs" />
     <Compile Include="Commands\CurrencyNoConsumeToggleService.cs" />
     <Compile Include="Commands\InvincibilityToggleService.cs" />
+    <Compile Include="Commands\EnemyHealthBarToggleService.cs" />
+    <Compile Include="Commands\ControllerAimLockService.cs" />
+    <Compile Include="Commands\KeyboardAimAssistService.cs" />
+    <Compile Include="Commands\KeyboardAimAssistTargetSelector.cs" />
+    <Compile Include="Commands\KeyboardAimAssistUiDefinition.cs" />
     <Compile Include="Commands\KeyNoConsumeToggleService.cs" />
     <Compile Include="Commands\AmmoModeToggleService.cs" />
     <Compile Include="Commands\RapidFireToggleService.cs" />
@@ -252,6 +274,12 @@
     <Compile Include="Runtime\EtgFloorSceneResolver.cs" />
     <Compile Include="Runtime\AmmonomiconAnimationHooks.cs" />
     <Compile Include="Runtime\BossRushHooks.cs" />
+    <Compile Include="Runtime\BossAudioDiagnosticsHooks.cs" />
+    <Compile Include="Runtime\BossIntroSkipHooks.cs" />
+    <Compile Include="Runtime\BossSelectionHooks.cs" />
+    <Compile Include="Runtime\BossNameCatalog.cs" />
+    <Compile Include="Runtime\ControllerAimLockHooks.cs" />
+    <Compile Include="Runtime\KeyboardAimAssistHooks.cs" />
     <Compile Include="Runtime\CommandPanelCursorRenderHooks.cs" />
     <Compile Include="Runtime\CurrencyNoConsumeHooks.cs" />
     <Compile Include="Runtime\GameWindowFocusService.cs" />
@@ -260,6 +288,8 @@
     <Compile Include="Runtime\NearbyPickupTipHooks.cs" />
     <Compile Include="Runtime\PlayerHealthOverrideHooks.cs" />
     <Compile Include="Runtime\PerformanceDiagnostics.cs" />
+    <Compile Include="Runtime\RoomEnemyReplayHooks.cs" />
+    <Compile Include="Runtime\RoomEnemyReplayService.cs" />
     <Compile Include="Runtime\RuntimeHookRegistry.cs" />
     <Compile Include="Runtime\BossRushService.cs" />
     <Compile Include="Runtime\BossRushService.Flow.cs" />

@@ -16,6 +16,14 @@ namespace RandomLoadout.Core.Tests
                 new KeyValuePair<string, Action>("ParsesAnyCommandAlias", GrantCommandParserTests.ParsesAnyCommandAlias),
                 new KeyValuePair<string, Action>("PreservesPastedPickupCatalogLine", GrantCommandParserTests.PreservesPastedPickupCatalogLine),
                 new KeyValuePair<string, Action>("AliasLookupIsCaseInsensitive", AliasRegistryTests.AliasLookupIsCaseInsensitive),
+                new KeyValuePair<string, Action>("RebindsPrimaryAfterPrimaryCharacterSwitch", PlayerInputOwnershipServiceTests.RebindsPrimaryAfterPrimaryCharacterSwitch),
+                new KeyValuePair<string, Action>("RebindsSecondaryAfterSecondaryCharacterSwitch", PlayerInputOwnershipServiceTests.RebindsSecondaryAfterSecondaryCharacterSwitch),
+                new KeyValuePair<string, Action>("RebindsBothPlayersIndependently", PlayerInputOwnershipServiceTests.RebindsBothPlayersIndependently),
+                new KeyValuePair<string, Action>("PrimaryMouseOwnsCursorWithPanelClosed", CursorRenderOwnershipServiceTests.PrimaryMouseOwnsCursorWithPanelClosed),
+                new KeyValuePair<string, Action>("SecondaryMouseOwnsCursorWithPanelOpenOrClosed", CursorRenderOwnershipServiceTests.SecondaryMouseOwnsCursorWithPanelOpenOrClosed),
+                new KeyValuePair<string, Action>("PrimaryMouseWinsWhenBothPlayersHaveMouse", CursorRenderOwnershipServiceTests.PrimaryMouseWinsWhenBothPlayersHaveMouse),
+                new KeyValuePair<string, Action>("CustomColorDoesNotChangeInputOwner", CursorRenderOwnershipServiceTests.CustomColorDoesNotChangeInputOwner),
+                new KeyValuePair<string, Action>("NoMouseReturnsOwnershipToNativeRenderer", CursorRenderOwnershipServiceTests.NoMouseReturnsOwnershipToNativeRenderer),
                 new KeyValuePair<string, Action>("DuplicateAliasKeepsFirstDefinition", AliasRegistryTests.DuplicateAliasKeepsFirstDefinition),
                 new KeyValuePair<string, Action>("NumericAliasIsRejected", AliasRegistryTests.NumericAliasIsRejected),
                 new KeyValuePair<string, Action>("UnsupportedPickupIdIsRejected", AliasRegistryTests.UnsupportedPickupIdIsRejected),
@@ -48,6 +56,7 @@ namespace RandomLoadout.Core.Tests
                 new KeyValuePair<string, Action>("SpecificRulesRespectConfigOrderForDuplicateSelections", LoadoutSelectionServiceTests.SpecificRulesRespectConfigOrderForDuplicateSelections),
                 new KeyValuePair<string, Action>("MixedRulesRespectConfigOrder", LoadoutSelectionServiceTests.MixedRulesRespectConfigOrder),
                 new KeyValuePair<string, Action>("InvalidSpecificRuleProducesWarning", LoadoutSelectionServiceTests.InvalidSpecificRuleProducesWarning),
+                new KeyValuePair<string, Action>("RoomEnteredHookKeepsVanillaParameterName", RuntimeHookContractTests.RoomEnteredHookKeepsVanillaParameterName),
             };
 
             int failures = 0;

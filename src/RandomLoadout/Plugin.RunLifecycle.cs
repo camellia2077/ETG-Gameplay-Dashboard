@@ -19,6 +19,7 @@ namespace RandomLoadout
             GameManager gameManager = GameManager.Instance;
             if ((object)gameManager != null)
             {
+                ObserveRoomReplayFloorTransition(gameManager);
                 player = gameManager.PrimaryPlayer;
             }
 
@@ -87,6 +88,23 @@ namespace RandomLoadout
                 LogPerformanceStep("InvincibilityToggleService.Update", startedAtTimestamp);
             }
 
+            if (_enemyHealthBarToggleService != null)
+            {
+                long startedAtTimestamp = BeginPerformanceSample();
+                _enemyHealthBarToggleService.Update(player);
+                LogPerformanceStep("EnemyHealthBarToggleService.Update", startedAtTimestamp);
+            }
+
+            if (_playerStatMultiplierService != null)
+            {
+                _playerStatMultiplierService.Update(player);
+            }
+
+            if (_damageDiagnosticsService != null)
+            {
+                _damageDiagnosticsService.Update(player);
+            }
+
             if (_ammoModeToggleService != null)
             {
                 long startedAtTimestamp = BeginPerformanceSample();
@@ -118,7 +136,6 @@ namespace RandomLoadout
             _sceneWatcher.MarkPolled(Time.unscaledTime);
             TryHandleCurrentScene("poll");
         }
-
         private void OnNewLevelFullyLoaded()
         {
             ScheduleGameWindowFocusRetryAfterSceneReady();
@@ -129,6 +146,42 @@ namespace RandomLoadout
             }
 
             TryHandleCurrentScene("event");
+
+            if (_roomEnemyReplayService != null)
+            {
+                _roomEnemyReplayService.LogFloorMapTeleportState("AfterNewLevelFullyLoaded");
+            }
+        }
+
+        private void ObserveRoomReplayFloorTransition(GameManager gameManager)
+        {
+            bool isLoadingLevel = gameManager != null && gameManager.IsLoadingLevel;
+            if (isLoadingLevel)
+            {
+                if (_roomReplayFloorTransitionObserved)
+                {
+                    return;
+                }
+
+                _roomReplayFloorTransitionObserved = true;
+                if (_roomEnemyReplayService != null)
+                {
+                    // Clear while the old floor is entering its unload transition. The
+                    // next floor's OnEntered hooks can then create fresh snapshots without
+                    // the new-floor-loaded callback deleting them afterward.
+                    _roomEnemyReplayService.ClearSnapshots("old floor unload");
+                    if (IsRoomEnemyReplayVerboseLoggingEnabled())
+                    {
+                        Logger.LogInfo(RandomLoadoutLog.Command(
+                            "Room replay floor transition observed. IsLoadingLevel=True, CurrentFloor=" +
+                            gameManager.CurrentFloor + ", SnapshotsClearedBeforeUnload=True."));
+                    }
+                }
+
+                return;
+            }
+
+            _roomReplayFloorTransitionObserved = false;
         }
 
         private void TryHandleCurrentScene(string source)

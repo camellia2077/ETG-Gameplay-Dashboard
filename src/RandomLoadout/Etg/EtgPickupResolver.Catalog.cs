@@ -9,8 +9,24 @@ namespace RandomLoadout
 {
     internal sealed partial class EtgPickupResolver
     {
+        private EtgPickupCatalogEntry[] _grantablePickupCatalogCache;
+        private string _grantablePickupCatalogCacheLanguage;
+
+        internal void InvalidateGrantablePickupCatalogCache()
+        {
+            _grantablePickupCatalogCache = null;
+            _grantablePickupCatalogCacheLanguage = string.Empty;
+        }
+
         public EtgPickupCatalogEntry[] GetGrantablePickupCatalog()
         {
+            string currentLanguage = GuiText.CurrentLanguageCode ?? string.Empty;
+            if (_grantablePickupCatalogCache != null &&
+                string.Equals(_grantablePickupCatalogCacheLanguage, currentLanguage, StringComparison.OrdinalIgnoreCase))
+            {
+                return _grantablePickupCatalogCache;
+            }
+
             List<EtgPickupCatalogEntry> entries = new List<EtgPickupCatalogEntry>();
             foreach (PickupObject pickup in EnumeratePickups())
             {
@@ -56,7 +72,9 @@ namespace RandomLoadout
             }
 
             entries.Sort(CompareCatalogEntries);
-            return entries.ToArray();
+            _grantablePickupCatalogCache = entries.ToArray();
+            _grantablePickupCatalogCacheLanguage = currentLanguage;
+            return _grantablePickupCatalogCache;
         }
 
         private static int CompareCatalogEntries(EtgPickupCatalogEntry left, EtgPickupCatalogEntry right)

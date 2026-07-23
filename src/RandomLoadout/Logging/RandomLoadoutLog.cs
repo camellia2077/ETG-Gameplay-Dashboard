@@ -48,9 +48,24 @@ namespace RandomLoadout
             return Format("Performance", message);
         }
 
+        public static string Damage(string message)
+        {
+            return Format("Damage", message);
+        }
+
         public static string CursorRender(string message)
         {
             return Format("CursorRender", message);
+        }
+
+        public static string Aim(string message)
+        {
+            return Format("Aim", message);
+        }
+
+        public static string CameraAim(string message)
+        {
+            return Format("CameraAim", message);
         }
 
         public static string Alias(string message)

@@ -12,10 +12,16 @@ namespace RandomLoadout
         {
             _runtimeHookRegistry = new RuntimeHookRegistry(GUID, Logger);
             _runtimeHookRegistry.Register(".bossrush", InstallBossRushRuntimeHooks, null);
+            _runtimeHookRegistry.Register(".boss_selection", InstallBossSelectionRuntimeHooks, null);
+            _runtimeHookRegistry.Register(".room_enemy_replay", InstallRoomEnemyReplayRuntimeHooks, ClearRoomEnemyReplayRuntimeHookConfiguration);
+            _runtimeHookRegistry.Register(".boss_audio_diagnostics", BossAudioDiagnosticsHooks.Install, null);
+            _runtimeHookRegistry.Register(".boss_intro_skip", InstallBossIntroSkipRuntimeHooks, BossIntroSkipHooks.Reset);
             _runtimeHookRegistry.Register(".ammonomicon_animation", InstallAmmonomiconRuntimeHooks, null);
             _runtimeHookRegistry.Register(".currency_no_consume", InstallCurrencyNoConsumeRuntimeHooks, ClearCurrencyNoConsumeRuntimeHookConfiguration);
             _runtimeHookRegistry.Register(".nearby_pickup_tip", InstallNearbyPickupTipRuntimeHooks, ClearNearbyPickupTipRuntimeHookConfiguration);
             _runtimeHookRegistry.Register(".player_health_override", InstallPlayerHealthOverrideRuntimeHooks, ClearPlayerHealthOverrideRuntimeHookConfiguration);
+            _runtimeHookRegistry.Register(".controller_aim_lock", InstallControllerAimLockRuntimeHooks, ControllerAimLockHooks.ClearConfiguration);
+            _runtimeHookRegistry.Register(".keyboard_aim_assist", InstallKeyboardAimAssistRuntimeHooks, KeyboardAimAssistHooks.ClearConfiguration);
             _runtimeHookRegistry.Register(".cursor_render_diagnostics", InstallCursorRenderDiagnosticsHooks, ClearCursorRenderDiagnosticsHookConfiguration);
         }
 
@@ -43,6 +49,27 @@ namespace RandomLoadout
             LogBossRushHookSelfCheck(BossRushHooks.Install(harmony, logger));
         }
 
+        private void InstallBossSelectionRuntimeHooks(Harmony harmony, ManualLogSource logger)
+        {
+            BossSelectionHooks.Install(harmony, logger, IsBossSelectionVerboseLoggingEnabled);
+        }
+
+        private void InstallRoomEnemyReplayRuntimeHooks(Harmony harmony, ManualLogSource logger)
+        {
+            RoomEnemyReplayHooks.Configure(_roomEnemyReplayService);
+            RoomEnemyReplayHooks.Install(harmony, logger);
+        }
+
+        private void InstallBossIntroSkipRuntimeHooks(Harmony harmony, ManualLogSource logger)
+        {
+            BossIntroSkipHooks.Install(harmony, logger, IsBossIntroSkipVerboseLoggingEnabled);
+        }
+
+        private static void ClearRoomEnemyReplayRuntimeHookConfiguration()
+        {
+            RoomEnemyReplayHooks.Configure(null);
+        }
+
         private static void InstallAmmonomiconRuntimeHooks(Harmony harmony, ManualLogSource logger)
         {
             AmmonomiconAnimationHooks.Install(harmony, logger);
@@ -64,6 +91,18 @@ namespace RandomLoadout
         {
             PlayerHealthOverrideHooks.Configure(_playerHealthOverrideService);
             PlayerHealthOverrideHooks.Install(harmony, logger);
+        }
+
+        private void InstallControllerAimLockRuntimeHooks(Harmony harmony, ManualLogSource logger)
+        {
+            ControllerAimLockHooks.Configure(_controllerAimLockService, IsControllerAimVerboseLoggingEnabled, logger);
+            ControllerAimLockHooks.Install(harmony, logger);
+        }
+
+        private void InstallKeyboardAimAssistRuntimeHooks(Harmony harmony, ManualLogSource logger)
+        {
+            KeyboardAimAssistHooks.Configure(_keyboardAimAssistService);
+            KeyboardAimAssistHooks.Install(harmony, logger);
         }
 
         private void InstallCursorRenderDiagnosticsHooks(Harmony harmony, ManualLogSource logger)

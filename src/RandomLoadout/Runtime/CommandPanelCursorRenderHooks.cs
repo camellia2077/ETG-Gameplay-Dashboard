@@ -5,6 +5,7 @@ using System;
 using System.Reflection;
 using BepInEx.Logging;
 using HarmonyLib;
+using RandomLoadout.Core.Cursor;
 using UnityEngine;
 
 namespace RandomLoadout
@@ -18,9 +19,15 @@ namespace RandomLoadout
         private static Func<bool> s_abovePanelEnabledProvider;
         private static Func<Color> s_cursorColorProvider;
         private static ManualLogSource s_logger;
+        private static readonly CursorRenderOwnershipService s_cursorRenderOwnershipService = new CursorRenderOwnershipService();
         private static GameCursorController s_lastCursorController;
         private static bool s_cursorOverrideApplied;
         private static string s_lastRenderedColorDescription = string.Empty;
+        private static string s_lastInputAndColorStateDescription = string.Empty;
+        private static string s_lastPanelCursorStateDescription = string.Empty;
+        private static bool s_hasLastUnityCursorState;
+        private static bool s_lastUnityCursorVisible;
+        private static CursorLockMode s_lastUnityCursorLockMode;
         private static Material s_cursorColorMaterial;
         private static bool s_cursorColorMaterialInitializationAttempted;
 
@@ -39,17 +46,22 @@ namespace RandomLoadout
             s_lastCursorController = null;
             s_cursorOverrideApplied = false;
             s_lastRenderedColorDescription = string.Empty;
+            s_lastInputAndColorStateDescription = string.Empty;
+            s_lastPanelCursorStateDescription = string.Empty;
+            s_hasLastUnityCursorState = false;
             ClearCursorColorMaterial();
         }
 
         public static void UpdateCursorOverride(bool panelVisible)
         {
-            bool customColorEnabled = IsCustomCursorColorEnabled();
-            BraveInput playerOneInput = GameManager.HasInstance ? BraveInput.GetInstanceForPlayer(0) : null;
-            bool hasMouse = playerOneInput != null && playerOneInput.HasMouse();
-            bool shouldApply = hasMouse &&
-                GameCursorController.CursorOverride != null &&
-                (ShouldDrawCursorAbovePanel(panelVisible) || customColorEnabled);
+            CursorRenderDecision ownership = EvaluateCursorOwnership(panelVisible);
+            bool customColorEnabled = ownership.ColorMode == CursorColorMode.Custom;
+            BraveInput cursorInput = GetMouseInput();
+            bool hasMouse = cursorInput != null;
+            LogPanelCursorState(panelVisible, cursorInput);
+            LogInputAndColorState(panelVisible, customColorEnabled, hasMouse);
+            LogUnityCursorStateTransition(panelVisible, ownership, cursorInput);
+            bool shouldApply = ownership.PluginOwnsRender;
             if (shouldApply == s_cursorOverrideApplied)
             {
                 return;
@@ -174,7 +186,8 @@ namespace RandomLoadout
                 return;
             }
 
-            if (!BraveInput.GetInstanceForPlayer(0).HasMouse())
+            BraveInput cursorInput = GetMouseInput();
+            if (cursorInput == null)
             {
                 return;
             }
@@ -191,7 +204,7 @@ namespace RandomLoadout
                 return;
             }
 
-            Vector2 mousePosition = BraveInput.GetInstanceForPlayer(0).MousePosition;
+            Vector2 mousePosition = cursorInput.MousePosition;
             mousePosition.y = Screen.height - mousePosition.y;
             int scaleTileScale = Pixelator.Instance != null ? (int)Pixelator.Instance.ScaleTileScale : 3;
             Vector2 size = new Vector2(texture.width, texture.height) * scaleTileScale;
@@ -219,11 +232,17 @@ namespace RandomLoadout
 
         public static void DrawCursorAfterPanel(bool panelVisible)
         {
-            // Panel layering is controlled only by the UI option. Combat cursor color
-            // must not determine whether the cursor is redrawn above the panel.
-            if (ShouldDrawCursorAbovePanel(panelVisible) || IsCustomCursorColorEnabled())
+            // Keep ownership of the ETG cursor while a mouse-capable player exists.
+            // Otherwise closing the panel releases the native cursor, which can make
+            // ETG immediately redraw the P2 cursor with its purple tint even though
+            // the plugin color is disabled and configured as white.
+            // While the Control Panel is open, keep drawing even before BraveInput
+            // recognizes a mouse owner. Keyboard/controller handoff can briefly leave
+            // both players at HasMouse=false; waiting for that transition made the
+            // in-game cursor appear only after the first physical mouse click.
+            if (EvaluateCursorOwnership(panelVisible).PluginOwnsRender || panelVisible)
             {
-                DrawEtgCursors();
+                DrawEtgCursors(panelVisible);
                 return;
             }
 
@@ -238,8 +257,7 @@ namespace RandomLoadout
             // legacy optional toggle.
             return panelVisible &&
                 GameManager.HasInstance &&
-                BraveInput.GetInstanceForPlayer(0) != null &&
-                BraveInput.GetInstanceForPlayer(0).HasMouse();
+                GetMouseInput() != null;
         }
 
         private static bool IsCustomCursorColorEnabled()
@@ -255,28 +273,200 @@ namespace RandomLoadout
             return color.r != 1f || color.g != 1f || color.b != 1f || color.a != 1f;
         }
 
-        private static void DrawEtgCursors()
+        private static void LogInputAndColorState(bool panelVisible, bool customColorEnabled, bool playerOneHasMouse)
         {
-            if (Event.current == null || Event.current.type != EventType.Repaint ||
-                s_lastCursorController == null || !GameManager.HasInstance ||
-                GameManager.Instance.IsLoadingLevel || GameManager.IsReturningToBreach)
+            if (!ShouldLog())
             {
+                s_lastInputAndColorStateDescription = string.Empty;
+                return;
+            }
+
+            GameManager gameManager = GameManager.HasInstance ? GameManager.Instance : null;
+            BraveInput playerOneInput = gameManager != null ? BraveInput.GetInstanceForPlayer(0) : null;
+            BraveInput playerTwoInput = gameManager != null ? BraveInput.GetInstanceForPlayer(1) : null;
+            BraveInput cursorInput = GetMouseInput();
+            string state =
+                "PanelVisible=" + panelVisible +
+                ", GameType=" + (gameManager != null ? gameManager.CurrentGameType.ToString() : "<null>") +
+                ", P1=" + DescribePlayer(gameManager != null ? gameManager.PrimaryPlayer : null) +
+                ", P2=" + DescribePlayer(gameManager != null ? gameManager.SecondaryPlayer : null) +
+                ", P1Input=" + DescribeInput(playerOneInput) +
+                ", P2Input=" + DescribeInput(playerTwoInput) +
+                ", CursorInput=" + DescribeInput(cursorInput) +
+                ", PlayerOneHasMouse=" + playerOneHasMouse +
+                ", CustomColorEnabled=" + customColorEnabled +
+                ", CursorColor=" + DescribeColor(s_cursorColorProvider != null ? s_cursorColorProvider() : Color.white);
+            if (string.Equals(state, s_lastInputAndColorStateDescription, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            s_lastInputAndColorStateDescription = state;
+            Log("Cursor/input state changed. " + state + ".");
+        }
+
+        private static void LogPanelCursorState(bool panelVisible, BraveInput cursorInput)
+        {
+            if (!IsVerboseLoggingEnabled())
+            {
+                s_lastPanelCursorStateDescription = string.Empty;
+                return;
+            }
+
+            GameManager gameManager = GameManager.HasInstance ? GameManager.Instance : null;
+            BraveInput playerOneInput = gameManager != null ? BraveInput.GetInstanceForPlayer(0) : null;
+            BraveInput playerTwoInput = gameManager != null ? BraveInput.GetInstanceForPlayer(1) : null;
+            Color configuredColor = s_cursorColorProvider != null ? s_cursorColorProvider() : Color.white;
+            string state =
+                "PanelVisible=" + panelVisible +
+                ", CursorInput=" + DescribeInput(cursorInput) +
+                ", P1Input=" + DescribeInput(playerOneInput) +
+                ", P2Input=" + DescribeInput(playerTwoInput) +
+                ", CustomColorEnabled=" + IsCustomCursorColorEnabled() +
+                ", ConfiguredColor=" + DescribeColor(configuredColor) +
+                ", CursorOverrideApplied=" + s_cursorOverrideApplied +
+                ", CursorOverrideAvailable=" + (GameCursorController.CursorOverride != null) +
+                ", CursorIndex=" + (GameManager.HasInstance && GameManager.Options != null ? GameManager.Options.CurrentCursorIndex.ToString() : "<null>") +
+                ", UnityCursorVisible=" + Cursor.visible +
+                ", UnityCursorLockMode=" + Cursor.lockState;
+            if (string.Equals(state, s_lastPanelCursorStateDescription, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            s_lastPanelCursorStateDescription = state;
+            s_logger.LogInfo(RandomLoadoutLog.CursorRender("Panel cursor state transition. " + state + "."));
+        }
+
+        private static void LogUnityCursorStateTransition(bool panelVisible, CursorRenderDecision ownership, BraveInput cursorInput)
+        {
+            if (!IsVerboseLoggingEnabled())
+            {
+                s_hasLastUnityCursorState = false;
+                return;
+            }
+
+            bool cursorVisible = Cursor.visible;
+            CursorLockMode cursorLockMode = Cursor.lockState;
+            if (s_hasLastUnityCursorState &&
+                s_lastUnityCursorVisible == cursorVisible &&
+                s_lastUnityCursorLockMode == cursorLockMode)
+            {
+                return;
+            }
+
+            string previousState = s_hasLastUnityCursorState
+                ? "Visible=" + s_lastUnityCursorVisible + ",LockMode=" + s_lastUnityCursorLockMode
+                : "<unknown>";
+            s_hasLastUnityCursorState = true;
+            s_lastUnityCursorVisible = cursorVisible;
+            s_lastUnityCursorLockMode = cursorLockMode;
+            Log(
+                "Unity cursor state changed. Previous=" + previousState +
+                ", Current=Visible=" + cursorVisible + ",LockMode=" + cursorLockMode +
+                ", PanelVisible=" + panelVisible +
+                ", PluginOwnsRender=" + ownership.PluginOwnsRender +
+                ", CursorInput=" + DescribeInput(cursorInput) +
+                ", Mouse=" + FormatVector(Input.mousePosition));
+        }
+
+        private static string DescribePlayer(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return "<null>";
+            }
+
+            try
+            {
+                return "Id=" + player.GetInstanceID() +
+                       ",Name=" + player.name +
+                       ",Index=" + player.PlayerIDX +
+                       ",Character=" + player.characterIdentity +
+                       ",Active=" + player.gameObject.activeInHierarchy +
+                       ",InputOverridden=" + player.IsInputOverridden;
+            }
+            catch (Exception exception)
+            {
+                return "StateReadFailed=" + exception.GetType().Name;
+            }
+        }
+
+        private static string DescribeInput(BraveInput input)
+        {
+            if (input == null)
+            {
+                return "<null>";
+            }
+
+            try
+            {
+                InControl.InputDevice device = input.ActiveActions != null ? input.ActiveActions.Device : null;
+                return "HasMouse=" + input.HasMouse() +
+                       ",Device=" + (device != null ? device.Name + "/" + device.DeviceClass : "<none>");
+            }
+            catch (Exception exception)
+            {
+                return "StateReadFailed=" + exception.GetType().Name;
+            }
+        }
+
+        private static void DrawEtgCursors(bool panelVisible)
+        {
+            if (Event.current == null || Event.current.type != EventType.Repaint)
+            {
+                return;
+            }
+
+            if (s_lastCursorController == null)
+            {
+                LogCursorRedrawSkip(panelVisible, "NoCachedGameCursorController");
+                return;
+            }
+
+            if (!GameManager.HasInstance)
+            {
+                LogCursorRedrawSkip(panelVisible, "GameManagerUnavailable");
+                return;
+            }
+
+            if (GameManager.Instance.IsLoadingLevel)
+            {
+                LogCursorRedrawSkip(panelVisible, "LevelLoading");
+                return;
+            }
+
+            if (GameManager.IsReturningToBreach)
+            {
+                LogCursorRedrawSkip(panelVisible, "ReturningToCharacterSelect");
                 return;
             }
 
             Texture2D texture = GetSelectedCursorTexture(s_lastCursorController);
             if (texture == null)
             {
+                LogCursorRedrawSkip(panelVisible, "SelectedCursorTextureUnavailable");
                 return;
             }
 
-            BraveInput playerOneInput = BraveInput.GetInstanceForPlayer(0);
-            if (playerOneInput == null)
+            BraveInput cursorInput = GetMouseInput();
+            if (cursorInput == null && !panelVisible)
             {
+                LogCursorRedrawSkip(panelVisible, "MouseInputUnavailable");
                 return;
             }
 
-            Vector2 mousePosition = playerOneInput.MousePosition;
+            bool usingUnityMousePositionFallback = cursorInput == null;
+        Vector2 mousePosition;
+        if (usingUnityMousePositionFallback)
+        {
+            Vector3 unityMousePosition = Input.mousePosition;
+            mousePosition = new Vector2(unityMousePosition.x, unityMousePosition.y);
+        }
+        else
+        {
+            mousePosition = cursorInput.MousePosition;
+        }
             mousePosition.y = Screen.height - mousePosition.y;
             Color cursorColor = s_cursorColorProvider != null ? s_cursorColorProvider() : Color.white;
             string colorDescription = DescribeColor(cursorColor);
@@ -286,7 +476,71 @@ namespace RandomLoadout
                 s_lastRenderedColorDescription = colorDescription;
             }
 
-            DrawCursorTexture(texture, mousePosition, cursorColor);
+            Rect cursorRect = DrawCursorTexture(texture, mousePosition, cursorColor);
+            if (ShouldLog())
+            {
+                Log(
+                    "Game cursor texture draw submitted after Control Panel. PanelVisible=" + panelVisible +
+                    ", Texture=" + texture.width + "x" + texture.height +
+                    ", DrawRect=" + FormatRect(cursorRect) +
+                    ", PositionSource=" + (usingUnityMousePositionFallback ? "UnityInput.mousePosition" : "BraveInput.MousePosition") +
+                    ", Color=" + colorDescription +
+                    ", GUIEnabled=" + GUI.enabled +
+                    ", GUIColor=" + DescribeColor(GUI.color) +
+                    ", " + DescribeCursor(s_lastCursorController));
+            }
+        }
+
+        private static BraveInput GetMouseInput()
+        {
+            if (!GameManager.HasInstance)
+            {
+                return null;
+            }
+
+            BraveInput playerOneInput = BraveInput.GetInstanceForPlayer(0);
+            if (playerOneInput != null && playerOneInput.HasMouse())
+            {
+                return playerOneInput;
+            }
+
+            BraveInput playerTwoInput = BraveInput.GetInstanceForPlayer(1);
+            if (playerTwoInput != null && playerTwoInput.HasMouse())
+            {
+                return playerTwoInput;
+            }
+
+            return null;
+        }
+
+        private static CursorRenderDecision EvaluateCursorOwnership(bool panelVisible)
+        {
+            if (!GameManager.HasInstance)
+            {
+                return s_cursorRenderOwnershipService.Evaluate(
+                    panelVisible,
+                    false,
+                    false,
+                    IsCustomCursorColorEnabled(),
+                    false);
+            }
+
+            BraveInput playerOneInput = BraveInput.GetInstanceForPlayer(0);
+            BraveInput playerTwoInput = BraveInput.GetInstanceForPlayer(1);
+            return s_cursorRenderOwnershipService.Evaluate(
+                panelVisible,
+                playerOneInput != null && playerOneInput.HasMouse(),
+                playerTwoInput != null && playerTwoInput.HasMouse(),
+                IsCustomCursorColorEnabled(),
+                GameCursorController.CursorOverride != null);
+        }
+
+        private static void LogCursorRedrawSkip(bool panelVisible, string reason)
+        {
+            if (ShouldLog())
+            {
+                Log("Cursor redraw skipped after Control Panel. PanelVisible=" + panelVisible + ", Reason=" + reason + ".");
+            }
         }
 
         private static Texture2D GetSelectedCursorTexture(GameCursorController controller)
@@ -301,7 +555,7 @@ namespace RandomLoadout
             return texture;
         }
 
-        private static void DrawCursorTexture(Texture2D texture, Vector2 position, Color color)
+        private static Rect DrawCursorTexture(Texture2D texture, Vector2 position, Color color)
         {
             int scaleTileScale = Pixelator.Instance != null ? (int)Pixelator.Instance.ScaleTileScale : 3;
             Vector2 size = new Vector2(texture.width, texture.height) * scaleTileScale;
@@ -310,31 +564,22 @@ namespace RandomLoadout
                 position.y + 0.5f - size.y / 2f,
                 size.x,
                 size.y);
-            if (EnsureCursorColorMaterial())
+            // Graphics.DrawTexture is submitted to Unity's graphics pipeline. Boss UI can
+            // render after that submission and hide the cursor even though this call ran.
+            // The Control Panel itself is IMGUI, so draw the cursor in the same pass after
+            // the panel and restore the prior tint for unrelated IMGUI users.
+            Color previousColor = GUI.color;
+            try
             {
-                s_cursorColorMaterial.SetColor("_Color", new Color(color.r, color.g, color.b, 1f));
-                Graphics.DrawTexture(
-                    screenRect,
-                    texture,
-                    new Rect(0f, 0f, 1f, 1f),
-                    0,
-                    0,
-                    0,
-                    0,
-                    Color.white,
-                    s_cursorColorMaterial);
-                return;
+                GUI.color = color;
+                GUI.DrawTexture(screenRect, texture);
+            }
+            finally
+            {
+                GUI.color = previousColor;
             }
 
-            Graphics.DrawTexture(
-                screenRect,
-                texture,
-                new Rect(0f, 0f, 1f, 1f),
-                0,
-                0,
-                0,
-                0,
-                color);
+            return screenRect;
         }
 
         private static bool EnsureCursorColorMaterial()
@@ -436,12 +681,17 @@ namespace RandomLoadout
 
         private static bool ShouldLog()
         {
-            return s_enabledProvider != null &&
-                s_enabledProvider() &&
-                s_logger != null &&
+            return IsVerboseLoggingEnabled() &&
                 Event.current != null &&
                 Event.current.type == EventType.Repaint &&
                 Time.frameCount % SampleFrameInterval == 0;
+        }
+
+        private static bool IsVerboseLoggingEnabled()
+        {
+            return s_enabledProvider != null &&
+                s_enabledProvider() &&
+                s_logger != null;
         }
 
         private static string DescribeCursor(GameCursorController controller)
@@ -449,8 +699,8 @@ namespace RandomLoadout
             int normalWidth = controller != null && controller.normalCursor != null ? controller.normalCursor.width : 0;
             int normalHeight = controller != null && controller.normalCursor != null ? controller.normalCursor.height : 0;
             int cursorCount = controller != null && controller.cursors != null ? controller.cursors.Length : 0;
-            return "CursorVisible=" + Cursor.visible +
-                ", CursorLockMode=" + Cursor.lockState +
+            return "UnityOSCursorVisible=" + Cursor.visible +
+                ", UnityCursorLockMode=" + Cursor.lockState +
                 ", NormalCursor=" + normalWidth + "x" + normalHeight +
                 ", CursorCount=" + cursorCount +
                 ", Mouse=" + FormatVector(Input.mousePosition) +
@@ -460,6 +710,12 @@ namespace RandomLoadout
         private static string FormatVector(Vector3 value)
         {
             return "(" + value.x.ToString("0.0") + "," + value.y.ToString("0.0") + "," + value.z.ToString("0.0") + ")";
+        }
+
+        private static string FormatRect(Rect value)
+        {
+            return "(" + value.x.ToString("0.0") + "," + value.y.ToString("0.0") + "," +
+                value.width.ToString("0.0") + "x" + value.height.ToString("0.0") + ")";
         }
 
         private static void Log(string message)

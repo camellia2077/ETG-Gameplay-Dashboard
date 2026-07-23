@@ -59,18 +59,24 @@ Available optional switches:
 [Debug]
 EnableMapTeleportVerboseLogs = false
 EnableMuncherVerboseLogs = false
+EnableRoomEnemyReplayVerboseLogs = false
+EnableBossIntroSkipVerboseLogs = false
 EnableFloorTeleportVerboseLogs = false
 EnableBossRushVerboseLogs = false
 EnableCommandPanelHealthVerboseLogs = false
-EnableCommandPanelCursorVerboseLogs = false
+EnableCommandPanelCursorVerboseLogs = true
 EnableCommandPanelGameplayInputVerboseLogs = false
 EnableCommandPanelControllerGameplayInputVerboseLogs = false
+EnableCommandPanelShortcutVerboseLogs = true
 EnableCommandPanelCursorRenderVerboseLogs = false
 EnableCommandPanelCursorRenderProbe = false
+EnableControllerAimVerboseLogs = false
 EnableActiveItemGrantVerboseLogs = false
 EnableNearbyPickupVerboseLogs = false
 EnableStartupWindowFocusVerboseLogs = false
 EnablePerformanceVerboseLogs = false
+EnableCharacterSwitchVerboseLogs = true
+EnableDamageDiagnosticsVerboseLogs = false
 ```
 
 Use them only while actively reproducing an issue. Leave them off for normal play.
@@ -79,17 +85,26 @@ Feature guides:
 
 - [Map Reveal Logging](./logging-map-teleport.md)
 - [Muncher Spawn Logging](./logging-muncher-spawn.md)
+- [Room Enemy Replay Logging](./logging-room-enemy-replay.md)
+- [Boss Audio Diagnostics](./logging-boss-audio.md)
+- [Boss Intro Skip Logging](./logging-boss-intro-skip.md)
 - [Floor Teleport Logging](./logging-floor-teleport.md)
 - [Boss Rush Logging](./logging-boss-rush.md)
 - [Command-Panel Health Logging](./logging-command-panel-health.md)
 - [Command-Panel Cursor Logging](./logging-command-panel-cursor.md)
 - [Command-Panel Gameplay Input Logging](./logging-command-panel-gameplay-input.md)
 - [Command-Panel Controller Gameplay Input Logging](./logging-command-panel-controller-gameplay-input.md)
+- [Command-Panel Shortcut Logging](./logging-command-panel-shortcut.md)
 - [Command-Panel Cursor Render Logging](./logging-command-panel-cursor-render.md)
+- [Controller Aim / Cursor Logging](./logging-controller-aim.md)
 - [Active-Item Grant Logging](./logging-active-item-grant.md)
 - [Nearby Pickup Logging](./logging-nearby-pickup.md)
 - [Startup Window Focus](./startup-window-focus.md)
 - [Performance Logging](./logging-performance.md)
+- [Items 页面性能优化](./performance-items.md)
+- [Loadout 长列表性能优化](./performance-loadout-lists.md)
+- [Character Switch Logging](./logging-character-switch.md)
+- [Damage Diagnostics Logging](./logging-damage-diagnostics.md)
 
 ## Startup Self-Check
 
@@ -161,6 +176,8 @@ python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common
   [./logging-map-teleport.md](./logging-map-teleport.md)
 - Muncher diagnostics:
   [./logging-muncher-spawn.md](./logging-muncher-spawn.md)
+- Boss intro skip diagnostics:
+  [./logging-boss-intro-skip.md](./logging-boss-intro-skip.md)
 - Floor teleport diagnostics:
   [./logging-floor-teleport.md](./logging-floor-teleport.md)
 - Boss Rush diagnostics:

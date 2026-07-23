@@ -93,7 +93,12 @@ namespace RandomLoadout
 
             Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, (_cachedLoadoutPickupEntries.Length * PickupRowHeight) + 4f);
             _loadoutEditorScrollPosition = BeginCommandScrollView(listRect, _loadoutEditorScrollPosition, viewRect);
-            for (int i = 0; i < _cachedLoadoutPickupEntries.Length; i++)
+            float rowStride = PickupRowHeight;
+            int firstVisibleIndex = Mathf.Max(0, Mathf.FloorToInt(_loadoutEditorScrollPosition.y / rowStride) - 1);
+            int lastVisibleIndex = Mathf.Min(
+                _cachedLoadoutPickupEntries.Length - 1,
+                Mathf.CeilToInt((_loadoutEditorScrollPosition.y + listRect.height) / rowStride) + 1);
+            for (int i = firstVisibleIndex; i <= lastVisibleIndex; i++)
             {
                 DrawLoadoutPresetPickupRow(new Rect(0f, 2f + (i * PickupRowHeight), viewRect.width, PickupRowHeight - 4f), _cachedLoadoutPickupEntries[i], logger);
             }

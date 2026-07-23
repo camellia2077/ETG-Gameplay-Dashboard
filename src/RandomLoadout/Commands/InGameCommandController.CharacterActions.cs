@@ -14,6 +14,10 @@ namespace RandomLoadout
         private void OpenCharacterPage(ManualLogSource logger)
         {
             _currentPage = PanelPage.Characters;
+            if (_characterSwitchTarget == CharacterSwitchTarget.BothPlayers)
+            {
+                _characterSwitchTarget = CharacterSwitchTarget.PrimaryPlayer;
+            }
             _focusInputField = false;
             _characterPageFocusedControlId = "characters.mode";
             RefreshCharacterPageData(true);
@@ -32,9 +36,19 @@ namespace RandomLoadout
 
         private void ExecuteSwitchCharacter(FoyerCharacterOption option, ManualLogSource logger)
         {
+            if (logger != null && option != null && string.Equals(option.Label, "Pilot", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(
+                    "Pilot button activated. Mode=" + _characterActionMode +
+                    ", Target=" + (_characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer ? "P2" : "P1") +
+                    ", Selectable=" + option.IsSelectable +
+                    ", Selected=" + option.IsSelected +
+                    ", Pending=" + option.IsPending + "."));
+            }
+
             GrantCommandExecutionResult executionResult = _characterActionMode == CharacterActionMode.Unlock
                 ? _foyerCharacterSwitchService.UnlockCharacter(option)
-                : _foyerCharacterSwitchService.SwitchCharacterOnly(option);
+                : _foyerCharacterSwitchService.SwitchCharacterOnly(option, _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
             RefreshCharacterPageData(true);
 
@@ -63,6 +77,89 @@ namespace RandomLoadout
                 : GuiText.Get("gui.characters.hint.switch_only");
         }
 
+        private string GetCharacterSwitchTargetHint()
+        {
+            return GuiText.Get(
+                "gui.characters.hint.target",
+                GetCharacterSwitchTargetDisplayLabel());
+        }
+
+        private string GetCharacterSwitchTargetButtonLabel()
+        {
+            return GuiText.Get(
+                "gui.command.button.character_switch_target",
+                GetCharacterSwitchTargetDisplayLabel());
+        }
+
+        private string GetCharacterSwitchTargetDisplayLabel()
+        {
+            if (_characterSwitchTarget == CharacterSwitchTarget.BothPlayers)
+            {
+                return GuiText.Get("gui.characters.target.both");
+            }
+
+            return _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer ? "P2" : "P1";
+        }
+
+        private string GetEnglishCharacterSwitchTargetDisplayLabel()
+        {
+            if (_characterSwitchTarget == CharacterSwitchTarget.BothPlayers)
+            {
+                return GuiText.GetEnglish("gui.characters.target.both");
+            }
+
+            return _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer ? "P2" : "P1";
+        }
+
+        private void ToggleCharacterSwitchTarget(ManualLogSource logger)
+        {
+            bool allowBothPlayers = IsTargetSelectionPage();
+            if (_characterSwitchTarget == CharacterSwitchTarget.PrimaryPlayer)
+            {
+                _characterSwitchTarget = CharacterSwitchTarget.SecondaryPlayer;
+            }
+            else if (_characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer && allowBothPlayers)
+            {
+                _characterSwitchTarget = CharacterSwitchTarget.BothPlayers;
+            }
+            else
+            {
+                _characterSwitchTarget = CharacterSwitchTarget.PrimaryPlayer;
+            }
+
+            string targetLabel = GetCharacterSwitchTargetDisplayLabel();
+            string englishTargetLabel = GetEnglishCharacterSwitchTargetDisplayLabel();
+            ShowStatus(GuiText.Get("result.characters.target_changed", targetLabel), false);
+
+            if (logger != null)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(GuiText.GetEnglish("result.characters.target_changed", englishTargetLabel)));
+            }
+        }
+
+        private bool IsTargetSelectionPage()
+        {
+            if (_currentPage == PanelPage.Pickups)
+            {
+                return _pickupBrowserMode == PickupBrowserMode.Grant;
+            }
+
+            if (_currentPage == PanelPage.Currency)
+            {
+                return true;
+            }
+
+            // Player commands are always scoped to exactly one player. Both remains
+            // available for General pickup/currency grants, but is intentionally not
+            // offered for player-specific toggles and stats.
+            if (_currentPage == PanelPage.Command && _commandMenuCategory == CommandMenuCategory.Player)
+            {
+                return false;
+            }
+
+            return false;
+        }
+
         private void ToggleCharacterActionMode(ManualLogSource logger)
         {
             _characterActionMode = _characterActionMode == CharacterActionMode.Unlock
@@ -85,9 +182,30 @@ namespace RandomLoadout
 
         private void ShowStatus(string message, bool isError)
         {
-            _statusMessage = message;
-            _statusIsError = isError;
+            ShowStatus(message, isError ? StatusSeverity.Failure : StatusSeverity.Success);
+        }
+
+        private void ShowStatus(string message, StatusSeverity severity)
+        {
+            _statusMessage = GetStatusPrefix(severity) + " " + message;
+            _statusSeverity = severity;
             _statusExpiresAt = Time.unscaledTime + StatusDurationSeconds;
+        }
+
+        private static string GetStatusPrefix(StatusSeverity severity)
+        {
+            switch (severity)
+            {
+                case StatusSeverity.Failure:
+                    return "×";
+                case StatusSeverity.Warning:
+                    return "!";
+                case StatusSeverity.Information:
+                    return "i";
+                case StatusSeverity.Success:
+                default:
+                    return "✓";
+            }
         }
 
         private void RefreshCharacterPageData(bool forceRefresh)

@@ -108,6 +108,8 @@ I am changing build, deploy, or tools:
 - [Code Index](./reference/code-index.md)
 - [Commands](./reference/commands.md)
 - [UI Icon Reuse](./reference/ui-icon-reuse.md)
+- [Items 页面性能优化](./operations/performance-items.md)
+- [Loadout 长列表性能优化](./operations/performance-loadout-lists.md)
 - [Muncher Spawn](./reference/runtime-internals/muncher-spawn.md)
 - [Map Reveal And Teleporter Promotion](./reference/map-teleport.md)
 - [Localization And Language Switching](./reference/localization.md)

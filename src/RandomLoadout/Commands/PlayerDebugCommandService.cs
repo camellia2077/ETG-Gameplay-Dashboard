@@ -1,6 +1,8 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
+using UnityEngine;
+
 namespace RandomLoadout
 {
     internal sealed class PlayerDebugCommandService
@@ -10,6 +12,12 @@ namespace RandomLoadout
         private const float SingleArmorAmount = 1f;
         private const int SingleKeyAmount = 1;
         private const int SingleBlankAmount = 1;
+        private const int FullHeartPickupId = 85;
+        private const int ArmorPickupId = 120;
+        private const int KeyPickupId = 67;
+        private const int BlankPickupId = 224;
+        private const int RatKeyPickupId = 727;
+        private const float CurrencySpawnDistance = 3f;
         // Run currency (casings): drops during dungeon runs and is consumed in-run.
         private const int CurrencyBundleAmount = 100;
         private const int LargeCurrencyBundleAmount = 100;
@@ -164,6 +172,122 @@ namespace RandomLoadout
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_blank.success");
         }
 
+        public GrantCommandExecutionResult SpawnBlankNearPlayer(PlayerController player)
+        {
+            return SpawnPickupNearPlayer(
+                player,
+                BlankPickupId,
+                "result.debug.spawn_blank.unavailable",
+                "result.debug.spawn_blank.failed",
+                "result.debug.spawn_blank.success");
+        }
+
+        public GrantCommandExecutionResult SpawnFullHeartNearPlayer(PlayerController player)
+        {
+            return SpawnPickupNearPlayer(
+                player,
+                FullHeartPickupId,
+                "result.debug.spawn_full_heart.unavailable",
+                "result.debug.spawn_full_heart.failed",
+                "result.debug.spawn_full_heart.success");
+        }
+
+        public GrantCommandExecutionResult SpawnArmorNearPlayer(PlayerController player)
+        {
+            return SpawnPickupNearPlayer(
+                player,
+                ArmorPickupId,
+                "result.debug.spawn_armor.unavailable",
+                "result.debug.spawn_armor.failed",
+                "result.debug.spawn_armor.success");
+        }
+
+        public GrantCommandExecutionResult SpawnKeyNearPlayer(PlayerController player)
+        {
+            return SpawnPickupNearPlayer(
+                player,
+                KeyPickupId,
+                "result.debug.spawn_key.unavailable",
+                "result.debug.spawn_key.failed",
+                "result.debug.spawn_key.success");
+        }
+
+        public GrantCommandExecutionResult SpawnRatKeyNearPlayer(PlayerController player)
+        {
+            return SpawnPickupNearPlayer(
+                player,
+                RatKeyPickupId,
+                "result.debug.spawn_rat_key.unavailable",
+                "result.debug.spawn_rat_key.failed",
+                "result.debug.spawn_rat_key.success");
+        }
+
+        public GrantCommandExecutionResult SpawnCurrencyNearPlayer(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
+            }
+
+            try
+            {
+                LootEngine.SpawnCurrency(
+                    player.CenterPosition + (Vector2.right * CurrencySpawnDistance),
+                    CurrencyBundleAmount,
+                    false,
+                    Vector2.right,
+                    0f,
+                    1f);
+            }
+            catch (System.Exception)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.debug.spawn_currency.failed");
+            }
+
+            return GrantCommandExecutionResult.Localized(true, "result.debug.spawn_currency.success");
+        }
+
+        private static GrantCommandExecutionResult SpawnPickupNearPlayer(
+            PlayerController player,
+            int pickupId,
+            string unavailableResultKey,
+            string failedResultKey,
+            string successResultKey)
+        {
+            if ((object)player == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
+            }
+
+            PickupObject pickup = PickupObjectDatabase.GetById(pickupId);
+            if ((object)pickup == null || (object)pickup.gameObject == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, unavailableResultKey);
+            }
+
+            try
+            {
+                DebrisObject spawnedPickup = LootEngine.SpawnItem(
+                    pickup.gameObject,
+                    player.CenterPosition + Vector2.right,
+                    Vector2.right,
+                    1f,
+                    false,
+                    true,
+                    false);
+                if ((object)spawnedPickup == null)
+                {
+                    return GrantCommandExecutionResult.Localized(false, failedResultKey);
+                }
+            }
+            catch (System.Exception)
+            {
+                return GrantCommandExecutionResult.Localized(false, failedResultKey);
+            }
+
+            return GrantCommandExecutionResult.Localized(true, successResultKey);
+        }
+
         public GrantCommandExecutionResult RefillCurrentGunAmmo(PlayerController player)
         {
             if ((object)player == null)
@@ -274,6 +398,24 @@ namespace RandomLoadout
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_currency.success");
         }
 
+        public GrantCommandExecutionResult ClearCurrency(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
+            }
+
+            PlayerConsumables consumables = player.carriedConsumables;
+            if ((object)consumables == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.consumables_not_ready");
+            }
+
+            int clearedAmount = consumables.Currency;
+            consumables.Currency = 0;
+            return GrantCommandExecutionResult.Localized(true, "result.debug.clear_currency.success", clearedAmount);
+        }
+
         public GrantCommandExecutionResult AddMetaCurrency(PlayerController player)
         {
             GameStatsManager stats = GameStatsManager.Instance;
@@ -287,6 +429,22 @@ namespace RandomLoadout
             stats.RegisterStatChange(TrackedStats.META_CURRENCY, MetaCurrencyBundleAmount);
             GameStatsManager.Save();
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_meta_currency.success");
+        }
+
+        public GrantCommandExecutionResult ClearMetaCurrency(PlayerController player)
+        {
+            GameStatsManager stats = GameStatsManager.Instance;
+            if ((object)stats == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.game_stats_not_ready");
+            }
+
+            int clearedAmount = (int)stats.GetPlayerStatValue(TrackedStats.META_CURRENCY);
+            // This is the same vanilla global-clear path used before setting the remaining
+            // Hegemony balance after a Breach shop purchase.
+            stats.ClearStatValueGlobal(TrackedStats.META_CURRENCY);
+            GameStatsManager.Save();
+            return GrantCommandExecutionResult.Localized(true, "result.debug.clear_meta_currency.success", clearedAmount);
         }
 
         public GrantCommandExecutionResult GrantStartItemPickup(PlayerController player, string pickupType)

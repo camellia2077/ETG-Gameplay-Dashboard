@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using BepInEx.Logging;
 using RandomLoadout.Core;
 using UnityEngine;
@@ -30,6 +31,7 @@ namespace RandomLoadout
 
         private void OpenPickupPage(PickupBrowserMode mode, ManualLogSource logger)
         {
+            long startedAtTimestamp = StartPickupBrowserPerformanceTimer();
             _currentPage = PanelPage.Pickups;
             _pickupBrowserMode = mode;
             _focusInputField = false;
@@ -37,6 +39,11 @@ namespace RandomLoadout
             _pickupPageFocusedControlId = "pickups.back";
             RequestGuiFocusRelease();
             RefreshPickupBrowserData();
+
+            LogPickupBrowserPerformance(
+                "Pickup browser open completed. Mode=" + _pickupBrowserMode +
+                ", CachedEntries=" + _cachedPickupEntries.Length +
+                ", DurationMs=" + FormatPickupBrowserMilliseconds(startedAtTimestamp) + ".");
 
             if (logger != null)
             {
@@ -46,9 +53,19 @@ namespace RandomLoadout
 
         private void DrawPickupPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
+            long startedAtTimestamp = StartPickupBrowserPerformanceTimer();
             const float pickupSearchClearButtonWidth = 72f;
 
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect targetButtonRect = new Rect(backButtonRect.x - ButtonGap - ButtonWidth, panelRect.y + 12f, ButtonWidth, 30f);
+            GUIStyle targetButtonStyle = _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer
+                ? _enabledButtonStyle
+                : _buttonStyle;
+            if (GUI.Button(targetButtonRect, GetCharacterSwitchTargetButtonLabel(), GetControllerButtonStyle("pickups.target", targetButtonStyle)))
+            {
+                ToggleCharacterSwitchTarget(logger);
+            }
+
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("pickups.back", _buttonStyle)))
             {
                 ClosePickupPage();
@@ -56,7 +73,7 @@ namespace RandomLoadout
             }
 
             GUI.Label(
-                new Rect(panelRect.x + 14f, panelRect.y + 12f, panelRect.width - ButtonWidth - 32f, 24f),
+                new Rect(panelRect.x + 14f, panelRect.y + 12f, targetButtonRect.x - panelRect.x - 24f, 24f),
                 GetPickupBrowserTitle(),
                 _titleStyle);
             GUI.Label(
@@ -65,7 +82,7 @@ namespace RandomLoadout
                 _hintStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 58f, panelRect.width - 28f, 20f),
-                GetPickupBrowserActionHint(),
+                GetPickupBrowserActionHint() + " " + GetPickupBrowserTargetHint(),
                 _hintStyle);
 
             GUI.SetNextControlName(PickupSearchControlName);
@@ -104,7 +121,11 @@ namespace RandomLoadout
 
             float listTop = filtersTop + GetPickupFilterAreaHeight();
             Rect listRect = new Rect(panelRect.x + 14f, listTop, panelRect.width - 28f, panelRect.height - (listTop - panelRect.y) - 14f);
-            DrawPickupResults(listRect, player, logger);
+            PlayerController grantPlayer = _pickupBrowserMode == PickupBrowserMode.Grant
+                ? GetSelectedCommandTargetPlayer()
+                : player;
+            DrawPickupResults(listRect, grantPlayer, logger);
+            LogSlowPickupBrowserDraw(startedAtTimestamp);
         }
 
         private void DrawPickupFilterButtons(float left, float top)
@@ -272,9 +293,14 @@ namespace RandomLoadout
             Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, contentHeight);
             EnsurePickupBrowserFocusedResultVisible(matches, listRect.height);
             _pickupScrollPosition = BeginCommandScrollView(listRect, _pickupScrollPosition, viewRect);
-            for (int i = 0; i < matches.Length; i++)
+            float rowStride = PickupBrowserRowHeight + PickupBrowserRowGap;
+            int firstVisibleIndex = Mathf.Max(0, Mathf.FloorToInt(_pickupScrollPosition.y / rowStride) - 1);
+            int lastVisibleIndex = Mathf.Min(
+                matches.Length - 1,
+                Mathf.CeilToInt((_pickupScrollPosition.y + listRect.height) / rowStride) + 1);
+            for (int i = firstVisibleIndex; i <= lastVisibleIndex; i++)
             {
-                float rowTop = 2f + (i * (PickupBrowserRowHeight + PickupBrowserRowGap));
+                float rowTop = 2f + (i * rowStride);
                 DrawPickupRow(new Rect(0f, rowTop, viewRect.width, PickupBrowserRowHeight - 4f), matches[i], player, logger);
             }
 
@@ -283,6 +309,7 @@ namespace RandomLoadout
 
         private void DrawPickupRow(Rect rowRect, PickupBrowserEntry entry, PlayerController player, ManualLogSource logger)
         {
+            LogPickupNameDiagnostic(entry);
             GUI.Box(rowRect, GUIContent.none, _pickupBrowserRowStyle);
 
             const float addButtonWidth = 64f;
@@ -305,11 +332,15 @@ namespace RandomLoadout
                 }
             }
 
-            Rect iconRect = new Rect(rowRect.x + 8f, rowRect.y + ((rowRect.height - PickupIconSize) * 0.5f), PickupIconSize, PickupIconSize);
+            Rect iconRect = new Rect(
+                rowRect.x + 8f,
+                rowRect.y + ((rowRect.height - PickupBrowserIconHeight) * 0.5f),
+                PickupBrowserIconWidth,
+                PickupBrowserIconHeight);
             DrawPickupIcon(iconRect, entry);
 
             float textLeft = iconRect.xMax + 8f;
-            float textWidth = rowRect.width - actionButtonsWidth - 32f - PickupIconSize - 24f;
+            float textWidth = rowRect.width - actionButtonsWidth - 32f - PickupBrowserIconWidth - 24f;
             GUI.Label(
                 new Rect(textLeft, rowRect.y + 5f, textWidth, 20f),
                 entry.DisplayName,
@@ -370,21 +401,59 @@ namespace RandomLoadout
 
         private void DrawPickupIcon(Rect iconRect, PickupBrowserEntry entry)
         {
-            GUI.Box(iconRect, GUIContent.none, _pickupIconBackgroundStyle);
-
             PickupIconData iconData;
             if (TryGetPickupIcon(entry.CatalogEntry.PickupId, out iconData))
             {
-                GUI.DrawTextureWithTexCoords(iconRect, iconData.Texture, iconData.TextureCoords, true);
+                Rect drawRect = GetAspectFitIconRect(iconRect, iconData);
+                GUI.DrawTextureWithTexCoords(drawRect, iconData.Texture, iconData.TextureCoords, true);
                 return;
             }
 
             GUI.Box(iconRect, entry.IconFallbackLabel, _pickupIconFallbackStyle);
         }
 
+        private static Rect GetAspectFitIconRect(Rect slotRect, PickupIconData iconData)
+        {
+            if (iconData.Texture == null || iconData.TextureCoords.width <= 0f || iconData.TextureCoords.height <= 0f)
+            {
+                return slotRect;
+            }
+
+            float textureWidth = iconData.Texture.width * iconData.TextureCoords.width;
+            float textureHeight = iconData.Texture.height * iconData.TextureCoords.height;
+            if (textureWidth <= 0f || textureHeight <= 0f)
+            {
+                return slotRect;
+            }
+
+            float sourceAspect = textureWidth / textureHeight;
+            float slotAspect = slotRect.width / slotRect.height;
+            if (sourceAspect > slotAspect)
+            {
+                float fittedHeight = slotRect.width / sourceAspect;
+                return new Rect(
+                    slotRect.x,
+                    slotRect.y + ((slotRect.height - fittedHeight) * 0.5f),
+                    slotRect.width,
+                    fittedHeight);
+            }
+
+            float fittedWidth = slotRect.height * sourceAspect;
+            return new Rect(
+                slotRect.x + ((slotRect.width - fittedWidth) * 0.5f),
+                slotRect.y,
+                fittedWidth,
+                slotRect.height);
+        }
+
         private void ExecutePickupBrowserGrant(PickupBrowserEntry entry, PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _commandService.ExecuteCatalogEntry(player, entry.CatalogEntry);
+            if (_pickupBrowserMode == PickupBrowserMode.Grant)
+            {
+                player = GetSelectedCommandTargetPlayer();
+            }
+
+            GrantCommandExecutionResult executionResult = ExecutePickupBrowserGrantForSelectedTarget(entry, player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
             _inputText = entry.CommandText;
 
@@ -410,9 +479,14 @@ namespace RandomLoadout
                 return;
             }
 
+            long startedAtTimestamp = StartPickupBrowserPerformanceTimer();
+            _pickupNameDiagnosticsLogged.Clear();
             EtgPickupCatalogEntry[] catalogEntries = _pickupCatalogProvider() ?? new EtgPickupCatalogEntry[0];
+            double catalogDurationMs = FormatPickupBrowserMilliseconds(startedAtTimestamp);
             PickupAliasRegistry aliasRegistry = _aliasRegistryProvider != null ? _aliasRegistryProvider() : PickupAliasRegistry.Empty;
+            long aliasStartedAtTimestamp = StartPickupBrowserPerformanceTimer();
             Dictionary<int, List<string>> aliasesByPickupId = BuildAliasesByPickupId(aliasRegistry);
+            double aliasDurationMs = FormatPickupBrowserMilliseconds(aliasStartedAtTimestamp);
             List<PickupBrowserEntry> browserEntries = new List<PickupBrowserEntry>(catalogEntries.Length);
             for (int index = 0; index < catalogEntries.Length; index++)
             {
@@ -424,11 +498,145 @@ namespace RandomLoadout
 
                 List<string> aliases;
                 aliasesByPickupId.TryGetValue(entry.PickupId, out aliases);
-                browserEntries.Add(new PickupBrowserEntry(entry, aliases));
+                browserEntries.Add(new PickupBrowserEntry(entry, aliases, _pickupGameplayNameProvider));
             }
 
             browserEntries.Sort(ComparePickupBrowserEntries);
             _cachedPickupEntries = browserEntries.ToArray();
+            _filteredPickupEntriesCache = null;
+            LogPickupBrowserPerformance(
+                "Pickup browser data refreshed. CatalogEntries=" + catalogEntries.Length +
+                ", AliasEntries=" + aliasesByPickupId.Count +
+                ", CachedEntries=" + _cachedPickupEntries.Length +
+                ", CatalogProviderMs=" + catalogDurationMs +
+                ", AliasBuildMs=" + aliasDurationMs +
+                ", TotalMs=" + FormatPickupBrowserMilliseconds(startedAtTimestamp) + ".");
+            LogPickupBrowserPerformance(
+                "Pickup browser language context. CurrentLanguage=" + GuiText.CurrentLanguageCode
+                + ", GameLanguage=" + GuiText.GameLanguageCode
+                + ", EntryCount=" + catalogEntries.Length + ".");
+        }
+
+        private void LogPickupNameDiagnostic(PickupBrowserEntry entry)
+        {
+            if (!IsPickupBrowserPerformanceLoggingEnabled() || _performanceLogger == null || entry == null || entry.CatalogEntry == null)
+            {
+                return;
+            }
+
+            int pickupId = entry.CatalogEntry.PickupId;
+            if (!_pickupNameDiagnosticsLogged.Add(pickupId))
+            {
+                return;
+            }
+
+            EtgPickupCatalogEntry catalogEntry = entry.CatalogEntry;
+            _performanceLogger.LogInfo(
+                RandomLoadoutLog.Performance(
+                    "PickupBrowserName: PickupId=" + pickupId
+                    + ", CurrentLanguage=" + GuiText.CurrentLanguageCode
+                    + ", GameLanguage=" + GuiText.GameLanguageCode
+                    + ", DisplayName=" + (catalogEntry.DisplayName ?? string.Empty)
+                    + ", EnglishDisplayName=" + (catalogEntry.EnglishDisplayName ?? string.Empty)
+                    + ", GameDisplayName=" + (catalogEntry.GameDisplayName ?? string.Empty)
+                    + ", InternalName=" + (catalogEntry.InternalName ?? string.Empty)
+                    + ", ResolvedEntryDisplayName=" + (entry.DisplayName ?? string.Empty) + "."));
+        }
+
+        private long StartPickupBrowserPerformanceTimer()
+        {
+            return IsPickupBrowserPerformanceLoggingEnabled() ? Stopwatch.GetTimestamp() : 0L;
+        }
+
+        private void LogSlowPickupBrowserDraw(long startedAtTimestamp)
+        {
+            if (startedAtTimestamp == 0L)
+            {
+                return;
+            }
+
+            double durationMs = FormatPickupBrowserMilliseconds(startedAtTimestamp);
+            if (durationMs >= 20d)
+            {
+                LogPickupBrowserPerformance("Slow pickup browser draw. DurationMs=" + durationMs + ".");
+            }
+        }
+
+        private void LogPickupBrowserPerformance(string message)
+        {
+            if (!IsPickupBrowserPerformanceLoggingEnabled() || _performanceLogger == null)
+            {
+                return;
+            }
+
+            _performanceLogger.LogInfo(RandomLoadoutLog.Performance("PickupBrowser: " + message));
+        }
+
+        private bool IsPickupBrowserPerformanceLoggingEnabled()
+        {
+            return _performanceVerboseLoggingEnabledProvider != null &&
+                _performanceVerboseLoggingEnabledProvider();
+        }
+
+        private static double FormatPickupBrowserMilliseconds(long startedAtTimestamp)
+        {
+            if (startedAtTimestamp == 0L)
+            {
+                return 0d;
+            }
+
+            return Math.Round((Stopwatch.GetTimestamp() - startedAtTimestamp) * 1000d / Stopwatch.Frequency, 3);
+        }
+
+        private string GetPickupBrowserTargetHint()
+        {
+            if (_characterSwitchTarget == CharacterSwitchTarget.BothPlayers)
+            {
+                return GuiText.Get("gui.pickups.hint.both_players");
+            }
+
+            return GuiText.Get("gui.pickups.hint.target", GetCharacterSwitchTargetDisplayLabel());
+        }
+
+        private GrantCommandExecutionResult ExecutePickupBrowserGrantForSelectedTarget(
+            PickupBrowserEntry entry,
+            PlayerController fallbackPlayer)
+        {
+            if (_pickupBrowserMode != PickupBrowserMode.Grant)
+            {
+                return _commandService.ExecuteCatalogEntry(fallbackPlayer, entry.CatalogEntry);
+            }
+
+            if (_characterSwitchTarget != CharacterSwitchTarget.BothPlayers)
+            {
+                return _commandService.ExecuteCatalogEntry(GetSelectedCommandTargetPlayer(), entry.CatalogEntry);
+            }
+
+            GameManager gameManager = GameManager.Instance;
+            PlayerController primaryPlayer = (object)gameManager != null ? gameManager.PrimaryPlayer : null;
+            PlayerController secondaryPlayer = (object)gameManager != null ? gameManager.SecondaryPlayer : null;
+            if ((object)primaryPlayer == null || (object)secondaryPlayer == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.pickups.both_players_required");
+            }
+
+            GrantCommandExecutionResult primaryResult = _commandService.ExecuteCatalogEntry(primaryPlayer, entry.CatalogEntry);
+            if (!primaryResult.Succeeded)
+            {
+                return primaryResult;
+            }
+
+            GrantCommandExecutionResult secondaryResult = _commandService.ExecuteCatalogEntry(secondaryPlayer, entry.CatalogEntry);
+            if (!secondaryResult.Succeeded)
+            {
+                return secondaryResult;
+            }
+
+            return new GrantCommandExecutionResult(
+                true,
+                GuiText.Get("result.grant.success.both_players", entry.CatalogEntry.DisplayName),
+                GuiText.GetEnglish("result.grant.success.both_players", entry.CatalogEntry.EnglishDisplayName),
+                "result.grant.success.both_players");
         }
 
         private static int ComparePickupBrowserEntries(PickupBrowserEntry left, PickupBrowserEntry right)
@@ -531,23 +739,24 @@ namespace RandomLoadout
                 extraFilterEntryCount += 5;
             }
 
-            ControllerFocusEntry[] entries = new ControllerFocusEntry[11 + extraFilterEntryCount + matches.Length];
+            ControllerFocusEntry[] entries = new ControllerFocusEntry[12 + extraFilterEntryCount + matches.Length];
             entries[0] = new ControllerFocusEntry("pickups.back", 0, 0);
-            entries[1] = new ControllerFocusEntry("pickups.search", 1, 0);
-            entries[2] = new ControllerFocusEntry(PickupSearchClearControlId, 1, 1);
-            entries[3] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.All), 2, 0);
-            entries[4] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Gun), 2, 1);
-            entries[5] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Passive), 2, 2);
-            entries[6] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Active), 2, 3);
-            entries[7] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.S), 3, 0);
-            entries[8] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.A), 3, 1);
-            entries[9] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.B), 3, 2);
-            entries[10] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.C), 3, 3);
-            entries[11] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.D), 3, 4);
-            entries[12] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.All), 3, 5);
-            entries[13] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.Special), 3, 6);
-            entries[14] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.Excluded), 3, 7);
-            int writeIndex = 15;
+            entries[1] = new ControllerFocusEntry("pickups.target", 0, 1);
+            entries[2] = new ControllerFocusEntry("pickups.search", 1, 0);
+            entries[3] = new ControllerFocusEntry(PickupSearchClearControlId, 1, 1);
+            entries[4] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.All), 2, 0);
+            entries[5] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Gun), 2, 1);
+            entries[6] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Passive), 2, 2);
+            entries[7] = new ControllerFocusEntry(GetPickupCategoryFilterControlId(PickupBrowserFilter.Active), 2, 3);
+            entries[8] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.S), 3, 0);
+            entries[9] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.A), 3, 1);
+            entries[10] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.B), 3, 2);
+            entries[11] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.C), 3, 3);
+            entries[12] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.D), 3, 4);
+            entries[13] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.All), 3, 5);
+            entries[14] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.Special), 3, 6);
+            entries[15] = new ControllerFocusEntry(GetPickupQualityFilterControlId(PickupQualityFilter.Excluded), 3, 7);
+            int writeIndex = 16;
             int listStartRow = 4;
             if (_pickupBrowserFilter == PickupBrowserFilter.Gun)
             {
@@ -592,6 +801,12 @@ namespace RandomLoadout
             if (string.Equals(_pickupPageFocusedControlId, "pickups.back", StringComparison.Ordinal))
             {
                 ClosePickupPage();
+                return;
+            }
+
+            if (string.Equals(_pickupPageFocusedControlId, "pickups.target", StringComparison.Ordinal))
+            {
+                ToggleCharacterSwitchTarget(logger);
                 return;
             }
 
@@ -899,13 +1114,170 @@ namespace RandomLoadout
             return iconData.Texture != null;
         }
 
-        private static PickupIconData CreatePickupIconData(PickupObject pickup)
+        private PickupIconData CreatePickupIconData(PickupObject pickup)
         {
             // Reuse the game's live pickup sprite data so the browser does not need its own icon bundle.
             if ((object)pickup == null || (object)pickup.sprite == null)
             {
                 return PickupIconData.Empty;
             }
+
+            // Render the actual tk2d geometry instead of drawing the atlas UV bounding
+            // rectangle. The latter loses rotated atlas regions and the original vertex
+            // mapping, which can make long guns appear to point in the wrong direction.
+            PickupIconData renderedIcon = RenderPickupIconData(pickup.sprite, pickup.PickupObjectId);
+            if (renderedIcon.Texture != null)
+            {
+                return renderedIcon;
+            }
+
+            return CreateAtlasPickupIconData(pickup);
+        }
+
+        private PickupIconData RenderPickupIconData(tk2dBaseSprite sourceSprite, int pickupId)
+        {
+            if (sourceSprite == null || sourceSprite.Collection == null || sourceSprite.CurrentSprite == null)
+            {
+                LogPickupIconDiagnostic(
+                    "Icon render skipped. PickupId=" + pickupId
+                    + ", SourceSprite=" + (sourceSprite == null ? "null" : "present")
+                    + ", Collection=" + (sourceSprite == null || sourceSprite.Collection == null ? "null" : "present")
+                    + ", Definition=" + (sourceSprite == null || sourceSprite.CurrentSprite == null ? "null" : "present") + ".");
+                return PickupIconData.Empty;
+            }
+            const int textureWidth = 128;
+            const int textureHeight = 80;
+            GameObject iconObject = null;
+            GameObject cameraObject = null;
+            RenderTexture renderTexture = null;
+            RenderTexture previousActiveTexture = RenderTexture.active;
+            string definitionName = sourceSprite.CurrentSprite.name;
+            LogPickupIconDiagnostic(
+                "Icon render begin. PickupId=" + pickupId
+                + ", Sprite=" + definitionName
+                + ", SpriteId=" + sourceSprite.spriteId
+                + ", Collection=" + sourceSprite.Collection.name + ".");
+            try
+            {
+                iconObject = new GameObject("RandomLoadout.PickupIcon");
+                iconObject.hideFlags = HideFlags.HideAndDontSave;
+                iconObject.layer = 31;
+                tk2dSprite iconSprite = tk2dSprite.AddComponent(iconObject, sourceSprite.Collection, sourceSprite.spriteId);
+                if (iconSprite == null)
+                {
+                    LogPickupIconDiagnostic("Icon render failed at tk2dSprite.AddComponent. PickupId=" + pickupId + ".");
+                    return PickupIconData.Empty;
+                }
+
+                // tk2d applies the collection's render layer while building the sprite.
+                // Reapply the private preview layer after AddComponent so the preview
+                // camera can see only this temporary icon instead of the gameplay scene.
+                iconObject.layer = 31;
+
+                iconSprite.color = sourceSprite.color;
+                iconSprite.scale = sourceSprite.scale;
+                iconSprite.FlipX = sourceSprite.FlipX;
+                iconSprite.FlipY = sourceSprite.FlipY;
+                iconObject.transform.localEulerAngles = sourceSprite.transform.localEulerAngles;
+                Bounds bounds = iconSprite.GetBounds();
+                Renderer iconRenderer = iconObject.GetComponent<Renderer>();
+                LogPickupIconDiagnostic(
+                    "Icon render setup. PickupId=" + pickupId
+                    + ", Renderer=" + (iconRenderer == null ? "null" : "present")
+                    + ", RendererEnabled=" + (iconRenderer != null && iconRenderer.enabled)
+                    + ", RendererVisible=" + (iconRenderer != null && iconRenderer.isVisible)
+                    + ", ObjectLayer=" + iconObject.layer
+                    + ", ObjectPosition=" + iconObject.transform.position
+                    + ", RendererBounds=" + (iconRenderer == null ? "null" : iconRenderer.bounds.ToString()) + ".");
+                float aspect = (float)textureWidth / textureHeight;
+                float requiredHeight = Mathf.Max(bounds.size.y, bounds.size.x / aspect);
+                if (requiredHeight <= 0.0001f)
+                {
+                    LogPickupIconDiagnostic(
+                        "Icon render failed at bounds. PickupId=" + pickupId
+                        + ", Bounds=" + bounds + ".");
+                    return PickupIconData.Empty;
+                }
+                iconObject.transform.localPosition = -bounds.center;
+
+                cameraObject = new GameObject("RandomLoadout.PickupIconCamera");
+                cameraObject.hideFlags = HideFlags.HideAndDontSave;
+                cameraObject.layer = 31;
+                cameraObject.transform.position = new Vector3(0f, 0f, -10f);
+                Camera camera = cameraObject.AddComponent<Camera>();
+                camera.enabled = false;
+                camera.clearFlags = CameraClearFlags.SolidColor;
+                camera.backgroundColor = new Color(0f, 0f, 0f, 0f);
+                camera.cullingMask = 1 << 31;
+                camera.orthographic = true;
+                camera.aspect = aspect;
+                camera.orthographicSize = requiredHeight * 0.55f;
+                camera.nearClipPlane = 0.1f;
+                camera.farClipPlane = 20f;
+
+                renderTexture = new RenderTexture(textureWidth, textureHeight, 24, RenderTextureFormat.ARGB32);
+                renderTexture.hideFlags = HideFlags.HideAndDontSave;
+                renderTexture.filterMode = FilterMode.Bilinear;
+                camera.targetTexture = renderTexture;
+                camera.Render();
+                RenderTexture.active = renderTexture;
+                Texture2D texture = new Texture2D(textureWidth, textureHeight, TextureFormat.ARGB32, false);
+                texture.hideFlags = HideFlags.HideAndDontSave;
+                texture.filterMode = FilterMode.Bilinear;
+                texture.ReadPixels(new Rect(0f, 0f, textureWidth, textureHeight), 0, 0, false);
+                texture.Apply(false, false);
+                Color[] pixels = texture.GetPixels();
+                int visiblePixelCount = 0;
+                float maximumAlpha = 0f;
+                for (int pixelIndex = 0; pixelIndex < pixels.Length; pixelIndex++)
+                {
+                    maximumAlpha = Mathf.Max(maximumAlpha, pixels[pixelIndex].a);
+                    if (pixels[pixelIndex].a > 0.01f)
+                    {
+                        visiblePixelCount++;
+                    }
+                }
+                LogPickupIconDiagnostic(
+                    "Icon render success. PickupId=" + pickupId
+                    + ", Sprite=" + definitionName
+                    + ", Bounds=" + bounds
+                    + ", RequiredHeight=" + requiredHeight
+                    + ", VisiblePixels=" + visiblePixelCount
+                    + ", MaximumAlpha=" + maximumAlpha + ".");
+                return new PickupIconData(texture, new Rect(0f, 0f, 1f, 1f));
+            }
+            catch (Exception exception)
+            {
+                LogPickupIconDiagnostic(
+                    "Icon render exception. PickupId=" + pickupId
+                    + ", Sprite=" + definitionName
+                    + ", Type=" + exception.GetType().Name
+                    + ", Message=" + exception.Message + ".");
+                return PickupIconData.Empty;
+            }
+            finally
+            {
+                RenderTexture.active = previousActiveTexture;
+                if (renderTexture != null)
+                    UnityEngine.Object.DestroyImmediate(renderTexture);
+                if (cameraObject != null)
+                    UnityEngine.Object.DestroyImmediate(cameraObject);
+                if (iconObject != null)
+                    UnityEngine.Object.DestroyImmediate(iconObject);
+            }
+        }
+
+        private void LogPickupIconDiagnostic(string message)
+        {
+            if (IsPickupBrowserPerformanceLoggingEnabled() && _performanceLogger != null)
+            {
+                _performanceLogger.LogInfo(RandomLoadoutLog.Performance("PickupBrowserIcon: " + message));
+            }
+        }
+
+        private static PickupIconData CreateAtlasPickupIconData(PickupObject pickup)
+        {
+            // Fallback for unusual sprites that cannot be instantiated by tk2d.
 
             tk2dSpriteDefinition definition = pickup.sprite.CurrentSprite;
             if (definition == null || definition.material == null || definition.uvs == null || definition.uvs.Length == 0)
@@ -962,6 +1334,17 @@ namespace RandomLoadout
                 return EmptyPickupBrowserEntries;
             }
 
+            if (_filteredPickupEntriesCache != null &&
+                string.Equals(_filteredPickupEntriesCacheSearch, _pickupSearchText, StringComparison.Ordinal) &&
+                _filteredPickupEntriesCacheFilter == _pickupBrowserFilter &&
+                _filteredPickupEntriesCacheQualityFilter == _pickupQualityFilter &&
+                _filteredPickupEntriesCacheGunClassFilter == _pickupGunClassFilter &&
+                _filteredPickupEntriesCachePassiveFilter == _pickupPassiveSubcategoryFilter &&
+                _filteredPickupEntriesCacheActiveCooldownFilter == _pickupActiveCooldownFilter)
+            {
+                return _filteredPickupEntriesCache;
+            }
+
             string normalizedSearch = NormalizeLookupValue(_pickupSearchText);
             List<PickupBrowserEntry> matches = new List<PickupBrowserEntry>();
             for (int index = 0; index < _cachedPickupEntries.Length; index++)
@@ -1001,7 +1384,14 @@ namespace RandomLoadout
                 matches.Add(entry);
             }
 
-            return matches.ToArray();
+            _filteredPickupEntriesCache = matches.ToArray();
+            _filteredPickupEntriesCacheSearch = _pickupSearchText;
+            _filteredPickupEntriesCacheFilter = _pickupBrowserFilter;
+            _filteredPickupEntriesCacheQualityFilter = _pickupQualityFilter;
+            _filteredPickupEntriesCacheGunClassFilter = _pickupGunClassFilter;
+            _filteredPickupEntriesCachePassiveFilter = _pickupPassiveSubcategoryFilter;
+            _filteredPickupEntriesCacheActiveCooldownFilter = _pickupActiveCooldownFilter;
+            return _filteredPickupEntriesCache;
         }
 
         private bool MatchesPickupFilter(PickupCategory category)

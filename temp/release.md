@@ -1,24 +1,26 @@
-# v0.3.9 主题色系全面重构与准星颜色自定义 / Theme Color Overhaul & Mouse Crosshair Customization
+# ETG-Gameplay-Dashboard v0.3.10
 
 [English description below / 英文说明见下]
 
 ## 版本摘要 (Highlights)
-* 本次更新引入了控制面板(control panel)的主题色系全面重构与切换，以及自定义鼠标准星颜色，并将面板描边重构为三层描边样式，同时解决了此前打开面板时会锁定角色移动的问题。
+* 本次更新引入了下一层会生成 BOSS 的选择与 BOSS 战斗房间布局的选择、房间倒放时的玩家状态/属性(`stats`)回溯(rewind)（包含血量、护甲 armor、空响弹 blanks、枪械/弹药 guns、主动充能 active 与被动 passive，可按 `C` 键快捷触发）、键鼠辅助自瞄与手柄视角固定、角色属性倍率调节（伤害与移动速度）以及双人合作(Co-op)模式全功能玩家目标控制。
 
 ## 新增功能 (Added)
-* **主题色系全面重构与切换**：在控制面板(control panel)头部新增了主题切换按钮，内置 5 种不同风格的主题：默认(`Default`/`默认`，配色与三层描边样式均源于游戏内“枪弹之书”/Ammonomicon)、雪原(`Snowfield`/`雪原`)和赛博朋克(`Cyberpunk`/`赛博朋克`)；此外，火星圣物(`Mars Relic`/`火星圣物`，赞美万机之神！)与警戒(`Hazard`/`警戒`)的主题配色，均源于作者的另外一个开源项目 [FlipBits](https://github.com/camellia2077/FlipBits)（该软件主要用于生成各种电报音频、进行音频可视化及机械音变声）。除默认主题外，其余主题颜色与原版游戏无关。每种主题均配备量身定制的面板、边框 and 文字颜色，且文字颜色会根据主背景亮度自动切换为纯黑或纯白以保障可读性。
-* **经典三层描边样式**：仿照游戏内“枪弹之书”(Ammonomicon)的经典书本页面三层边框样式，将原本简单的单层描边重构为包含外中内三色带的三重描边边框样式。默认(`Default`/`默认`)主题的颜色搭配同样参照了该书本设计，使控制面板(control panel)及附近物品提示信息面板(Nearby Pickup Tip Overlay)的边缘立体感和质感更完美地契合《挺进地牢》原作的像素视觉风格。
-* **自定义鼠标准星颜色**：在常规(`General`)页面新增光标颜色(`Cursor Color`)设置页，可自定义修改游戏内鼠标瞄准准星（准星样式光标）的颜色。提供 8 种高饱和度颜色预设（包括青色、亮绿、金黄、粉色、红色、橙色、电光紫和电光蓝），并配备了调色板预览。
-* **面板开启时移动优化**：优化了控制面板(control panel)开启时的游戏输入控制逻辑。现在打开控制面板时，键盘 WASD 移动和手柄(controller)左摇杆的角色移动将能够完全正常运作，不再会被强制锁定。
+* **BOSS 选择与 BOSS 战斗房间的选择**：在房间(`Room`)菜单中新增 BOSS 选择功能，支持选择下一层关卡将要生成的 BOSS 种类（在大厅选择时作用于第 1 层关卡，局内选择时作用于下一层关卡），地牢在生成下一层关卡时将按照该设定直接生成指定的 BOSS；当选定 BOSS 包含多种原版房间地形时，面板提供不同 BOSS 战斗房间布局原型的选择。
+* **房间倒放时的玩家状态回溯(rewind)**：在已被清理的战斗房间或 BOSS 房间触发房间倒放(`Rewind Room`/`Respawn Enemies`，支持按 `C` 键快捷触发) 时，本次更新新增了玩家状态/属性(`stats`)快照回溯(rewind)功能，可同步将玩家的血量(health)、护甲(armor)、空响弹(blanks)、枪械(guns，包括子弹)、主动道具(active items，包含充能状态)及被动道具(passive items)恢复至刚进入房间时的状态。
+* **键鼠辅助自瞄(Keyboard Aim Assist)**：在战斗(`Combat`)页面新增键鼠辅助自动瞄准，提供 `普通自动瞄准` (`Auto Aim`，基础角度 15°) 与 `超级自动瞄准` (`Super Auto Aim`，基础角度 25°) 两种模式，支持 `0.5x`~`2.0x` 倍率调节，具备子弹预判与隔墙射线过滤，并带有实时倾角提示。
+* **手柄视角固定(Controller Aim Lock)**：在战斗(`Combat`)页面新增手柄视角固定功能。开启后，当推动手柄右摇杆(`R3`)转动瞄准方向时，游戏视角镜头将始终平稳居中固定在玩家角色身上，而不随着 `R3` 摇杆的转动产生画面偏转与晃动。
+* **双人合作模式目标控制与角色切换**：在图鉴浏览(`Pickup Browser`)、`常规(General)` 分类下的 `角色(Characters)` 页面、物品(`Pickups`)及战斗辅助页面全面接入 `P1`/`P2`/`Both` 目标控制；其中 `角色(Characters)` 页面支持单独指定替换 P1 或 P2 的角色，并新增了双人合作模式专属角色 `邪教徒(The Cultist)` 的切换选项（即 P2 的默认角色）。
+* **角色属性倍率与辅助持久化**：新增玩家伤害倍率 (`1x`, `2x`, `5x`, `10x`, `100x`) 与移动速度倍率 (`1.5x`, `2x`, `3x`) 动态调节；无限弹药、自动装弹与按住连发等开关状态将自动保存并在下一次启动游戏时自动恢复。
 
 ## 修复问题 (Fixed)
-* **鼠标光标遮挡问题**：修复了在打开控制面板(control panel)时鼠标光标可能被面板遮挡（图层渲染在面板下方）的问题。现支持在面板开启时强制在最顶层重绘游戏原版鼠标光标（可通过配置文件中的 `EnableCommandPanelCursorAbovePanel` 选项进行开启或关闭）。
-* **附近物品信息面板滚动遮挡**：重构了附近物品提示信息面板(Nearby Pickup Tip Overlay)的段落文本排版，解决了不同主题或界面比例下滚动视图的滚动条(scrollbar)遮挡与文本溢出排版异常。
-* **预设随机重复切换**：改进了开局物品(start items)预设(preset)随机抽取机制，开启随机或再次启用时会自动排除当前显示的预设(preset)，避免了连续抽取到同一个预设时的无反馈现象。
+* **双人合作目标解析修复**：修复在未接入第二位玩家(P2)时误选 P2 进行物品发放或角色切换导致的响应异常与空引用。
+* **大厅角色切换镜头偏移**：修复在大厅(Foyer)重新选择角色时可能出现的双重碰撞体生成与镜头跟随偏移问题。
 
 ## 游戏内按键与操作 (Controls)
 * **键盘控制**：
   * 按 `F7`（默认，可在 `设置(settings)` 中修改）：打开/关闭 `控制面板(control panel)`。
+  * 按 `C`（默认，可在 `设置(settings)` 中修改）：在战斗房间或 BOSS 房间清理后触发敌人倒放/重置。
   * 如果不想使用鼠标完成选择、切换等操作，也可以使用键盘，详见 `设置(settings)` 中的 `键盘说明(keyboard help)`。
 * **手柄控制**：
   * 按手柄 `LB+R3` 组合键（默认，可在 `设置(settings)` 中修改或关闭手柄呼出开关）：打开/关闭 `控制面板(control panel)`。
@@ -26,38 +28,40 @@
 
 ## 安装指南 (Installation)
 1. 关闭《挺进地牢》(Enter the Gungeon) 游戏。
-2. 下载本 Release 下方的 `ETG-Gameplay-Dashboard-v0.3.9-ETG.zip`。
+2. 下载本 Release 下方的 `ETG-Gameplay-Dashboard-v0.3.10-ETG.zip`。
 3. 将压缩包内的所有内容直接解压到游戏安装根目录（即含有 `EtG.exe` 的目录），若提示同名文件请允许覆盖。
 4. 启动游戏即可享受新版功能！
 
 ---
 
-# v0.3.9 主题色系全面重构与准星颜色自定义 / Theme Color Overhaul & Mouse Crosshair Customization
+# ETG-Gameplay-Dashboard v0.3.10
 
 ## Highlights
-* This release introduces theme color scheme overhaul and switching, custom mouse crosshair colors, and a rewrite of the panel borders to a three-layered outline style. It also resolves the movement lock issue while the panel is open.
+* This release introduces selection of the Boss to generate on the next floor and Boss combat room layout choices, player state/stat restoration upon room rewind (health, armor, blanks, guns/ammo, active item charge, and passive items, triggered via `C` key), keyboard aim assist and controller aim lock, player stat multipliers (damage and speed), and full Co-op target controls.
 
 ## Added
-* **Theme Color Overhaul & Switching**: Added a theme toggle button in the control panel header, supporting 5 built-in themes: Default (color palette and three-layered outline style are both inspired by the in-game Ammonomicon), Snowfield, and Cyberpunk; meanwhile, the Mars Relic (Praise the Omnissiah!) and Hazard themes feature built-in color schemes from the author's other open-source app [FlipBits](https://github.com/camellia2077/FlipBits) (a tool for generating telegraph audio, audio visualization, and robotic voice modulation). Other than the Default theme, the other theme colors have nothing to do with the original game. Each theme features dedicated panel, border, and text palettes, with text colors automatically adapting to black or white based on background brightness for optimal readability.
-* **Classic Three-Layered Outline Style**: Inspired by the classic page border style of the in-game Ammonomicon, the panel borders have been rewritten to a three-layered outline style. The Default theme's color palette is also inspired by this book design, making both the control panel and the Nearby Pickup Tip Overlay match the native pixel art style of Enter the Gungeon.
-* **Custom Crosshair/Reticle Colors**: Added a dedicated Cursor Color subpage under the General page, allowing players to customize the color of the in-game mouse aiming crosshair. Provides 8 high-saturation color presets (Cyan, Lime, Yellow, Pink, Red, Orange, Electric Violet, and Electric Blue) with preview swatches.
-* **Movement Unlocking Under Panel**: Optimized the player input blocking logic when the control panel is active. Players can now move freely using keyboard WASD or the controller left stick while navigating the panel.
+* **Boss Selection & Boss Combat Room Choices**: Added a Boss subpage under the Room menu, allowing players to select the Boss species for the next generated floor (targets Floor 1 when selected in the Foyer, or the next floor during a run), which the dungeon will generate accordingly upon level loading. If the selected Boss supports multiple room layouts, a second row enables choosing specific Boss combat room prototype layouts.
+* **Player State Restoration Upon Room Rewind**: When rewinding or respawning a cleared combat room or Boss room (triggered via `C` key or panel), this update adds player state and stat snapshot restoration upon rewind—seamlessly resetting player health, armor, blanks, guns (including ammo), active item charge/cooldown states, and passive items back to room-entry state.
+* **Keyboard Aim Assist**: Added Keyboard Aim Assist under the Combat page (featuring `Auto Aim` 15° base angle and `Super Auto Aim` 25° base angle modes, `0.5x`–`2.0x` multipliers, lead prediction, wall raycast filtering, and UI angle prompts).
+* **Controller Aim Lock**: Added Controller Aim Lock under the Combat page. When enabled, pushing the right stick (`R3`) to rotate aiming direction suppresses camera offset, keeping the view centered on the player without camera swaying or shaking.
+* **Full Co-op Target Controls & Character Switching**: Integrated `P1`/`P2`/`Both` target controls across Pickup Browser, Characters (under General), Pickups, and Combat pages. The Characters page now supports selecting P1 or P2 to swap characters independently, and adds a dedicated option for Co-op's default character, `The Cultist`.
+* **Player Stat Multipliers & Saved Toggles**: Added dynamic player damage multipliers (`1x`, `2x`, `5x`, `10x`, `100x`) and movement speed multipliers (`1.5x`, `2x`, `3x`). Infinite Ammo, Auto Reload, and Rapid Fire settings are now saved automatically and restored on the next launch.
 
 ## Fixed
-* **Mouse Cursor Layering Occlusion**: Fixed an issue where the mouse cursor could render underneath the control panel when moved over it. The game cursor is now drawn on top of the panel (can be configured via `EnableCommandPanelCursorAbovePanel` in the config file).
-* **Nearby Pickup Overlay Layout**: Rebuilt the Nearby Pickup Tip Overlay layout using structured text blocks, resolving scrollbar occlusion and text overflow issues across different themes and interface scales.
-* **Random Preset Repetition**: Improved the random start items selection deck so that re-enabling or cycling random presets excludes the currently displayed preset, preventing visual state stutter when the same preset is drawn consecutively.
+* **Co-op Target Resolution**: Fixed null-reference and status anomalies when P2 target actions were triggered without a second player present.
+* **Foyer Character Switch Camera Offset**: Fixed double-collider spawning and camera tracking offset when switching characters in the Foyer.
 
 ## In-Game Controls
 * **Keyboard**:
   * Press `F7` (default, configurable under Settings): Toggle the Gameplay Dashboard panel.
-  * If you prefer not to use a mouse for selection and navigation, you can use the keyboard instead (see Keyboard Help in Settings for details).
+  * Press `C` (default, configurable under Settings): Rewind or respawn enemies in a cleared combat/Boss room.
+  * See Keyboard Help in Settings for non-mouse keyboard navigation.
 * **Controller**:
-  * Press `LB+R3` (default combination, configurable or can be disabled in Settings): Toggle the Gameplay Dashboard panel.
-  * For detailed button mappings, see Controller Help in Settings.
+  * Press `LB+R3` (default combination, configurable under Settings): Toggle the Gameplay Dashboard panel.
+  * See Controller Help in Settings for button mappings and navigation.
 
 ## Installation Guide
 1. Close `Enter the Gungeon`.
-2. Download the release package `ETG-Gameplay-Dashboard-v0.3.9-ETG.zip` below.
+2. Download the release package `ETG-Gameplay-Dashboard-v0.3.10-ETG.zip` below.
 3. Extract all archive contents directly into the game installation root directory (the folder containing `EtG.exe`), allowing file overwrite if prompted.
 4. Launch the game and enjoy!

@@ -55,6 +55,11 @@ Before implementing behavior against game/runtime APIs:
 - Release build: `python .\tools\build\build.py --configuration Release`
 - Deploy debug build: `python .\tools\deploy\deploy_mod.py "<Enter the Gungeon path>"`
 
+## Build Reporting
+
+- Do not report the compiled or deployed DLL SHA-256 in every response by default.
+- Report a DLL SHA-256 only when the user explicitly asks for it or when it is needed to diagnose deployment integrity.
+
 ## Change Discipline
 
 - Keep changes scoped to the requested behavior.

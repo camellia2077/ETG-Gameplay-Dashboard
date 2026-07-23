@@ -33,19 +33,6 @@ namespace RandomLoadout
 
             float rowY = panelRect.y + 12f;
 
-            string healthText = "--";
-            string armorText = "--";
-            HealthHaver healthHaver = player.healthHaver;
-            if ((object)healthHaver != null)
-            {
-                healthText = FormatNumber(healthHaver.GetCurrentHealth()) + "/" + FormatNumber(healthHaver.GetMaxHealth());
-                armorText = FormatNumber(healthHaver.Armor);
-            }
-
-            DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.hp", healthText);
-            DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.armor", armorText);
-            DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.blanks", player.Blanks.ToString(CultureInfo.InvariantCulture));
-
             PlayerStats stats = player.stats;
             if ((object)stats == null)
             {

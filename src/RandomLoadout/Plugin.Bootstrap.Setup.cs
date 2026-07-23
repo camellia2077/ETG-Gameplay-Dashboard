@@ -5,6 +5,7 @@ using System;
 using System.IO;
 using BepInEx;
 using RandomLoadout.Core;
+using RandomLoadout.Core.Input;
 
 namespace RandomLoadout
 {
@@ -30,6 +31,33 @@ namespace RandomLoadout
                 "F7",
                 "Command panel keyboard toggle key. Use a Unity KeyCode name such as F7, F8, Insert, or BackQuote.");
             _commandPanelKeyConfig.Value = NormalizeCommandPanelKeyName(_commandPanelKeyConfig.Value);
+            _roomEnemyRewindKeyConfig = Config.Bind(
+                "UI",
+                "RoomEnemyRewindKey",
+                "C",
+                "Room enemy rewind keyboard shortcut. Use a Unity KeyCode name such as C, Z, X, or V.");
+            _roomEnemyRewindKeyConfig.Value = NormalizeRoomEnemyRewindKeyName(_roomEnemyRewindKeyConfig.Value);
+            _roomEnemyRefreshRecordingEnabledConfig = Config.Bind(
+                "UI",
+                "RoomEnemyRefreshRecordingEnabled",
+                false,
+                "Enable recording of standard and Boss room enemy waves for Rewind. Disabled by default.");
+            _roomEnemyRefreshMethodConfig = Config.Bind(
+                "UI",
+                "RoomEnemyRefreshMethod",
+                "rewind",
+                "Room enemy refresh mode. Use rewind or respawn.");
+            _roomEnemyRefreshMethodConfig.Value = NormalizeRoomEnemyRefreshMethod(_roomEnemyRefreshMethodConfig.Value);
+            _playerRewindEnabledConfig = Config.Bind(
+                "UI",
+                "PlayerRewindEnabled",
+                false,
+                "Restore the player's recorded state when rewinding a room. Disabled by default.");
+            _roomRewindCleanupEnabledConfig = Config.Bind(
+                "UI",
+                "RoomRewindCleanupEnabled",
+                true,
+                "Remove rewind-room decals, scene drops, currency, and Boss reward pedestals before replay. Enabled by default.");
             _commandPanelControllerShortcutConfig = Config.Bind(
                 "UI",
                 "CommandPanelControllerShortcut",
@@ -118,6 +146,16 @@ namespace RandomLoadout
                 "EnableMuncherVerboseLogs",
                 false,
                 "Enable verbose Gunber / Evil Muncher spawn diagnostic logs. Keep disabled for normal play and enable only when debugging muncher spawn, placement, or room-registration behavior.");
+            _roomEnemyReplayVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableRoomEnemyReplayVerboseLogs",
+                false,
+                "Enable verbose room enemy replay diagnostics, including recorded waves, replay spawn results, and Boss rewind phase timings. Keep disabled for normal play and enable only when debugging Refresh Room Enemies.");
+            _bossIntroSkipVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableBossIntroSkipVerboseLogs",
+                false,
+                "Enable verbose Boss intro skip diagnostics, including Boss trigger-zone detection, GenericIntroDoer state, native skip requests, and startup failures. Keep disabled for normal play and enable only when debugging Skip Boss Intro.");
             _floorTeleportVerboseLogsConfig = Config.Bind(
                 "Debug",
                 "EnableFloorTeleportVerboseLogs",
@@ -136,8 +174,8 @@ namespace RandomLoadout
             _commandPanelCursorVerboseLogsConfig = Config.Bind(
                 "Debug",
                 "EnableCommandPanelCursorVerboseLogs",
-                false,
-                "Enable verbose command-panel cursor diagnostics, including cursor visibility changes, active input-device switches, and mouse click attempts while the panel is open. Keep disabled for normal play and enable only when debugging controller-to-mouse handoff issues.");
+                true,
+                "Enable verbose command-panel cursor diagnostics, including cursor visibility changes, active input-device switches, P1/P2 input state, cursor tint, and mouse click attempts while the panel is open. Enabled temporarily while diagnosing two-player keyboard/controller handoff and unexpected cursor colors.");
             _commandPanelGameplayInputVerboseLogsConfig = Config.Bind(
                 "Debug",
                 "EnableCommandPanelGameplayInputVerboseLogs",
@@ -148,11 +186,21 @@ namespace RandomLoadout
                 "EnableCommandPanelControllerGameplayInputVerboseLogs",
                 false,
                 "Enable sampled command-panel gameplay controller diagnostics. Logs the active controller, D-pad, left stick, right stick, player input override state, and PlayerInputState. Keep disabled for normal play and enable only when debugging controller movement while the panel is open.");
+            _commandPanelShortcutVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableCommandPanelShortcutVerboseLogs",
+                true,
+                "Enable command-panel keyboard/controller shortcut diagnostics, including configured keys, shortcut detection results, panel visibility, game type, and P1/P2 readiness. Enabled temporarily while diagnosing panel opening failures in two-player mode.");
             _commandPanelCursorRenderVerboseLogsConfig = Config.Bind(
                 "Debug",
                 "EnableCommandPanelCursorRenderVerboseLogs",
                 false,
                 "Enable sampled command-panel cursor render-order diagnostics for ETG GameCursorController.OnGUI and RandomLoadout.OnGUI. Keep disabled for normal play and enable only when debugging cursor layering.");
+            _controllerAimVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableControllerAimVerboseLogs",
+                false,
+                "Enable sampled controller/mouse aim diagnostics. Logs the player center, raw aim point, aim distance, input vector, and device mode. Keep disabled for normal play and enable only while reproducing controller or cursor view rotation.");
             _commandPanelCursorRenderProbeConfig = Config.Bind(
                 "Debug",
                 "EnableCommandPanelCursorRenderProbe",
@@ -183,6 +231,16 @@ namespace RandomLoadout
                 "EnablePerformanceVerboseLogs",
                 false,
                 "Enable verbose performance diagnostics, including FPS summaries, long-frame capture, Update-step timing, deferred teleport timing, character switch timing, and automatic loadout grant timing. Keep disabled for normal play and enable only when debugging scene-entry stutter or mod-induced frame drops.");
+            _characterSwitchVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableCharacterSwitchVerboseLogs",
+                true,
+                "Enable detailed Breach character-switch diagnostics, including P1/P2 registration before and after replacement. Enabled by default temporarily to diagnose P2 switching.");
+            _damageDiagnosticsVerboseLogsConfig = Config.Bind(
+                "Debug",
+                "EnableDamageDiagnosticsVerboseLogs",
+                false,
+                "Enable per-hit damage diagnostics, including actual damage, target health, Boss state, current gun, projectile base damage, and final player Damage stat. Keep disabled for normal play and enable only while comparing damage multipliers across guns.");
             _activeStartItemsPresetConfig = Config.Bind(
                 "StartItems",
                 "ActivePreset",
@@ -199,6 +257,51 @@ namespace RandomLoadout
                 CombatCursorColorCatalog.DefaultPresetId,
                 "Stable combat cursor color preset ID. Display names and HEX values are defined by the plugin and are not stored in config.");
             _combatCursorColorPresetConfig.Value = CombatCursorColorCatalog.Normalize(_combatCursorColorPresetConfig.Value);
+            _enemyHealthBarsEnabledConfig = Config.Bind(
+                "Combat",
+                "EnemyHealthBarsEnabled",
+                false,
+                "Keep Enemy HP Bars enabled across game launches. Disabled by default.");
+            _controllerAimLockEnabledConfig = Config.Bind(
+                "Combat",
+                "ControllerAimLockEnabled",
+                false,
+                "Keep Controller Aim Lock enabled across game launches. The setting affects controller camera aim look only and is disabled by default.");
+            _keyboardAimAssistEnabledConfig = Config.Bind(
+                "Combat",
+                "KeyboardAimAssistEnabled",
+                false,
+                "Keep Keyboard Aim Assist enabled across game launches. Mouse aiming remains the base direction and vanilla controller-style target assist is applied. Disabled by default.");
+            _keyboardAimAssistLevelConfig = Config.Bind(
+                "Combat",
+                "KeyboardAimAssistLevel",
+                "Medium",
+                "Keyboard Aim Assist strength: Off, Weak, Medium, or Strong.");
+            _keyboardAimAssistModeConfig = Config.Bind(
+                "Combat",
+                "KeyboardAimAssistMode",
+                "Off",
+                "Keyboard Aim Assist mode: Off, AutoAim, or SuperAutoAim.");
+            _keyboardAimAssistMultiplierConfig = Config.Bind(
+                "Combat",
+                "KeyboardAimAssistMultiplier",
+                1f,
+                "Keyboard Aim Assist angle multiplier. Supported values: 0.5, 1.0, 1.5, or 2.0.");
+            _rapidFireEnabledConfig = Config.Bind(
+                "Combat",
+                "RapidFireEnabled",
+                false,
+                "Keep Hold Rapid enabled across game launches. Disabled by default.");
+            _autoReloadModeConfig = Config.Bind(
+                "Combat",
+                "AutoReloadMode",
+                "Off",
+                "Persisted Auto Reload mode: Off, Instant, or Animated.");
+            _ammoModeConfig = Config.Bind(
+                "Combat",
+                "AmmoMode",
+                "Off",
+                "Persisted Ammo Mode: Off, InfiniteReserve, or NoConsume.");
         }
 
         private void InitializeResolversAndProviders()
@@ -260,21 +363,50 @@ namespace RandomLoadout
             }
 
             _nearbyPickupTipService = new NearbyPickupTipService(_pickupGameplayRegistry, Logger, IsNearbyPickupVerboseLoggingEnabled, IsPickupInfoOverlayEnabled);
-            _rapidFireToggleService = new RapidFireToggleService();
-            _autoReloadToggleService = new AutoReloadToggleService();
+            _rapidFireToggleService = new RapidFireToggleService(
+                _rapidFireEnabledConfig.Value,
+                PersistRapidFireEnabled);
+            _autoReloadToggleService = new AutoReloadToggleService(
+                ParseAutoReloadMode(_autoReloadModeConfig.Value),
+                PersistAutoReloadMode);
             _armorNoConsumeToggleService = new ArmorNoConsumeToggleService();
             _blankNoConsumeToggleService = new BlankNoConsumeToggleService();
             _keyNoConsumeToggleService = new KeyNoConsumeToggleService();
             _currencyNoConsumeToggleService = new CurrencyNoConsumeToggleService();
             _invincibilityToggleService = new InvincibilityToggleService();
-            _ammoModeToggleService = new AmmoModeToggleService();
+            _enemyHealthBarToggleService = new EnemyHealthBarToggleService(
+                _enemyHealthBarsEnabledConfig.Value,
+                PersistEnemyHealthBarsEnabled);
+            _controllerAimLockService = new ControllerAimLockService(
+                _controllerAimLockEnabledConfig.Value,
+                PersistControllerAimLockEnabled);
+            KeyboardAimAssistSettings keyboardAimAssistSettings = KeyboardAimAssistSettings.FromConfig(
+                _keyboardAimAssistEnabledConfig.Value,
+                _keyboardAimAssistLevelConfig.Value,
+                _keyboardAimAssistModeConfig.Value,
+                _keyboardAimAssistMultiplierConfig.Value);
+            _keyboardAimAssistService = new KeyboardAimAssistService(
+                keyboardAimAssistSettings,
+                PersistKeyboardAimAssistSettings,
+                new KeyboardAimAssistTargetSelector());
+            PersistKeyboardAimAssistSettings(keyboardAimAssistSettings);
+            _ammoModeToggleService = new AmmoModeToggleService(
+                ParseAmmoMode(_ammoModeConfig.Value),
+                PersistAmmoMode);
             _ammonomiconFastOpenToggleService = new AmmonomiconFastOpenToggleService();
             _ammonomiconFastOpenToggleService.SetIsFastOpenEnabled(_ammonomiconFastOpenEnabledConfig.Value);
             _playerHealthOverrideService = new PlayerHealthOverrideService(Logger, IsCommandPanelHealthVerboseLoggingEnabled);
             _playerActiveItemCapacityOverrideService = new PlayerActiveItemCapacityOverrideService(Logger, IsActiveItemGrantVerboseLoggingEnabled);
             _playerDebugCommandService = new PlayerDebugCommandService(_playerHealthOverrideService);
+            _playerStatMultiplierService = new PlayerStatMultiplierService();
+            _damageDiagnosticsService = new DamageDiagnosticsService(
+                Logger,
+                IsDamageDiagnosticsVerboseLoggingEnabled,
+                delegate { return _playerStatMultiplierService != null ? _playerStatMultiplierService.DamageMultiplier : 1f; });
             _pickupGranter = new EtgPickupGranter(_playerActiveItemCapacityOverrideService, IsActiveItemGrantVerboseLoggingEnabled);
             _bossRushService = new BossRushService(Logger, IsBossRushVerboseLoggingEnabled);
+            _roomEnemyReplayService = new RoomEnemyReplayService(Logger, IsRoomEnemyReplayVerboseLoggingEnabled, IsPlayerRewindEnabled, IsRoomRewindCleanupEnabled, SetRoomEnemyRefreshRecordingEnabled);
+            _roomEnemyReplayService.SetRecordingEnabled(IsRoomEnemyRefreshRecordingEnabled());
             _gameWindowFocusService = new GameWindowFocusService(Logger, IsStartupWindowFocusVerboseLoggingEnabled);
             _performanceDiagnostics = new PerformanceDiagnostics(Logger, IsPerformanceVerboseLoggingEnabled);
         }
@@ -327,7 +459,8 @@ namespace RandomLoadout
         private void InitializeControllers()
         {
             GrantCommandService grantCommandService = new GrantCommandService(_pickupResolver, _pickupGranter, GetAliasRegistry);
-            RoomDebugCommandService roomDebugCommandService = new RoomDebugCommandService(IsMapTeleportVerboseLoggingEnabled, IsMuncherVerboseLoggingEnabled);
+            _bossNameCatalog = BossNameCatalog.Load(DashboardFileLayout.GetBossNamesFilePath(Paths.ConfigPath));
+            RoomDebugCommandService roomDebugCommandService = new RoomDebugCommandService(IsMapTeleportVerboseLoggingEnabled, IsMuncherVerboseLoggingEnabled, _roomEnemyReplayService, IsRoomEnemyReplayVerboseLoggingEnabled, IsPlayerRewindEnabled, SetPlayerRewindEnabled, IsRoomRewindCleanupEnabled, SetRoomRewindCleanupEnabled, IsBossSelectionVerboseLoggingEnabled, _bossNameCatalog, Logger);
             LoadoutRuleEditorService loadoutRuleEditorService = new LoadoutRuleEditorService(
                 _ruleFileProvider,
                 _pickupResolver.GetGrantablePickupCatalog,
@@ -342,7 +475,11 @@ namespace RandomLoadout
                 grantCommandService,
                 _playerDebugCommandService,
                 roomDebugCommandService,
-                new FoyerCharacterSwitchService(Logger, IsPerformanceVerboseLoggingEnabled),
+                new FoyerCharacterSwitchService(
+                    Logger,
+                    IsPerformanceVerboseLoggingEnabled,
+                    IsCharacterSwitchVerboseLoggingEnabled,
+                    new PlayerInputOwnershipService(delegate { BraveInput.ReassignAllControllers(); })),
                 _bossRushService,
                 _rapidFireToggleService,
                 _autoReloadToggleService,
@@ -351,11 +488,16 @@ namespace RandomLoadout
                 _keyNoConsumeToggleService,
                 _currencyNoConsumeToggleService,
                 _invincibilityToggleService,
+                _enemyHealthBarToggleService,
+                _controllerAimLockService,
+                _keyboardAimAssistService,
+                _playerStatMultiplierService,
                 _ammoModeToggleService,
                 _ammonomiconFastOpenToggleService,
                 loadoutRuleEditorService,
                 _loadoutPresetRandomService,
                 _pickupResolver.GetGrantablePickupCatalog,
+                GetPickupGameplayDisplayName,
                 GetAliasRegistry,
                 GetUiLanguage,
                 SetUiLanguage,
@@ -363,6 +505,9 @@ namespace RandomLoadout
                 GetCommandPanelKey,
                 GetCommandPanelKeyName,
                 SetCommandPanelKey,
+                GetRoomEnemyRewindKey,
+                GetRoomEnemyRefreshMethod,
+                SetRoomEnemyRefreshMethod,
                 GetCommandPanelControllerShortcut,
                 SetCommandPanelControllerShortcut,
                 IsCommandPanelControllerShortcutEnabled,
@@ -398,8 +543,11 @@ namespace RandomLoadout
                 IsCommandPanelCursorVerboseLoggingEnabled,
                 IsCommandPanelGameplayInputVerboseLoggingEnabled,
                 IsCommandPanelControllerGameplayInputVerboseLoggingEnabled,
+                IsCommandPanelShortcutVerboseLoggingEnabled,
                 GetCombatCursorColor,
                 SetCombatCursorColor,
+                IsPerformanceVerboseLoggingEnabled,
+                Logger,
                 BeginDeferredTeleportFromFoyer);
         }
 
@@ -409,6 +557,27 @@ namespace RandomLoadout
             _runState = new RunGrantState();
             _runLifecycleTracker = new RunLifecycleTracker(CharacterSelectSceneName, LoadingSceneName);
             _sceneWatcher = new RunSceneWatcher(CharacterSelectSceneName);
+        }
+
+        private string GetPickupGameplayDisplayName(int pickupId)
+        {
+            if (_pickupGameplayRegistry == null)
+            {
+                return string.Empty;
+            }
+
+            PickupGameplayEntry entry;
+            if (!_pickupGameplayRegistry.TryGetEntry(pickupId, out entry) || entry == null)
+            {
+                return string.Empty;
+            }
+
+            if (string.Equals(GuiText.CurrentLanguageCode, "zh-CN", StringComparison.OrdinalIgnoreCase))
+            {
+                return entry.ChineseDisplayName;
+            }
+
+            return entry.EnglishDisplayName;
         }
 
         private void LogStartupConfiguration()
@@ -425,17 +594,28 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Init("Pickup info sections: quality=" + (IsPickupInfoQualityEnabled() ? "on" : "off") + ", type=" + (IsPickupInfoTypeEnabled() ? "on" : "off") + ", effects=" + (IsPickupInfoEffectsEnabled() ? "on" : "off") + ", synergies=" + (IsPickupInfoSynergiesEnabled() ? "on" : "off") + ", summary=" + (IsPickupInfoSummaryEnabled() ? "on" : "off") + ", notes=" + (IsPickupInfoNotesEnabled() ? "on" : "off") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command panel experimental mode is " + (IsExperimentalModeEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Ammonomicon fast open is " + (IsAmmonomiconFastOpenEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Combat persisted states: rapid=" + (_rapidFireEnabledConfig.Value ? "on" : "off") + ", autoReload=" + _autoReloadModeConfig.Value + ", ammoMode=" + _ammoModeConfig.Value + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Nearby pickup info mode is gameplay."));
             Logger.LogInfo(RandomLoadoutLog.Init("Reveal Map verbose logs are " + (IsMapTeleportVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Muncher verbose logs are " + (IsMuncherVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Room enemy replay verbose logs are " + (IsRoomEnemyReplayVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init(
+                "Room enemy replay logging configuration: " +
+                "Section=" + (_roomEnemyReplayVerboseLogsConfig != null ? _roomEnemyReplayVerboseLogsConfig.Definition.Section : "<null>") +
+                ", Key=" + (_roomEnemyReplayVerboseLogsConfig != null ? _roomEnemyReplayVerboseLogsConfig.Definition.Key : "<null>") +
+                ", EffectiveValue=" + IsRoomEnemyReplayVerboseLoggingEnabled() +
+                ", ConfigPath=" + (Config != null ? Config.ConfigFilePath : "<null>") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Floor teleport verbose logs are " + (IsFloorTeleportVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Boss Rush verbose logs are " + (IsBossRushVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command-panel health verbose logs are " + (IsCommandPanelHealthVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Command-panel cursor verbose logs are " + (IsCommandPanelCursorVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Command-panel shortcut verbose logs are " + (IsCommandPanelShortcutVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Active-item grant verbose logs are " + (IsActiveItemGrantVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Nearby pickup verbose logs are " + (IsNearbyPickupVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Startup window-focus verbose logs are " + (IsStartupWindowFocusVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Performance verbose logs are " + (IsPerformanceVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Character switch verbose logs are " + (IsCharacterSwitchVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
+            Logger.LogInfo(RandomLoadoutLog.Init("Damage diagnostics verbose logs are " + (IsDamageDiagnosticsVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Active start-items preset is " + GetActiveStartItemsPreset() + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Nearby pickup gameplay info loaded: " + (_pickupGameplayRegistry != null ? _pickupGameplayRegistry.Count.ToString() : "0") + "."));
             Logger.LogInfo(RandomLoadoutLog.Init("Boss Rush service initialized. Startup self-check is running."));
@@ -443,6 +623,21 @@ namespace RandomLoadout
 
         private void ResetServices()
         {
+            if (_playerStatMultiplierService != null)
+            {
+                _playerStatMultiplierService.Reset();
+            }
+
+            if (_damageDiagnosticsService != null)
+            {
+                _damageDiagnosticsService.Reset();
+            }
+
+            if (_roomEnemyReplayService != null)
+            {
+                _roomEnemyReplayService.Clear();
+            }
+
             if (_rapidFireToggleService != null)
             {
                 _rapidFireToggleService.Reset();
@@ -476,6 +671,11 @@ namespace RandomLoadout
             if (_invincibilityToggleService != null)
             {
                 _invincibilityToggleService.Reset();
+            }
+
+            if (_enemyHealthBarToggleService != null)
+            {
+                _enemyHealthBarToggleService.Reset();
             }
 
             if (_ammoModeToggleService != null)

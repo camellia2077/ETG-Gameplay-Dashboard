@@ -316,6 +316,28 @@ they can change without invalidating a preset. To preserve an old visual color w
 ID instead of changing the existing preset's meaning. Selecting a color writes the preset ID and enables the feature;
 turning the page off writes `CursorColorEnabled=false`. Turning it back on selects `preset_01` if no enabled preset is selected.
 
+`Combat.EnemyHealthBarsEnabled` persists the `Player -> Combat -> Enemy HP Bars` toggle. It defaults to `false`; when set to `true`, the
+plugin restores the toggle on startup and attaches the health-bar behavior once a player is ready. Toggling the control in the panel
+updates and saves this value immediately.
+
+`Combat.ControllerAimLockEnabled` persists the `Player -> Combat -> Controller Aim Lock` toggle. It defaults to `false`; when set to
+`true`, the plugin restores the toggle on startup. Toggling the control in the panel updates and saves this value immediately. The
+setting suppresses only controller camera aim-look; right-stick character and gun aiming remains vanilla, and keyboard/mouse camera
+behavior is not suppressed.
+
+`Combat.KeyboardAimAssistMode` persists the `Player -> Combat -> Keyboard Aim Assist Mode` cycle. Its values are `Off`, `AutoAim`,
+and `SuperAutoAim`; the default is `Off`. `Combat.KeyboardAimAssistMultiplier` persists the separate multiplier cycle with values
+`0.5`, `1.0`, `1.5`, and `2.0`; the default is `1.0`. The final assist angle is `15° * multiplier` for `AutoAim` and `25° * multiplier`
+for `SuperAutoAim`. The legacy `KeyboardAimAssistEnabled` and `KeyboardAimAssistLevel` values remain accepted for backward compatibility.
+
+The following `[Combat]` values persist the corresponding Combat controls:
+
+- `RapidFireEnabled` (`false` by default) stores the Hold Rapid intent. When enabled, it is applied to the player's current gun and carried forward as guns change.
+- `AutoReloadMode` (`Off`, `Instant`, or `Animated`) stores the selected Auto Reload mode.
+- `AmmoMode` (`Off`, `InfiniteReserve`, or `NoConsume`) stores the selected Ammo Mode.
+
+Each value is updated and saved when its control is changed. Auto Reload may still be temporarily suppressed while Ammo Mode is `NoConsume`, as required by the existing runtime safety rule.
+
 ## Example: Aliases
 
 ```json5

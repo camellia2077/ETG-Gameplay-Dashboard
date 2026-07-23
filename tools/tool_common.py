@@ -25,6 +25,7 @@ DEFAULT_CATALOG_FILE_NAMES = (
     "RandomLoadout.pickups.by-category.json",
     "RandomLoadout.pickup-gameplay.json",
     "RandomLoadout.pickup-info-terms.json",
+    "RandomLoadout.boss-names.json",
     "RandomLoadout.rules.full-pool.json5",
 )
 REQUIRED_BUILD_DLLS = (

@@ -81,10 +81,17 @@ Supporting services:
 | `GrantCommandService*.cs` | command execution, pickup resolution, user-facing result messages |
 | `CombatCursorColorCatalog.cs` | combat cursor color IDs, target HEX values, Unity colors, and normalization |
 | `Runtime/CommandPanelCursorRenderHooks.cs` | ETG cursor suppression, panel-layer redraw, and custom cursor color material rendering |
+| `Runtime/RoomEnemyReplayHooks.cs` | Harmony entry points for room entry, reinforcement capture, and replay-wave insertion |
+| `Runtime/RoomEnemyReplayService.cs` | exact enemy-wave replay, Boss player snapshot restore, Boss reward re-arming, and room visual/drop cleanup |
 | `PlayerDebugCommandService.cs` | player debug operations |
 | `PlayerRuntimeOverrideServiceBase.cs` | shared skeleton for player runtime property override services |
 | `PlayerHealthOverrideService.cs` | runtime max-health override tracking and rollback restoration |
 | `RoomDebugCommandService.cs` | room-level debug operations such as spawning chests, Gunber Muncher (常规吃枪怪) / Evil Muncher (邪恶吃枪怪), map reveal, and teleporter-point promotion |
+| `RoomDebugCommandService.RoomReplay.cs` | room enemy rewind/respawn commands, room validation, player rewind toggles, and replay-specific result diagnostics |
+| `RoomDebugCommandService.Muncher.cs` | Gunber Muncher / Evil Muncher spawn queues, prefab and room-asset resolution, placement, registration, and diagnostics |
+| `RoomDebugCommandService.BossSelection.cs` | Boss-room prototype enumeration, Boss-name resolution, Boss selection, and Boss-selection caching/diagnostics |
+| `RoomDebugCommandService.Map.cs` | floor map reveal, minimap teleporter activation, direct-teleport room promotion, and map diagnostics |
+| `RoomDebugCommandService.Helpers.cs` | shared room/object descriptions, scene and prototype resolution, result localization, and debug logging helpers |
 | `RapidFireToggleService.cs` | rapid fire toggle |
 | `AutoReloadToggleService.cs` | auto reload toggle |
 | `AmmoModeToggleService.cs` | ammo mode toggle and locked-ammo behavior |
@@ -97,10 +104,12 @@ Read next:
 - [Commands](./commands.md)
 - [Dashboard UI Theme](./ui-theme.md)
 - [UI Icon Reuse](./ui-icon-reuse.md)
+- [Items 页面性能优化](../operations/performance-items.md)
 - [Muncher Spawn](./runtime-internals/muncher-spawn.md)
 - [Map Reveal And Teleporter Promotion](./map-teleport.md)
 - [Localization And Language Switching](./localization.md)
 - [Runtime Property Overrides](../architecture/runtime-property-overrides.md)
+- [Boss Room Rewind](../architecture/boss-room-rewind.md)
 - [Testing Matrix](./testing-matrix.md)
 
 ## Start Items, Config, And Presets
@@ -160,6 +169,7 @@ Use this route for item names, aliases, pickup cards, quality filters, categorie
 | `RandomLoadout.pickup-names.game-language.json` in game config | compact exported pickup-name snapshot aligned to the current ETG runtime language |
 | `defaults/catalog/RandomLoadout.pickup-gameplay.json` | shipped nearby-pickup gameplay runtime catalog (schema v2) |
 | `defaults/catalog/RandomLoadout.pickup-info-terms.json` | shipped nearby-pickup section/stat/display-value terms (schema v2) |
+| `defaults/catalog/RandomLoadout.boss-names.json` | extracted Boss room names and English/Simplified Chinese display text keyed by vanilla room prototype |
 | `defaults/config/ETG-Gameplay-Dashboard.aliases.json5` | shipped aliases |
 
 Read next:
@@ -171,6 +181,8 @@ Read next:
 - [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)
 
 ## Runtime Toggles And Gameplay Features
+
+Controller aim-lock implementation details are documented in [Controller Aim Lock](./controller-aim-lock.md).
 
 Use this route for toggles that change live player, gun, or run behavior.
 

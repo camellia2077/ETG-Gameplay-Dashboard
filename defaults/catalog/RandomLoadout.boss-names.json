@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "source": {
+    "game": "Enter the Gungeon",
+    "game_version": "2.1.9",
+    "asset": "Assets/resourcesbundle/strings/{english_items,chinese_items}/enemies.txt",
+    "extraction_note": "Names and text keys were extracted from the game's enemies TextAsset files. Room names come from AAA_BOSS_MANAGER target room tables."
+  },
+  "bosses": [
+    { "floor": "Castle", "room_names": ["BulletBrosRoom01"], "room_display_names": { "BulletBrosRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#BULLETBROS_NEWSTRINGFORHEALTHBAR", "display_name": { "en": "Trigger Twins", "zh-CN": "扳机双胞胎" } },
+    { "floor": "Castle", "room_names": ["BulletKingRoom01"], "room_display_names": { "BulletKingRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#BULLETKING_ENCNAME", "display_name": { "en": "Bullet King", "zh-CN": "子弹王" } },
+    { "floor": "Castle", "room_names": ["GatlingGullRoom01", "GatlingGullRoom02", "GatlingGullRoom03", "GatlingGullRoom04", "GatlingGullRoom05"], "room_display_names": { "GatlingGullRoom01": { "en": "Room 1", "zh-CN": "Room 1" }, "GatlingGullRoom02": { "en": "Room 2", "zh-CN": "Room 2" }, "GatlingGullRoom03": { "en": "Room 3", "zh-CN": "Room 3" }, "GatlingGullRoom04": { "en": "Room 4", "zh-CN": "Room 4" }, "GatlingGullRoom05": { "en": "Room 5", "zh-CN": "Room 5" } }, "text_key": "#GATLINGGULL_ENCNAME", "display_name": { "en": "Gatling Gull", "zh-CN": "加特林鸥" } },
+    { "floor": "Gungeon", "room_names": ["BashelliskRoom01"], "room_display_names": { "BashelliskRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#BASHELLISK_ENCNAME", "display_name": { "en": "Ammoconda", "zh-CN": "枪蟒" } },
+    { "floor": "Gungeon", "room_names": ["BeholsterRoom01", "BeholsterRoom_AG&D_02", "BeholsterRoom_AG&D_03", "BeholsterRoom_AG&D_04"], "room_display_names": { "BeholsterRoom01": { "en": "Room 1", "zh-CN": "Room 1" }, "BeholsterRoom_AG&D_02": { "en": "Room 2", "zh-CN": "Room 2" }, "BeholsterRoom_AG&D_03": { "en": "Room 3", "zh-CN": "Room 3" }, "BeholsterRoom_AG&D_04": { "en": "Room 4", "zh-CN": "Room 4" } }, "text_key": "#BEHOLSTER_ENCNAME", "display_name": { "en": "The Beholster", "zh-CN": "嗜枪怪" } },
+    { "floor": "Gungeon", "room_names": ["MeduziRoom01"], "room_display_names": { "MeduziRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#MEDUZI_ENCNAME", "display_name": { "en": "The Gorgun", "zh-CN": "蛇发女巫" } },
+    { "floor": "Mines", "room_names": ["GiantPowderskullRoom01"], "room_display_names": { "GiantPowderskullRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#GIANTPOWDERSKULL_ENCNAME", "display_name": { "en": "Cannonbalrog", "zh-CN": "加农炎魔" } },
+    { "floor": "Mines", "room_names": ["TankTreaderRoom"], "room_display_names": { "TankTreaderRoom": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#TANKTREADER_ENCNAME", "display_name": { "en": "Treadnaught", "zh-CN": "震带神兵" } },
+    { "floor": "Mines", "room_names": ["MineFlayerRoom01", "MineFlayerRoom_AG&D_02"], "room_display_names": { "MineFlayerRoom01": { "en": "Room 1", "zh-CN": "Room 1" }, "MineFlayerRoom_AG&D_02": { "en": "Room 2", "zh-CN": "Room 2" } }, "text_key": "#MINEFLAYER_ENCNAME", "display_name": { "en": "Mine Flayer", "zh-CN": "抢矿者" } },
+    { "floor": "Catacombs", "room_names": ["DemonWallRoom01"], "room_display_names": { "DemonWallRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#DEMONWALL_ENCNAME", "display_name": { "en": "The Wallmonger", "zh-CN": "墙怪" } },
+    { "floor": "Catacombs", "room_names": ["HighPriestRoom01", "HighPriestRoom_AG&D_02"], "room_display_names": { "HighPriestRoom01": { "en": "Room 1", "zh-CN": "Room 1" }, "HighPriestRoom_AG&D_02": { "en": "Room 2", "zh-CN": "Room 2" } }, "text_key": "#HIGHPRIEST_ENCNAME", "display_name": { "en": "High Priest", "zh-CN": "高级祭师" } },
+    { "floor": "Catacombs", "room_names": ["BossStatuesRoom01"], "room_display_names": { "BossStatuesRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#BOSSSTATUES_ENCNAME", "display_name": { "en": "Kill Pillars", "zh-CN": "诅咒石像" } },
+    { "floor": "Forge", "room_names": ["DraGunRoom01"], "room_display_names": { "DraGunRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#DRAGUN_ENCNAME", "display_name": { "en": "Dragun", "zh-CN": "枪龙" } },
+    { "floor": "Bullet Hell", "room_names": ["LichRoom01"], "room_display_names": { "LichRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#LICH_ENCNAME", "display_name": { "en": "Lich", "zh-CN": "巫妖" } },
+    { "floor": "Sewers", "room_names": ["BlobulordRoom01"], "room_display_names": { "BlobulordRoom01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#BLOBULORD_ENCNAME", "display_name": { "en": "Blobulord", "zh-CN": "史莱姆勋爵" } },
+    { "floor": "Cathedral", "room_names": ["OldBulletKing_Room_01"], "room_display_names": { "OldBulletKing_Room_01": { "en": "Room 1", "zh-CN": "Room 1" } }, "text_key": "#OLDBULLETKING_ENCNAME", "display_name": { "en": "Old King", "zh-CN": "老国王" } }
+  ]
+}

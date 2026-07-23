@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using BepInEx.Logging;
 using RandomLoadout.Core;
+using RandomLoadout.Core.Input;
 using UnityEngine;
 
 namespace RandomLoadout
@@ -250,6 +251,52 @@ namespace RandomLoadout
             }
         }
 
+        private void ExecuteSpawnBlankNearPlayer(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnBlankNearPlayer(player);
+            ShowPlayerDebugActionResult(executionResult, logger);
+        }
+
+        private void ExecuteSpawnFullHeartNearPlayer(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnFullHeartNearPlayer(player);
+            ShowPlayerDebugActionResult(executionResult, logger);
+        }
+
+        private void ExecuteSpawnArmorNearPlayer(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnArmorNearPlayer(player);
+            ShowPlayerDebugActionResult(executionResult, logger);
+        }
+
+        private void ExecuteSpawnKeyNearPlayer(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnKeyNearPlayer(player);
+            ShowPlayerDebugActionResult(executionResult, logger);
+        }
+
+        private void ExecuteSpawnRatKeyNearPlayer(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnRatKeyNearPlayer(player);
+            ShowPlayerDebugActionResult(executionResult, logger);
+        }
+
+        private void ExecuteSpawnCurrencyNearPlayer(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnCurrencyNearPlayer(player);
+            ShowPlayerDebugActionResult(executionResult, logger);
+        }
+
+        private void ShowPlayerDebugActionResult(GrantCommandExecutionResult executionResult, ManualLogSource logger)
+        {
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            LogCommandExecutionResult(logger, executionResult);
+            if (executionResult.Succeeded)
+            {
+                _focusInputField = true;
+            }
+        }
+
         private void ExecuteRefillCurrentGunAmmo(PlayerController player, ManualLogSource logger)
         {
             GrantCommandExecutionResult executionResult = _playerDebugCommandService.RefillCurrentGunAmmo(player);
@@ -370,6 +417,17 @@ namespace RandomLoadout
             }
         }
 
+        private void ExecuteClearCurrency(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.ClearCurrency(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            LogCommandExecutionResult(logger, executionResult);
+            if (executionResult.Succeeded)
+            {
+                _focusInputField = true;
+            }
+        }
+
         private void ExecuteToggleCurrencyNoConsume(PlayerController player, ManualLogSource logger)
         {
             if (_currencyNoConsumeToggleService == null)
@@ -426,6 +484,17 @@ namespace RandomLoadout
             }
         }
 
+        private void ExecuteClearMetaCurrency(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = _playerDebugCommandService.ClearMetaCurrency(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            LogCommandExecutionResult(logger, executionResult);
+            if (executionResult.Succeeded)
+            {
+                _focusInputField = true;
+            }
+        }
+
         private void ExecuteToggleRapidFire(PlayerController player, ManualLogSource logger)
         {
             if (_rapidFireToggleService == null)
@@ -461,6 +530,7 @@ namespace RandomLoadout
 
         private void ExecuteToggleAutoReload(ManualLogSource logger)
         {
+            PlayerController targetPlayer = GetSelectedCommandTargetPlayer();
             if (_autoReloadToggleService == null)
             {
                 string unavailableMessage = GuiText.Get("result.auto_reload.unavailable");
@@ -489,6 +559,17 @@ namespace RandomLoadout
             }
 
             GrantCommandExecutionResult executionResult = _autoReloadToggleService.Toggle();
+            if (executionResult.Succeeded && (object)targetPlayer != null)
+            {
+                if (_autoReloadToggleService.Mode == AutoReloadMode.Off)
+                {
+                    _autoReloadTargetStates.Remove(targetPlayer);
+                }
+                else
+                {
+                    _autoReloadTargetStates.Add(targetPlayer);
+                }
+            }
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (logger == null)
@@ -540,8 +621,105 @@ namespace RandomLoadout
             }
         }
 
+        private void ExecuteToggleEnemyHealthBars(PlayerController player, ManualLogSource logger)
+        {
+            if (_enemyHealthBarToggleService == null)
+            {
+                string unavailableMessage = GuiText.Get("result.enemy_health_bars.unavailable");
+                ShowStatus(unavailableMessage, true);
+                if (logger != null)
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(GuiText.GetEnglish("result.enemy_health_bars.unavailable")));
+                }
+
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _enemyHealthBarToggleService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+
+            if (logger == null)
+            {
+                return;
+            }
+
+            if (executionResult.Succeeded)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                _focusInputField = true;
+            }
+            else
+            {
+                logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleControllerAimLock(PlayerController player, ManualLogSource logger)
+        {
+            if (_controllerAimLockService == null)
+            {
+                ShowStatus(GuiText.Get("result.controller_aim_lock.unavailable"), true);
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _controllerAimLockService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            if (logger != null)
+            {
+                if (executionResult.Succeeded)
+                {
+                    logger.LogInfo(RandomLoadoutLog.Command(executionResult.LogMessage));
+                }
+                else
+                {
+                    logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+                }
+            }
+        }
+
+        private void ExecuteToggleKeyboardAimAssist(PlayerController player, ManualLogSource logger)
+        {
+            if (_keyboardAimAssistService == null)
+            {
+                ShowStatus(GuiText.Get("result.keyboard_aim_assist.unavailable"), true);
+                return;
+            }
+
+            KeyboardAimAssistMode mode;
+            bool succeeded = _keyboardAimAssistService.TryCycleMode(player, out mode);
+            string statusKey = succeeded
+                ? KeyboardAimAssistUiDefinition.GetModeResultKey(mode)
+                : "result.keyboard_aim_assist.no_player";
+            ShowStatus(GuiText.Get(statusKey), !succeeded);
+            if (logger != null)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(GuiText.GetEnglish(statusKey)));
+            }
+        }
+
+        private void ExecuteCycleKeyboardAimAssistMultiplier(PlayerController player, ManualLogSource logger)
+        {
+            if (_keyboardAimAssistService == null)
+            {
+                ShowStatus(GuiText.Get("result.keyboard_aim_assist.unavailable"), true);
+                return;
+            }
+
+            float multiplier;
+            bool succeeded = _keyboardAimAssistService.TryCycleMultiplier(player, out multiplier);
+            string statusKey = succeeded
+                ? KeyboardAimAssistUiDefinition.GetMultiplierResultKey(multiplier)
+                : "result.keyboard_aim_assist.no_player";
+            ShowStatus(GuiText.Get(statusKey), !succeeded);
+            if (logger != null)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(GuiText.GetEnglish(statusKey)));
+            }
+        }
+
         private void ExecuteCycleAmmoMode(ManualLogSource logger)
         {
+            PlayerController targetPlayer = GetSelectedCommandTargetPlayer();
             if (_ammoModeToggleService == null)
             {
                 string unavailableMessage = GuiText.Get("result.no_ammo_consumption.unavailable");
@@ -555,12 +733,27 @@ namespace RandomLoadout
             }
 
             GrantCommandExecutionResult executionResult = _ammoModeToggleService.Toggle();
+            if (executionResult.Succeeded && (object)targetPlayer != null)
+            {
+                if (_ammoModeToggleService.Mode == AmmoMode.Off)
+                {
+                    _ammoModeTargetStates.Remove(targetPlayer);
+                }
+                else
+                {
+                    _ammoModeTargetStates.Add(targetPlayer);
+                }
+            }
             if (_ammoModeToggleService.Mode == AmmoMode.NoConsume && _autoReloadToggleService != null)
             {
                 // No Consume prevents ammo from decreasing naturally, so the gun never reaches the
                 // normal "empty clip then reload" flow. Disable Auto Reload here to avoid bugs
                 // caused by combining it with a state that does not naturally consume bullets.
                 _autoReloadToggleService.Disable();
+                if ((object)targetPlayer != null)
+                {
+                    _autoReloadTargetStates.Remove(targetPlayer);
+                }
             }
 
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
@@ -609,6 +802,18 @@ namespace RandomLoadout
             else
             {
                 logger.LogWarning(RandomLoadoutLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleBossIntroSkip(ManualLogSource logger)
+        {
+            bool enabled = BossIntroSkipHooks.Toggle();
+            string key = enabled ? "result.boss_intro_skip.enable.success" : "result.boss_intro_skip.disable.success";
+            string message = GuiText.Get(key);
+            ShowStatus(message, false);
+            if (logger != null && BossIntroSkipHooks.IsVerboseLoggingEnabled)
+            {
+                logger.LogInfo(RandomLoadoutLog.Command(GuiText.GetEnglish(key)));
             }
         }
 

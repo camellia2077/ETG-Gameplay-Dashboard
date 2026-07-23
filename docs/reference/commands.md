@@ -139,6 +139,7 @@ the renderer logs `Cursor color shader unavailable` and falls back to the origin
 
 ### Pickup Browser
 
+- The `P1/P2/Both` target button is shared with `General -> Characters`. In Grant mode, pickup-browser grants are sent to the selected player, or to both players when `Both` is selected; selecting P2 or Both requires a second player to have joined.
 - search matches `alias`, `internalName`, `displayName`, and `pickupId`
 - in English UI, visible pickup names should prefer the catalog's `EnglishDisplayName`; search still includes both
   localized and English pickup names
@@ -191,17 +192,47 @@ In the `Currency` submenu:
   Adds one key to the current player.
 - `+1 Rat Key`
   Adds one rat key to the current player.
-- `+50 Casings`
-  Adds 50 casings to the current player.
-- `+10 Hegemony`
-  Adds 10 meta currency via `TrackedStats.META_CURRENCY`.
+- `+100 Casings`
+  Adds 100 casings to the current player.
+- `Casings -> Clear`
+  Clears the current run's casing balance only. Hegemony is unaffected.
+- `+50 Hegemony`
+  Adds 50 meta currency via `TrackedStats.META_CURRENCY`.
+- `Hegemony -> Clear`
+  Clears the entire saved Hegemony balance via the same global stat-clear path used by vanilla Breach-shop purchases. Casings are unaffected.
+- `Player -> Character -> Stats`
+  Contains the Clear Curse action.
+- `Player -> Character -> Pickups`
+  Contains health, armor, blank, key, Rat Key, and casing actions. The `Target: P1/P2/Both` control applies to pickup grants and spawns.
+- `Player -> Combat`
+  Contains Hold Rapid, Auto Reload, Ammo Mode, invincibility, plus cycling damage (`1x`, `2x`, `5x`, `10x`, `100x`) and movement-speed (`1x`, `1.5x`, `2x`, `3x`) multipliers. Hold Rapid, Auto Reload, and Ammo Mode are restored from the `[Combat]` configuration on the next game launch; other runtime toggles are removed when the plugin is unloaded.
+- `Player -> Combat -> Controller Aim Lock`
+  Toggles locking controller camera offset while maintaining right-stick aiming. Persisted under `[Combat] ControllerAimLockEnabled`.
+- `Player -> Combat -> Keyboard Aim Assist`
+  Cycles Keyboard Aim Assist modes (`Off`, `Auto Aim`, `Super Auto Aim`) and multipliers (`0.5x`, `1.0x`, `1.5x`, `2.0x`). Uses `PlayerController.DetermineAimPointInWorld` postfix, projectile lead-time prediction, and physics raycast obstacle filtering. The UI description displays base angle prompts (`Auto Aim` at 15°, `Super Auto Aim` at 25°) multiplied by the selected multiplier for effective lock-on cone calculation. Option names inherit vanilla ETG controller aim assist settings.
+- `Player -> Combat -> Enemy HP Bars`
+  Reuses Scouter's original health-bar prefab without granting Scouter or its damage/accuracy bonuses; damaging a normal enemy reveals its bar. The toggle state is persisted under `[Combat] EnemyHealthBarsEnabled` and restored on the next game launch.
+- `Player -> Combat -> Skip Boss Intro`
+  This experimental control is disabled until `Settings -> Experimental Mode` is enabled. It uses the existing disabled-control color and is excluded from controller focus and activation while unavailable.
 
 ### Room Menu
 
 In the `Room` submenu:
 
-- `Enemies -> Refresh Room Enemies`
-  Replays the current room's predefined enemy setup after the room has been cleared. This v1 behavior is backed by the room reset path and does not guarantee the exact same formation, positions, or reinforcement timing as the first room entry.
+- `Enemies`
+  Reserved for future enemy-spawn tools; it currently has no actions.
+- `Rewind -> Rewind: ON/OFF`
+  Controls whether standard and Boss rooms entered on the current floor are recorded for rewind. Turning it off immediately clears the current floor's saved room states and stops any active rewind.
+- `Rewind -> Rewind Method`
+  Cycles between `Rewind Room` (restores the same recorded enemy batches, types, and positions) and `Respawn Enemies` (generates enemies in the current room, but batches, types, and positions may differ). While the command panel is closed, press `C` during a run to activate the selected method. Rewind mode requires `Rewind: ON`; if it is disabled, the shortcut shows a warning instead of rewinding. Change `[UI] RoomEnemyRewindKey` in `randomgun.randomloadout.cfg` to another Unity `KeyCode` if needed. (`C` is chosen as the default key because it is unused by vanilla controls and allows keyboard+mouse players to trigger room rewind with their left thumb/index finger without lifting or moving either hand away from WASD or mouse controls during combat).
+- `Rewind -> Spawn`
+  Executes the currently selected `Rewind Method` directly from the command panel; it is equivalent to the configured `C` shortcut.
+  Rewound enemies are immediately marked as engaged because the player is already inside the room when they are spawned.
+- `Rewind Room` requires the player to be physically inside a standard combat or Boss room's interior cells. `Respawn Enemies` is intended for standard combat rooms; when used in a Boss room, it automatically falls back to the exact Boss rewind path so the selected mode cannot block Boss replay. Both modes refuse connected corridors, exit cells, stale next-room selections, and rooms with no enemies; these conditions show a yellow warning and never seal a room or generate enemies.
+- `Boss`
+  Shows the Boss selected for the next generated floor and the Boss choices valid for that floor's tileset. In the foyer this targets the first floor; while playing, it targets the next floor. Selecting one sets the vanilla pre-generation Boss-room choice (`BossManager.PriorFloorSelectedBossRoom`), so the dungeon incorporates the target Boss when generating the next level (this avoids live map replacement, as differing room prototype geometries would cause severe map mesh corruption).
+  Display names are read from `defaults/catalog/RandomLoadout.boss-names.json` (extracted from the game's `enemies.txt` text assets and keyed by vanilla Boss room prototype names). This static catalog bypasses repeated `AIActor` instantiation and `StringTableManager` lookups on every UI redraw, preventing UI frame stutter (note: baseline timing measurements were collected under a Debug build). If a custom or newly added room is missing from the catalog, the service safely falls back to the live game enemy actor API.
+  Boss choices are shown first in one or more rows. No room-layout buttons are shown until a Boss is selected; for a Boss with multiple vanilla layouts, a second row group then exposes the room prototype choices. Selecting only the Boss uses its first vanilla room layout by default.
 - `Spawn Gunber Muncher`
   Spawns the vanilla Gunber Muncher (常规吃枪怪) actor directly into the current room. This is a custom runtime spawn path, not a full recreation of the original muncher room.
 - `Spawn Evil Muncher`
@@ -285,6 +316,9 @@ In the `Characters` page:
   `Robot` is excluded from unlock mode in this panel.
 - `Mode: Switch Only`
   Performs immediate character switching without writing unlock flags.
+  The `General -> Characters -> Character Target: P1/P2` button selects which joined player is replaced.
+  P2 selection requires a second player to have joined; otherwise the operation is rejected.
+  `The Cultist` (邪教徒) is available as a switch-only character.
 
 ### Configurable Start Loadout
 

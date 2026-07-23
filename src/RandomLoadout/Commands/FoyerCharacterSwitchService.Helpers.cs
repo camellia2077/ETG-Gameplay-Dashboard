@@ -126,14 +126,16 @@ namespace RandomLoadout
                     return 2;
                 case "Convict":
                     return 3;
-                case "Robot":
+                case "Cultist":
                     return 4;
-                case "Bullet":
+                case "Robot":
                     return 5;
-                case "Paradox":
+                case "Bullet":
                     return 6;
-                case "Gunslinger":
+                case "Paradox":
                     return 7;
+                case "Gunslinger":
+                    return 8;
                 default:
                     return 100;
             }
@@ -262,7 +264,9 @@ namespace RandomLoadout
             for (int i = 0; i < flags.Length; i++)
             {
                 FoyerCharacterSelectFlag flag = flags[i];
-                if ((object)flag == null || flag.IsCoopCharacter || flag.IsAlternateCostume)
+                if ((object)flag == null ||
+                    (flag.IsCoopCharacter && !string.Equals(label, "Cultist", StringComparison.OrdinalIgnoreCase)) ||
+                    flag.IsAlternateCostume)
                 {
                     continue;
                 }

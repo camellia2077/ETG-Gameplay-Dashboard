@@ -38,6 +38,13 @@ namespace RandomLoadout
             Unlock,
         }
 
+        private enum CharacterSwitchTarget
+        {
+            PrimaryPlayer,
+            SecondaryPlayer,
+            BothPlayers,
+        }
+
         private enum PickupBrowserFilter
         {
             All,
@@ -105,7 +112,6 @@ namespace RandomLoadout
         private enum CommandMenuCategory
         {
             General,
-            Combat,
             Player,
             Room,
         }
@@ -115,13 +121,35 @@ namespace RandomLoadout
             Chest,
             Neutral,
             Enemies,
+            Rewind,
+            Boss,
             State,
+        }
+
+        private enum RoomEnemyRefreshMethod
+        {
+            Rewind,
+            RespawnEnemies,
         }
 
         private enum PlayerMenuSection
         {
+            Character,
+            Combat,
+        }
+
+        private enum CharacterMenuSection
+        {
             Pickups,
             Stats,
+        }
+
+        private enum StatusSeverity
+        {
+            Success,
+            Failure,
+            Warning,
+            Information,
         }
 
         private enum ControllerNavDirection
@@ -135,6 +163,7 @@ namespace RandomLoadout
         private const string InputControlName = "RandomLoadoutCommandInput";
         private const string PickupSearchControlName = "RandomLoadoutPickupSearch";
         private const string PanelInputOverrideReason = "randomloadout_command_panel";
+        private const KeyCode RoomEnemyRewindShortcutKey = KeyCode.C;
         private const float StatusDurationSeconds = 4f;
         private const float KeyboardNavigationRepeatDelaySeconds = 0.35f;
         private const float KeyboardNavigationRepeatIntervalSeconds = 0.08f;
@@ -193,6 +222,8 @@ namespace RandomLoadout
         private const int LoadoutPresetColumnCount = 2;
         private const float LoadoutRuleRowHeight = 60f;
         private const float PickupIconSize = 32f;
+        private const float PickupBrowserIconWidth = 64f;
+        private const float PickupBrowserIconHeight = 40f;
         private const float PickupGrantButtonWidth = 72f;
 
         private static Color PanelBackgroundColor { get { return DashboardTheme.PanelBackground; } }
@@ -218,12 +249,13 @@ namespace RandomLoadout
         private static Color EnabledButtonHoverColor { get { return DashboardTheme.EnabledButtonHoverBackground; } }
         private static Color EnabledButtonActiveColor { get { return DashboardTheme.EnabledButtonActiveBackground; } }
         private static Color PrimaryTextColor { get { return DashboardTheme.PrimaryText; } }
-        private static Color PlayerStatsTextColor { get { return DashboardTheme.PrimaryText; } }
+        private static Color PlayerStatsTextColor { get { return Color.white; } }
         private static Color SecondaryTextColor { get { return DashboardTheme.SecondaryText; } }
-        private static Color SuccessBackgroundColor { get { return DashboardTheme.SuccessBackground; } }
-        private static Color SuccessTextColor { get { return DashboardTheme.SuccessText; } }
-        private static Color ErrorBackgroundColor { get { return DashboardTheme.ErrorBackground; } }
-        private static Color ErrorTextColor { get { return DashboardTheme.ErrorText; } }
+        // Status colors stay fixed across themes so their meaning remains immediately recognizable.
+        private static readonly Color StatusSuccessBackgroundColor = new Color32(31, 122, 69, 230);
+        private static readonly Color StatusFailureBackgroundColor = new Color32(185, 56, 56, 230);
+        private static readonly Color StatusWarningBackgroundColor = new Color32(154, 103, 0, 230);
+        private static readonly Color StatusInformationBackgroundColor = new Color32(29, 95, 155, 230);
         private readonly AmmonomiconFastOpenToggleService _ammonomiconFastOpenToggleService;
         private static readonly FoyerCharacterOption[] EmptyCharacterOptions = new FoyerCharacterOption[0];
         private static readonly PickupBrowserEntry[] EmptyPickupBrowserEntries = new PickupBrowserEntry[0];
@@ -248,7 +280,6 @@ namespace RandomLoadout
         private static readonly CommandMenuCategory[] CommandMenuCategoryOrder =
         {
             CommandMenuCategory.General,
-            CommandMenuCategory.Combat,
             CommandMenuCategory.Player,
             CommandMenuCategory.Room,
         };
@@ -295,6 +326,7 @@ namespace RandomLoadout
 
         private static readonly ControllerFocusEntry[] CurrencyPageFocusEntries =
         {
+            new ControllerFocusEntry("currency.target", 0, 0),
             new ControllerFocusEntry("currency.max_health", 1, 0),
             new ControllerFocusEntry("currency.back", 1, 1),
             new ControllerFocusEntry("currency.armor", 2, 0),
@@ -302,7 +334,9 @@ namespace RandomLoadout
             new ControllerFocusEntry("currency.key", 4, 0),
             new ControllerFocusEntry("currency.rat_key", 5, 0),
             new ControllerFocusEntry("currency.casings", 6, 0),
+            new ControllerFocusEntry("currency.clear_casings", 6, 1),
             new ControllerFocusEntry("currency.hegemony", 7, 0),
+            new ControllerFocusEntry("currency.clear_hegemony", 7, 1),
         };
 
         private readonly GrantCommandParser _parser = new GrantCommandParser();
@@ -318,10 +352,15 @@ namespace RandomLoadout
         private readonly KeyNoConsumeToggleService _keyNoConsumeToggleService;
         private readonly CurrencyNoConsumeToggleService _currencyNoConsumeToggleService;
         private readonly InvincibilityToggleService _invincibilityToggleService;
+        private readonly EnemyHealthBarToggleService _enemyHealthBarToggleService;
+        private readonly ControllerAimLockService _controllerAimLockService;
+        private readonly KeyboardAimAssistService _keyboardAimAssistService;
+        private readonly PlayerStatMultiplierService _playerStatMultiplierService;
         private readonly AmmoModeToggleService _ammoModeToggleService;
         private readonly LoadoutRuleEditorService _loadoutRuleEditorService;
         private readonly LoadoutPresetRandomService _loadoutPresetRandomService;
         private readonly Func<EtgPickupCatalogEntry[]> _pickupCatalogProvider;
+        private readonly Func<int, string> _pickupGameplayNameProvider;
         private readonly Func<PickupAliasRegistry> _aliasRegistryProvider;
         private readonly Func<string> _languageProvider;
         private readonly Action<string> _languageSetter;
@@ -329,6 +368,9 @@ namespace RandomLoadout
         private readonly Func<KeyCode> _toggleKeyProvider;
         private readonly Func<string> _toggleKeyNameProvider;
         private readonly Action<string> _toggleKeySetter;
+        private readonly Func<KeyCode> _roomEnemyRewindKeyProvider;
+        private readonly Func<string> _roomEnemyRefreshMethodProvider;
+        private readonly Action<string> _roomEnemyRefreshMethodSetter;
         private readonly Func<string> _controllerShortcutProvider;
         private readonly Action<string> _controllerShortcutSetter;
         private readonly Func<bool> _controllerShortcutEnabledProvider;
@@ -364,8 +406,11 @@ namespace RandomLoadout
         private readonly Func<bool> _commandPanelCursorVerboseLoggingEnabledProvider;
         private readonly Func<bool> _commandPanelGameplayInputVerboseLoggingEnabledProvider;
         private readonly Func<bool> _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider;
+        private readonly Func<bool> _commandPanelShortcutVerboseLoggingEnabledProvider;
         private readonly Func<string> _combatCursorColorProvider;
         private readonly Action<string> _combatCursorColorSetter;
+        private readonly Func<bool> _performanceVerboseLoggingEnabledProvider;
+        private readonly BepInEx.Logging.ManualLogSource _performanceLogger;
         private readonly Func<EtgFloorDefinition, string, string, bool> _deferredTeleportRequestHandler;
 
         private GUIStyle _panelStyle;
@@ -373,10 +418,12 @@ namespace RandomLoadout
         private GUIStyle _playerStatsRowStyle;
         private GUIStyle _titleStyle;
         private GUIStyle _hintStyle;
+        private GUIStyle _combatSettingLabelStyle;
         private GUIStyle _playerStatsTextStyle;
         private GUIStyle _wrappedHintStyle;
         private GUIStyle _textFieldStyle;
         private GUIStyle _buttonStyle;
+        private GUIStyle _cursorColorSelectedButtonStyle;
         private GUIStyle _enabledButtonStyle;
         private GUIStyle _pickupGrantButtonStyle;
         private GUIStyle _disabledToggleButtonStyle;
@@ -392,6 +439,8 @@ namespace RandomLoadout
         private GUIStyle _statusStyle;
         private GUIStyle _statusSuccessStyle;
         private GUIStyle _statusErrorStyle;
+        private GUIStyle _statusWarningStyle;
+        private GUIStyle _statusInformationStyle;
         private GUIStyle _pickupRowStyle;
         private GUIStyle _loadoutEditorRowStyle;
         private GUIStyle _pickupBrowserRowStyle;
@@ -446,13 +495,16 @@ namespace RandomLoadout
         private string _lastMapDirectTeleportRoomKey = string.Empty;
         private string _inputText = string.Empty;
         private string _statusMessage = string.Empty;
-        private bool _statusIsError;
+        private StatusSeverity _statusSeverity;
         private float _statusExpiresAt;
         private string _lastCharacterAvailabilityLog = string.Empty;
         private CharacterActionMode _characterActionMode = CharacterActionMode.SwitchOnly;
+        private CharacterSwitchTarget _characterSwitchTarget = CharacterSwitchTarget.PrimaryPlayer;
         private RoomChestTier _selectedRoomChestTier = RoomChestTier.Brown;
         private RoomMenuSection _roomMenuSection = RoomMenuSection.Chest;
-        private PlayerMenuSection _playerMenuSection = PlayerMenuSection.Pickups;
+        private RoomEnemyRefreshMethod _roomEnemyRefreshMethod = RoomEnemyRefreshMethod.Rewind;
+        private PlayerMenuSection _playerMenuSection = PlayerMenuSection.Character;
+        private CharacterMenuSection _characterMenuSection = CharacterMenuSection.Pickups;
         private FoyerCharacterOption[] _cachedCharacterOptions = EmptyCharacterOptions;
         private string _cachedCharacterAvailability = string.Empty;
         private float _nextCharacterPageRefreshAt;
@@ -476,6 +528,13 @@ namespace RandomLoadout
         private PickupPassiveSubcategoryFilter _pickupPassiveSubcategoryFilter = PickupPassiveSubcategoryFilter.All;
         private PickupActiveCooldownFilter _pickupActiveCooldownFilter = PickupActiveCooldownFilter.All;
         private string _pickupSearchText = string.Empty;
+        private PickupBrowserEntry[] _filteredPickupEntriesCache;
+        private string _filteredPickupEntriesCacheSearch = string.Empty;
+        private PickupBrowserFilter _filteredPickupEntriesCacheFilter;
+        private PickupQualityFilter _filteredPickupEntriesCacheQualityFilter;
+        private PickupGunClassFilter _filteredPickupEntriesCacheGunClassFilter;
+        private PickupPassiveSubcategoryFilter _filteredPickupEntriesCachePassiveFilter;
+        private PickupActiveCooldownFilter _filteredPickupEntriesCacheActiveCooldownFilter;
         private Vector2 _pickupScrollPosition = Vector2.zero;
         private Vector2 _loadoutEditorScrollPosition = Vector2.zero;
         private Vector2 _loadoutPresetScrollPosition = Vector2.zero;
@@ -514,6 +573,11 @@ namespace RandomLoadout
         private float _lastLoggedControllerGameplayLeftStickVertical = float.NaN;
         private float _lastLoggedControllerGameplayRightStickHorizontal = float.NaN;
         private float _lastLoggedControllerGameplayRightStickVertical = float.NaN;
+        private bool _hasLoggedCommandPanelShortcutState;
+        private bool _lastLoggedCommandPanelKeyboardHeld;
+        private bool _lastLoggedCommandPanelKeyboardDown;
+        private bool _lastLoggedCommandPanelControllerDetected;
+        private bool _lastLoggedCommandPanelVisible;
         private PlayerController _panelInputOverridePlayer;
         private PlayerController _lastHealthDiagnosticPlayer;
         private float _lastHealthDiagnosticCurrentHealth = float.NaN;
@@ -525,6 +589,9 @@ namespace RandomLoadout
         private float _controllerShortcutR3PressedAt = -1f;
         private bool _controllerShortcutHoldTriggered;
         private readonly Dictionary<int, PickupIconData> _pickupIconCache = new Dictionary<int, PickupIconData>();
+        private readonly HashSet<int> _pickupNameDiagnosticsLogged = new HashSet<int>();
+        private readonly HashSet<PlayerController> _autoReloadTargetStates = new HashSet<PlayerController>();
+        private readonly HashSet<PlayerController> _ammoModeTargetStates = new HashSet<PlayerController>();
         private dfAtlas _gameUiAtlas;
         private bool _hasResolvedGameUiAtlas;
         private static readonly string[] CommandPanelKeyOptions =

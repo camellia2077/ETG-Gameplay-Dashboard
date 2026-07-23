@@ -17,6 +17,9 @@ namespace RandomLoadout
             {
                 _hasExportedPickupCatalog = true;
                 _lastPickupCatalogExportFailure = null;
+                // Export can happen before ETG finishes preparing localized string
+                // tables. Do not let that startup snapshot become the UI cache.
+                _pickupResolver.InvalidateGrantablePickupCatalogCache();
                 Logger.LogInfo(
                     RandomLoadoutLog.Init(
                         "Exported grantable pickup catalog to '" + exportResult.TextOutputPath + "', '" + exportResult.JsonOutputPath + "', '" + exportResult.GroupedJsonOutputPath + "', '" + exportResult.NamesJsonOutputPath + "', and '" + exportResult.RulePoolOutputPath + "' (" + exportResult.EntryCount + " entries)."));

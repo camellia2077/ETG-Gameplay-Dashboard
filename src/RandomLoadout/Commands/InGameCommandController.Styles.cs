@@ -18,10 +18,12 @@ namespace RandomLoadout
             _playerStatsRowStyle = null;
             _titleStyle = null;
             _hintStyle = null;
+            _combatSettingLabelStyle = null;
             _playerStatsTextStyle = null;
             _wrappedHintStyle = null;
             _textFieldStyle = null;
             _buttonStyle = null;
+            _cursorColorSelectedButtonStyle = null;
             _enabledButtonStyle = null;
             _pickupGrantButtonStyle = null;
             _disabledToggleButtonStyle = null;
@@ -37,6 +39,8 @@ namespace RandomLoadout
             _statusStyle = null;
             _statusSuccessStyle = null;
             _statusErrorStyle = null;
+            _statusWarningStyle = null;
+            _statusInformationStyle = null;
             _pickupRowStyle = null;
             _loadoutEditorRowStyle = null;
             _pickupBrowserRowStyle = null;
@@ -81,12 +85,12 @@ namespace RandomLoadout
             _panelStyle.padding = new RectOffset(12, 12, 12, 12);
 
             _playerStatsPanelStyle = new GUIStyle(GUI.skin.box);
-            _playerStatsPanelStyle.normal.background = MakeTexture(1, 1, PlayerStatsPanelBackgroundColor);
+            _playerStatsPanelStyle.normal.background = null;
             _playerStatsPanelStyle.border = new RectOffset(0, 0, 0, 0);
             _playerStatsPanelStyle.padding = new RectOffset(12, 12, 12, 12);
 
             _playerStatsRowStyle = new GUIStyle(GUI.skin.box);
-            _playerStatsRowStyle.normal.background = MakeTexture(1, 1, PlayerStatsRowBackgroundColor);
+            _playerStatsRowStyle.normal.background = null;
             _playerStatsRowStyle.border = new RectOffset(0, 0, 0, 0);
             _playerStatsRowStyle.padding = new RectOffset(0, 0, 0, 0);
 
@@ -98,6 +102,11 @@ namespace RandomLoadout
             _hintStyle = new GUIStyle(GUI.skin.label);
             _hintStyle.normal.textColor = SecondaryTextColor;
             _hintStyle.fontSize = 14;
+
+            _combatSettingLabelStyle = new GUIStyle(_hintStyle);
+            _combatSettingLabelStyle.fontSize = 16;
+            _combatSettingLabelStyle.alignment = TextAnchor.MiddleLeft;
+            _combatSettingLabelStyle.wordWrap = false;
 
             _playerStatsTextStyle = new GUIStyle(_hintStyle);
             _playerStatsTextStyle.normal.textColor = PlayerStatsTextColor;
@@ -137,6 +146,26 @@ namespace RandomLoadout
             _buttonStyle.active.textColor = PrimaryTextColor;
             _buttonStyle.fontStyle = FontStyle.Bold;
             _buttonStyle.fontSize = 14;
+
+            // Cursor Color uses the theme's selected border as its enabled state.
+            // Keep the ordinary button fills unchanged so this UI does not switch
+            // to the theme's semantic Secondary fill when toggled on.
+            _cursorColorSelectedButtonStyle = new GUIStyle(_buttonStyle);
+            _cursorColorSelectedButtonStyle.normal.background = MakeInsetBorderedTexture(
+                DashboardTheme.NonFunctionalButtonBackground,
+                DashboardTheme.NonFunctionalButtonSelectedBorder,
+                2,
+                2);
+            _cursorColorSelectedButtonStyle.hover.background = MakeInsetBorderedTexture(
+                ButtonHoverColor,
+                DashboardTheme.NonFunctionalButtonSelectedBorder,
+                2,
+                2);
+            _cursorColorSelectedButtonStyle.active.background = MakeInsetBorderedTexture(
+                ButtonActiveColor,
+                DashboardTheme.NonFunctionalButtonSelectedBorder,
+                2,
+                2);
 
             _enabledButtonStyle = new GUIStyle(_buttonStyle);
             _enabledButtonStyle.normal.background = MakeInsetBorderedTexture(EnabledButtonBackgroundColor, ButtonSelectedBorderColor, 2, 2);
@@ -247,12 +276,20 @@ namespace RandomLoadout
             _statusStyle.wordWrap = true;
 
             _statusSuccessStyle = new GUIStyle(_statusStyle);
-            _statusSuccessStyle.normal.background = MakeTexture(1, 1, SuccessBackgroundColor);
-            _statusSuccessStyle.normal.textColor = SuccessTextColor;
+            _statusSuccessStyle.normal.background = MakeTexture(1, 1, StatusSuccessBackgroundColor);
+            _statusSuccessStyle.normal.textColor = Color.white;
 
             _statusErrorStyle = new GUIStyle(_statusStyle);
-            _statusErrorStyle.normal.background = MakeTexture(1, 1, ErrorBackgroundColor);
-            _statusErrorStyle.normal.textColor = ErrorTextColor;
+            _statusErrorStyle.normal.background = MakeTexture(1, 1, StatusFailureBackgroundColor);
+            _statusErrorStyle.normal.textColor = Color.white;
+
+            _statusWarningStyle = new GUIStyle(_statusStyle);
+            _statusWarningStyle.normal.background = MakeTexture(1, 1, StatusWarningBackgroundColor);
+            _statusWarningStyle.normal.textColor = Color.white;
+
+            _statusInformationStyle = new GUIStyle(_statusStyle);
+            _statusInformationStyle.normal.background = MakeTexture(1, 1, StatusInformationBackgroundColor);
+            _statusInformationStyle.normal.textColor = Color.white;
 
             _pickupRowStyle = new GUIStyle(GUI.skin.box);
             _pickupRowStyle.normal.background = MakeTexture(1, 1, PanelBackgroundColor);
@@ -384,10 +421,18 @@ namespace RandomLoadout
 
         private sealed class PickupBrowserEntry
         {
-            public PickupBrowserEntry(EtgPickupCatalogEntry catalogEntry, IList<string> aliases)
+            public PickupBrowserEntry(
+                EtgPickupCatalogEntry catalogEntry,
+                IList<string> aliases,
+                Func<int, string> pickupGameplayNameProvider)
             {
                 CatalogEntry = catalogEntry;
-                DisplayName = ResolveDisplayName(catalogEntry);
+                string gameplayDisplayName = pickupGameplayNameProvider != null && catalogEntry != null
+                    ? pickupGameplayNameProvider(catalogEntry.PickupId)
+                    : string.Empty;
+                DisplayName = !string.IsNullOrEmpty(gameplayDisplayName)
+                    ? gameplayDisplayName
+                    : ResolveDisplayName(catalogEntry);
                 Aliases = aliases != null ? ToArray(aliases) : new string[0];
                 PreferredInput = Aliases.Length > 0
                     ? Aliases[0]

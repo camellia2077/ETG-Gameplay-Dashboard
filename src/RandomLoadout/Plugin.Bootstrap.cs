@@ -1,9 +1,11 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
+using System;
 using System.Collections;
 using BepInEx;
 using RandomLoadout.Core;
+using RandomLoadout.Core.Input;
 using UnityEngine;
 
 namespace RandomLoadout
@@ -287,6 +289,13 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Command("Command panel keyboard toggle key changed to " + normalized + "."));
         }
 
+        private KeyCode GetRoomEnemyRewindKey()
+        {
+            string keyName = _roomEnemyRewindKeyConfig != null ? _roomEnemyRewindKeyConfig.Value : "C";
+            KeyCode keyCode = ParseCommandPanelKey(keyName);
+            return keyCode != KeyCode.None ? keyCode : KeyCode.C;
+        }
+
         private string GetCommandPanelControllerShortcut()
         {
             return NormalizeCommandPanelControllerShortcut(_commandPanelControllerShortcutConfig != null ? _commandPanelControllerShortcutConfig.Value : "LB+R3");
@@ -378,6 +387,72 @@ namespace RandomLoadout
         private bool IsPlayerStatsPanelShown()
         {
             return _showPlayerStatsPanelConfig != null && _showPlayerStatsPanelConfig.Value;
+        }
+
+        private bool IsPlayerRewindEnabled()
+        {
+            return _playerRewindEnabledConfig != null && _playerRewindEnabledConfig.Value;
+        }
+
+        private bool IsRoomEnemyRefreshRecordingEnabled()
+        {
+            return _roomEnemyRefreshRecordingEnabledConfig != null && _roomEnemyRefreshRecordingEnabledConfig.Value;
+        }
+
+        private void SetRoomEnemyRefreshRecordingEnabled(bool isEnabled)
+        {
+            if (_roomEnemyRefreshRecordingEnabledConfig != null)
+            {
+                _roomEnemyRefreshRecordingEnabledConfig.Value = isEnabled;
+                Config.Save();
+                Logger.LogInfo(RandomLoadoutLog.Command("Room enemy refresh recording is " + (isEnabled ? "enabled" : "disabled") + "."));
+            }
+        }
+
+        private string GetRoomEnemyRefreshMethod()
+        {
+            return NormalizeRoomEnemyRefreshMethod(_roomEnemyRefreshMethodConfig != null ? _roomEnemyRefreshMethodConfig.Value : "rewind");
+        }
+
+        private void SetRoomEnemyRefreshMethod(string method)
+        {
+            string normalized = NormalizeRoomEnemyRefreshMethod(method);
+            if (_roomEnemyRefreshMethodConfig != null)
+            {
+                _roomEnemyRefreshMethodConfig.Value = normalized;
+                Config.Save();
+                Logger.LogInfo(RandomLoadoutLog.Command("Room enemy refresh method changed to " + normalized + "."));
+            }
+        }
+
+        private static string NormalizeRoomEnemyRefreshMethod(string method)
+        {
+            return string.Equals(method, "respawn", StringComparison.OrdinalIgnoreCase) ? "respawn" : "rewind";
+        }
+
+        private void SetPlayerRewindEnabled(bool isEnabled)
+        {
+            if (_playerRewindEnabledConfig != null)
+            {
+                _playerRewindEnabledConfig.Value = isEnabled;
+                Config.Save();
+                Logger.LogInfo(RandomLoadoutLog.Command("Player rewind is " + (isEnabled ? "enabled" : "disabled") + "."));
+            }
+        }
+
+        private bool IsRoomRewindCleanupEnabled()
+        {
+            return _roomRewindCleanupEnabledConfig != null && _roomRewindCleanupEnabledConfig.Value;
+        }
+
+        private void SetRoomRewindCleanupEnabled(bool isEnabled)
+        {
+            if (_roomRewindCleanupEnabledConfig != null)
+            {
+                _roomRewindCleanupEnabledConfig.Value = isEnabled;
+                Config.Save();
+                Logger.LogInfo(RandomLoadoutLog.Command("Room rewind cleanup is " + (isEnabled ? "enabled" : "disabled") + "."));
+            }
         }
 
         private bool IsStartItemsPresetIconsEnabled()
@@ -567,6 +642,16 @@ namespace RandomLoadout
             return _muncherVerboseLogsConfig != null && _muncherVerboseLogsConfig.Value;
         }
 
+        private bool IsRoomEnemyReplayVerboseLoggingEnabled()
+        {
+            return _roomEnemyReplayVerboseLogsConfig != null && _roomEnemyReplayVerboseLogsConfig.Value;
+        }
+
+        private bool IsBossIntroSkipVerboseLoggingEnabled()
+        {
+            return _bossIntroSkipVerboseLogsConfig != null && _bossIntroSkipVerboseLogsConfig.Value;
+        }
+
         private bool IsFloorTeleportVerboseLoggingEnabled()
         {
             return _floorTeleportVerboseLogsConfig != null && _floorTeleportVerboseLogsConfig.Value;
@@ -575,6 +660,13 @@ namespace RandomLoadout
         private bool IsBossRushVerboseLoggingEnabled()
         {
             return _bossRushVerboseLogsConfig != null && _bossRushVerboseLogsConfig.Value;
+        }
+
+        private bool IsBossSelectionVerboseLoggingEnabled()
+        {
+            // Keep diagnostics code-only so BepInEx does not recreate the old
+            // [Debug] config entry and its comments in generated config files.
+            return false;
         }
 
         private bool IsCommandPanelHealthVerboseLoggingEnabled()
@@ -597,9 +689,19 @@ namespace RandomLoadout
             return _commandPanelControllerGameplayInputVerboseLogsConfig != null && _commandPanelControllerGameplayInputVerboseLogsConfig.Value;
         }
 
+        private bool IsCommandPanelShortcutVerboseLoggingEnabled()
+        {
+            return _commandPanelShortcutVerboseLogsConfig != null && _commandPanelShortcutVerboseLogsConfig.Value;
+        }
+
         private bool IsCommandPanelCursorRenderVerboseLoggingEnabled()
         {
             return _commandPanelCursorRenderVerboseLogsConfig != null && _commandPanelCursorRenderVerboseLogsConfig.Value;
+        }
+
+        private bool IsControllerAimVerboseLoggingEnabled()
+        {
+            return _controllerAimVerboseLogsConfig != null && _controllerAimVerboseLogsConfig.Value;
         }
 
         private bool IsCommandPanelCursorRenderProbeEnabled()
@@ -630,6 +732,16 @@ namespace RandomLoadout
         private bool IsPerformanceVerboseLoggingEnabled()
         {
             return _performanceVerboseLogsConfig != null && _performanceVerboseLogsConfig.Value;
+        }
+
+        private bool IsCharacterSwitchVerboseLoggingEnabled()
+        {
+            return _characterSwitchVerboseLogsConfig != null && _characterSwitchVerboseLogsConfig.Value;
+        }
+
+        private bool IsDamageDiagnosticsVerboseLoggingEnabled()
+        {
+            return _damageDiagnosticsVerboseLogsConfig != null && _damageDiagnosticsVerboseLogsConfig.Value;
         }
 
         private string NormalizeUiScalePreset(string presetName)
@@ -706,6 +818,18 @@ namespace RandomLoadout
             Logger.LogInfo(RandomLoadoutLog.Command("Active start-items preset changed to " + normalized + "."));
         }
 
+        private string NormalizeRoomEnemyRewindKeyName(string keyName)
+        {
+            string normalized = string.IsNullOrEmpty(keyName) ? "C" : keyName.Trim();
+            if (ParseCommandPanelKey(normalized) != KeyCode.None)
+            {
+                return normalized;
+            }
+
+            Logger.LogWarning(RandomLoadoutLog.Init("Invalid room enemy rewind keyboard key '" + normalized + "'. Falling back to C."));
+            return "C";
+        }
+
         private string GetCombatCursorColor()
         {
             if (_combatCursorColorEnabledConfig == null || !_combatCursorColorEnabledConfig.Value)
@@ -716,6 +840,124 @@ namespace RandomLoadout
             return _combatCursorColorPresetConfig != null
                 ? CombatCursorColorCatalog.Normalize(_combatCursorColorPresetConfig.Value)
                 : CombatCursorColorCatalog.DefaultPresetId;
+        }
+
+        private void PersistEnemyHealthBarsEnabled(bool enabled)
+        {
+            if (_enemyHealthBarsEnabledConfig == null)
+            {
+                return;
+            }
+
+            _enemyHealthBarsEnabledConfig.Value = enabled;
+            Config.Save();
+        }
+
+        private void PersistControllerAimLockEnabled(bool enabled)
+        {
+            if (_controllerAimLockEnabledConfig == null)
+            {
+                return;
+            }
+
+            _controllerAimLockEnabledConfig.Value = enabled;
+            Config.Save();
+        }
+
+        private void PersistKeyboardAimAssistSettings(KeyboardAimAssistSettings settings)
+        {
+            if (settings == null)
+            {
+                return;
+            }
+
+            bool changed = false;
+            string mode = KeyboardAimAssistSettings.GetModeConfigValue(settings.Mode);
+            if (_keyboardAimAssistModeConfig != null && _keyboardAimAssistModeConfig.Value != mode)
+            {
+                _keyboardAimAssistModeConfig.Value = mode;
+                changed = true;
+            }
+            if (_keyboardAimAssistMultiplierConfig != null &&
+                !Mathf.Approximately(_keyboardAimAssistMultiplierConfig.Value, settings.Multiplier))
+            {
+                _keyboardAimAssistMultiplierConfig.Value = settings.Multiplier;
+                changed = true;
+            }
+            if (_keyboardAimAssistEnabledConfig != null &&
+                _keyboardAimAssistEnabledConfig.Value != settings.IsEnabled)
+            {
+                _keyboardAimAssistEnabledConfig.Value = settings.IsEnabled;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                Config.Save();
+            }
+        }
+
+        private void PersistRapidFireEnabled(bool enabled)
+        {
+            if (_rapidFireEnabledConfig == null)
+            {
+                return;
+            }
+
+            _rapidFireEnabledConfig.Value = enabled;
+            Config.Save();
+        }
+
+        private void PersistAutoReloadMode(AutoReloadMode mode)
+        {
+            if (_autoReloadModeConfig == null)
+            {
+                return;
+            }
+
+            _autoReloadModeConfig.Value = mode.ToString();
+            Config.Save();
+        }
+
+        private void PersistAmmoMode(AmmoMode mode)
+        {
+            if (_ammoModeConfig == null)
+            {
+                return;
+            }
+
+            _ammoModeConfig.Value = mode.ToString();
+            Config.Save();
+        }
+
+        private static AutoReloadMode ParseAutoReloadMode(string value)
+        {
+            if (string.Equals(value, "Instant", StringComparison.OrdinalIgnoreCase))
+            {
+                return AutoReloadMode.Instant;
+            }
+
+            if (string.Equals(value, "Animated", StringComparison.OrdinalIgnoreCase))
+            {
+                return AutoReloadMode.Animated;
+            }
+
+            return AutoReloadMode.Off;
+        }
+
+        private static AmmoMode ParseAmmoMode(string value)
+        {
+            if (string.Equals(value, "InfiniteReserve", StringComparison.OrdinalIgnoreCase))
+            {
+                return AmmoMode.InfiniteReserve;
+            }
+
+            if (string.Equals(value, "NoConsume", StringComparison.OrdinalIgnoreCase))
+            {
+                return AmmoMode.NoConsume;
+            }
+
+            return AmmoMode.Off;
         }
 
         private Color GetCombatCursorColorValue()

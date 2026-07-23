@@ -26,6 +26,14 @@ namespace RandomLoadout
         private void DrawCurrencyPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect targetButtonRect = new Rect(backButtonRect.x - ButtonGap - ButtonWidth, panelRect.y + 12f, ButtonWidth, 30f);
+            GUIStyle targetButtonStyle = _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer
+                ? _enabledButtonStyle
+                : _buttonStyle;
+            if (GUI.Button(targetButtonRect, GetCharacterSwitchTargetButtonLabel(), GetControllerButtonStyle("currency.target", targetButtonStyle)))
+            {
+                ToggleCharacterSwitchTarget(logger);
+            }
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("currency.back", _buttonStyle)))
             {
                 CloseCurrencyPage();
@@ -42,7 +50,7 @@ namespace RandomLoadout
                 _hintStyle);
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 58f, panelRect.width - 28f, 20f),
-                GetLocalizedFallback("gui.command.currency.hint.run_only", "Applies to the current character or current run only.", "只影响当前角色或当前这一局。"),
+                GetLocalizedFallback("gui.command.currency.hint.run_only", "Applies to the current character or current run only.", "只影响当前角色或当前这一局。") + " " + GetPickupBrowserTargetHint(),
                 _hintStyle);
 
             const float rowHeight = 38f;
@@ -70,26 +78,35 @@ namespace RandomLoadout
                 case "currency.back":
                     CloseCurrencyPage();
                     return;
+                case "currency.target":
+                    ToggleCharacterSwitchTarget(logger);
+                    return;
                 case "currency.max_health":
-                    ExecuteAddMaxHealth(player, logger);
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMaxHealth(targetPlayer, logger); });
                     return;
                 case "currency.armor":
-                    ExecuteAddArmor(player, logger);
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddArmor(targetPlayer, logger); });
                     return;
                 case "currency.blank":
-                    ExecuteAddBlank(player, logger);
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, logger); });
                     return;
                 case "currency.key":
-                    ExecuteAddKey(player, logger);
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, logger); });
                     return;
                 case "currency.rat_key":
-                    ExecuteAddRatKey(player, logger);
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, logger); });
                     return;
                 case "currency.casings":
-                    ExecuteAddCurrency(player, logger);
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddCurrency(targetPlayer, logger); });
+                    return;
+                case "currency.clear_casings":
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearCurrency(targetPlayer, logger); });
                     return;
                 case "currency.hegemony":
-                    ExecuteAddMetaCurrency(player, logger);
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, logger); });
+                    return;
+                case "currency.clear_hegemony":
+                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearMetaCurrency(targetPlayer, logger); });
                     return;
                 default:
                     return;
@@ -106,49 +123,51 @@ namespace RandomLoadout
                     GetLocalizedFallback("gui.command.currency.label.max_health", "Max HP (+1)", "血量上限（+1）"),
                     new[]
                     {
-                        new PickupActionButtonDefinition("currency.max_health", actionLabel, delegate { ExecuteAddMaxHealth(player, logger); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.max_health", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMaxHealth(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
                     GameUiAtlasSpriteArmorPickup,
                     GetLocalizedFallback("gui.command.currency.label.armor", "Armor (+1)", "护甲（+1）"),
                     new[]
                     {
-                        new PickupActionButtonDefinition("currency.armor", actionLabel, delegate { ExecuteAddArmor(player, logger); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.armor", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddArmor(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
                     GameUiAtlasSpriteBlankPickup,
                     GetLocalizedFallback("gui.command.currency.label.blank", "Blank (+1)", "空响弹（+1）"),
                     new[]
                     {
-                        new PickupActionButtonDefinition("currency.blank", actionLabel, delegate { ExecuteAddBlank(player, logger); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.blank", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
                     GameUiAtlasSpriteKeyPickup,
                     GetLocalizedFallback("gui.command.currency.label.key", "Key (+1)", "钥匙（+1）"),
                     new[]
                     {
-                        new PickupActionButtonDefinition("currency.key", actionLabel, delegate { ExecuteAddKey(player, logger); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.key", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
                     GameUiAtlasSpriteRatRewardKeyPickup,
                     GetLocalizedFallback("gui.command.currency.label.rat_key", "Rat Key (+1)", "老鼠钥匙（+1）"),
                     new[]
                     {
-                        new PickupActionButtonDefinition("currency.rat_key", actionLabel, delegate { ExecuteAddRatKey(player, logger); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.rat_key", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
                     GameUiAtlasSpriteCasingsPickup,
                     GetLocalizedFallback("gui.command.currency.label.casings", "Casings (+100)", "弹壳（+100）"),
                     new[]
                     {
-                        new PickupActionButtonDefinition("currency.casings", actionLabel, delegate { ExecuteAddCurrency(player, logger); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.casings", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddCurrency(targetPlayer, logger); }); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.clear_casings", GetLocalizedFallback("gui.command.currency.button.clear", "Clear", "清除"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearCurrency(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
                     GameUiAtlasSpriteHegemonyPickup,
                     GetLocalizedFallback("gui.command.currency.label.hegemony", "Hegemony (+50)", "霸权币（+50）"),
                     new[]
                     {
-                        new PickupActionButtonDefinition("currency.hegemony", actionLabel, delegate { ExecuteAddMetaCurrency(player, logger); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.hegemony", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, logger); }); }, _buttonStyle),
+                        new PickupActionButtonDefinition("currency.clear_hegemony", GetLocalizedFallback("gui.command.currency.button.clear", "Clear", "清除"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearMetaCurrency(targetPlayer, logger); }); }, _buttonStyle),
                     }),
             };
         }

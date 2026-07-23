@@ -39,11 +39,14 @@
   <ItemGroup>
     <Compile Include="AssertEx.cs" />
     <Compile Include="AliasRegistryTests.cs" />
+    <Compile Include="CursorRenderOwnershipServiceTests.cs" />
     <Compile Include="GrantCommandParserTests.cs" />
+    <Compile Include="PlayerInputOwnershipServiceTests.cs" />
     <Compile Include="GuiTextStub.cs" />
     <Compile Include="RuleFileProviderTests.cs" />
     <Compile Include="RandomPoolSelectionStateProviderTests.cs" />
     <Compile Include="LoadoutSelectionServiceTests.cs" />
+    <Compile Include="RuntimeHookContractTests.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="..\..\src\RandomLoadout\Configuration\AliasEntryModel.cs">
       <Link>Plugin\Configuration\AliasEntryModel.cs</Link>

@@ -21,11 +21,16 @@ namespace RandomLoadout
             KeyNoConsumeToggleService keyNoConsumeToggleService,
             CurrencyNoConsumeToggleService currencyNoConsumeToggleService,
             InvincibilityToggleService invincibilityToggleService,
+            EnemyHealthBarToggleService enemyHealthBarToggleService,
+            ControllerAimLockService controllerAimLockService,
+            KeyboardAimAssistService keyboardAimAssistService,
+            PlayerStatMultiplierService playerStatMultiplierService,
             AmmoModeToggleService ammoModeToggleService,
             AmmonomiconFastOpenToggleService ammonomiconFastOpenToggleService,
             LoadoutRuleEditorService loadoutRuleEditorService,
             LoadoutPresetRandomService loadoutPresetRandomService,
             System.Func<EtgPickupCatalogEntry[]> pickupCatalogProvider,
+            System.Func<int, string> pickupGameplayNameProvider,
             System.Func<PickupAliasRegistry> aliasRegistryProvider,
             System.Func<string> languageProvider,
             System.Action<string> languageSetter,
@@ -33,6 +38,9 @@ namespace RandomLoadout
             System.Func<KeyCode> toggleKeyProvider,
             System.Func<string> toggleKeyNameProvider,
             System.Action<string> toggleKeySetter,
+            System.Func<KeyCode> roomEnemyRewindKeyProvider,
+            System.Func<string> roomEnemyRefreshMethodProvider,
+            System.Action<string> roomEnemyRefreshMethodSetter,
             System.Func<string> controllerShortcutProvider,
             System.Action<string> controllerShortcutSetter,
             System.Func<bool> controllerShortcutEnabledProvider,
@@ -68,8 +76,11 @@ namespace RandomLoadout
             System.Func<bool> commandPanelCursorVerboseLoggingEnabledProvider,
             System.Func<bool> commandPanelGameplayInputVerboseLoggingEnabledProvider,
             System.Func<bool> commandPanelControllerGameplayInputVerboseLoggingEnabledProvider,
+            System.Func<bool> commandPanelShortcutVerboseLoggingEnabledProvider,
             System.Func<string> combatCursorColorProvider,
             System.Action<string> combatCursorColorSetter,
+            System.Func<bool> performanceVerboseLoggingEnabledProvider,
+            BepInEx.Logging.ManualLogSource performanceLogger,
             System.Func<EtgFloorDefinition, string, string, bool> deferredTeleportRequestHandler)
         {
             _commandService = commandService;
@@ -84,11 +95,16 @@ namespace RandomLoadout
             _keyNoConsumeToggleService = keyNoConsumeToggleService;
             _currencyNoConsumeToggleService = currencyNoConsumeToggleService;
             _invincibilityToggleService = invincibilityToggleService;
+            _enemyHealthBarToggleService = enemyHealthBarToggleService;
+            _controllerAimLockService = controllerAimLockService;
+            _keyboardAimAssistService = keyboardAimAssistService;
+            _playerStatMultiplierService = playerStatMultiplierService;
             _ammoModeToggleService = ammoModeToggleService;
             _ammonomiconFastOpenToggleService = ammonomiconFastOpenToggleService;
             _loadoutRuleEditorService = loadoutRuleEditorService;
             _loadoutPresetRandomService = loadoutPresetRandomService;
             _pickupCatalogProvider = pickupCatalogProvider;
+            _pickupGameplayNameProvider = pickupGameplayNameProvider;
             _aliasRegistryProvider = aliasRegistryProvider;
             _languageProvider = languageProvider;
             _languageSetter = languageSetter;
@@ -96,6 +112,9 @@ namespace RandomLoadout
             _toggleKeyProvider = toggleKeyProvider;
             _toggleKeyNameProvider = toggleKeyNameProvider;
             _toggleKeySetter = toggleKeySetter;
+            _roomEnemyRewindKeyProvider = roomEnemyRewindKeyProvider;
+            _roomEnemyRefreshMethodProvider = roomEnemyRefreshMethodProvider;
+            _roomEnemyRefreshMethodSetter = roomEnemyRefreshMethodSetter;
             _controllerShortcutProvider = controllerShortcutProvider;
             _controllerShortcutSetter = controllerShortcutSetter;
             _controllerShortcutEnabledProvider = controllerShortcutEnabledProvider;
@@ -131,9 +150,16 @@ namespace RandomLoadout
             _commandPanelCursorVerboseLoggingEnabledProvider = commandPanelCursorVerboseLoggingEnabledProvider;
             _commandPanelGameplayInputVerboseLoggingEnabledProvider = commandPanelGameplayInputVerboseLoggingEnabledProvider;
             _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider = commandPanelControllerGameplayInputVerboseLoggingEnabledProvider;
+            _commandPanelShortcutVerboseLoggingEnabledProvider = commandPanelShortcutVerboseLoggingEnabledProvider;
             _combatCursorColorProvider = combatCursorColorProvider;
             _combatCursorColorSetter = combatCursorColorSetter;
+            _performanceVerboseLoggingEnabledProvider = performanceVerboseLoggingEnabledProvider;
+            _performanceLogger = performanceLogger;
             _deferredTeleportRequestHandler = deferredTeleportRequestHandler;
+            string persistedRoomEnemyRefreshMethod = _roomEnemyRefreshMethodProvider != null ? _roomEnemyRefreshMethodProvider() : "rewind";
+            _roomEnemyRefreshMethod = string.Equals(persistedRoomEnemyRefreshMethod, "respawn", System.StringComparison.OrdinalIgnoreCase)
+                ? RoomEnemyRefreshMethod.RespawnEnemies
+                : RoomEnemyRefreshMethod.Rewind;
             _showPlayerStatsPanel = _playerStatsPanelShownProvider != null && _playerStatsPanelShownProvider();
             _showPickupInfoOverlay = _pickupInfoOverlayEnabledProvider == null || _pickupInfoOverlayEnabledProvider();
             _showPickupInfoQuality = _pickupInfoQualityEnabledProvider == null || _pickupInfoQualityEnabledProvider();
@@ -163,10 +189,19 @@ namespace RandomLoadout
 
             HandleControllerNavigation();
 
-            if (Input.GetKeyDown(GetToggleKey()) || IsGamepadToggleShortcutPressed())
+            bool keyboardTogglePressed = Input.GetKeyDown(GetToggleKey());
+            bool controllerTogglePressed = IsGamepadToggleShortcutPressed();
+            LogCommandPanelShortcutState(keyboardTogglePressed, controllerTogglePressed);
+            if (keyboardTogglePressed || controllerTogglePressed)
             {
+                LogCommandPanelShortcutDiagnostic(
+                    "Command panel toggle accepted. Source=" +
+                    (keyboardTogglePressed ? "Keyboard" : "Controller") +
+                    ".");
                 Toggle();
             }
+
+            TryHandleRoomEnemyRewindShortcut();
 
             if (!_isVisible)
             {
@@ -179,7 +214,11 @@ namespace RandomLoadout
 
         public void OnGUI(PlayerController player, BepInEx.Logging.ManualLogSource logger)
         {
+            LogCommandPanelPerformanceStage("OnGUI.begin");
+            long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             EnsureStyles();
+            LogCommandPanelPerformanceStage("EnsureStyles", stageStartedAtTimestamp);
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             ReleaseGuiFocusIfPending();
             string currentLanguageCode = GuiText.CurrentLanguageCode;
             if (!string.Equals(_lastGuiLanguageCode, currentLanguageCode, System.StringComparison.Ordinal))
@@ -187,10 +226,12 @@ namespace RandomLoadout
                 _lastGuiLanguageCode = currentLanguageCode;
                 HandleLanguageChanged();
             }
+            LogCommandPanelPerformanceStage("LanguageAndFocus", stageStartedAtTimestamp);
 
             FoyerCharacterOption[] characterOptions = EmptyCharacterOptions;
             string characterAvailability = _cachedCharacterAvailability;
             float panelHeight = GetCommandPanelHeight();
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             if (_isVisible && _currentPage == PanelPage.Pickups)
             {
                 RefreshPickupBrowserData();
@@ -243,9 +284,11 @@ namespace RandomLoadout
             {
                 panelHeight = CursorColorPanelHeight;
             }
+            LogCommandPanelPerformanceStage("PageDataAndHeight", stageStartedAtTimestamp);
 
             Matrix4x4 previousGuiMatrix = GUI.matrix;
             GUI.matrix = GetAutoScaledGuiMatrix();
+            LogCommandPanelPerformanceStage("GuiMatrix", BeginCommandPanelPerformanceStage());
             try
             {
                 DrawPlayerStatsPanelIfEnabled(player);
@@ -321,6 +364,7 @@ namespace RandomLoadout
                 if (_currentPage == PanelPage.Settings)
                 {
                     DrawSettingsPage(panelRect, logger);
+                    DrawExperimentalModeConfirmDialog(panelRect, logger);
                     return;
                 }
 
@@ -336,6 +380,7 @@ namespace RandomLoadout
             }
             finally
             {
+                CompleteCommandPanelPerformanceTrace("OnGUI.complete");
                 GUI.matrix = previousGuiMatrix;
             }
         }
@@ -345,13 +390,16 @@ namespace RandomLoadout
             _isVisible = !_isVisible;
             if (_isVisible)
             {
+                BeginCommandPanelPerformanceTrace();
                 SyncPanelInputOverride();
                 _focusInputField = false;
                 _focusPickupSearchField = false;
                 RequestGuiFocusRelease();
+                LogCommandPanelPerformanceStage("Toggle.open.ready");
                 return;
             }
 
+            CompleteCommandPanelPerformanceTrace("Toggle.close");
             ResetClosedPanelState();
         }
 
@@ -643,7 +691,7 @@ namespace RandomLoadout
 
             if (IsPanelConfirmPressed())
             {
-                ExecutePickupPageFocusedControl(GetCurrentPlayer(), null);
+                ExecutePickupPageFocusedControl(GetSelectedCommandTargetPlayer(), null);
             }
         }
 
@@ -1720,6 +1768,87 @@ namespace RandomLoadout
                 _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider();
         }
 
+        private bool IsCommandPanelShortcutVerboseLoggingEnabled()
+        {
+            return _commandPanelShortcutVerboseLoggingEnabledProvider != null &&
+                _commandPanelShortcutVerboseLoggingEnabledProvider();
+        }
+
+        private void LogCommandPanelShortcutDiagnostic(string message)
+        {
+            if (!IsCommandPanelShortcutVerboseLoggingEnabled())
+            {
+                return;
+            }
+
+            LogGamepadShortcutState("Command panel shortcut diagnostic. " + message);
+        }
+
+        private void LogCommandPanelShortcutState(bool keyboardTogglePressed, bool controllerTogglePressed)
+        {
+            if (!IsCommandPanelShortcutVerboseLoggingEnabled())
+            {
+                _hasLoggedCommandPanelShortcutState = false;
+                return;
+            }
+
+            KeyCode toggleKey = GetToggleKey();
+            bool keyboardToggleHeld = Input.GetKey(toggleKey);
+            GameManager gameManager = GameManager.Instance;
+            string gameType = (object)gameManager != null ? gameManager.CurrentGameType.ToString() : "<null>";
+            string primaryPlayer = (object)gameManager != null ? DescribeCommandPanelShortcutPlayer(gameManager.PrimaryPlayer) : "<none>";
+            string secondaryPlayer = (object)gameManager != null ? DescribeCommandPanelShortcutPlayer(gameManager.SecondaryPlayer) : "<none>";
+            bool stateChanged = !_hasLoggedCommandPanelShortcutState ||
+                _lastLoggedCommandPanelKeyboardHeld != keyboardToggleHeld ||
+                _lastLoggedCommandPanelKeyboardDown != keyboardTogglePressed ||
+                _lastLoggedCommandPanelControllerDetected != controllerTogglePressed ||
+                _lastLoggedCommandPanelVisible != _isVisible;
+            if (!stateChanged)
+            {
+                return;
+            }
+
+            LogGamepadShortcutState(
+                "Command panel shortcut sample. " +
+                "ToggleKey=" + toggleKey +
+                ", KeyboardHeld=" + keyboardToggleHeld +
+                ", KeyboardDown=" + keyboardTogglePressed +
+                ", ControllerDetected=" + controllerTogglePressed +
+                ", ControllerShortcutEnabled=" + IsControllerShortcutEnabled() +
+                ", ConfiguredControllerShortcut=" + GetConfiguredControllerShortcut() +
+                ", Visible=" + _isVisible +
+                ", GameType=" + gameType +
+                ", P1=" + primaryPlayer +
+                ", P2=" + secondaryPlayer +
+                ".");
+
+            _hasLoggedCommandPanelShortcutState = true;
+            _lastLoggedCommandPanelKeyboardHeld = keyboardToggleHeld;
+            _lastLoggedCommandPanelKeyboardDown = keyboardTogglePressed;
+            _lastLoggedCommandPanelControllerDetected = controllerTogglePressed;
+            _lastLoggedCommandPanelVisible = _isVisible;
+        }
+
+        private static string DescribeCommandPanelShortcutPlayer(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return "<null>";
+            }
+
+            try
+            {
+                return "Id=" + player.GetInstanceID() +
+                       ",Name=" + player.name +
+                       ",Active=" + player.gameObject.activeInHierarchy +
+                       ",InputOverridden=" + player.IsInputOverridden;
+            }
+            catch (System.Exception exception)
+            {
+                return "StateReadFailed=" + exception.GetType().Name;
+            }
+        }
+
         private void LogCommandPanelHealthDiagnostic(string message)
         {
             if (!IsCommandPanelHealthVerboseLoggingEnabled())
@@ -2141,6 +2270,31 @@ namespace RandomLoadout
         private KeyCode GetToggleKey()
         {
             return _toggleKeyProvider != null ? _toggleKeyProvider() : KeyCode.F7;
+        }
+
+        private void TryHandleRoomEnemyRewindShortcut()
+        {
+            if (_isVisible || !Input.GetKeyDown(GetRoomEnemyRewindKey()))
+            {
+                return;
+            }
+
+            GameManager gameManager = GameManager.Instance;
+            if ((object)gameManager == null || gameManager.IsFoyer)
+            {
+                return;
+            }
+
+            PlayerController player = GetCurrentPlayer();
+            if ((object)player != null)
+            {
+                ExecuteSelectedRoomEnemyRefresh(player, null);
+            }
+        }
+
+        private KeyCode GetRoomEnemyRewindKey()
+        {
+            return _roomEnemyRewindKeyProvider != null ? _roomEnemyRewindKeyProvider() : RoomEnemyRewindShortcutKey;
         }
 
         private float GetAutoUiScale()

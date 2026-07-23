@@ -14,9 +14,8 @@ namespace RandomLoadout
             new ControllerFocusEntry("cmd.language", 0, 1),
             new ControllerFocusEntry("cmd.theme", 0, 2),
             new ControllerFocusEntry("cmd.category.general", 1, 0),
-            new ControllerFocusEntry("cmd.category.combat", 1, 1),
-            new ControllerFocusEntry("cmd.category.player", 1, 2),
-            new ControllerFocusEntry("cmd.category.room", 1, 3),
+            new ControllerFocusEntry("cmd.category.player", 1, 1),
+            new ControllerFocusEntry("cmd.category.room", 1, 2),
         };
 
         private void DrawCommandPage(Rect panelRect, PlayerController player, ManualLogSource logger)
@@ -58,11 +57,9 @@ namespace RandomLoadout
             float categoryTop = panelRect.y + 72f;
             float segmentLeft = panelRect.x + 14f;
             Rect generalCategoryButtonRect = new Rect(segmentLeft, categoryTop, categoryButtonWidth, categoryButtonHeight);
-            Rect combatCategoryButtonRect = new Rect(generalCategoryButtonRect.xMax + 6f, categoryTop, categoryButtonWidth, categoryButtonHeight);
-            Rect playerCategoryButtonRect = new Rect(combatCategoryButtonRect.xMax + 6f, categoryTop, categoryButtonWidth, categoryButtonHeight);
+            Rect playerCategoryButtonRect = new Rect(generalCategoryButtonRect.xMax + 6f, categoryTop, categoryButtonWidth, categoryButtonHeight);
             Rect roomCategoryButtonRect = new Rect(playerCategoryButtonRect.xMax + 6f, categoryTop, categoryButtonWidth, categoryButtonHeight);
             DrawCommandCategoryButton(generalCategoryButtonRect, "cmd.category.general", CommandMenuCategory.General, GuiText.Get("gui.command.category.general"));
-            DrawCommandCategoryButton(combatCategoryButtonRect, "cmd.category.combat", CommandMenuCategory.Combat, GuiText.Get("gui.command.category.combat"));
             DrawCommandCategoryButton(playerCategoryButtonRect, "cmd.category.player", CommandMenuCategory.Player, GuiText.Get("gui.command.category.player"));
             DrawCommandCategoryButton(roomCategoryButtonRect, "cmd.category.room", CommandMenuCategory.Room, GetLocalizedFallback("gui.command.category.room", "Room", "房间"));
 
@@ -85,12 +82,15 @@ namespace RandomLoadout
         {
             switch (_commandMenuCategory)
             {
-            case CommandMenuCategory.Combat:
-                return 3;
                 case CommandMenuCategory.Player:
-                    return _playerMenuSection == PlayerMenuSection.Stats ? 3 : 8;
+                    if (_playerMenuSection == PlayerMenuSection.Combat)
+                    {
+                        return 9;
+                    }
+
+                    return _characterMenuSection == CharacterMenuSection.Stats ? 4 : 10;
                 case CommandMenuCategory.Room:
-                    return 5;
+                    return GetRoomCommandPageRowCount();
                 case CommandMenuCategory.General:
                     return 3;
                 default:
@@ -111,7 +111,7 @@ namespace RandomLoadout
                 : rect;
             if (GUI.Button(drawRect, label, style))
             {
-                _commandMenuCategory = category;
+                SetCommandMenuCategory(category);
             }
         }
 
@@ -120,13 +120,6 @@ namespace RandomLoadout
             if (_commandMenuCategory == CommandMenuCategory.General)
             {
                 DrawGeneralContent(contentRect, buttonWidth, controlHeight, player, logger);
-                return;
-            }
-
-            if (_commandMenuCategory == CommandMenuCategory.Combat)
-            {
-                DrawCombatSettings(contentRect, controlHeight, player, logger);
-
                 return;
             }
 
@@ -145,6 +138,11 @@ namespace RandomLoadout
 
         private GUIStyle GetControllerButtonStyle(string controlId, GUIStyle normalStyle)
         {
+            if (normalStyle == _cursorColorSelectedButtonStyle)
+            {
+                return _cursorColorSelectedButtonStyle;
+            }
+
             bool isCommandContentButton = IsCommandContentControlId(controlId);
             bool isControllerFocusActive = IsControllerFocusActive("cmd", controlId);
             bool hasControllerFocus = isControllerFocusActive ||
@@ -283,8 +281,6 @@ namespace RandomLoadout
         {
             switch (_commandMenuCategory)
             {
-                case CommandMenuCategory.Combat:
-                    return BuildCommandPageFocusEntries(CombatCommandPageFocusEntries);
                 case CommandMenuCategory.Player:
                     return GetPlayerCommandPageFocusEntries();
                 case CommandMenuCategory.Room:
@@ -307,9 +303,6 @@ namespace RandomLoadout
             {
                 case CommandMenuCategory.General:
                     ExecuteGeneralCommandPageFocusedControl(player);
-                    return;
-                case CommandMenuCategory.Combat:
-                    ExecuteCombatCommandPageFocusedControl(player);
                     return;
                 case CommandMenuCategory.Player:
                     ExecutePlayerCommandPageFocusedControl(player);
@@ -387,6 +380,13 @@ namespace RandomLoadout
         private void SetCommandMenuCategory(CommandMenuCategory category)
         {
             _commandMenuCategory = category;
+            if (category == CommandMenuCategory.Player)
+            {
+                // Target is runtime-only and always starts at P1; it is not persisted.
+                _characterSwitchTarget = CharacterSwitchTarget.PrimaryPlayer;
+                _playerMenuSection = PlayerMenuSection.Character;
+                _characterMenuSection = CharacterMenuSection.Pickups;
+            }
         }
 
         private CommandPageActionBinding[] GetSharedCommandPageActionBindings()
@@ -397,25 +397,23 @@ namespace RandomLoadout
                 new CommandPageActionBinding("cmd.language", delegate { ExecuteToggleLanguage(null); }),
                 new CommandPageActionBinding("cmd.theme", delegate { ExecuteCycleTheme(); }),
                 new CommandPageActionBinding("cmd.category.general", delegate { SetCommandMenuCategory(CommandMenuCategory.General); }),
-                new CommandPageActionBinding("cmd.category.combat", delegate { SetCommandMenuCategory(CommandMenuCategory.Combat); }),
                 new CommandPageActionBinding("cmd.category.player", delegate { SetCommandMenuCategory(CommandMenuCategory.Player); }),
                 new CommandPageActionBinding("cmd.category.room", delegate { SetCommandMenuCategory(CommandMenuCategory.Room); }),
-                new CommandPageActionBinding("cmd.player.section.pickups", delegate { _playerMenuSection = PlayerMenuSection.Pickups; }),
-                new CommandPageActionBinding("cmd.player.section.stats", delegate { _playerMenuSection = PlayerMenuSection.Stats; }),
-                new CommandPageActionBinding("cmd.room.section.chest", delegate { _roomMenuSection = RoomMenuSection.Chest; }),
-                new CommandPageActionBinding("cmd.room.section.neutral", delegate { _roomMenuSection = RoomMenuSection.Neutral; }),
-                new CommandPageActionBinding("cmd.room.section.enemies", delegate
-                {
-                    if (IsExperimentalModeEnabled())
-                    {
-                        _roomMenuSection = RoomMenuSection.Enemies;
-                    }
-                }),
+                new CommandPageActionBinding("cmd.player.section.character", delegate { _playerMenuSection = PlayerMenuSection.Character; }),
+                new CommandPageActionBinding("cmd.player.section.combat", delegate { _playerMenuSection = PlayerMenuSection.Combat; }),
+                new CommandPageActionBinding("cmd.player.character.stats", delegate { _characterMenuSection = CharacterMenuSection.Stats; }),
+                new CommandPageActionBinding("cmd.player.character.pickups", delegate { _characterMenuSection = CharacterMenuSection.Pickups; }),
+                new CommandPageActionBinding("cmd.player.target", delegate { ToggleCharacterSwitchTarget(null); }),
+                new CommandPageActionBinding("cmd.room.section.chest", delegate { SetRoomMenuSection(RoomMenuSection.Chest); }),
+                new CommandPageActionBinding("cmd.room.section.neutral", delegate { SetRoomMenuSection(RoomMenuSection.Neutral); }),
+                new CommandPageActionBinding("cmd.room.section.enemies", delegate { SetRoomMenuSection(RoomMenuSection.Enemies); }),
+                new CommandPageActionBinding("cmd.room.section.rewind", delegate { SetRoomMenuSection(RoomMenuSection.Rewind); }),
+                new CommandPageActionBinding("cmd.room.section.boss", delegate { SetRoomMenuSection(RoomMenuSection.Boss); }),
                 new CommandPageActionBinding("cmd.room.section.state", delegate
                 {
                     if (IsExperimentalModeEnabled())
                     {
-                        _roomMenuSection = RoomMenuSection.State;
+                        SetRoomMenuSection(RoomMenuSection.State);
                     }
                 }),
             };
@@ -425,10 +423,8 @@ namespace RandomLoadout
         {
             switch (category)
             {
-                case CommandMenuCategory.Combat:
-                    return "cmd.combat.rapid";
                 case CommandMenuCategory.Player:
-                    return "cmd.player.section.pickups";
+                    return "cmd.player.section.character";
                 case CommandMenuCategory.Room:
                     return "cmd.category.room";
                 case CommandMenuCategory.General:
@@ -454,6 +450,19 @@ namespace RandomLoadout
         {
             GameManager gameManager = GameManager.Instance;
             return (object)gameManager != null ? gameManager.PrimaryPlayer : null;
+        }
+
+        private PlayerController GetSelectedCommandTargetPlayer()
+        {
+            GameManager gameManager = GameManager.Instance;
+            if ((object)gameManager == null)
+            {
+                return null;
+            }
+
+            return _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer
+                ? gameManager.SecondaryPlayer
+                : gameManager.PrimaryPlayer;
         }
 
         private static ControllerFocusEntry[] BuildCommandPageFocusEntries(params ControllerFocusEntry[][] contentGroups)
@@ -485,9 +494,9 @@ namespace RandomLoadout
             return writeIndex;
         }
 
-        private string GetAutoReloadStatusLabel()
+        private string GetAutoReloadStatusLabel(PlayerController player)
         {
-            if (_autoReloadToggleService == null)
+            if (_autoReloadToggleService == null || (object)player == null || !_autoReloadTargetStates.Contains(player))
             {
                 return GetLocalizedFallback("gui.command.status.off", "OFF", "\u5173");
             }
@@ -503,9 +512,9 @@ namespace RandomLoadout
             }
         }
 
-        private string GetAmmoModeStatusLabel()
+        private string GetAmmoModeStatusLabel(PlayerController player)
         {
-            if (_ammoModeToggleService == null)
+            if (_ammoModeToggleService == null || (object)player == null || !_ammoModeTargetStates.Contains(player))
             {
                 return GetLocalizedFallback("gui.command.status.off", "OFF", "\u5173");
             }
@@ -532,8 +541,8 @@ namespace RandomLoadout
         private static string GetNoConsumeActionLabel(bool isEnabled)
         {
             return isEnabled
-                ? GetLocalizedFallback("gui.command.action.enable_no_consume", "Enable No Consume", "\u5f00\u542f\u4e0d\u6d88\u8017")
-                : GetLocalizedFallback("gui.command.action.disable_no_consume", "Disable No Consume", "\u5173\u95ed\u4e0d\u6d88\u8017");
+                ? GetLocalizedFallback("gui.command.action.enable_no_consume", "Consume: ON", "\u6d88\u8017\uff1a\u5f00")
+                : GetLocalizedFallback("gui.command.action.disable_no_consume", "Consume: OFF", "\u6d88\u8017\uff1a\u5173");
         }
 
         private string GetAmmonomiconFastOpenStatusLabel()
@@ -548,19 +557,24 @@ namespace RandomLoadout
             return _rapidFireToggleService != null && _rapidFireToggleService.IsEnabledFor(player);
         }
 
-        private bool IsAutoReloadEnabled()
+        private bool IsAutoReloadEnabled(PlayerController player)
         {
-            return _autoReloadToggleService != null && _autoReloadToggleService.Mode != AutoReloadMode.Off;
+            return _autoReloadToggleService != null && (object)player != null && _autoReloadTargetStates.Contains(player) && _autoReloadToggleService.Mode != AutoReloadMode.Off;
         }
 
-        private bool IsAmmoModeEnabled()
+        private bool IsAmmoModeEnabled(PlayerController player)
         {
-            return _ammoModeToggleService != null && _ammoModeToggleService.Mode != AmmoMode.Off;
+            return _ammoModeToggleService != null && (object)player != null && _ammoModeTargetStates.Contains(player) && _ammoModeToggleService.Mode != AmmoMode.Off;
         }
 
-        private bool IsInvincibilityEnabled()
+        private bool IsInvincibilityEnabled(PlayerController player)
         {
-            return _invincibilityToggleService != null && _invincibilityToggleService.IsEnabled;
+            return _invincibilityToggleService != null && _invincibilityToggleService.IsEnabledFor(player);
+        }
+
+        private bool IsEnemyHealthBarsEnabled()
+        {
+            return _enemyHealthBarToggleService != null && _enemyHealthBarToggleService.IsEnabled;
         }
 
         private bool IsAmmonomiconFastOpenEnabled()

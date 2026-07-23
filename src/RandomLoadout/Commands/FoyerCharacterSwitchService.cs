@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
 using BepInEx.Logging;
+using RandomLoadout.Core.Input;
 using UnityEngine;
 
 namespace RandomLoadout
@@ -20,6 +21,7 @@ namespace RandomLoadout
             "Hunter",
             "Pilot",
             "Convict",
+            "Cultist",
             "Robot",
             "Bullet",
             "Paradox",
@@ -30,11 +32,20 @@ namespace RandomLoadout
         private float _pendingSelectionStartedAt;
         private readonly ManualLogSource _logger;
         private readonly Func<bool> _performanceLoggingEnabledProvider;
+        private readonly Func<bool> _characterSwitchVerboseLoggingEnabledProvider;
+        private readonly PlayerInputOwnershipService _playerInputOwnershipService;
+        private string _lastPilotOptionDiagnostic;
 
-        public FoyerCharacterSwitchService(ManualLogSource logger, Func<bool> performanceLoggingEnabledProvider)
+        public FoyerCharacterSwitchService(
+            ManualLogSource logger,
+            Func<bool> performanceLoggingEnabledProvider,
+            Func<bool> characterSwitchVerboseLoggingEnabledProvider,
+            PlayerInputOwnershipService playerInputOwnershipService)
         {
             _logger = logger;
             _performanceLoggingEnabledProvider = performanceLoggingEnabledProvider;
+            _characterSwitchVerboseLoggingEnabledProvider = characterSwitchVerboseLoggingEnabledProvider;
+            _playerInputOwnershipService = playerInputOwnershipService;
         }
 
         public FoyerCharacterOption[] GetCharacterOptions()
@@ -61,7 +72,12 @@ namespace RandomLoadout
                     (object)_pendingSelectionFlag == (object)flag;
                 bool isSelectable = !_pendingSelectionFlag &&
                     (isSelected || ((object)flag != null && flag.CanBeSelected()));
-                options.Add(new FoyerCharacterOption(label, isSelectable, isSelected, isPending, flag, IsUnlockableCharacter(label)));
+                FoyerCharacterOption option = new FoyerCharacterOption(label, isSelectable, isSelected, isPending, flag, IsUnlockableCharacter(label));
+                options.Add(option);
+                if (string.Equals(label, "Pilot", StringComparison.OrdinalIgnoreCase))
+                {
+                    LogPilotOptionStateIfChanged(option);
+                }
             }
 
             options.Sort(CompareOptions);
@@ -104,6 +120,7 @@ namespace RandomLoadout
         {
             if (option == null)
             {
+                LogCharacterSwitchDiagnostic("Switch rejected: option is null.");
                 return GrantCommandExecutionResult.Localized(false, "result.characters.option_missing");
             }
 
@@ -149,7 +166,20 @@ namespace RandomLoadout
 
         public GrantCommandExecutionResult SwitchCharacterOnly(FoyerCharacterOption option)
         {
+            return SwitchCharacterOnly(option, false);
+        }
+
+        public GrantCommandExecutionResult SwitchCharacterOnly(FoyerCharacterOption option, bool switchSecondaryPlayer)
+        {
             long startedAtTimestamp = IsPerformanceLoggingEnabled() ? Stopwatch.GetTimestamp() : 0L;
+            LogCharacterSwitchDiagnostic(
+                "Switch requested. Target=" +
+                (switchSecondaryPlayer ? "P2" : "P1") +
+                ", Label=" +
+                (option != null ? option.Label : "<null>") +
+                ", State=" +
+                DescribeGameManagerPlayers() +
+                ".");
             if (option == null)
             {
                 return GrantCommandExecutionResult.Localized(false, "result.characters.option_missing");
@@ -158,6 +188,7 @@ namespace RandomLoadout
             Foyer foyer = GetActiveFoyer();
             if ((object)foyer == null)
             {
+                LogCharacterSwitchDiagnostic("Switch rejected: active Foyer was not found. Label=" + option.Label + ".");
                 return GrantCommandExecutionResult.Localized(false, "result.characters.breach_only_switch");
             }
 
@@ -165,24 +196,29 @@ namespace RandomLoadout
 
             if ((object)_pendingSelectionFlag != null)
             {
+                LogCharacterSwitchDiagnostic("Switch rejected: pending selection exists. Pending=" + DescribeFlag(_pendingSelectionFlag) + ".");
                 return GrantCommandExecutionResult.Localized(false, "result.characters.selection_in_progress");
             }
 
             if (Foyer.IsCurrentlyPlayingCharacterSelect)
             {
+                LogCharacterSwitchDiagnostic("Switch rejected: native character select is currently playing.");
                 return GrantCommandExecutionResult.Localized(false, "result.characters.selection_in_progress");
             }
 
-            if (option.IsSelected ||
+            if (!switchSecondaryPlayer &&
+                (option.IsSelected ||
                 ((object)option.Flag != null && (object)foyer.CurrentSelectedCharacterFlag == (object)option.Flag))
+                )
             {
+                LogCharacterSwitchDiagnostic("Switch rejected: requested character is already selected. Option=" + DescribeOption(option) + ".");
                 return CreateCharacterResult(false, "result.characters.already_selected", option.Label);
             }
 
             // Switch-only mode must avoid the native character-select callback flow,
             // because that flow can trigger currency costs for some selections.
             string forceSwitchFailureMessage;
-            if (TryForceSwitchCharacterInBreach(foyer, option.Label, out forceSwitchFailureMessage))
+            if (TryForceSwitchCharacterInBreach(foyer, option.Label, switchSecondaryPlayer, out forceSwitchFailureMessage))
             {
                 LogPerformanceInfo(
                     "Character switch timing. Label=" +
@@ -223,6 +259,77 @@ namespace RandomLoadout
         private bool IsPerformanceLoggingEnabled()
         {
             return _performanceLoggingEnabledProvider != null && _performanceLoggingEnabledProvider();
+        }
+
+        private bool IsCharacterSwitchVerboseLoggingEnabled()
+        {
+            return _characterSwitchVerboseLoggingEnabledProvider != null && _characterSwitchVerboseLoggingEnabledProvider();
+        }
+
+        private void LogCharacterSwitchDiagnostic(string message)
+        {
+            if (!IsCharacterSwitchVerboseLoggingEnabled() || _logger == null || string.IsNullOrEmpty(message))
+            {
+                return;
+            }
+
+            _logger.LogInfo(RandomLoadoutLog.Command("Character switch diagnostic. " + message));
+        }
+
+        private void LogPilotOptionStateIfChanged(FoyerCharacterOption option)
+        {
+            if (!IsCharacterSwitchVerboseLoggingEnabled())
+            {
+                return;
+            }
+
+            string diagnostic = DescribeOption(option);
+            if (string.Equals(_lastPilotOptionDiagnostic, diagnostic, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _lastPilotOptionDiagnostic = diagnostic;
+            LogCharacterSwitchDiagnostic("Pilot option state changed. " + diagnostic + ".");
+        }
+
+        private static string DescribeOption(FoyerCharacterOption option)
+        {
+            if (option == null)
+            {
+                return "Option=<null>";
+            }
+
+            return "Label=" + option.Label +
+                   ", Selectable=" + option.IsSelectable +
+                   ", Selected=" + option.IsSelected +
+                   ", Pending=" + option.IsPending +
+                   ", CanUnlock=" + option.CanUnlock +
+                   ", Flag=" + DescribeFlag(option.Flag);
+        }
+
+        private static string DescribeFlag(FoyerCharacterSelectFlag flag)
+        {
+            if ((object)flag == null)
+            {
+                return "<null>";
+            }
+
+            try
+            {
+                return "Id=" + flag.GetInstanceID() +
+                       ", Name=" + flag.name +
+                       ", Path=" + (flag.CharacterPrefabPath ?? "<null>") +
+                       ", Coop=" + flag.IsCoopCharacter +
+                       ", Eevee=" + flag.IsEevee +
+                       ", Gunslinger=" + flag.IsGunslinger +
+                       ", Alternate=" + flag.IsAlternateCostume +
+                       ", CanBeSelected=" + flag.CanBeSelected();
+            }
+            catch (Exception exception)
+            {
+                return "StateReadFailed=" + exception.GetType().Name;
+            }
         }
 
         private void LogPerformanceInfo(string message)

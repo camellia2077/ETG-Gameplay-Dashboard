@@ -2,6 +2,7 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System.Collections.Generic;
+using System;
 
 namespace RandomLoadout
 {
@@ -15,13 +16,21 @@ namespace RandomLoadout
     internal sealed class AutoReloadToggleService
     {
         private readonly HashSet<Gun> _reloadRequestedGuns = new HashSet<Gun>();
+        private readonly Action<AutoReloadMode> _persistMode;
         private AutoReloadMode _mode;
+
+        public AutoReloadToggleService(AutoReloadMode initiallyEnabledMode, Action<AutoReloadMode> persistMode)
+        {
+            _mode = initiallyEnabledMode;
+            _persistMode = persistMode;
+        }
 
         public GrantCommandExecutionResult Toggle()
         {
             if (_mode == AutoReloadMode.Off)
             {
                 _mode = AutoReloadMode.Instant;
+                PersistMode();
                 return GrantCommandExecutionResult.Localized(true, "result.auto_reload.instant.success");
             }
 
@@ -29,11 +38,13 @@ namespace RandomLoadout
             {
                 _mode = AutoReloadMode.Animated;
                 _reloadRequestedGuns.Clear();
+                PersistMode();
                 return GrantCommandExecutionResult.Localized(true, "result.auto_reload.animated.success");
             }
 
             _mode = AutoReloadMode.Off;
             _reloadRequestedGuns.Clear();
+            PersistMode();
             return GrantCommandExecutionResult.Localized(true, "result.auto_reload.off.success");
         }
 
@@ -99,6 +110,14 @@ namespace RandomLoadout
         {
             _mode = AutoReloadMode.Off;
             _reloadRequestedGuns.Clear();
+        }
+
+        private void PersistMode()
+        {
+            if (_persistMode != null)
+            {
+                _persistMode(_mode);
+            }
         }
 
         private static bool ShouldReload(Gun gun)

@@ -2,6 +2,7 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System.Collections.Generic;
+using System;
 
 namespace RandomLoadout
 {
@@ -22,6 +23,14 @@ namespace RandomLoadout
 
         private readonly Dictionary<ProjectileModule, ModuleOverrideState> _moduleOverrides = new Dictionary<ProjectileModule, ModuleOverrideState>();
         private readonly HashSet<Gun> _enabledGuns = new HashSet<Gun>();
+        private readonly Action<bool> _persistEnabledState;
+        private bool _persistedEnabled;
+
+        public RapidFireToggleService(bool initiallyEnabled, Action<bool> persistEnabledState)
+        {
+            _persistedEnabled = initiallyEnabled;
+            _persistEnabledState = persistEnabledState;
+        }
 
         public GrantCommandExecutionResult Toggle(PlayerController player)
         {
@@ -43,7 +52,17 @@ namespace RandomLoadout
         public void Update(PlayerController player)
         {
             Gun currentGun = GetCurrentGun(player);
-            if ((object)currentGun == null || !IsEnabledFor(currentGun))
+            if ((object)currentGun == null)
+            {
+                return;
+            }
+
+            if (_persistedEnabled && !IsEnabledFor(currentGun))
+            {
+                Enable(currentGun);
+            }
+
+            if (!IsEnabledFor(currentGun))
             {
                 return;
             }
@@ -65,6 +84,7 @@ namespace RandomLoadout
             }
 
             _enabledGuns.Add(gun);
+            PersistEnabledState(true);
             int convertedModuleCount = ApplyToGun(gun);
             if (convertedModuleCount > 0)
             {
@@ -86,6 +106,7 @@ namespace RandomLoadout
 
             int restoredModuleCount = RestoreOverridesForGun(gun);
             _enabledGuns.Remove(gun);
+            PersistEnabledState(false);
             if (restoredModuleCount > 0)
             {
                 return new GrantCommandExecutionResult(
@@ -95,6 +116,20 @@ namespace RandomLoadout
             }
 
             return GrantCommandExecutionResult.Localized(true, "result.rapid.disable.no_modules");
+        }
+
+        private void PersistEnabledState(bool enabled)
+        {
+            if (_persistedEnabled == enabled)
+            {
+                return;
+            }
+
+            _persistedEnabled = enabled;
+            if (_persistEnabledState != null)
+            {
+                _persistEnabledState(enabled);
+            }
         }
 
         private int ApplyToGun(Gun gun)

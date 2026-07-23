@@ -37,9 +37,11 @@ namespace RandomLoadout
         protected override void OnEnabled(PlayerController player)
         {
             HealthHaver healthHaver = player.healthHaver;
-            // Armor no-consume only has something to restore after damage if the player currently has
-            // at least one armor point. When armor is still at zero, taking damage cannot enter the
-            // normal "lose armor, then restore it" path, so we seed one armor up front as the baseline.
+            // Armor no-consume only has something to restore after damage if the targeted player
+            // currently has at least one armor point. When armor is still at zero, taking damage
+            // cannot enter the normal "lose armor, then restore it" path. Seed the targeted player
+            // with one armor up front; this is especially important for P2, because passing P1 here
+            // would make the P2 toggle appear enabled while P2 still cannot use armor.
             if (healthHaver != null && healthHaver.Armor <= 0f)
             {
                 healthHaver.Armor = 1f;

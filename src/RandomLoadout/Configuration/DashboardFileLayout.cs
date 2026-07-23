@@ -14,6 +14,7 @@ namespace RandomLoadout
         public const string PresetsDirectoryName = "presets";
         public const string PickupGameplayFileName = "RandomLoadout.pickup-gameplay.json";
         public const string PickupInfoTermsFileName = "RandomLoadout.pickup-info-terms.json";
+        public const string BossNamesFileName = "RandomLoadout.boss-names.json";
 
         public static string GetRulesFilePath(string configDirectory)
         {
@@ -48,6 +49,11 @@ namespace RandomLoadout
         public static string GetPickupInfoTermsFilePath(string configDirectory)
         {
             return Path.Combine(configDirectory ?? string.Empty, PickupInfoTermsFileName);
+        }
+
+        public static string GetBossNamesFilePath(string configDirectory)
+        {
+            return Path.Combine(configDirectory ?? string.Empty, BossNamesFileName);
         }
 
         public static string GetPresetFilePath(string configDirectory, string fileName)

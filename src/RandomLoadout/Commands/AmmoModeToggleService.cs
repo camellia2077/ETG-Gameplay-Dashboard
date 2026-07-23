@@ -12,10 +12,17 @@ namespace RandomLoadout
 
     internal sealed class AmmoModeToggleService
     {
+        private readonly System.Action<AmmoMode> _persistMode;
         private AmmoMode _mode;
         private Gun _trackedGun;
         private int _trackedAmmo;
         private int _trackedClipShotsRemaining;
+
+        public AmmoModeToggleService(AmmoMode initiallyEnabledMode, System.Action<AmmoMode> persistMode)
+        {
+            _mode = initiallyEnabledMode;
+            _persistMode = persistMode;
+        }
 
         public AmmoMode Mode
         {
@@ -27,18 +34,29 @@ namespace RandomLoadout
             if (_mode == AmmoMode.Off)
             {
                 _mode = AmmoMode.InfiniteReserve;
+                PersistMode();
                 return GrantCommandExecutionResult.Localized(true, "result.ammo_mode.infinite_reserve.success");
             }
 
             if (_mode == AmmoMode.InfiniteReserve)
             {
                 _mode = AmmoMode.NoConsume;
+                PersistMode();
                 return GrantCommandExecutionResult.Localized(true, "result.ammo_mode.no_consume.success");
             }
 
             _mode = AmmoMode.Off;
             ClearTrackedState();
+            PersistMode();
             return GrantCommandExecutionResult.Localized(true, "result.ammo_mode.off.success");
+        }
+
+        private void PersistMode()
+        {
+            if (_persistMode != null)
+            {
+                _persistMode(_mode);
+            }
         }
 
         public void Update(PlayerController player)

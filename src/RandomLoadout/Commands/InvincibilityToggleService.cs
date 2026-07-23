@@ -43,21 +43,28 @@ namespace RandomLoadout
 
         public bool IsEnabled
         {
-            get { return _isEnabled; }
+            get { return _playerStates.Count > 0; }
+        }
+
+        public bool IsEnabledFor(PlayerController player)
+        {
+            return (object)player != null && _playerStates.ContainsKey(player);
         }
 
         public GrantCommandExecutionResult Toggle(PlayerController player)
         {
-            if (_isEnabled)
-            {
-                RestoreAll();
-                _isEnabled = false;
-                return GrantCommandExecutionResult.Localized(true, "result.invincible.disable.success");
-            }
-
             if ((object)player == null)
             {
                 return GrantCommandExecutionResult.Localized(false, "result.invincible.no_player");
+            }
+
+            if (IsEnabledFor(player))
+            {
+                PlayerInvincibilityState state = _playerStates[player];
+                RestorePlayer(player, state);
+                _playerStates.Remove(player);
+                _isEnabled = _playerStates.Count > 0;
+                return GrantCommandExecutionResult.Localized(true, "result.invincible.disable.success");
             }
 
             HealthHaver healthHaver;
@@ -66,14 +73,14 @@ namespace RandomLoadout
                 return GrantCommandExecutionResult.Localized(false, "result.invincible.no_health");
             }
 
-            _isEnabled = true;
             ApplyToPlayer(player);
+            _isEnabled = _playerStates.Count > 0;
             return GrantCommandExecutionResult.Localized(true, "result.invincible.enable.success");
         }
 
         public void Update(PlayerController player)
         {
-            if (!_isEnabled || (object)player == null)
+            if (!IsEnabledFor(player))
             {
                 return;
             }

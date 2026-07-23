@@ -34,9 +34,9 @@ The log records sampled ordering markers for:
 - `Plugin.OnGUI.after_command_panel`
 - `Plugin.OnGUI.end`
 
-Each line includes the frame number, IMGUI event type, `GUI.depth`, cursor visibility/lock state, screen size,
+Each line includes the frame number, IMGUI event type, `GUI.depth`, Unity OS cursor visibility/lock state, screen size,
 and mouse position. The Harmony prefix and postfix are diagnostic hooks only; they do not suppress or redraw the cursor.
-When the probe is enabled, sampled `Cursor render probe drawn after Control Panel` lines confirm that the copy draw path ran.
+When the probe is enabled, sampled `Cursor render probe drawn after Control Panel` lines confirm that the copy draw path ran. The normal game-cursor path records the submitted texture, draw rectangle, GUI enabled state, GUI color, and whether the draw was skipped. The normal redraw uses the same IMGUI pass as the Control Panel so Boss UI camera rendering cannot cover it.
 
 ## Reproduction
 
