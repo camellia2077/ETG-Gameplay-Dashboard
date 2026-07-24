@@ -32,8 +32,8 @@ Practical rule:
 
 - translation tooling may still use helper work files or intermediate batch shapes
 - but those shapes should be judged by how cleanly they map into:
-  - `defaults/catalog/RandomLoadout.pickup-gameplay.json`
-  - `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+  - `defaults/catalog/EtgGameplayDashboard.pickup-gameplay.json`
+  - `defaults/catalog/EtgGameplayDashboard.pickup-info-terms.json`
 
 When the translation workflow documentation and the runtime schema differ, prefer the runtime schema doc as the target
 state and update the workflow docs/scripts to match.

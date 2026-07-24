@@ -61,11 +61,11 @@ def build_parser() -> argparse.ArgumentParser:
         "scan-proper": "Scan for unwrapped foreign proper nouns.",
         "scan-ui-controls": "Scan for raw English control/UI/key-name terms in Chinese text.",
         "scan-residue": "Scan for HTML/wiki/source-residue pollution in English or Chinese fields.",
-        "scan-stat-values": "Scan stats[*].value strings for structured English label coverage/mapping guidance.",
-        "scan-stat-source-drift": "Scan whether zh-CN stats[*].value has drifted away from the English source file.",
+        "scan-stat-values": "Scan stats[*].parts labels for structured English label coverage/mapping guidance.",
+        "scan-stat-source-drift": "Scan whether zh-CN stats[*].parts has drifted away from the English source file.",
         "normalize": "Replace confirmed in-game English item names with canonical Chinese names.",
         "localize-stat-values": "Sync known structured English stat-value label mappings into valueMappings.",
-        "restore-stat-values": "Restore stats[*].value from the English source file.",
+        "restore-stat-values": "Restore stats[*].parts from the English source file.",
         "apply": "Apply a translated batch back into the zh-CN work file.",
     }
 

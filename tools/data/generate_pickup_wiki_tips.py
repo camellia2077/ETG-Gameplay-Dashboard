@@ -13,8 +13,8 @@ import requests
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_CATALOG_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickups.json"
-DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-wiki-tips.en.json"
+DEFAULT_CATALOG_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickups.json"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickup-wiki-tips.en.json"
 DEFAULT_CACHE_PATH = REPO_ROOT / "temp" / "wiki.gg-pickup-tip-cache.json"
 WIKI_API_URL = "https://enterthegungeon.wiki.gg/api.php"
 USER_AGENT = "ETG-Gameplay-Dashboard/1.0 (offline pickup tip generator)"
@@ -102,7 +102,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--catalog",
         default=str(DEFAULT_CATALOG_PATH),
-        help="Path to RandomLoadout.pickups.json.",
+        help="Path to EtgGameplayDashboard.pickups.json.",
     )
     parser.add_argument(
         "--output",

@@ -15,8 +15,8 @@ This file contains rules that apply anywhere in this repository.
 
 ## Project Shape
 
-- `src/RandomLoadout/` is the BepInEx, Unity, ETG, and in-game UI integration layer.
-- `src/RandomLoadout.Core/` is the pure logic layer for parsing, config models, selection, seeds, warnings, and results.
+- `src/EtgGameplayDashboard/` is the BepInEx, Unity, ETG, and in-game UI integration layer.
+- `src/EtgGameplayDashboard.Core/` is the pure logic layer for parsing, config models, selection, seeds, warnings, and results.
 - `defaults/config/` contains repository defaults. Do not overwrite a user's live game config unless explicitly asked.
 - `tools/` contains build, deploy, release, and developer tooling.
 - `docs/` contains behavior notes, setup, operations, architecture, and decisions.

@@ -4,7 +4,7 @@ Use this page when diagnosing `Room -> Enemies -> Rewind Room`.
 
 ## Enable
 
-Set this in `BepInEx\config\randomgun.randomloadout.cfg`:
+Set this in `BepInEx\config\randomgun.etg-gameplay-dashboard.cfg`:
 
 ```ini
 [Debug]
@@ -42,7 +42,7 @@ The selected room refresh mode is persisted as `RoomEnemyRefreshMethod` (`rewind
 
 `Room Rewind Cleanup` is a separate persistent toggle in the Room panel and defaults to on. It controls removal of room-local decals, scene drops, currency, Boss reward pedestals, corpse visuals, and standalone death/floor VFX immediately before either rewind mode respawns enemies. See [Boss Room Rewind](../architecture/boss-room-rewind.md) for the object-source and player-VFX ownership rules.
 
-When enabled, `[RandomLoadout][Command]` logs include:
+When enabled, `[EtgGameplayDashboard][Command]` logs include:
 
 - initial-wave recording (always logged);
 - skipped room-entry captures and their reason (`RecordingDisabled`, `RoomNotTrackable`, or `SnapshotAlreadyExists`) (always logged);

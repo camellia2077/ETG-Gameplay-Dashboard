@@ -4,8 +4,8 @@ This folder contains local development build and test entrypoints.
 
 Files:
 
-- `build.py`: builds the `RandomLoadout` plugin with .NET Framework MSBuild
-- `test.py`: builds and runs `RandomLoadout.Core.Tests`
+- `build.py`: builds the `EtgGameplayDashboard` plugin with .NET Framework MSBuild
+- `test.py`: builds and runs `EtgGameplayDashboard.Core.Tests`
 
 Typical usage:
 

@@ -1,12 +1,12 @@
 # Config Format (JSON5)
 
-`RandomLoadout` configuration uses `json5` files:
+`EtgGameplayDashboard` configuration uses `json5` files:
 
 - `ETG-Gameplay-Dashboard.rules.json5`
 - `ETG-Gameplay-Dashboard.aliases.json5`
 - `ETG-Gameplay-Dashboard.localization.en.json5`
 - `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
-- `RandomLoadout.rules.full-pool.json5`
+- `EtgGameplayDashboard.rules.full-pool.json5`
 
 Start Items presets are stored as one file per preset under `presets/`, for example:
 
@@ -14,7 +14,7 @@ Start Items presets are stored as one file per preset under `presets/`, for exam
 - `presets/preset.casey_synergies.json`
 - `presets/preset.border-collie.json`
 
-The mod also maintains `RandomLoadout.selection-state.json5` automatically. This file stores shuffled random-pool
+The mod also maintains `EtgGameplayDashboard.selection-state.json5` automatically. This file stores shuffled random-pool
 orders and the next index for each active preset id so random start-item pools cycle through a shuffled order across
 runs. It is runtime state, not a user-authored rules file.
 
@@ -24,10 +24,10 @@ Repository-shipped catalog snapshots live under `defaults/catalog/`.
 
 Use this directory for runtime-ready, normalized data files that the mod may deploy and read directly, for example:
 
-- `RandomLoadout.pickups.json`
-- `RandomLoadout.pickups.by-category.json`
-- `RandomLoadout.pickup-gameplay.json`
-- `RandomLoadout.pickup-info-terms.json`
+- `EtgGameplayDashboard.pickups.json`
+- `EtgGameplayDashboard.pickups.by-category.json`
+- `EtgGameplayDashboard.pickup-gameplay.json`
+- `EtgGameplayDashboard.pickup-info-terms.json`
 
 For web-derived content such as wiki descriptions, store only the runtime-ready JSON snapshot here. Do not store raw
 HTML pages or full webpage dumps in `defaults/catalog/`.
@@ -39,8 +39,8 @@ Preferred pattern:
 
 For gameplay-focused nearby-pickup info, runtime data now uses schema v2:
 
-- `RandomLoadout.pickup-gameplay.json` stores the runtime pickup facts
-- `RandomLoadout.pickup-info-terms.json` stores UI-facing labels and display-value translations
+- `EtgGameplayDashboard.pickup-gameplay.json` stores the runtime pickup facts
+- `EtgGameplayDashboard.pickup-info-terms.json` stores UI-facing labels and display-value translations
 
 Keep the gameplay file compact and structured around:
 
@@ -62,8 +62,8 @@ Extra scrape-only artifacts belong outside `defaults/catalog/`.
 The old bilingual sources may still exist for translation or migration workflows, but they are no longer the active
 runtime nearby-pickup format.
 
-Legacy files such as `RandomLoadout.pickup-wiki-tips.en.json` and
-`RandomLoadout.pickup-wiki-tips.zh-CN.work.json` may still exist in the repository for migration/reference purposes,
+Legacy files such as `EtgGameplayDashboard.pickup-wiki-tips.en.json` and
+`EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json` may still exist in the repository for migration/reference purposes,
 but they are no longer part of the active runtime nearby-pickup display path.
 
 ## Supported JSON5 Features
@@ -94,7 +94,7 @@ Each Start Items preset lives in its own `.json` file under `presets/`. Each pre
 
 This separation matters:
 
-- `id` is what the game stores in `randomgun.randomloadout.cfg` as the active preset
+- `id` is what the game stores in `randomgun.etg-gameplay-dashboard.cfg` as the active preset
 - `display_name_key` lets one shipped preset file show different names in Chinese and English
 - `name` is the plain display text for custom presets such as `边牧` or `Boss Rush Test`
 
@@ -201,7 +201,7 @@ Use `name` when the preset should always display exactly what the author typed:
 }
 ```
 
-The active preset is stored in `randomgun.randomloadout.cfg`:
+The active preset is stored in `randomgun.etg-gameplay-dashboard.cfg`:
 
 ```ini
 [StartItems]
@@ -267,7 +267,7 @@ names come from localization keys in the preset JSON, not from a hard-coded bili
 
 ## Command Panel Config
 
-The command panel language and keyboard toggle key are stored in `randomgun.randomloadout.cfg`:
+The command panel language and keyboard toggle key are stored in `randomgun.etg-gameplay-dashboard.cfg`:
 
 ```ini
 [UI]
@@ -351,7 +351,7 @@ Each value is updated and saved when its control is changed. Auto Reload may sti
 
 ## Notes
 
-- Missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `RandomLoadout.rules.full-pool.json5`, then to built-in defaults.
+- Missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `EtgGameplayDashboard.rules.full-pool.json5`, then to built-in defaults.
 - `UI.Language` accepts `auto`, `en`, or `zh-CN`.
 - `UI.CommandPanelKey` chooses the key that opens and closes the in-game command panel.
 - The in-game command panel opens from the configured 360 controller shortcut (`LB+R3` by default). The standalone R3 mode

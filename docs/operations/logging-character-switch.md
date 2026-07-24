@@ -15,7 +15,7 @@ Set it to `false` after the issue is resolved to reduce BepInEx log noise.
 
 ## What It Captures
 
-Each `[RandomLoadout][Command] Character switch diagnostic` entry records the requested target and character, then the P1/P2 player references before clearing, after clearing, after replacement registration, and after finalization. Every player snapshot includes its Unity instance ID, player index, character identity, and active state. The P2 flow deactivates its old player before deferred destruction so `GameManager.RefreshAllPlayers()` cannot retain a stale destroyed P2 reference.
+Each `[EtgGameplayDashboard][Command] Character switch diagnostic` entry records the requested target and character, then the P1/P2 player references before clearing, after clearing, after replacement registration, and after finalization. Every player snapshot includes its Unity instance ID, player index, character identity, and active state. The P2 flow deactivates its old player before deferred destruction so `GameManager.RefreshAllPlayers()` cannot retain a stale destroyed P2 reference.
 
 ## Reproduction
 

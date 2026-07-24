@@ -33,7 +33,7 @@ Run for any core logic, parser, rule, or config-resolution change:
 
 Purpose:
 
-- validates `RandomLoadout.Core`
+- validates `EtgGameplayDashboard.Core`
 - protects parser and selection behavior
 
 Limits:

@@ -24,7 +24,7 @@ LOCALIZATION_CHECK_SCRIPT = Path(__file__).resolve().parents[1] / "devtools" / "
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build the RandomLoadout plugin with .NET Framework MSBuild."
+        description="Build the EtgGameplayDashboard plugin with .NET Framework MSBuild."
     )
     add_configuration_argument(parser, "Build configuration. Defaults to Debug.")
     return parser.parse_args()

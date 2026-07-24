@@ -33,9 +33,9 @@ Use the scripts here to:
 ## Source Of Truth
 
 - English baseline:
-  `defaults/catalog/RandomLoadout.pickup-wiki-tips.en.json`
+  `defaults/catalog/EtgGameplayDashboard.pickup-wiki-tips.en.json`
 - Chinese work file:
-  `defaults/catalog/RandomLoadout.pickup-wiki-tips.zh-CN.work.json`
+  `defaults/catalog/EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json`
 
 Never overwrite English fields during translation work.
 
@@ -177,7 +177,7 @@ Batch export skips complete entries by default unless explicitly requested with 
 1. Refresh the work file:
 
 ```powershell
-python .\tools\translate\legacy\init_pickup_wiki_tips_zh_cn_work.py --game-language-names "<path-to-RandomLoadout.pickup-names.game-language.json>"
+python .\tools\translate\legacy\init_pickup_wiki_tips_zh_cn_work.py --game-language-names "<path-to-EtgGameplayDashboard.pickup-names.game-language.json>"
 ```
 
 2. Export a translation batch:
@@ -232,7 +232,7 @@ Use it to narrow down which entries may still need `中文名（English Name）`
 Optional display-name sync step when you have a fresh game export:
 
 ```powershell
-python .\tools\translate\legacy\sync_pickup_wiki_tip_chinese_display_names.py --game-language-names "<path-to-RandomLoadout.pickup-names.game-language.json>"
+python .\tools\translate\legacy\sync_pickup_wiki_tip_chinese_display_names.py --game-language-names "<path-to-EtgGameplayDashboard.pickup-names.game-language.json>"
 ```
 
 This sync is intentionally strict for `zh-CN` work:

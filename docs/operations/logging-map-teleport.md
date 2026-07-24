@@ -17,7 +17,7 @@ Default:
 
 ## What It Adds
 
-When enabled, the plugin emits high-frequency `[RandomLoadout][Command]` lines for:
+When enabled, the plugin emits high-frequency `[EtgGameplayDashboard][Command]` lines for:
 
 - map reveal request entry
 - room-scan progress

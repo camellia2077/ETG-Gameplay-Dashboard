@@ -1,6 +1,6 @@
 # Dashboard UI Theme
 
-The command-panel UI theme is defined centrally in `src/RandomLoadout/Ui/DashboardTheme.cs`.
+The command-panel UI theme is defined centrally in `src/EtgGameplayDashboard/Ui/DashboardTheme.cs`.
 
 Use these references for theme work:
 

@@ -17,7 +17,7 @@ Restart the game after changing the setting. The in-game `Skip Boss Intro` toggl
 
 ## What It Captures
 
-When both the cfg switch and the in-game feature are enabled, `[RandomLoadout][Command]` includes:
+When both the cfg switch and the in-game feature are enabled, `[EtgGameplayDashboard][Command]` includes:
 
 - matching a Boss to a `BossTriggerZone`;
 - observing `GenericIntroDoer` entry through the room or trigger-zone path;

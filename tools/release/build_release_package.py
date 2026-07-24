@@ -25,7 +25,7 @@ PACKAGE_CHOICES = ("standalone", "mod-manager", "both")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build a player-facing RandomLoadout release zip with a bundled BepInExPack_EtG."
+        description="Build a player-facing EtgGameplayDashboard release zip with a bundled BepInExPack_EtG."
     )
     parser.add_argument(
         "-c",

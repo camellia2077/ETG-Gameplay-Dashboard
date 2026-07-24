@@ -1,0 +1,2722 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "game": "Enter the Gungeon",
+    "asset": "EtG_Data/StreamingAssets/Assets/brave_resources_001",
+    "assetType": "TextAsset",
+    "textAsset": "synergies",
+    "languageDirectories": [
+      "english_items",
+      "chinese_items"
+    ]
+  },
+  "entryCount": 451,
+  "synergies": {
+    "#DECOYOCTOROK": {
+      "names": {
+        "en": "Decoy Octorok",
+        "zh-CN": "伪装大师章鱼"
+      }
+    },
+    "#SNIPERWOLF": {
+      "names": {
+        "en": "Sniper Woof",
+        "zh-CN": "狙击狼"
+      }
+    },
+    "#EXPLORER": {
+      "names": {
+        "en": "Swift Sloop",
+        "zh-CN": "单桅快船"
+      }
+    },
+    "#TRIGGERTWINS": {
+      "names": {
+        "en": "Trigger Twins",
+        "zh-CN": "扳机双胞胎"
+      }
+    },
+    "#SUPERSERUM": {
+      "names": {
+        "en": "Super Serum",
+        "zh-CN": "超级精华"
+      }
+    },
+    "#EMERGENCYHELP": {
+      "names": {
+        "en": "Emergency Help",
+        "zh-CN": "紧急救助"
+      }
+    },
+    "#LOVEHATE": {
+      "names": {
+        "en": "Love/Hate",
+        "zh-CN": "爱与恨"
+      }
+    },
+    "#BEHOLSTER": {
+      "names": {
+        "en": "Behold!",
+        "zh-CN": "注意！"
+      }
+    },
+    "#HAMMERANDNAIL": {
+      "names": {
+        "en": "Hammer and Nail",
+        "zh-CN": "锤子和钉子"
+      }
+    },
+    "#JOTUNTIME": {
+      "names": {
+        "en": "Jotun Time!",
+        "zh-CN": "巨人时刻！"
+      }
+    },
+    "#MERCHMASTER": {
+      "names": {
+        "en": "http://merch.devolverdigital.com",
+        "zh-CN": "http://merch.devolverdigital.com"
+      }
+    },
+    "#WINDINMYSAILS": {
+      "names": {
+        "en": "Three Sheets",
+        "zh-CN": "酩酊大醉"
+      }
+    },
+    "#GEAROFWAR": {
+      "names": {
+        "en": "Chest High is the Best High",
+        "zh-CN": "墙高及胸是为最佳"
+      }
+    },
+    "#COOLEST": {
+      "names": {
+        "en": "Kung Fu Hippie, Rappin' Surfer",
+        "zh-CN": "功夫嬉皮，说唱嘻哈"
+      }
+    },
+    "#LOVEGOLD": {
+      "names": {
+        "en": "The Ecstasy of Gold",
+        "zh-CN": "金的狂欢"
+      }
+    },
+    "#DEMONHUNTER": {
+      "names": {
+        "en": "Hell Singing",
+        "zh-CN": "饭海辛"
+      }
+    },
+    "#RIOTGEAR": {
+      "names": {
+        "en": "Riot Gear",
+        "zh-CN": "防暴装备"
+      }
+    },
+    "#LIVINGAMMO": {
+      "names": {
+        "en": "Dawn of the Gundead",
+        "zh-CN": "子弹怪的黎明"
+      }
+    },
+    "#BULLETKINKIN": {
+      "names": {
+        "en": "Blammo!",
+        "zh-CN": "砰砰！"
+      }
+    },
+    "#METROIDCRAWL": {
+      "names": {
+        "en": "y cant u crawl",
+        "zh-CN": "银河战士"
+      }
+    },
+    "#CHARMING": {
+      "names": {
+        "en": "Unbelievably Charming",
+        "zh-CN": "神之迷人"
+      }
+    },
+    "#BEACHICKEN": {
+      "names": {
+        "en": "Chicken Arise",
+        "zh-CN": "小鸡小鸡"
+      }
+    },
+    "#THECOINKING": {
+      "names": {
+        "en": "Two Heavy",
+        "zh-CN": "欲戴其冠，必承其重"
+      }
+    },
+    "#DOWNERWELL": {
+      "names": {
+        "en": "Double Down",
+        "zh-CN": "两种靴子"
+      }
+    },
+    "#EXPLOSIVESHARKS": {
+      "names": {
+        "en": "Smile, you son of a...",
+        "zh-CN": "笑到最后"
+      }
+    },
+    "#DOUBLEMOLOTOV": {
+      "names": {
+        "en": "Open Bar",
+        "zh-CN": "营业酒吧"
+      }
+    },
+    "#HELLGUNS": {
+      "names": {
+        "en": "Hotter Than Heck",
+        "zh-CN": "灼虐"
+      }
+    },
+    "#BEHINDME": {
+      "names": {
+        "en": "Gruber's Bane",
+        "zh-CN": "打不死的麦克莱恩"
+      }
+    },
+    "#MASSIVEEFFECT": {
+      "names": {
+        "en": "Massive Effect",
+        "zh-CN": "重量效应"
+      }
+    },
+    "#ANGRIERBULLETS": {
+      "names": {
+        "en": "Needless Acrimony",
+        "zh-CN": "怒气冲天"
+      }
+    },
+    "#GILDEDTABLES": {
+      "names": {
+        "en": "Gilded Tables",
+        "zh-CN": "镀金桌"
+      }
+    },
+    "#HAMMERANDANVIL": {
+      "names": {
+        "en": "Hammer and Anvil",
+        "zh-CN": "锤子和铁砧"
+      }
+    },
+    "#SUCCULENT": {
+      "names": {
+        "en": "Succulent DOOM",
+        "zh-CN": "多肉厄运"
+      }
+    },
+    "#MIRRORSHIELD": {
+      "names": {
+        "en": "Mirror Shield",
+        "zh-CN": "镜盾"
+      }
+    },
+    "#DUCKEGG": {
+      "names": {
+        "en": "EGG MURDERER",
+        "zh-CN": "鸡蛋屠杀者"
+      }
+    },
+    "#DBOYFORLIFE": {
+      "names": {
+        "en": "Spicy D-Boys",
+        "zh-CN": "90后"
+      }
+    },
+    "#PAPERWORK": {
+      "names": {
+        "en": "Paperwork",
+        "zh-CN": "文书工作"
+      }
+    },
+    "#SCRAMBLERFLUTE": {
+      "names": {
+        "en": "Bullet or the Egg",
+        "zh-CN": "是弹还是蛋"
+      }
+    },
+    "#OUTERTURTLE": {
+      "names": {
+        "en": "Super Space Turtle DX",
+        "zh-CN": "超级宇宙龟DX"
+      }
+    },
+    "#ICEWATER": {
+      "names": {
+        "en": "Ice Water",
+        "zh-CN": "冰水"
+      }
+    },
+    "#MERMAIDBARREL": {
+      "names": {
+        "en": "Siren Sidearm",
+        "zh-CN": "警报侧枪"
+      }
+    },
+    "#ALPHAFIRE": {
+      "names": {
+        "en": "Added Effect - Fire",
+        "zh-CN": "新增效果 - 火"
+      }
+    },
+    "#ALPHAICE": {
+      "names": {
+        "en": "Added Effect - Ice",
+        "zh-CN": "新增效果 - 冰"
+      }
+    },
+    "#ALPHAPOISON": {
+      "names": {
+        "en": "Added Effect - Poison",
+        "zh-CN": "新增效果 - 毒"
+      }
+    },
+    "#OMEGAFIRE": {
+      "names": {
+        "en": "Ruby Weapon",
+        "zh-CN": "红宝石武器"
+      }
+    },
+    "#OMEGAICE": {
+      "names": {
+        "en": "Diamond Weapon",
+        "zh-CN": "钻石武器"
+      }
+    },
+    "#OMEGAPOISON": {
+      "names": {
+        "en": "Emerald Weapon",
+        "zh-CN": "绿宝石武器"
+      }
+    },
+    "#TESLASHADOW": {
+      "names": {
+        "en": "Chain Lightning",
+        "zh-CN": "闪电链"
+      }
+    },
+    "#CORPSESHOOT": {
+      "names": {
+        "en": "Extreme Operation",
+        "zh-CN": "极限操作"
+      }
+    },
+    "#DOUBLEHOLSTER": {
+      "names": {
+        "en": "Quick and the Gundead",
+        "zh-CN": "柔情盖天"
+      }
+    },
+    "#EXPLOSIVEAIRSTRIKE": {
+      "names": {
+        "en": "Air Support",
+        "zh-CN": "空中补给"
+      }
+    },
+    "#MASTEROFUNLOCKING": {
+      "names": {
+        "en": "Reinforced Lockpicks",
+        "zh-CN": "强劲开锁"
+      }
+    },
+    "#SERIOUSSAMPUB": {
+      "names": {
+        "en": "Serious Sam Publishing Contract",
+        "zh-CN": "英雄萨姆的发行合约"
+      }
+    },
+    "#GUNGEONPUB": {
+      "names": {
+        "en": "Contractual Obligation",
+        "zh-CN": "合同义务"
+      }
+    },
+    "#STRAFEPUB": {
+      "names": {
+        "en": "Cool Kids Club",
+        "zh-CN": "酷小孩俱乐部"
+      }
+    },
+    "#HEAVYBULLETSPUB": {
+      "names": {
+        "en": "Over Dose",
+        "zh-CN": "过量"
+      }
+    },
+    "#ICETOMEETYOU": {
+      "names": {
+        "en": "Ice To Meet You",
+        "zh-CN": "很高兴冰到你"
+      }
+    },
+    "#ICETOMEETYOUTOO": {
+      "names": {
+        "en": "Ice To Meet You, Too",
+        "zh-CN": "冰到你我也很高兴"
+      }
+    },
+    "#MONSTERGRUB": {
+      "names": {
+        "en": "Monster Grub",
+        "zh-CN": "怪物格鲁伯"
+      }
+    },
+    "#HORNETS": {
+      "names": {
+        "en": "Bee Plus",
+        "zh-CN": "蜜蜂加加"
+      }
+    },
+    "#PAPERLANTERNS": {
+      "names": {
+        "en": "Paper Lanterns",
+        "zh-CN": "纸灯笼"
+      }
+    },
+    "#TECHARM": {
+      "names": {
+        "en": "Neo Tech, Yo",
+        "zh-CN": "新东京物语"
+      }
+    },
+    "#TECHARM2": {
+      "names": {
+        "en": "Neo Tech, Yo",
+        "zh-CN": "新东京物语"
+      }
+    },
+    "#CAMERAFLASH": {
+      "names": {
+        "en": "Savior of the Universe",
+        "zh-CN": "宇宙救星"
+      }
+    },
+    "#DOUBLEBOMBERMAN": {
+      "names": {
+        "en": "Bomberpal",
+        "zh-CN": "炸弹人"
+      }
+    },
+    "#DOUBLEICEBOMBERMAN": {
+      "names": {
+        "en": "Super Bomberpal",
+        "zh-CN": "超级炸弹人"
+      }
+    },
+    "#ALIENTURBO": {
+      "names": {
+        "en": "Ancient Aliens",
+        "zh-CN": "远古外星人"
+      }
+    },
+    "#DOUBLERUBES": {
+      "names": {
+        "en": "Rubenstein's Monster",
+        "zh-CN": "科学怪人"
+      }
+    },
+    "#SUBMACHINES": {
+      "names": {
+        "en": "The Submachinist",
+        "zh-CN": "机械师替补"
+      }
+    },
+    "#TITANIC": {
+      "names": {
+        "en": "Unsinkable",
+        "zh-CN": "永不沉没"
+      }
+    },
+    "#EXTRABLOODY": {
+      "names": {
+        "en": "Venom Veins",
+        "zh-CN": "毒液血管"
+      }
+    },
+    "#SLINGSANDARROWS": {
+      "names": {
+        "en": "Slings and Arrows",
+        "zh-CN": "弓弦和箭头"
+      }
+    },
+    "#BACKPACKROCKET": {
+      "names": {
+        "en": "MM6 Mini Rocket",
+        "zh-CN": "MM6迷你火箭"
+      }
+    },
+    "#RAINBROS": {
+      "names": {
+        "en": "Double Rainbow",
+        "zh-CN": "双重彩虹"
+      }
+    },
+    "#SKULLANDBONES": {
+      "names": {
+        "en": "Jolly Roger",
+        "zh-CN": "海盗旗"
+      }
+    },
+    "#WHATATHRILL": {
+      "names": {
+        "en": "What A Thrill",
+        "zh-CN": "何等激动"
+      }
+    },
+    "#HOMINGBOMBS": {
+      "names": {
+        "en": "Smart Bombs",
+        "zh-CN": "智能轰炸"
+      }
+    },
+    "#ENGINEERINGDEPARTMENT": {
+      "names": {
+        "en": "Production Model",
+        "zh-CN": "生产模型"
+      }
+    },
+    "#HOMINGBOMBS2": {
+      "names": {
+        "en": "Smart Bombs",
+        "zh-CN": "智能轰炸"
+      }
+    },
+    "#HOMINGBOMBS3": {
+      "names": {
+        "en": "Smart Bombs",
+        "zh-CN": "智能轰炸"
+      }
+    },
+    "#HOMINGBOMBS4": {
+      "names": {
+        "en": "Smart Bombs",
+        "zh-CN": "智能轰炸"
+      }
+    },
+    "#STUDIEDBLADE": {
+      "names": {
+        "en": "I Studied The Blade",
+        "zh-CN": "勤学苦练"
+      }
+    },
+    "#MASSCUTTER": {
+      "names": {
+        "en": "Mass Cutter",
+        "zh-CN": "大型切割"
+      }
+    },
+    "#SHADOWWARRIOR": {
+      "names": {
+        "en": "Shadow Warrior",
+        "zh-CN": "影子武士"
+      }
+    },
+    "#ROBOTHANDS": {
+      "names": {
+        "en": "Look, No Hands",
+        "zh-CN": "看，没有手"
+      }
+    },
+    "#WINGMANPLUS": {
+      "names": {
+        "en": "Pilot Wingsman",
+        "zh-CN": "飞行俱乐部"
+      }
+    },
+    "#SPACEFRIENDPLUS": {
+      "names": {
+        "en": "Space Best Friend",
+        "zh-CN": "宇宙最佳好友"
+      }
+    },
+    "#FRIENDOFCATS": {
+      "names": {
+        "en": "Cat Friend",
+        "zh-CN": "猫咪好友"
+      }
+    },
+    "#MASTERDUELIST": {
+      "names": {
+        "en": "Death Square",
+        "zh-CN": "死亡广场"
+      }
+    },
+    "#SCIENCE": {
+      "names": {
+        "en": "Weird Science",
+        "zh-CN": "摩登保姆"
+      }
+    },
+    "#FIGHTSABRETRAINING": {
+      "names": {
+        "en": "Fightsabre Training",
+        "zh-CN": "战斗训练"
+      }
+    },
+    "#TURRETRANDOMIZER": {
+      "names": {
+        "en": "Turret Link",
+        "zh-CN": "炮塔连接"
+      }
+    },
+    "#RELODESTAR": {
+      "names": {
+        "en": "Relodestar",
+        "zh-CN": "二代北极星"
+      }
+    },
+    "#REGULARGUNS": {
+      "names": {
+        "en": "Regular Old Guns",
+        "zh-CN": "普通老枪"
+      }
+    },
+    "#ROLLINGSNOWBALLS": {
+      "names": {
+        "en": "Frosty the Bullet Tyrant",
+        "zh-CN": "子弹暴君冻冻"
+      }
+    },
+    "#SUPPLYDROP": {
+      "names": {
+        "en": "Supply Drop Update",
+        "zh-CN": "补给更新"
+      }
+    },
+    "#MYLITTLEFRIEND": {
+      "names": {
+        "en": "Keep The Change",
+        "zh-CN": "不用找钱"
+      }
+    },
+    "#TRASHJUNKAN": {
+      "names": {
+        "en": "Trashkan",
+        "zh-CN": "垃圾桶"
+      }
+    },
+    "#INSIGHT": {
+      "names": {
+        "en": "Insight",
+        "zh-CN": "洞悉值"
+      }
+    },
+    "#FOSSILPHOENIX": {
+      "names": {
+        "en": "Cryptic Cryptids",
+        "zh-CN": ""
+      }
+    },
+    "#NANOMACHINES": {
+      "names": {
+        "en": "College Ball",
+        "zh-CN": "大学篮球"
+      }
+    },
+    "#SAMUSPLASMA": {
+      "names": {
+        "en": "Plasma Beam",
+        "zh-CN": "等离子束"
+      }
+    },
+    "#SAMUSICE": {
+      "names": {
+        "en": "Ice Beam",
+        "zh-CN": "冰束"
+      }
+    },
+    "#SAMUSWAVE": {
+      "names": {
+        "en": "Wave Beam",
+        "zh-CN": "波束"
+      }
+    },
+    "#SAMUSHYPER": {
+      "names": {
+        "en": "Hyper Beam",
+        "zh-CN": "超光束"
+      }
+    },
+    "#BLOODDECOY": {
+      "names": {
+        "en": "Deadly Distraction",
+        "zh-CN": "夺命干扰"
+      }
+    },
+    "#ICEDECOY": {
+      "names": {
+        "en": "Frosty Distraction",
+        "zh-CN": "冷冻干扰"
+      }
+    },
+    "#BLOODEXPLOSIVEDECOY": {
+      "names": {
+        "en": "Deadlier Distraction",
+        "zh-CN": "致命干扰"
+      }
+    },
+    "#ICEEXPLOSIVEDECOY": {
+      "names": {
+        "en": "Frostier Distraction",
+        "zh-CN": "冰霜干扰"
+      }
+    },
+    "#HARDWOOD": {
+      "names": {
+        "en": "Hardwood",
+        "zh-CN": "硬木"
+      }
+    },
+    "#FIERYTHORN": {
+      "names": {
+        "en": "Backdraft",
+        "zh-CN": "回火"
+      }
+    },
+    "#KEYWITNESS": {
+      "names": {
+        "en": "Key Witness",
+        "zh-CN": "关键钥匙"
+      }
+    },
+    "#COSMICHORROR": {
+      "names": {
+        "en": "Cosmic Horror",
+        "zh-CN": "宇宙噩梦"
+      }
+    },
+    "#IBOMBS": {
+      "names": {
+        "en": "AI Assistant",
+        "zh-CN": "AI助理"
+      }
+    },
+    "#STUNNINGFLASH": {
+      "names": {
+        "en": "Camera Shy",
+        "zh-CN": "怯场"
+      }
+    },
+    "#ROCKETTABLES": {
+      "names": {
+        "en": "Hunter-Seeker Tables",
+        "zh-CN": "猎人追踪"
+      }
+    },
+    "#ROCKETTABLESTWO": {
+      "names": {
+        "en": "Hunter-Seeker Tables",
+        "zh-CN": "猎人追踪"
+      }
+    },
+    "#TRIPLESTICKY": {
+      "names": {
+        "en": "Triple Sticky",
+        "zh-CN": "三重粘"
+      }
+    },
+    "#YARIOIL": {
+      "names": {
+        "en": "Hail to the King",
+        "zh-CN": "国王万岁"
+      }
+    },
+    "#AKEY": {
+      "names": {
+        "en": "Akey Breaky",
+        "zh-CN": "Akey Breaky"
+      }
+    },
+    "#ASSAULTANDBATTERY": {
+      "names": {
+        "en": "Assault and Battery",
+        "zh-CN": "暴力殴打"
+      }
+    },
+    "#ISLANDAK": {
+      "names": {
+        "en": "AK-47 (Island Forme)",
+        "zh-CN": "AK-47 (阿罗拉形态)"
+      }
+    },
+    "#BETRAYER": {
+      "names": {
+        "en": "Betrayer's Lies",
+        "zh-CN": "背叛者的谎言"
+      }
+    },
+    "#STUFFEDSHELL": {
+      "names": {
+        "en": "Softshell",
+        "zh-CN": "软壳"
+      }
+    },
+    "#MINORBLANKABLES1": {
+      "names": {
+        "en": "Don't Worry About The Vase",
+        "zh-CN": "不用担心那个花瓶"
+      }
+    },
+    "#MINORBLANKABLES2": {
+      "names": {
+        "en": "Don't Worry About The Vase",
+        "zh-CN": "不用担心那个花瓶"
+      }
+    },
+    "#MINORBLANKABLES3": {
+      "names": {
+        "en": "Don't Worry About The Vase",
+        "zh-CN": "不用担心那个花瓶"
+      }
+    },
+    "#MINORBLANKABLES4": {
+      "names": {
+        "en": "Don't Worry About The Vase",
+        "zh-CN": "不用担心那个花瓶"
+      }
+    },
+    "#MINORBLANKABLES5": {
+      "names": {
+        "en": "Don't Worry About The Vase",
+        "zh-CN": "不用担心那个花瓶"
+      }
+    },
+    "#MINORBLANKABLES6": {
+      "names": {
+        "en": "Don't Worry About The Vase",
+        "zh-CN": "不用担心那个花瓶"
+      }
+    },
+    "#ALPHABETPLUSONE": {
+      "names": {
+        "en": "Reinforced",
+        "zh-CN": "Reinforced"
+      }
+    },
+    "#ALPHABETCHARM": {
+      "names": {
+        "en": "Ravishing",
+        "zh-CN": "Ravishing"
+      }
+    },
+    "#ALPHABETALPHA": {
+      "names": {
+        "en": "Root",
+        "zh-CN": "Root"
+      }
+    },
+    "#ALPHABETOMEGA": {
+      "names": {
+        "en": "Remnant",
+        "zh-CN": "Remnant"
+      }
+    },
+    "#ALPHABETANGRY": {
+      "names": {
+        "en": "Rabid",
+        "zh-CN": "Remnant"
+      }
+    },
+    "#BLASTCROWN": {
+      "names": {
+        "en": "Blast Crown",
+        "zh-CN": "爆破皇冠"
+      }
+    },
+    "#NAILBAT": {
+      "names": {
+        "en": "Careful Iteration",
+        "zh-CN": "谨慎的更换"
+      }
+    },
+    "#LUXINCORN": {
+      "names": {
+        "en": "Crystal Horn",
+        "zh-CN": "水晶角"
+      }
+    },
+    "#FRUITGUON": {
+      "names": {
+        "en": "Enter the Fruitguon",
+        "zh-CN": "挺近“果”牢"
+      }
+    },
+    "#MILITARYMIGHT": {
+      "names": {
+        "en": "Heavy Artillery",
+        "zh-CN": "重炮"
+      }
+    },
+    "#CRESTFALLENSOUL": {
+      "names": {
+        "en": "Crestfallen Soul",
+        "zh-CN": "沮丧的灵魂"
+      }
+    },
+    "#SCREECHINGLASER": {
+      "names": {
+        "en": "Banshee Cry",
+        "zh-CN": "报丧女妖的呼喊"
+      }
+    },
+    "#STOUTBREW": {
+      "names": {
+        "en": "Dwarven Stout",
+        "zh-CN": "矮人烈酒"
+      }
+    },
+    "#HEARTSHAPEDBOX": {
+      "names": {
+        "en": "Heart-Shaped Box",
+        "zh-CN": "心形盒子"
+      }
+    },
+    "#HEARTUNLOCKET": {
+      "names": {
+        "en": "Heart Unlocket",
+        "zh-CN": "解锁的心"
+      }
+    },
+    "#QUEENOFHEARTS": {
+      "names": {
+        "en": "Queen of Hearts",
+        "zh-CN": "红桃皇后"
+      }
+    },
+    "#HOTONES": {
+      "names": {
+        "en": "Hot Ones",
+        "zh-CN": "热家伙"
+      }
+    },
+    "#COLDONES": {
+      "names": {
+        "en": "Cold Ones",
+        "zh-CN": "冷家伙"
+      }
+    },
+    "#BUGGINGOUT": {
+      "names": {
+        "en": "Buggin' Out",
+        "zh-CN": "撤退"
+      }
+    },
+    "#BLANKGENERATION": {
+      "names": {
+        "en": "Blank Generation",
+        "zh-CN": "建造空响弹"
+      }
+    },
+    "#METALBUSTER": {
+      "names": {
+        "en": "Get Equipped With -M-",
+        "zh-CN": "配备-M-"
+      }
+    },
+    "#BUBBLEBUSTER": {
+      "names": {
+        "en": "Get Equipped With -B-",
+        "zh-CN": "配备-B-"
+      }
+    },
+    "#BUBBLEBUSTER2": {
+      "names": {
+        "en": "Get Equipped With -B-",
+        "zh-CN": "配备-B-"
+      }
+    },
+    "#AIRBUSTER": {
+      "names": {
+        "en": "Get Equipped With -A-",
+        "zh-CN": "配备-A-"
+      }
+    },
+    "#LEAFBUSTER": {
+      "names": {
+        "en": "Get Equipped With -W-",
+        "zh-CN": "配备-W-"
+      }
+    },
+    "#FLASHBUSTER": {
+      "names": {
+        "en": "Get Equipped With -F-",
+        "zh-CN": "配备-F-"
+      }
+    },
+    "#FLASHBUSTER2": {
+      "names": {
+        "en": "Get Equipped With -F-",
+        "zh-CN": "配备-F-"
+      }
+    },
+    "#CRASHBUSTER": {
+      "names": {
+        "en": "Get Equipped With -C-",
+        "zh-CN": "配备-C-"
+      }
+    },
+    "#HEATBUSTER": {
+      "names": {
+        "en": "Get Equipped With -H-",
+        "zh-CN": "配备-H-"
+      }
+    },
+    "#QUICKBUSTER": {
+      "names": {
+        "en": "Get Equipped With -Q-",
+        "zh-CN": "配备-Q-"
+      }
+    },
+    "#COFFEEANDCIGS": {
+      "names": {
+        "en": "Coffee and Cigarettes",
+        "zh-CN": "咖啡与香烟"
+      }
+    },
+    "#PARTICLEACCELERATOR": {
+      "names": {
+        "en": "Particle Accelerator",
+        "zh-CN": "粒子加速器"
+      }
+    },
+    "#WORLDWAR": {
+      "names": {
+        "en": "The Great War",
+        "zh-CN": "第一次世界大战"
+      }
+    },
+    "#BLASTBOOTS": {
+      "names": {
+        "en": "Spelunker",
+        "zh-CN": "探勘洞穴"
+      }
+    },
+    "#ONEFISHTWOFISH": {
+      "names": {
+        "en": "One Fish Two Fish",
+        "zh-CN": "一条鱼两条鱼"
+      }
+    },
+    "#GHOSTBROS": {
+      "names": {
+        "en": "Ghost With The Most",
+        "zh-CN": "阴魂不散"
+      }
+    },
+    "#CHESTMASTER": {
+      "names": {
+        "en": "Glorious Chest Ahead",
+        "zh-CN": "前方便是荣耀之盒"
+      }
+    },
+    "#ISAACLIKE": {
+      "names": {
+        "en": "Wrath of the Blam",
+        "zh-CN": "愤怒的枪声"
+      }
+    },
+    "#BLASTINHECK": {
+      "names": {
+        "en": "Blastin' Heck",
+        "zh-CN": "发射冲击"
+      }
+    },
+    "#KAGEBUNSHIN": {
+      "names": {
+        "en": "Kage Bunshin",
+        "zh-CN": "影分身术"
+      }
+    },
+    "#GUNGEONUNITY": {
+      "names": {
+        "en": "what engine do you use",
+        "zh-CN": "你用什么引擎驱动的"
+      }
+    },
+    "#GARBAGECOLLECTION": {
+      "names": {
+        "en": "Garbage Collecting",
+        "zh-CN": "回收垃圾"
+      }
+    },
+    "#WOUNDUP": {
+      "names": {
+        "en": "Wound Up",
+        "zh-CN": "紧张时刻"
+      }
+    },
+    "#HYDROPUMP": {
+      "names": {
+        "en": "Hydro Pump",
+        "zh-CN": "水炮"
+      }
+    },
+    "#HEROOFCHICKEN": {
+      "names": {
+        "en": "Chickensword",
+        "zh-CN": "“剑”鸡"
+      }
+    },
+    "#TWINSNAKES": {
+      "names": {
+        "en": "Twin Snakes",
+        "zh-CN": "孪蛇"
+      }
+    },
+    "#RECTANGLERS": {
+      "names": {
+        "en": "Primitive Shapes",
+        "zh-CN": "原始形态"
+      }
+    },
+    "#MOONINITES": {
+      "names": {
+        "en": "Jumping... is useless",
+        "zh-CN": "跳…是没用的"
+      }
+    },
+    "#STARBURSTS": {
+      "names": {
+        "en": "Starburst Fire",
+        "zh-CN": "星爆之火"
+      }
+    },
+    "#TRUESHOTGRUB": {
+      "names": {
+        "en": "Just Like The Real Thing",
+        "zh-CN": "跟真的一样"
+      }
+    },
+    "#GHOSTPROTONS": {
+      "names": {
+        "en": "Electron Pack",
+        "zh-CN": "电子背包"
+      }
+    },
+    "#COMPOSITEMETAL": {
+      "names": {
+        "en": "The Line Of Fire",
+        "zh-CN": "金属检测"
+      }
+    },
+    "#TIMINGBELT": {
+      "names": {
+        "en": "Buckle Up",
+        "zh-CN": "系好安全带"
+      }
+    },
+    "#ALPHABETGOLD": {
+      "names": {
+        "en": "Resplendent",
+        "zh-CN": "Resplendent"
+      }
+    },
+    "#ALPHABETSILVER": {
+      "names": {
+        "en": "Radiant",
+        "zh-CN": "Radiant"
+      }
+    },
+    "#ALPHABETMAGIC": {
+      "names": {
+        "en": "Runic",
+        "zh-CN": "Runic"
+      }
+    },
+    "#ALPHABETEXPLOSIVE": {
+      "names": {
+        "en": "Reactive",
+        "zh-CN": "Reactive"
+      }
+    },
+    "#ALPHABETGHOST": {
+      "names": {
+        "en": "Reanimate",
+        "zh-CN": "Reanimate"
+      }
+    },
+    "#ALPHABETANATOMY": {
+      "names": {
+        "en": "Research",
+        "zh-CN": "Research"
+      }
+    },
+    "#REDRIDING": {
+      "names": {
+        "en": "The Red Hood",
+        "zh-CN": "小红帽"
+      }
+    },
+    "#NORTHSTARS": {
+      "names": {
+        "en": "Star Friends",
+        "zh-CN": "太空朋友"
+      }
+    },
+    "#YETIDUNK": {
+      "names": {
+        "en": "Why's Bullet Crying?",
+        "zh-CN": "灌篮高手"
+      }
+    },
+    "#COLTS": {
+      "names": {
+        "en": "Cold 1896",
+        "zh-CN": "寒1851"
+      }
+    },
+    "#FINALFANTASY7": {
+      "names": {
+        "en": "that &^#$# 'pizza'",
+        "zh-CN": "5号反应堆"
+      }
+    },
+    "#ANTIMATTERBODY": {
+      "names": {
+        "en": "Antichamber",
+        "zh-CN": "环绕走廊"
+      }
+    },
+    "#BLESSEDCURSED": {
+      "names": {
+        "en": "Blessing and a Curse",
+        "zh-CN": "祝福与诅咒"
+      }
+    },
+    "#MELTDOWN": {
+      "names": {
+        "en": "Meltdown",
+        "zh-CN": "融化"
+      }
+    },
+    "#TRIPLEJUMP": {
+      "names": {
+        "en": "Triple Jump",
+        "zh-CN": "三重跳"
+      }
+    },
+    "#HELLHOLE": {
+      "names": {
+        "en": "Hellhole",
+        "zh-CN": "地狱洞口"
+      }
+    },
+    "#LITROLLS": {
+      "names": {
+        "en": "Hot Rolls",
+        "zh-CN": "高温翻滚"
+      }
+    },
+    "#EXPLOSIVEHOLSTER": {
+      "names": {
+        "en": "Saved the Best for Last",
+        "zh-CN": "精彩留在最后"
+      }
+    },
+    "#LANDAMONGTHESTARS": {
+      "names": {
+        "en": "Land Among The Stars",
+        "zh-CN": "落在星辰之间"
+      }
+    },
+    "#DEMONSLAYER": {
+      "names": {
+        "en": "There Is Only War",
+        "zh-CN": "只有战争"
+      }
+    },
+    "#INSECTKINGDOM": {
+      "names": {
+        "en": "Inconsistent Scale",
+        "zh-CN": "规模不对等"
+      }
+    },
+    "#DESTINY": {
+      "names": {
+        "en": "Gunderlord",
+        "zh-CN": "枪神"
+      }
+    },
+    "#FINGERPULSE": {
+      "names": {
+        "en": "Finger on the Pulse",
+        "zh-CN": "紧跟潮流"
+      }
+    },
+    "#VOIDCORE": {
+      "names": {
+        "en": "The Void Corps",
+        "zh-CN": "真空核心"
+      }
+    },
+    "#PLATINUMGOLD": {
+      "names": {
+        "en": "Precious Metals",
+        "zh-CN": "稀有金属"
+      }
+    },
+    "#TWOEGGS": {
+      "names": {
+        "en": "Two Eggs Over Easy",
+        "zh-CN": "两个蛋双面煎"
+      }
+    },
+    "#VORPALGUN": {
+      "names": {
+        "en": "Snicker-snack",
+        "zh-CN": "伽卜沃奇"
+      }
+    },
+    "#OUTERLIMITS": {
+      "names": {
+        "en": "Outer Limits",
+        "zh-CN": "外部限制"
+      }
+    },
+    "#KILNPEOPLE": {
+      "names": {
+        "en": "Hot Head",
+        "zh-CN": "头部灼热"
+      }
+    },
+    "#SNOWBREAKERS": {
+      "names": {
+        "en": "Ice Accumulation",
+        "zh-CN": "积冰"
+      }
+    },
+    "#CRISISROCK": {
+      "names": {
+        "en": "Human Shield",
+        "zh-CN": "人体盾牌"
+      }
+    },
+    "#DESTINY2": {
+      "names": {
+        "en": "It's Your Destiny",
+        "zh-CN": "这是你的命运"
+      }
+    },
+    "#MOONPLANET": {
+      "names": {
+        "en": "Moonplanet",
+        "zh-CN": "月星"
+      }
+    },
+    "#NANOARMOR": {
+      "names": {
+        "en": "Steel Skin",
+        "zh-CN": "钢皮"
+      }
+    },
+    "#ARMOREDCORE": {
+      "names": {
+        "en": "Armored Corps",
+        "zh-CN": "武装真空核心"
+      }
+    },
+    "#SEAFOAM": {
+      "names": {
+        "en": "Bubble Trouble",
+        "zh-CN": "烦恼泡泡"
+      }
+    },
+    "#SHOTGUNSPEED": {
+      "names": {
+        "en": "Shotgun Affinity",
+        "zh-CN": "枪的联姻"
+      }
+    },
+    "#TWOBLADES": {
+      "names": {
+        "en": "Throw All Daggers",
+        "zh-CN": "扔出所有匕首"
+      }
+    },
+    "#LIGHTKNIVES": {
+      "names": {
+        "en": "Fightknives",
+        "zh-CN": "光刀"
+      }
+    },
+    "#REALDARKSOULS": {
+      "names": {
+        "en": "Praise the Gun",
+        "zh-CN": "以枪为荣"
+      }
+    },
+    "#KEEPINGTHEBEAT": {
+      "names": {
+        "en": "Keeping The Beat",
+        "zh-CN": "保持节奏"
+      }
+    },
+    "#MINEFRIEND": {
+      "names": {
+        "en": "Mine Craft",
+        "zh-CN": "我地雷的世界"
+      }
+    },
+    "#WELLDRESSED": {
+      "names": {
+        "en": "Well-Dressed",
+        "zh-CN": "衣着讲究"
+      }
+    },
+    "#TRUEHERO": {
+      "names": {
+        "en": "Recessive Hero",
+        "zh-CN": "隐退的英雄"
+      }
+    },
+    "#TERMINATOR": {
+      "names": {
+        "en": "Terminated",
+        "zh-CN": "终结了的者"
+      }
+    },
+    "#GOODSOLDIER": {
+      "names": {
+        "en": "Decorated",
+        "zh-CN": "装饰"
+      }
+    },
+    "#SAUSAGEANDPEPPERS": {
+      "names": {
+        "en": "Sausage and Peppers",
+        "zh-CN": "香肠和辣椒"
+      }
+    },
+    "#SWEETNESSANDLIGHT": {
+      "names": {
+        "en": "Sweetness and Light",
+        "zh-CN": "与人为善"
+      }
+    },
+    "#TUTORIALIZED": {
+      "names": {
+        "en": "Tutorialized",
+        "zh-CN": "接受指导"
+      }
+    },
+    "#IDOLHANDS": {
+      "names": {
+        "en": "Devil's Plaything",
+        "zh-CN": "花天酒绿"
+      }
+    },
+    "#EVENACHILD": {
+      "names": {
+        "en": "Easy Enough",
+        "zh-CN": "足够只能"
+      }
+    },
+    "#DOUBLEHELIX": {
+      "names": {
+        "en": "Double Double Helix",
+        "zh-CN": "双重双螺旋"
+      }
+    },
+    "#HORNUCOPIA": {
+      "names": {
+        "en": "Hornucopia",
+        "zh-CN": "香蕉祝福"
+      }
+    },
+    "#HL2ROCKET": {
+      "names": {
+        "en": "Gunship Sinker",
+        "zh-CN": "炮艇"
+      }
+    },
+    "#DOUBLETELEPORTERS": {
+      "names": {
+        "en": "Telefrag",
+        "zh-CN": "传送杀"
+      }
+    },
+    "#LICHESSTITCHES": {
+      "names": {
+        "en": "Liches Get Stitches",
+        "zh-CN": "不死之王来一针"
+      }
+    },
+    "#DUMBSMARTBULLETS": {
+      "names": {
+        "en": "Dumb Smart Bullets",
+        "zh-CN": "愚蠢的智能子弹"
+      }
+    },
+    "#HALOGUNS": {
+      "names": {
+        "en": "Spartan Loadout",
+        "zh-CN": "斯巴达武装"
+      }
+    },
+    "#DOUBLECHESTFRIENDS": {
+      "names": {
+        "en": "Double Chest Friends",
+        "zh-CN": "双重宝箱伙伴"
+      }
+    },
+    "#FRIENDTOBOTH": {
+      "names": {
+        "en": "Friend to Gun and Bullet",
+        "zh-CN": "枪和子弹的好友"
+      }
+    },
+    "#RADIOACTIVEROCK": {
+      "names": {
+        "en": "Gungeonite",
+        "zh-CN": "花枪岩"
+      }
+    },
+    "#MENINBLACK": {
+      "names": {
+        "en": "Galaxy Defender",
+        "zh-CN": "银河守护队"
+      }
+    },
+    "#CREAM": {
+      "names": {
+        "en": "Cash Rules Everygun Around Me",
+        "zh-CN": "金钱主宰我身边的一切"
+      }
+    },
+    "#NINJATOOLS": {
+      "names": {
+        "en": "Raizo's Stuff",
+        "zh-CN": "雷藏的物品"
+      }
+    },
+    "#DRAGUNICE": {
+      "names": {
+        "en": "Dragunice",
+        "zh-CN": "冰龙"
+      }
+    },
+    "#NAPALMB": {
+      "names": {
+        "en": "Napalm B",
+        "zh-CN": "第二类凝固汽油"
+      }
+    },
+    "#BLADESRUNNER": {
+      "names": {
+        "en": "Running Blades",
+        "zh-CN": "杀手银翼"
+      }
+    },
+    "#TELEPORTERACCIDENT": {
+      "names": {
+        "en": "Second Accident",
+        "zh-CN": "第二次传送事故"
+      }
+    },
+    "#TEARSOFBLOOD": {
+      "names": {
+        "en": "Tears of Blood",
+        "zh-CN": "血之泪"
+      }
+    },
+    "#CRITICALIBER": {
+      "names": {
+        "en": "Criticaliber",
+        "zh-CN": "审判枪口"
+      }
+    },
+    "#EMPTYVESSELS": {
+      "names": {
+        "en": "Empty Vessels",
+        "zh-CN": "空的容器"
+      }
+    },
+    "#DEADPREZ": {
+      "names": {
+        "en": "Dead Prez",
+        "zh-CN": "死掉的Prez"
+      }
+    },
+    "#LASERPLASMA": {
+      "names": {
+        "en": "Particle Flow",
+        "zh-CN": "粒子流"
+      }
+    },
+    "#ANTIAIR": {
+      "names": {
+        "en": "Anti-Aircraft",
+        "zh-CN": "防空设备"
+      }
+    },
+    "#MAGNUMPI": {
+      "names": {
+        "en": "Detective Magnum",
+        "zh-CN": "夏威夷神探"
+      }
+    },
+    "#ELEPHANTGUN": {
+      "names": {
+        "en": "The Elephant in the Room",
+        "zh-CN": "房间里的大象"
+      }
+    },
+    "#ELEPHANTGUN2": {
+      "names": {
+        "en": "The Elephant in the Room",
+        "zh-CN": "房间里的大象"
+      }
+    },
+    "#LOOPERTIME": {
+      "names": {
+        "en": "Thrown For A Bloop",
+        "zh-CN": "被笨头枪圈住"
+      }
+    },
+    "#SAWEDON": {
+      "names": {
+        "en": "Not So Sawed-Off",
+        "zh-CN": "没有很短"
+      }
+    },
+    "#FLUBBER": {
+      "names": {
+        "en": "Absent Minded",
+        "zh-CN": "飞天法宝"
+      }
+    },
+    "#SYNTHESIZERS1": {
+      "names": {
+        "en": "Synthetic Shield",
+        "zh-CN": "合成盾牌"
+      }
+    },
+    "#SYNTHESIZERS2": {
+      "names": {
+        "en": "Synthetic Shield",
+        "zh-CN": "合成盾牌"
+      }
+    },
+    "#SYNTHESIZERS3": {
+      "names": {
+        "en": "Synthetic Shield",
+        "zh-CN": "合成盾牌"
+      }
+    },
+    "#DUNGEONOWL": {
+      "names": {
+        "en": "Don't Hoot the Messenger",
+        "zh-CN": "两国交兵不吼来使"
+      }
+    },
+    "#CASTIRON": {
+      "names": {
+        "en": "Cast Iron",
+        "zh-CN": "变戏法"
+      }
+    },
+    "#CASTIRON2": {
+      "names": {
+        "en": "Cast Iron",
+        "zh-CN": "变戏法"
+      }
+    },
+    "#CASTIRON3": {
+      "names": {
+        "en": "Cast Iron",
+        "zh-CN": "变戏法"
+      }
+    },
+    "#KINGOFTHESEA": {
+      "names": {
+        "en": "Poseigun",
+        "zh-CN": "波塞枪"
+      }
+    },
+    "#NORUSHING": {
+      "names": {
+        "en": "No Odd Job",
+        "zh-CN": "没有飞帽"
+      }
+    },
+    "#PULPGUNGEON": {
+      "names": {
+        "en": "Pulp Gungeon",
+        "zh-CN": "低俗地牢"
+      }
+    },
+    "#THESTARWAR": {
+      "names": {
+        "en": "The Star War",
+        "zh-CN": "星球小战"
+      }
+    },
+    "#CLAWNTLET": {
+      "names": {
+        "en": "Clawntlet",
+        "zh-CN": "金属护爪"
+      }
+    },
+    "#CORMORANTFLIGHT": {
+      "names": {
+        "en": "Knight Time",
+        "zh-CN": "骑士登场"
+      }
+    },
+    "#ARMOREDGUNKNIGHT": {
+      "names": {
+        "en": "Constitution Check",
+        "zh-CN": "鉴定体质"
+      }
+    },
+    "#TERMINATORTWO": {
+      "names": {
+        "en": "Terminated, Too",
+        "zh-CN": "终结了的者2"
+      }
+    },
+    "#BIGSHOTGUNGUN": {
+      "names": {
+        "en": "Big Shotgun Gun",
+        "zh-CN": "大猎枪的枪"
+      }
+    },
+    "#THREESIXTY": {
+      "names": {
+        "en": "360 Yes Scope",
+        "zh-CN": "360度瞎狙"
+      }
+    },
+    "#TABLETECHBEES1": {
+      "names": {
+        "en": "Hidden Tech Bees",
+        "zh-CN": "隐匿桌技"
+      }
+    },
+    "#TABLETECHBEES2": {
+      "names": {
+        "en": "Hidden Tech Bees",
+        "zh-CN": "隐匿桌技"
+      }
+    },
+    "#TABLETECHBEES3": {
+      "names": {
+        "en": "Hidden Tech Bees",
+        "zh-CN": "隐匿桌技"
+      }
+    },
+    "#TABLETECHTIME": {
+      "names": {
+        "en": "Hidden Tech Time",
+        "zh-CN": "隐匿桌技时刻"
+      }
+    },
+    "#HOLYBELL": {
+      "names": {
+        "en": "Holy Bell",
+        "zh-CN": "圣洁铃音"
+      }
+    },
+    "#FEATHERPILLOW": {
+      "names": {
+        "en": "Feather Pillow",
+        "zh-CN": "羽毛枕头"
+      }
+    },
+    "#BOWLING": {
+      "names": {
+        "en": "Kingpin",
+        "zh-CN": "中心立轴"
+      }
+    },
+    "#METEORFLARE": {
+      "names": {
+        "en": "Solar Flare",
+        "zh-CN": "耀斑"
+      }
+    },
+    "#MRSHADOW": {
+      "names": {
+        "en": "Mr. Shadow",
+        "zh-CN": "暗影先生"
+      }
+    },
+    "#BULLETKILN": {
+      "names": {
+        "en": "Bullet Kiln",
+        "zh-CN": "子弹窑枪"
+      }
+    },
+    "#USEFULTOOLS": {
+      "names": {
+        "en": "Wonderful Toys",
+        "zh-CN": "神奇的玩具"
+      }
+    },
+    "#DOGANDWOLF": {
+      "names": {
+        "en": "Husky",
+        "zh-CN": "哈士奇"
+      }
+    },
+    "#RESOURCEFULRAT": {
+      "names": {
+        "en": "Resourceful Indeed",
+        "zh-CN": "着实聪明"
+      }
+    },
+    "#BETARAY": {
+      "names": {
+        "en": "Beta Ray",
+        "zh-CN": "Beta射线"
+      }
+    },
+    "#BULLETBUD": {
+      "names": {
+        "en": "Bullet Bud",
+        "zh-CN": "子弹兄弟"
+      }
+    },
+    "#SHOTGUNGUY": {
+      "names": {
+        "en": "Shotgun Guy",
+        "zh-CN": "手枪小伙子"
+      }
+    },
+    "#KLOBBETIME": {
+      "names": {
+        "en": "Klobbering Time",
+        "zh-CN": "痛击时刻"
+      }
+    },
+    "#PEACANNON": {
+      "names": {
+        "en": "Pea Cannon",
+        "zh-CN": "豌豆大炮"
+      }
+    },
+    "#KALIBREATH": {
+      "names": {
+        "en": "Kalibreath",
+        "zh-CN": "卡里波尔的呼吸"
+      }
+    },
+    "#MACHINEPISTOL": {
+      "names": {
+        "en": "Pistol Machine",
+        "zh-CN": "手枪机"
+      }
+    },
+    "#LASERLIGHTSHOW": {
+      "names": {
+        "en": "Laser Light Show",
+        "zh-CN": "光影秀"
+      }
+    },
+    "#DUALINGPISTOL": {
+      "names": {
+        "en": "Dualing Pistol",
+        "zh-CN": "决战双枪"
+      }
+    },
+    "#RUSTIERGOOPER": {
+      "names": {
+        "en": "Pandemic Pistol",
+        "zh-CN": "传染病手枪"
+      }
+    },
+    "#BUSTERGUN": {
+      "names": {
+        "en": "Buster Gun",
+        "zh-CN": "破坏枪"
+      }
+    },
+    "#THUNDERBOLT": {
+      "names": {
+        "en": "Alistair's Ladder",
+        "zh-CN": "阿利斯泰尔的爬梯"
+      }
+    },
+    "#SNOWBALLSHOTGUN": {
+      "names": {
+        "en": "Snowball Shotgun",
+        "zh-CN": "雪球手枪"
+      }
+    },
+    "#BLUNDERBRACE": {
+      "names": {
+        "en": "Blunderbrace",
+        "zh-CN": "增强喇叭枪"
+      }
+    },
+    "#KALIBERSGRIP": {
+      "names": {
+        "en": "Kaliber's Grip",
+        "zh-CN": "卡里波尔的控制"
+      }
+    },
+    "#PIGTECTION": {
+      "names": {
+        "en": "Porkulent",
+        "zh-CN": "猪猪"
+      }
+    },
+    "#DOUBLELIGHT": {
+      "names": {
+        "en": "Hard Light",
+        "zh-CN": "硬光枪"
+      }
+    },
+    "#ONTHEFORCE": {
+      "names": {
+        "en": "Detective Mode",
+        "zh-CN": "你的警徽和枪"
+      }
+    },
+    "#PLANPAIN": {
+      "names": {
+        "en": "Fruits and Vegetables",
+        "zh-CN": "水果和蔬菜"
+      }
+    },
+    "#TACTICOOL": {
+      "names": {
+        "en": "M1 Multi-Tool",
+        "zh-CN": "米达多功能枪"
+      }
+    },
+    "#BLACKFLAG": {
+      "names": {
+        "en": "Black Flag",
+        "zh-CN": "海盗旗"
+      }
+    },
+    "#LASERTHOMPSON": {
+      "names": {
+        "en": "Future Gangster",
+        "zh-CN": "未来匪帮"
+      }
+    },
+    "#SLUGIRON": {
+      "names": {
+        "en": "Iron Slug",
+        "zh-CN": "铁弹头"
+      }
+    },
+    "#MISSILE_BOW": {
+      "names": {
+        "en": "Shot Across The Bow",
+        "zh-CN": "警告警告"
+      }
+    },
+    "#SPECIAL_FORCES": {
+      "names": {
+        "en": "Hegemony Special Forces",
+        "zh-CN": "帝国特种部队"
+      }
+    },
+    "#BATTERY_POWERED": {
+      "names": {
+        "en": "Battery Powered",
+        "zh-CN": "电池供电"
+      }
+    },
+    "#IGNITION_REMIX": {
+      "names": {
+        "en": "Special Reserve",
+        "zh-CN": "特别储备"
+      }
+    },
+    "#LOADED_DICE": {
+      "names": {
+        "en": "Maximize Spell",
+        "zh-CN": "法术极效"
+      }
+    },
+    "#NOXIN_CANNON": {
+      "names": {
+        "en": "Noxin Cannon",
+        "zh-CN": "诺信加农炮"
+      }
+    },
+    "#NAILCANNON": {
+      "names": {
+        "en": "Nailed It!",
+        "zh-CN": "搞定"
+      }
+    },
+    "#APIARY": {
+      "names": {
+        "en": "Apiary",
+        "zh-CN": "蜂房"
+      }
+    },
+    "#ALTERNATIVE_ROCK": {
+      "names": {
+        "en": "Alternative Rock",
+        "zh-CN": "另类摇滚"
+      }
+    },
+    "#MASTER_CHIEF": {
+      "names": {
+        "en": "Chief Master",
+        "zh-CN": "士官长"
+      }
+    },
+    "#RECYCLING": {
+      "names": {
+        "en": "Recycling Bin",
+        "zh-CN": "回收站"
+      }
+    },
+    "#CACTUS_FLOWER": {
+      "names": {
+        "en": "Cactus Flower",
+        "zh-CN": "仙人掌花"
+      }
+    },
+    "#DRINKING_PROBLEM": {
+      "names": {
+        "en": "Five O'Clock Somewhere",
+        "zh-CN": "某处刚好五点"
+      }
+    },
+    "#PHOENIX_AND_EGG": {
+      "names": {
+        "en": "Phoenix Up",
+        "zh-CN": "不死鸟之首"
+      }
+    },
+    "#FISH_BACKUP": {
+      "names": {
+        "en": "Like Shooting Fish",
+        "zh-CN": "瓮中捉鳖"
+      }
+    },
+    "#GUON_UPGRADE_GREEN": {
+      "names": {
+        "en": "Greener Guon Stone",
+        "zh-CN": "更绿的绿色滚石"
+      }
+    },
+    "#GUON_UPGRADE_ORANGE": {
+      "names": {
+        "en": "Oranger Guon Stone",
+        "zh-CN": "更橘的橘色滚石"
+      }
+    },
+    "#GUON_UPGRADE_CLEAR": {
+      "names": {
+        "en": "Clearer Guon Stone",
+        "zh-CN": "更透明的透明滚石"
+      }
+    },
+    "#GUON_UPGRADE_RED": {
+      "names": {
+        "en": "Redder Guon Stone",
+        "zh-CN": "更红的红色滚石"
+      }
+    },
+    "#GUON_UPGRADE_PINK": {
+      "names": {
+        "en": "Pinker Guon Stone",
+        "zh-CN": "更粉的粉色滚石"
+      }
+    },
+    "#GUON_UPGRADE_BLUE": {
+      "names": {
+        "en": "Bluer Guon Stone",
+        "zh-CN": "更蓝的蓝色滚石"
+      }
+    },
+    "#GUON_UPGRADE_WHITE": {
+      "names": {
+        "en": "Whiter Guon Stone",
+        "zh-CN": "更白的白色滚石"
+      }
+    },
+    "#FLAIR_GUN": {
+      "names": {
+        "en": "Firing With Flair",
+        "zh-CN": "天才枪手"
+      }
+    },
+    "#ZIP_ZAPPER": {
+      "names": {
+        "en": "Peripheral Vision",
+        "zh-CN": "周边视觉"
+      }
+    },
+    "#LESS_MINI_GUN": {
+      "names": {
+        "en": "Not Quite As Mini",
+        "zh-CN": "没那么小"
+      }
+    },
+    "#ARCTIC_WARFARE": {
+      "names": {
+        "en": "Arctic Warfare",
+        "zh-CN": "极地战争"
+      }
+    },
+    "#CURLY_BRACE": {
+      "names": {
+        "en": "Square Brace",
+        "zh-CN": "方形支架"
+      }
+    },
+    "#LOTUS_BLOOM": {
+      "names": {
+        "en": "Lotus Bloom",
+        "zh-CN": "莲花绽放"
+      }
+    },
+    "#KING_BOMBER": {
+      "names": {
+        "en": "King Bomber",
+        "zh-CN": "炸弹之王"
+      }
+    },
+    "#BORING_COMPANY": {
+      "names": {
+        "en": "Boring Company",
+        "zh-CN": "钻探部队"
+      }
+    },
+    "#RUBY_CARBINE": {
+      "names": {
+        "en": "Ruby Carbine",
+        "zh-CN": "红宝石卡宾枪"
+      }
+    },
+    "#COMAMMO_BELT": {
+      "names": {
+        "en": "Comammo Belt",
+        "zh-CN": "司令腰带"
+      }
+    },
+    "#CEREBRAL_BROS": {
+      "names": {
+        "en": "Cerebral Bros",
+        "zh-CN": "钻探兄弟"
+      }
+    },
+    "#MOONRAKING_IT_IN": {
+      "names": {
+        "en": "Double Moon 7",
+        "zh-CN": "洞洞七"
+      }
+    },
+    "#RAIDEN": {
+      "names": {
+        "en": "RAIDEN",
+        "zh-CN": "雷电"
+      }
+    },
+    "#ANTQUEEN": {
+      "names": {
+        "en": "Great Queen Ant",
+        "zh-CN": "蚁后"
+      }
+    },
+    "#MERMAIDFISH": {
+      "names": {
+        "en": "Brave New World",
+        "zh-CN": "美丽新世界"
+      }
+    },
+    "#CAPTAINPLANTIT": {
+      "names": {
+        "en": "Captain Plant It",
+        "zh-CN": "地球超人"
+      }
+    },
+    "#CONTRAIL": {
+      "names": {
+        "en": "Contrail",
+        "zh-CN": "飞机云"
+      }
+    },
+    "#PITCHPERFECT": {
+      "names": {
+        "en": "Pitch Perfect",
+        "zh-CN": "地狱魔叉"
+      }
+    },
+    "#PARCHMENTAL": {
+      "names": {
+        "en": "Parchmental",
+        "zh-CN": "图穷枪见"
+      }
+    },
+    "#LINK": {
+      "names": {
+        "en": "Elf Bow",
+        "zh-CN": "精灵之弓"
+      }
+    },
+    "#DRWORM": {
+      "names": {
+        "en": "Dr Worm",
+        "zh-CN": "蚯蚓博士"
+      }
+    },
+    "#MAGNIFYINGGLASS": {
+      "names": {
+        "en": "Sleuth Out",
+        "zh-CN": "侦探"
+      }
+    },
+    "#MAKPAK": {
+      "names": {
+        "en": "Mak Pak",
+        "zh-CN": "马卡组合"
+      }
+    },
+    "#HEAVYJOLTER": {
+      "names": {
+        "en": "Heavy Jolt",
+        "zh-CN": "重装武器"
+      }
+    },
+    "#DODGELOAD": {
+      "names": {
+        "en": "Reload Roll",
+        "zh-CN": "翻滚上弹"
+      }
+    },
+    "#IRONSHOT": {
+      "names": {
+        "en": "Iron Stance",
+        "zh-CN": "钢铁之姿"
+      }
+    },
+    "#THORNPRICK": {
+      "names": {
+        "en": "Thorn Bath, ooh!",
+        "zh-CN": "哇，荆棘浴！"
+      }
+    },
+    "#ROLLSPHERE": {
+      "names": {
+        "en": "Roll Shot",
+        "zh-CN": "翻滚射击"
+      }
+    },
+    "#ROBOCOP": {
+      "names": {
+        "en": "To Serve Android",
+        "zh-CN": "机器警察爱机器"
+      }
+    },
+    "#CANNONREBORN": {
+      "names": {
+        "en": "The Return",
+        "zh-CN": "复仇归来"
+      }
+    },
+    "#OUTLAWSTAR": {
+      "names": {
+        "en": "All Out Of Law",
+        "zh-CN": "法外之徒"
+      }
+    },
+    "#MARIOPARTY": {
+      "names": {
+        "en": "Block Party",
+        "zh-CN": "砖块派对"
+      }
+    },
+    "#BREAKFASTCLUB": {
+      "names": {
+        "en": "Breakfast Club",
+        "zh-CN": "早餐俱乐部"
+      }
+    },
+    "#KLOBBERINGTIME": {
+      "names": {
+        "en": "Klobbering Time",
+        "zh-CN": "可洛比时间"
+      }
+    },
+    "#FRIFLEMAUSER": {
+      "names": {
+        "en": "Guns And Deviltry",
+        "zh-CN": "枪支与恶行"
+      }
+    },
+    "#HEDWIG": {
+      "names": {
+        "en": "Special Delivery",
+        "zh-CN": "特别配送"
+      }
+    },
+    "#HEAVYMETAL": {
+      "names": {
+        "en": "Heavy Metal",
+        "zh-CN": "重金属"
+      }
+    },
+    "#BLADERUNNER": {
+      "names": {
+        "en": "Blade Runner",
+        "zh-CN": "银翼杀手"
+      }
+    },
+    "#DIAZEPAM": {
+      "names": {
+        "en": "Diazepam",
+        "zh-CN": "安定剂"
+      }
+    },
+    "#BEES": {
+      "names": {
+        "en": "BEES",
+        "zh-CN": "虫夆"
+      }
+    },
+    "#MUSIC": {
+      "names": {
+        "en": "Shredder",
+        "zh-CN": "激情弹奏"
+      }
+    },
+    "#BATMAN": {
+      "names": {
+        "en": "Gunnerang",
+        "zh-CN": "回旋飞枪"
+      }
+    },
+    "#REVOLUTIONARY": {
+      "names": {
+        "en": "Revolution",
+        "zh-CN": "革命"
+      }
+    },
+    "#SNAKEPLISSKIN": {
+      "names": {
+        "en": "Iroquois",
+        "zh-CN": "易洛魁人"
+      }
+    },
+    "#VEGETABLES": {
+      "names": {
+        "en": "Vegetables",
+        "zh-CN": "健康蔬菜"
+      }
+    },
+    "#MGUNS": {
+      "names": {
+        "en": "Mmmmmmmmm MMMMmm!",
+        "zh-CN": "这就很M"
+      }
+    },
+    "#VULCANRAVEN": {
+      "names": {
+        "en": "Vulcan Raving",
+        "zh-CN": "火神怒吼"
+      }
+    },
+    "#LOWER_CASE_R": {
+      "names": {
+        "en": "Hacker",
+        "zh-CN": "黑客"
+      }
+    },
+    "#DEADSPACE": {
+      "names": {
+        "en": "Dead Place",
+        "zh-CN": "死亡之间"
+      }
+    },
+    "#WOODAXE": {
+      "names": {
+        "en": "Lumberjacked",
+        "zh-CN": "伐木丁丁"
+      }
+    },
+    "#ALPHAOMEGA": {
+      "names": {
+        "en": "J am",
+        "zh-CN": "开始与终结"
+      }
+    },
+    "#POSTMAN": {
+      "names": {
+        "en": "Flat Stanley",
+        "zh-CN": "纸片人斯坦利"
+      }
+    },
+    "#QUAKE": {
+      "names": {
+        "en": "In The Mood!",
+        "zh-CN": "拥抱毁灭"
+      }
+    },
+    "#GARBAGE": {
+      "names": {
+        "en": "Grouch",
+        "zh-CN": "垃圾鬼奥斯卡"
+      }
+    },
+    "#FORTUNESFAVOR": {
+      "names": {
+        "en": "Dead Cell",
+        "zh-CN": "死亡细胞"
+      }
+    },
+    "#OCELOT": {
+      "names": {
+        "en": "Pretty Good",
+        "zh-CN": "你还不错啊"
+      }
+    },
+    "#COLDASICE": {
+      "names": {
+        "en": "Willing To Sacrifice",
+        "zh-CN": "心冷如冰"
+      }
+    },
+    "#BLOODBORNE": {
+      "names": {
+        "en": "Fear The Old Blood",
+        "zh-CN": "畏惧古血"
+      }
+    },
+    "#CHARGESHOT": {
+      "names": {
+        "en": "Barrage Shot",
+        "zh-CN": "蓄能齐射"
+      }
+    },
+    "#SPONGEBOB": {
+      "names": {
+        "en": "Spengbab",
+        "zh-CN": "海绵炮炮"
+      }
+    },
+    "#DEMONIC": {
+      "names": {
+        "en": "Hail, Satan!",
+        "zh-CN": "撒旦万岁！"
+      }
+    },
+    "#CHICKENANDPIG": {
+      "names": {
+        "en": "Bacon And Eggs",
+        "zh-CN": "培根炒蛋"
+      }
+    },
+    "#ZELDA": {
+      "names": {
+        "en": "Fairy Bow",
+        "zh-CN": "精灵之弓"
+      }
+    },
+    "#CAPTAINCOLD": {
+      "names": {
+        "en": "Ice Cap",
+        "zh-CN": "冷冻队长"
+      }
+    },
+    "#REPLETE": {
+      "names": {
+        "en": "Replete",
+        "zh-CN": ""
+      }
+    },
+    "#KILLINGJOKE": {
+      "names": {
+        "en": "The Killing Joke",
+        "zh-CN": "致命玩笑"
+      }
+    },
+    "#TURTLESOLUTIONS": {
+      "names": {
+        "en": "Turtle Solutions",
+        "zh-CN": "乌龟解答"
+      }
+    },
+    "#SECRETTWIN": {
+      "names": {
+        "en": "Secret Twin",
+        "zh-CN": "秘密双胞胎"
+      }
+    },
+    "#USURPER": {
+      "names": {
+        "en": "Usurper",
+        "zh-CN": "篡位者"
+      }
+    },
+    "#SOULAIR": {
+      "names": {
+        "en": "\\o/",
+        "zh-CN": ""
+      }
+    },
+    "#ORRERY": {
+      "names": {
+        "en": "Orrery",
+        "zh-CN": "星象仪"
+      }
+    },
+    "#MONOCLES": {
+      "names": {
+        "en": "Monsters and Monocles",
+        "zh-CN": "戴单片镜的怪物们"
+      }
+    },
+    "#TEAFORTWO": {
+      "names": {
+        "en": "Tea for Two",
+        "zh-CN": "茶，两位"
+      }
+    },
+    "#POWERHOUSE": {
+      "names": {
+        "en": "Powerhouse of the Cell",
+        "zh-CN": "细胞的发电站"
+      }
+    },
+    "#GREENTHUMB": {
+      "names": {
+        "en": "Green Thumb",
+        "zh-CN": "园艺高手"
+      }
+    },
+    "#SHIELDNIGHT": {
+      "names": {
+        "en": "Shield Night",
+        "zh-CN": "持盾骑士"
+      }
+    },
+    "#TWOKINDSOFPEOPLE": {
+      "names": {
+        "en": "Two Kinds of People",
+        "zh-CN": "两种人"
+      }
+    },
+    "#BIRTHRIGHT": {
+      "names": {
+        "en": "Birthright",
+        "zh-CN": "早有所属"
+      }
+    },
+    "#SHELLATON": {
+      "names": {
+        "en": "Shell-A-Ton",
+        "zh-CN": "骷髅大军"
+      }
+    },
+    "#JUSTINCASE": {
+      "names": {
+        "en": "Just In Case",
+        "zh-CN": "以防万一"
+      }
+    },
+    "#SNIPERION": {
+      "names": {
+        "en": "Alas, Sniperion",
+        "zh-CN": "啊啊，狙伯利安"
+      }
+    },
+    "#MASTERCHAMBERS": {
+      "names": {
+        "en": "Master's Chambers",
+        "zh-CN": "胜者之膛"
+      }
+    },
+    "#CHANCEONHIT": {
+      "names": {
+        "en": "Chance On Hit",
+        "zh-CN": "命中时有几率"
+      }
+    },
+    "#ELDERBLANKBULLETS": {
+      "names": {
+        "en": "Elder Blank Bullets",
+        "zh-CN": "老空响子弹"
+      }
+    },
+    "#HIDDENTECHSHOTGUN": {
+      "names": {
+        "en": "Hidden Tech Big Shotgun",
+        "zh-CN": "秘之桌技：大型霰弹枪"
+      }
+    },
+    "#HIDDENTECHFLARE": {
+      "names": {
+        "en": "Hidden Tech Flare",
+        "zh-CN": "秘之桌技：照明弹"
+      }
+    },
+    "#MAGAZINECLIPS": {
+      "names": {
+        "en": "Magazine Clips",
+        "zh-CN": "弹匣弹鼓"
+      }
+    },
+    "#KINJUTSU": {
+      "names": {
+        "en": "Kinjutsu",
+        "zh-CN": "禁术"
+      }
+    },
+    "#CIRCLEOFBRICKS": {
+      "names": {
+        "en": "Circle of Bricks",
+        "zh-CN": "砖块之环"
+      }
+    },
+    "#TILEMATCH": {
+      "names": {
+        "en": "Tile Match",
+        "zh-CN": "对颜色"
+      }
+    },
+    "#LARGERNUMBER": {
+      "names": {
+        "en": "some even larger number",
+        "zh-CN": "不三不四"
+      }
+    },
+    "#CRAVEGLAIVE": {
+      "names": {
+        "en": "Crave the Glaive",
+        "zh-CN": "飞去来镖"
+      }
+    },
+    "#BLADE": {
+      "names": {
+        "en": "blade",
+        "zh-CN": "刀锋战士"
+      }
+    },
+    "#MAXPANE": {
+      "names": {
+        "en": "Max Pane",
+        "zh-CN": "玻玻益善"
+      }
+    },
+    "#WHALETIME": {
+      "names": {
+        "en": "Whale of a Time",
+        "zh-CN": "大吃一鲸"
+      }
+    },
+    "#THERMALIMAGING": {
+      "names": {
+        "en": "Thermal Imaging",
+        "zh-CN": "热成像"
+      }
+    },
+    "#KALIBERKBOOM": {
+      "names": {
+        "en": "Kaliber k'pow uboom k'bhang",
+        "zh-CN": "卡利波尔佑我砰砰砰"
+      }
+    },
+    "#JUSTSHOOTME": {
+      "names": {
+        "en": "Just Shoot Me",
+        "zh-CN": "拍我啊"
+      }
+    },
+    "#JUNKMAIL": {
+      "names": {
+        "en": "Junk Mail",
+        "zh-CN": "垃圾邮件"
+      }
+    },
+    "#PLANTPOWER": {
+      "names": {
+        "en": "Plant Power",
+        "zh-CN": "植物力量"
+      }
+    },
+    "#WICKEDSISTER": {
+      "names": {
+        "en": "Wicked Sister",
+        "zh-CN": "狡诈修女"
+      }
+    },
+    "#MADCATS": {
+      "names": {
+        "en": "Mad Cats",
+        "zh-CN": "疯猫"
+      }
+    },
+    "#NATURALSELECTION": {
+      "names": {
+        "en": "Natural Selection",
+        "zh-CN": "物竞天择"
+      }
+    },
+    "#FITTEST": {
+      "names": {
+        "en": "Fittest",
+        "zh-CN": "适者"
+      }
+    },
+    "#COOLER": {
+      "names": {
+        "en": "Cooler",
+        "zh-CN": "更酷"
+      }
+    },
+    "#FULLCIRCLE": {
+      "names": {
+        "en": "Full Circle",
+        "zh-CN": "循环始终"
+      }
+    },
+    "#THREEPARTHARMONY": {
+      "names": {
+        "en": "Three Part Harmony",
+        "zh-CN": "三重和声"
+      }
+    },
+    "#INTIME": {
+      "names": {
+        "en": "In Time",
+        "zh-CN": "刚够时间"
+      }
+    },
+    "#NEEDSCISSORS": {
+      "names": {
+        "en": "I need scissors! 61!",
+        "zh-CN": "我需要剪刀！61！"
+      }
+    },
+    "#WORLDSOFGUNCRAFT": {
+      "names": {
+        "en": "Worlds of Guncraft",
+        "zh-CN": "魔枪世界"
+      }
+    },
+    "#HEADSUP": {
+      "names": {
+        "en": "Heads Up",
+        "zh-CN": "换头"
+      }
+    },
+    "#AIRSOFT": {
+      "names": {
+        "en": "Soft Air",
+        "zh-CN": "软弹气枪"
+      }
+    },
+    "#BATTLEMODE": {
+      "names": {
+        "en": "Battle Mode",
+        "zh-CN": "战斗模式"
+      }
+    }
+  }
+}

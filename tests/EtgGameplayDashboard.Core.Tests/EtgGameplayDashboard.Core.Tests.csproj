@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{C4B4D6D7-7B1F-41F5-A63F-35BCF9C621D0}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>EtgGameplayDashboard.Core.Tests</RootNamespace>
+    <AssemblyName>EtgGameplayDashboard.Core.Tests</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Newtonsoft.Json">
+      <HintPath>..\..\lib\Newtonsoft.Json.dll</HintPath>
+      <Private>true</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssertEx.cs" />
+    <Compile Include="AliasRegistryTests.cs" />
+    <Compile Include="CursorRenderOwnershipServiceTests.cs" />
+    <Compile Include="GrantCommandParserTests.cs" />
+    <Compile Include="PlayerInputOwnershipServiceTests.cs" />
+    <Compile Include="GuiTextStub.cs" />
+    <Compile Include="RuleFileProviderTests.cs" />
+    <Compile Include="RandomPoolSelectionStateProviderTests.cs" />
+    <Compile Include="LoadoutSelectionServiceTests.cs" />
+    <Compile Include="RuntimeHookContractTests.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\AliasEntryModel.cs">
+      <Link>Plugin\Configuration\AliasEntryModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\AliasLoadResult.cs">
+      <Link>Plugin\Configuration\AliasLoadResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\DashboardFileLayout.cs">
+      <Link>Plugin\Configuration\DashboardFileLayout.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\Json5TextNormalizer.cs">
+      <Link>Plugin\Configuration\Json5TextNormalizer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\JsonLoadoutRuleFileProvider.cs">
+      <Link>Plugin\Configuration\JsonLoadoutRuleFileProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\JsonLoadoutRuleFileProvider.Convert.cs">
+      <Link>Plugin\Configuration\JsonLoadoutRuleFileProvider.Convert.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\JsonLoadoutRuleFileProvider.Load.cs">
+      <Link>Plugin\Configuration\JsonLoadoutRuleFileProvider.Load.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\JsonLoadoutRuleFileProvider.Parse.cs">
+      <Link>Plugin\Configuration\JsonLoadoutRuleFileProvider.Parse.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\JsonLoadoutRuleFileProvider.Presets.cs">
+      <Link>Plugin\Configuration\JsonLoadoutRuleFileProvider.Presets.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\JsonLoadoutRuleFileProvider.Save.cs">
+      <Link>Plugin\Configuration\JsonLoadoutRuleFileProvider.Save.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\JsonPickupAliasFileProvider.cs">
+      <Link>Plugin\Configuration\JsonPickupAliasFileProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\RandomPoolSelectionStateProvider.cs">
+      <Link>Plugin\Configuration\RandomPoolSelectionStateProvider.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\LoadoutRuleDefinition.cs">
+      <Link>Plugin\Configuration\LoadoutRuleDefinition.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\LoadoutRuleFileLoadResult.cs">
+      <Link>Plugin\Configuration\LoadoutRuleFileLoadResult.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\LoadoutRuleFileModel.cs">
+      <Link>Plugin\Configuration\LoadoutRuleFileModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\PickupAliasEntry.cs">
+      <Link>Plugin\Configuration\PickupAliasEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\PickupAliasRegistry.cs">
+      <Link>Plugin\Configuration\PickupAliasRegistry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\src\EtgGameplayDashboard\Configuration\StartItemsPresetNames.cs">
+      <Link>Plugin\Configuration\StartItemsPresetNames.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EtgGameplayDashboard.Core\EtgGameplayDashboard.Core.csproj">
+      <Project>{8F43F1F5-5826-43D5-8FE8-4B3732F9C58F}</Project>
+      <Name>EtgGameplayDashboard.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="..\..\build\LicenseHeaderCheck.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

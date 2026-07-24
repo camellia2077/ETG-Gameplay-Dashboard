@@ -25,13 +25,13 @@ EnableControllerAimVerboseLogs = false
 Extract the relevant lines with:
 
 ```powershell
-python .\tools\logs\read_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" --pattern "\[RandomLoadout\]\[Aim\]" --tail 300
+python .\tools\logs\read_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" --pattern "\[EtgGameplayDashboard\]\[Aim\]" --tail 300
 ```
 
 You can also save them to a file:
 
 ```powershell
-python .\tools\logs\read_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" --pattern "\[RandomLoadout\]\[Aim\]" --tail 300 -o .\controller-aim.log
+python .\tools\logs\read_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" --pattern "\[EtgGameplayDashboard\]\[Aim\]" --tail 300 -o .\controller-aim.log
 ```
 
 Please send `controller-aim.log`. The important fields are `DeviceMode`, `RawAimDistance`, `AimVector`,

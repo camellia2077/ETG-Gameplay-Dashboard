@@ -1,0 +1,48 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
+namespace EtgGameplayDashboard
+{
+    internal sealed class GrantCommandExecutionResult
+    {
+        public GrantCommandExecutionResult(bool succeeded, string message)
+            : this(succeeded, message, message, string.Empty)
+        {
+        }
+
+        public GrantCommandExecutionResult(bool succeeded, string message, string logMessage)
+            : this(succeeded, message, logMessage, string.Empty)
+        {
+        }
+
+        public GrantCommandExecutionResult(bool succeeded, string message, string logMessage, string localizationKey)
+        {
+            Succeeded = succeeded;
+            Message = message;
+            LogMessage = logMessage;
+            LocalizationKey = localizationKey ?? string.Empty;
+        }
+
+        public bool Succeeded { get; private set; }
+
+        public string Message { get; private set; }
+
+        public string LogMessage { get; private set; }
+
+        public string LocalizationKey { get; private set; }
+
+        public static GrantCommandExecutionResult Localized(bool succeeded, string key)
+        {
+            return Localized(succeeded, key, new object[0]);
+        }
+
+        public static GrantCommandExecutionResult Localized(bool succeeded, string key, params object[] args)
+        {
+            return new GrantCommandExecutionResult(
+                succeeded,
+                GuiText.Get(key, args),
+                GuiText.GetEnglish(key, args),
+                key);
+        }
+    }
+}

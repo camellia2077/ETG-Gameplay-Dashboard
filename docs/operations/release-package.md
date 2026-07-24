@@ -52,10 +52,10 @@ The package root is the game root overlay layout, not a repository layout.
 The generated zip includes:
 
 * the official `BepInExPack_EtG` package, redistributed unmodified
-* `BepInEx\plugins\RandomLoadout.dll`
+* `BepInEx\plugins\EtgGameplayDashboard.dll`
 * `ModTheGungeonAPI` and its runtime dependencies (copied from the repository `lib/` directory)
 * repository default config and catalog files in `BepInEx\config\`
-* `licenses\RandomLoadout-LICENSE.txt` containing this repository's GPLv3 text
+* `licenses\EtgGameplayDashboard-LICENSE.txt` containing this repository's GPLv3 text
 * `README-INSTALL.txt`
 * `THIRD_PARTY_NOTICES.md`
 * `licenses\`
@@ -98,7 +98,7 @@ The release package is designed to redistribute `BepInExPack_EtG` compliantly wh
 
 It stages:
 
-* `licenses/RandomLoadout-LICENSE.txt`
+* `licenses/EtgGameplayDashboard-LICENSE.txt`
 * `licenses/BepInEx-LICENSE.txt`
 * additional bundled component license files when available
 * `THIRD_PARTY_NOTICES.md`

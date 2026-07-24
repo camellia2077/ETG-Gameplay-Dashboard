@@ -8,22 +8,22 @@ from gameplay_translation_workflow import DEFAULT_WORK_FILE_PATH, REPO_ROOT, loa
 
 
 DEFAULT_INPUT_PATH = DEFAULT_WORK_FILE_PATH
-DEFAULT_ENGLISH_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.en.json"
+DEFAULT_ENGLISH_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "EtgGameplayDashboard.pickup-gameplay.en.json"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Scan for stats[*].value drift between the zh-CN gameplay work file and the English source file."
+        description="Scan for stats[*].parts drift between the zh-CN gameplay work file and the English source file."
     )
     parser.add_argument(
         "--input",
         default=str(DEFAULT_INPUT_PATH),
-        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json.",
+        help="Path to defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json.",
     )
     parser.add_argument(
         "--english-source",
         default=str(DEFAULT_ENGLISH_SOURCE_PATH),
-        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json.",
+        help="Path to defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.en.json.",
     )
     parser.add_argument(
         "--output",
@@ -90,9 +90,9 @@ def main() -> int:
             for stat_index, (zh_stat, en_stat) in enumerate(zip(zh_stats, en_stats)):
                 if not isinstance(zh_stat, dict) or not isinstance(en_stat, dict):
                     continue
-                zh_value = str(zh_stat.get("value", ""))
-                en_value = str(en_stat.get("value", ""))
-                if zh_value == en_value:
+                zh_parts = zh_stat.get("parts", [])
+                en_parts = en_stat.get("parts", [])
+                if zh_parts == en_parts:
                     continue
 
                 issues.append(
@@ -103,8 +103,8 @@ def main() -> int:
                         "groupIndex": group_index,
                         "labelKey": zh_stat.get("labelKey", ""),
                         "statIndex": stat_index,
-                        "zhValue": zh_value,
-                        "englishSourceValue": en_value,
+                        "zhParts": zh_parts,
+                        "englishSourceParts": en_parts,
                     }
                 )
 
@@ -117,9 +117,9 @@ def main() -> int:
         "missingEnglishEntryCount": len(missing_english_entries),
         "missingEnglishEntries": missing_english_entries,
         "notes": [
-            "This scanner only compares entries[*].statGroups[*].stats[*].value.",
-            "Under the current workflow, zh-CN stats[*].value is expected to stay aligned with the English source file.",
-            "If drift is found, use restore-stat-values to restore stats[*].value from the English source file.",
+            "This scanner only compares entries[*].statGroups[*].stats[*].parts.",
+            "Under the current workflow, zh-CN stats[*].parts is expected to stay aligned with the English source file.",
+            "If drift is found, use restore-stat-values to restore stats[*].parts from the English source file.",
         ],
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)

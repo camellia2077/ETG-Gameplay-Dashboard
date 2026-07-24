@@ -18,11 +18,11 @@ DEFAULT_LOG_PATH = Path(
 )
 
 PRESET_PATTERNS = {
-    "randomloadout": r"\[RandomLoadout\]",
-    "bossrush": r"\[RandomLoadout\]\[BossRush\]",
-    "run": r"\[RandomLoadout\]\[Run\]",
-    "command": r"\[RandomLoadout\]\[Command\]",
-    "init": r"\[RandomLoadout\]\[Init\]",
+    "etggameplaydashboard": r"\[EtgGameplayDashboard\]",
+    "bossrush": r"\[EtgGameplayDashboard\]\[BossRush\]",
+    "run": r"\[EtgGameplayDashboard\]\[Run\]",
+    "command": r"\[EtgGameplayDashboard\]\[Command\]",
+    "init": r"\[EtgGameplayDashboard\]\[Init\]",
     "error": r"Error|Exception|NullReference|HarmonyX|Could not load|missing dependencies|failed to patch",
 }
 
@@ -83,7 +83,7 @@ def build_patterns(args: argparse.Namespace) -> list[re.Pattern[str]]:
     if not raw_patterns:
         raw_patterns.extend(
             [
-                PRESET_PATTERNS["randomloadout"],
+                PRESET_PATTERNS["etggameplaydashboard"],
                 PRESET_PATTERNS["error"],
             ]
         )

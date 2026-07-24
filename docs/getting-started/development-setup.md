@@ -53,7 +53,7 @@ At minimum:
 
 - C# or `.csproj` change:
   build Debug and Release
-- `RandomLoadout.Core` logic change:
+- `EtgGameplayDashboard.Core` logic change:
   run automated tests
 - ETG runtime change:
   build, then run smoke checks and review logs
@@ -90,7 +90,7 @@ Required local DLLs and dependency-drop expectations are documented in:
 
 The repository includes:
 
-- `RandomLoadout.sln`
+- `EtgGameplayDashboard.sln`
 
 Use it for IDE navigation if helpful, but keep the documented Python command paths as the source of truth for build/test workflow.
 

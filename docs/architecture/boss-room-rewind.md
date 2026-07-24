@@ -4,7 +4,7 @@ This document describes the current Boss-room rewind contract for future runtime
 
 ## Entry points
 
-The main implementation is `src/RandomLoadout/Runtime/RoomEnemyReplayService.cs`.
+The main implementation is `src/EtgGameplayDashboard/Runtime/RoomEnemyReplayService.cs`.
 
 - `RoomEnemyReplayHooks.OnEnteredPrefix` records the first active enemy wave. The real vanilla parameter name is `p`; Harmony binds ordinary patch arguments by name, so this must not be renamed to `player`.
 - `TriggerReinforcementLayerPrefix/Postfix` records later vanilla reinforcement waves.
@@ -14,7 +14,7 @@ The main implementation is `src/RandomLoadout/Runtime/RoomEnemyReplayService.cs`
 
 ## Configuration and activation
 
-The persistent settings are stored by BepInEx in `BepInEx/config/randomgun.randomloadout.cfg`:
+The persistent settings are stored by BepInEx in `BepInEx/config/randomgun.etg-gameplay-dashboard.cfg`:
 
 ```ini
 [UI]

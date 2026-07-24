@@ -16,7 +16,7 @@ Set it to `false` after collecting the log.
 
 ## What It Captures
 
-Each `[RandomLoadout][Command] [Input] Command panel shortcut` entry records the configured keyboard key, keyboard
+Each `[EtgGameplayDashboard][Command] [Input] Command panel shortcut` entry records the configured keyboard key, keyboard
 held/down state, controller shortcut detection, controller shortcut enabled state, panel visibility, game type, and
 P1/P2 object readiness and input-override state. Accepted keyboard/controller toggle events are also logged separately.
 

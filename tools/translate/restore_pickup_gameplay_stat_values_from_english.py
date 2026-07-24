@@ -7,22 +7,22 @@ from gameplay_translation_workflow import DEFAULT_WORK_FILE_PATH, REPO_ROOT, loa
 
 
 DEFAULT_INPUT_PATH = DEFAULT_WORK_FILE_PATH
-DEFAULT_ENGLISH_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.en.json"
+DEFAULT_ENGLISH_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "EtgGameplayDashboard.pickup-gameplay.en.json"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Restore stats[*].value in the zh-CN gameplay work file from the English source file while leaving valueMappings intact."
+        description="Restore stats[*].parts in the zh-CN gameplay work file from the English source file while leaving valueMappings intact."
     )
     parser.add_argument(
         "--input",
         default=str(DEFAULT_INPUT_PATH),
-        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json.",
+        help="Path to defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json.",
     )
     parser.add_argument(
         "--english-source",
         default=str(DEFAULT_ENGLISH_SOURCE_PATH),
-        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json.",
+        help="Path to defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.en.json.",
     )
     parser.add_argument(
         "--output",
@@ -83,18 +83,18 @@ def main() -> int:
             for zh_stat, en_stat in zip(zh_stats, en_stats):
                 if not isinstance(zh_stat, dict) or not isinstance(en_stat, dict):
                     continue
-                english_value = str(en_stat.get("value", ""))
-                if not english_value:
+                english_parts = en_stat.get("parts", [])
+                if not english_parts:
                     continue
-                if str(zh_stat.get("value", "")) == english_value:
+                if zh_stat.get("parts", []) == english_parts:
                     continue
-                zh_stat["value"] = english_value
+                zh_stat["parts"] = english_parts
                 changed_stats += 1
                 changed_entries.add(pickup_id)
 
     write_json(output_path, zh_payload)
     print(
-        "Restored stats[*].value from English source in {0}. Changed entries: {1}. Changed stats: {2}.".format(
+        "Restored stats[*].parts from English source in {0}. Changed entries: {1}. Changed stats: {2}.".format(
             output_path,
             len(changed_entries),
             changed_stats,

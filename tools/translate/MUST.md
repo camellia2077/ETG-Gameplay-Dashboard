@@ -4,8 +4,8 @@
 
 当前 nearby-pickup gameplay 翻译流程的最终 runtime 目标是：
 
-- `defaults/catalog/RandomLoadout.pickup-gameplay.json`
-- `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+- `defaults/catalog/EtgGameplayDashboard.pickup-gameplay.json`
+- `defaults/catalog/EtgGameplayDashboard.pickup-info-terms.json`
 
 旧 `zh-CN.work.json` 和 `.check.json` 批次文件只是辅助工作格式，不是最终交付格式。
 

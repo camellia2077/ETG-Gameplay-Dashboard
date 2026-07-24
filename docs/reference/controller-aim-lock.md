@@ -65,11 +65,11 @@ ETG 对手柄输入实际上有两条独立路径：
 
 ## 相关代码路径
 
-* `src/RandomLoadout/Commands/ControllerAimLockService.cs`
-* `src/RandomLoadout/Runtime/ControllerAimLockHooks.cs`
-* `src/RandomLoadout/Commands/KeyboardAimAssistService.cs`
-* `src/RandomLoadout/Commands/KeyboardAimAssistTargetSelector.cs`
-* `src/RandomLoadout/Commands/KeyboardAimAssistUiDefinition.cs`
-* `src/RandomLoadout/Runtime/KeyboardAimAssistHooks.cs`
-* `src/RandomLoadout.Core/Input/KeyboardAimAssistSettings.cs`
-* `src/RandomLoadout/Commands/InGameCommandController.CommandPage.Combat.cs`
+* `src/EtgGameplayDashboard/Commands/ControllerAimLockService.cs`
+* `src/EtgGameplayDashboard/Runtime/ControllerAimLockHooks.cs`
+* `src/EtgGameplayDashboard/Commands/KeyboardAimAssistService.cs`
+* `src/EtgGameplayDashboard/Commands/KeyboardAimAssistTargetSelector.cs`
+* `src/EtgGameplayDashboard/Commands/KeyboardAimAssistUiDefinition.cs`
+* `src/EtgGameplayDashboard/Runtime/KeyboardAimAssistHooks.cs`
+* `src/EtgGameplayDashboard.Core/Input/KeyboardAimAssistSettings.cs`
+* `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.Combat.cs`

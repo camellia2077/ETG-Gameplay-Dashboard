@@ -8,7 +8,7 @@ from typing import Any
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
+DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json"
 DEFAULT_TEMP_DIR = REPO_ROOT / "temp" / "pickup-gameplay-translation-batches"
 VALID_TRANSLATION_STATUSES = {"pending", "draft", "reviewed", "approved", "stale"}
 TRANSLATABLE_FIELD_PAIRS = (

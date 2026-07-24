@@ -503,7 +503,7 @@
   "result.error.pickup_lookup_empty": "请输入物品 ID、别名、内部名或显示名。",
   "result.error.no_pickup_matched": "没有匹配到“{0}”对应的物品。",
   "result.error.multiple_pickups_matched": "“{0}”匹配到了多个物品。请改用别名、内部名或物品 ID。",
-  "result.error.alias_suggestion_example": " 可以尝试配置好的别名，或使用 RandomLoadout.pickups.txt 中的物品 ID，例如：gun casey_bat 或 gun 541。",
+  "result.error.alias_suggestion_example": " 可以尝试配置好的别名，或使用 EtgGameplayDashboard.pickups.txt 中的物品 ID，例如：gun casey_bat 或 gun 541。",
   "result.error.alias_suggestion_matches": " 可以尝试 {0}，或者直接使用物品 ID。",
   "result.error.invalid_pickup_id": "没有匹配到 ID 为“{0}”的物品。",
   "result.error.unsupported_grantable_category": "该物品不是受支持的可发放类别。",

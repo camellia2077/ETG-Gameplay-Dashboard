@@ -14,7 +14,7 @@ if str(TOOLS_ROOT) not in sys.path:
 from tool_common import fail, get_repo_root, run_cli
 
 
-DEFAULT_INPUT = Path("defaults") / "catalog" / "RandomLoadout.pickups.by-category.json"
+DEFAULT_INPUT = Path("defaults") / "catalog" / "EtgGameplayDashboard.pickups.by-category.json"
 DEFAULT_OUTPUT = Path("docs") / "reference" / "pickups.md"
 DEFAULT_ALIAS_INPUT = Path("defaults") / "config" / "ETG-Gameplay-Dashboard.aliases.json5"
 CATEGORY_ORDER = ("Gun", "Passive", "Active")
@@ -28,7 +28,7 @@ def parse_args() -> argparse.Namespace:
         "-i",
         "--input",
         default=str(DEFAULT_INPUT),
-        help="Path to the grouped pickup catalog JSON. Defaults to defaults/catalog/RandomLoadout.pickups.by-category.json.",
+        help="Path to the grouped pickup catalog JSON. Defaults to defaults/catalog/EtgGameplayDashboard.pickups.by-category.json.",
     )
     parser.add_argument(
         "-o",
@@ -165,7 +165,7 @@ def generate_markdown(catalog_data: object, aliases_by_id: dict[int, list[str]])
     lines.append("")
     lines.append("## Snapshot")
     lines.append("")
-    lines.append("- Source: `defaults/catalog/RandomLoadout.pickups.by-category.json`")
+    lines.append("- Source: `defaults/catalog/EtgGameplayDashboard.pickups.by-category.json`")
     lines.append("- Generated UTC: `{0}`".format(generated_utc))
     lines.append("- Entry count: `{0}`".format(entry_count))
     lines.append("")

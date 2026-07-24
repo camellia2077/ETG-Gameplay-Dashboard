@@ -26,22 +26,22 @@ Read startup and run-state lines from a specific log:
 python .\tools\logs\read_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" --preset init --preset run
 ```
 
-Extract only RandomLoadout-owned lines:
+Extract only EtgGameplayDashboard-owned lines:
 
 ```powershell
-python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log"
+python .\tools\logs\extract_etg_gameplay_dashboard_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log"
 ```
 
 ## Message Prefixes
 
-RandomLoadout-written log lines use structured prefixes such as:
+EtgGameplayDashboard-written log lines use structured prefixes such as:
 
-- `[RandomLoadout][Init]`
-- `[RandomLoadout][Run]`
-- `[RandomLoadout][BossRush]`
-- `[RandomLoadout][Grant]`
-- `[RandomLoadout][Command]`
-- `[RandomLoadout][Performance]`
+- `[EtgGameplayDashboard][Init]`
+- `[EtgGameplayDashboard][Run]`
+- `[EtgGameplayDashboard][BossRush]`
+- `[EtgGameplayDashboard][Grant]`
+- `[EtgGameplayDashboard][Command]`
+- `[EtgGameplayDashboard][Performance]`
 
 These prefixes separate plugin logs from Unity, ETG, BepInEx, and other mods.
 
@@ -108,7 +108,7 @@ Feature guides:
 
 ## Startup Self-Check
 
-Startup emits a Boss Rush self-check summary under `[RandomLoadout][Init]`.
+Startup emits a Boss Rush self-check summary under `[EtgGameplayDashboard][Init]`.
 
 Healthy startup typically includes:
 
@@ -133,7 +133,7 @@ After any hook, scene, Boss Rush, character-select-hub, reward, pause-flow, or c
 - unexpected startup warnings
 - Boss Rush state progression logs
 - return-to-character-select logs
-- feature-specific warnings from `[RandomLoadout][Command]`
+- feature-specific warnings from `[EtgGameplayDashboard][Command]`
 - command-panel health rollback diagnostics when heart or armor HUD animations replay unexpectedly
 - command-panel cursor diagnostics when controller-to-mouse handoff makes the in-game cursor disappear or flicker
 - command-panel gameplay input diagnostics when WASD movement stops working while the command panel is open
@@ -159,13 +159,13 @@ python .\tools\logs\read_log.py --pattern "Boss Rush|HandleExitToMainMenu|NullRe
 Write extracted plugin lines to a file:
 
 ```powershell
-python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" -o ".\randomloadout.log"
+python .\tools\logs\extract_etg_gameplay_dashboard_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" -o ".\etg-gameplay-dashboard.log"
 ```
 
 Include older unprefixed plugin lines:
 
 ```powershell
-python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" --include-unprefixed-plugin-lines
+python .\tools\logs\extract_etg_gameplay_dashboard_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" --include-unprefixed-plugin-lines
 ```
 
 ## Read Next

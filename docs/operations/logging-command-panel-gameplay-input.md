@@ -1,6 +1,6 @@
 # Command-Panel Gameplay Input Logging
 
-Use this diagnostic when gameplay keyboard movement, especially WASD movement, stops working while the RandomLoadout
+Use this diagnostic when gameplay keyboard movement, especially WASD movement, stops working while the EtgGameplayDashboard
 Control Panel is open.
 
 ## Enable
@@ -22,7 +22,7 @@ The switch is disabled by default. It logs only when one of the tracked values c
 4. Close the panel and repeat one movement key to verify that gameplay input resumes.
 5. Disable the switch after collecting the log.
 
-The relevant lines are prefixed with `[RandomLoadout][Command] [Input]` and contain:
+The relevant lines are prefixed with `[EtgGameplayDashboard][Command] [Input]` and contain:
 
 - `PanelVisible`: whether the command panel is open;
 - `W`, `A`, `S`, `D`: the raw Unity key states observed by the plugin;
@@ -45,5 +45,5 @@ The relevant lines are prefixed with `[RandomLoadout][Command] [Input]` and cont
 Extract plugin lines with:
 
 ```powershell
-python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" -o ".\gameplay-input.log"
+python .\tools\logs\extract_etg_gameplay_dashboard_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" -o ".\gameplay-input.log"
 ```

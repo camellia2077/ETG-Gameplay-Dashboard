@@ -7,11 +7,12 @@ from pathlib import Path
 from typing import Any
 
 
+
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_ENGLISH_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.en.json"
-DEFAULT_CHINESE_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.zh-CN.work.json"
-DEFAULT_GAMEPLAY_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-gameplay.json"
-DEFAULT_TERMS_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-info-terms.json"
+DEFAULT_ENGLISH_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "EtgGameplayDashboard.pickup-gameplay.en.json"
+DEFAULT_CHINESE_SOURCE_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json"
+DEFAULT_GAMEPLAY_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickup-gameplay.json"
+DEFAULT_TERMS_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickup-info-terms.json"
 
 SECTION_LABELS_EN = OrderedDict(
     [
@@ -48,12 +49,12 @@ STAT_LABELS_EN = OrderedDict(
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build pickup gameplay schema v2 runtime files from the legacy English and zh-CN gameplay sources."
+        description="Build pickup gameplay schema v3 runtime files from the legacy English and zh-CN gameplay sources."
     )
     parser.add_argument("--english-source", default=str(DEFAULT_ENGLISH_SOURCE_PATH), help="Path to the legacy English gameplay source JSON.")
     parser.add_argument("--chinese-source", default=str(DEFAULT_CHINESE_SOURCE_PATH), help="Path to the legacy zh-CN gameplay source JSON.")
-    parser.add_argument("--gameplay-output", default=str(DEFAULT_GAMEPLAY_OUTPUT_PATH), help="Output path for RandomLoadout.pickup-gameplay.json.")
-    parser.add_argument("--terms-output", default=str(DEFAULT_TERMS_OUTPUT_PATH), help="Output path for RandomLoadout.pickup-info-terms.json.")
+    parser.add_argument("--gameplay-output", default=str(DEFAULT_GAMEPLAY_OUTPUT_PATH), help="Output path for EtgGameplayDashboard.pickup-gameplay.json.")
+    parser.add_argument("--terms-output", default=str(DEFAULT_TERMS_OUTPUT_PATH), help="Output path for EtgGameplayDashboard.pickup-info-terms.json.")
     return parser.parse_args()
 
 
@@ -98,10 +99,10 @@ def build_pickup_entry(english_entry: dict[str, Any], chinese_entry: dict[str, A
             if not isinstance(stat, dict):
                 continue
             key = str(stat.get("labelKey", "") or "").strip()
-            value = str(stat.get("value", "") or "").strip()
-            if not key or not value:
+            parts = stat.get("parts", [])
+            if not key or not isinstance(parts, list) or not parts:
                 continue
-            stats.append(OrderedDict([("key", key), ("value", value)]))
+            stats.append(OrderedDict([("key", key), ("parts", parts)]))
         if not stats:
             continue
         stat_sections.append(
@@ -248,7 +249,7 @@ def main() -> int:
 
     gameplay_payload = OrderedDict(
         [
-            ("schemaVersion", 2),
+            ("schemaVersion", 3),
             ("generatedUtc", str(english_payload.get("generatedUtc", "") or "").strip()),
             (
                 "sourceLanguageFiles",
@@ -263,7 +264,7 @@ def main() -> int:
     write_json(gameplay_output_path, gameplay_payload)
     write_json(terms_output_path, build_terms_payload(chinese_payload))
 
-    print("Wrote schema v2 gameplay data to {0}".format(gameplay_output_path))
+    print("Wrote schema v3 gameplay data to {0}".format(gameplay_output_path))
     print("Wrote schema v2 pickup info terms to {0}".format(terms_output_path))
     print("Pickup count: {0}".format(len(pickups)))
     return 0

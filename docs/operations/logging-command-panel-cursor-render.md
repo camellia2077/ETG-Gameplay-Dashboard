@@ -1,6 +1,6 @@
 # Command-Panel Cursor Render Logging
 
-Use this diagnostic when the ETG mouse cursor appears underneath the RandomLoadout Control Panel. Controller cursor
+Use this diagnostic when the ETG mouse cursor appears underneath the EtgGameplayDashboard Control Panel. Controller cursor
 behavior is intentionally left to ETG because its R3 aiming marker is not a free-screen mouse cursor.
 
 ## Enable
@@ -45,12 +45,12 @@ When the probe is enabled, sampled `Cursor render probe drawn after Control Pane
 3. Open the Control Panel and move the mouse outside the panel.
 4. Move the mouse over the panel and leave it there for several seconds.
 5. Switch to at least one other Control Panel page, then close the panel.
-6. Send the extracted `[RandomLoadout][CursorRender]` lines from `BepInEx\LogOutput.log`.
+6. Send the extracted `[EtgGameplayDashboard][CursorRender]` lines from `BepInEx\LogOutput.log`.
 
 Useful extraction command:
 
 ```powershell
-python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" -o ".\cursor-render.log"
+python .\tools\logs\extract_etg_gameplay_dashboard_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" -o ".\cursor-render.log"
 ```
 
 The important detail is the order of lines with the same `Frame=` value. That tells us whether ETG's cursor

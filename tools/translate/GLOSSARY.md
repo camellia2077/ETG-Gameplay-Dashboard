@@ -63,7 +63,7 @@
 
 如果文本里提到的是游戏内可拾取物品、枪械、被动、主动、协同相关道具名：
 
-- 优先使用 `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json` 里已有的 `chineseDisplayName`
+- 优先使用 `defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json` 里已有的 `chineseDisplayName`
 - 不要自己另起译名
 - 一般不需要额外保留英文原名
 - 如果只是协同标题、梗名、缩写说明中的英文，不要机械替换
@@ -84,8 +84,10 @@
 当前阶段的翻译目标是：
 
 - 先把 `Synergies` 的效果描述翻译清楚
-- 协同标题名如果没有游戏内正式中文文本，可以先保留英文
-- 不要求现在就把所有 `Synergies` 名称翻成和游戏完全一致
+- 如果游戏资源中存在正式中文协同名，优先使用游戏内文本
+- 尚未确认或游戏没有中文文本的协同名可以保留现状，并由批处理报告列出
+- 协同标题统一保留英文，格式为 `中文标题（English Title）`
+- 游戏资源中的特殊协同名 `\\o/` 没有中文翻译，按特殊名原样保留，不计为缺失翻译
 
 示例：
 
@@ -137,7 +139,7 @@
 
 ### 枪械类别 / 属性术语
 
-这些术语优先和 `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json` 顶层 `valueMappings` 保持一致。
+这些术语优先和 `defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json` 顶层 `valueMappings` 保持一致。
 
 - `SHOTGUN` -> `霰弹枪`
 - `RIFLE` -> `步枪`

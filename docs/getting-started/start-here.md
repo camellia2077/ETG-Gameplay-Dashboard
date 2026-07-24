@@ -51,7 +51,7 @@ If you are changing build, deploy, or workflow tooling:
 
 - Confirm the gameplay term and the scene token are not being mixed.
 - Confirm whether the target area is listed in [Runtime Hotspots](../architecture/runtime-hotspots.md).
-- Confirm whether the change can stay inside `RandomLoadout.Core` instead of ETG runtime code.
+- Confirm whether the change can stay inside `EtgGameplayDashboard.Core` instead of ETG runtime code.
 
 ## Minimum Checks After Editing
 

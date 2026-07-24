@@ -25,8 +25,8 @@ The command panel supports three language preference values:
 
 Owning code:
 
-- `src/RandomLoadout/Plugin.Bootstrap.cs`
-- `src/RandomLoadout/Localization/GuiText.cs`
+- `src/EtgGameplayDashboard/Plugin.Bootstrap.cs`
+- `src/EtgGameplayDashboard/Localization/GuiText.cs`
 
 ## UI Text Pipeline
 
@@ -38,7 +38,7 @@ Startup flow:
 2. `GuiText` loads:
    - `ETG-Gameplay-Dashboard.localization.en.json5`
    - `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
-3. The plugin binds `[UI] Language` from `randomgun.randomloadout.cfg`.
+3. The plugin binds `[UI] Language` from `randomgun.etg-gameplay-dashboard.cfg`.
 4. The value is normalized to `auto`, `en`, or `zh-CN`.
 5. `GuiText.SetLanguageOverride(...)` stores the preference.
 
@@ -81,8 +81,8 @@ There is also an automatic refresh path for `auto` mode:
 
 Owning code:
 
-- `src/RandomLoadout/Commands/InGameCommandController.cs`
-- `src/RandomLoadout/Commands/InGameCommandController.CommandPage.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs`
 
 If a localization fix changes what a page renders, make sure that page is covered by this refresh path.
 
@@ -102,9 +102,9 @@ Key rule:
 
 Owning code:
 
-- `src/RandomLoadout/Etg/EtgPickupCatalogEntry.cs`
-- `src/RandomLoadout/Etg/EtgPickupResolver.Catalog.cs`
-- `src/RandomLoadout/Etg/EtgPickupResolver.Helpers.cs`
+- `src/EtgGameplayDashboard/Etg/EtgPickupCatalogEntry.cs`
+- `src/EtgGameplayDashboard/Etg/EtgPickupResolver.Catalog.cs`
+- `src/EtgGameplayDashboard/Etg/EtgPickupResolver.Helpers.cs`
 
 ## What Depends On Game Resources
 
@@ -203,10 +203,10 @@ and calls `GetExactString(0)` on the entry object via reflection.
 
 The runtime catalog export now writes pickup-name snapshots plus the nearby-pickup gameplay runtime files:
 
-- full pickup catalogs such as `RandomLoadout.pickups.json`
-- a compact name snapshot: `RandomLoadout.pickup-names.game-language.json`
-- a gameplay-info runtime file: `RandomLoadout.pickup-gameplay.json`
-- a gameplay-info terms file: `RandomLoadout.pickup-info-terms.json`
+- full pickup catalogs such as `EtgGameplayDashboard.pickups.json`
+- a compact name snapshot: `EtgGameplayDashboard.pickup-names.game-language.json`
+- a gameplay-info runtime file: `EtgGameplayDashboard.pickup-gameplay.json`
+- a gameplay-info terms file: `EtgGameplayDashboard.pickup-info-terms.json`
 
 Important behavior:
 
@@ -217,8 +217,8 @@ matches the game's own Chinese item names even if the command panel language ove
 
 For nearby pickup info:
 
-- runtime reads nearby-pickup title/body data from `RandomLoadout.pickup-gameplay.json`
-- runtime reads section/stat/display-value translations from `RandomLoadout.pickup-info-terms.json`
+- runtime reads nearby-pickup title/body data from `EtgGameplayDashboard.pickup-gameplay.json`
+- runtime reads section/stat/display-value translations from `EtgGameplayDashboard.pickup-info-terms.json`
 - each pickup now carries bilingual `names.*` and `text.*` fields inside the same schema-v2 runtime file
 - if localized gameplay text is missing, runtime falls back to the English values in the same gameplay snapshot
 - `pickup-wiki-tips` is no longer used as a display-time fallback
@@ -277,15 +277,15 @@ When a language bug is reported, check these in order:
 
 ## Files To Open First
 
-- `src/RandomLoadout/Localization/GuiText.cs`
-- `src/RandomLoadout/Plugin.Bootstrap.cs`
-- `src/RandomLoadout/Commands/InGameCommandController.cs`
-- `src/RandomLoadout/Commands/InGameCommandController.CommandPage.cs`
-- `src/RandomLoadout/Commands/InGameCommandController.Styles.cs`
-- `src/RandomLoadout/Commands/LoadoutRuleEditorService.cs`
-- `src/RandomLoadout/Commands/LoadoutRuleEditorService.Entries.cs`
-- `src/RandomLoadout/Etg/EtgPickupResolver.Helpers.cs`
-- `src/RandomLoadout/Etg/EtgPickupResolver.Catalog.cs`
+- `src/EtgGameplayDashboard/Localization/GuiText.cs`
+- `src/EtgGameplayDashboard/Plugin.Bootstrap.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.Styles.cs`
+- `src/EtgGameplayDashboard/Commands/LoadoutRuleEditorService.cs`
+- `src/EtgGameplayDashboard/Commands/LoadoutRuleEditorService.Entries.cs`
+- `src/EtgGameplayDashboard/Etg/EtgPickupResolver.Helpers.cs`
+- `src/EtgGameplayDashboard/Etg/EtgPickupResolver.Catalog.cs`
 
 ## Related Docs
 

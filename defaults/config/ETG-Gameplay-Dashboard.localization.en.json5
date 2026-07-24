@@ -503,7 +503,7 @@
   "result.error.pickup_lookup_empty": "Enter a pickup ID, alias, internal name, or display name.",
   "result.error.no_pickup_matched": "No pickup matched '{0}'.",
   "result.error.multiple_pickups_matched": "Multiple pickups matched '{0}'. Try an alias, internal name, or pickup ID.",
-  "result.error.alias_suggestion_example": " Try a configured alias or a pickup ID from RandomLoadout.pickups.txt, for example: gun casey_bat or gun 541.",
+  "result.error.alias_suggestion_example": " Try a configured alias or a pickup ID from EtgGameplayDashboard.pickups.txt, for example: gun casey_bat or gun 541.",
   "result.error.alias_suggestion_matches": " Try {0}, or use the pickup ID.",
   "result.error.invalid_pickup_id": "No pickup matched ID '{0}'.",
   "result.error.unsupported_grantable_category": "The selected pickup was not a supported grantable category.",

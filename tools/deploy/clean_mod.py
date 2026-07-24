@@ -28,7 +28,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--plugins-only",
         action="store_true",
-        help="Only delete RandomLoadout plugins and dependencies, keeping BepInEx framework and configurations.",
+        help="Only delete EtgGameplayDashboard plugins and dependencies, keeping BepInEx framework and configurations.",
     )
     return parser.parse_args()
 
@@ -51,7 +51,7 @@ def main() -> int:
 
     if args.plugins_only:
         # Only clean up plugin DLL, MtGAPI dependencies, and monomod patcher DLL
-        plugin_dll = game_path / "BepInEx" / "plugins" / "RandomLoadout.dll"
+        plugin_dll = game_path / "BepInEx" / "plugins" / "EtgGameplayDashboard.dll"
         delete_file_or_dir(plugin_dll)
 
         for file_name, relative_target_dir in get_runtime_dependency_specs():

@@ -26,8 +26,8 @@ python .\tools\translate\main.py postcheck ...
 
 当前 nearby-pickup gameplay 翻译流程的最终目标不是旧 bilingual work 文件本身，而是这两个 runtime v2 输出：
 
-- `defaults/catalog/RandomLoadout.pickup-gameplay.json`
-- `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+- `defaults/catalog/EtgGameplayDashboard.pickup-gameplay.json`
+- `defaults/catalog/EtgGameplayDashboard.pickup-info-terms.json`
 
 翻译工作文件、临时批次和检查报告都只是辅助产物。
 
@@ -55,10 +55,10 @@ python .\tools\translate\main.py postcheck ...
 ## 关键文件
 
 - runtime 目标文件：
-  - `defaults/catalog/RandomLoadout.pickup-gameplay.json`
-  - `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+  - `defaults/catalog/EtgGameplayDashboard.pickup-gameplay.json`
+  - `defaults/catalog/EtgGameplayDashboard.pickup-info-terms.json`
 - 辅助工作文件：
-  - `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json`
+  - `defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json`
 - 临时批次目录：
   - `temp/pickup-gameplay-translation-batches/`
 

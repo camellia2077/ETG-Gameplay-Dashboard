@@ -38,8 +38,8 @@ Not included in this v1:
 
 Primary files:
 
-- `src/RandomLoadout/Commands/InGameCommandController.CommandPage.cs`
-- `src/RandomLoadout/Commands/RoomDebugCommandService.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs`
+- `src/EtgGameplayDashboard/Commands/RoomDebugCommandService.cs`
 - `defaults/config/ETG-Gameplay-Dashboard.localization.en.json5`
 - `defaults/config/ETG-Gameplay-Dashboard.localization.zh-CN.json5`
 
@@ -153,7 +153,7 @@ This avoided a class of false failures where the request itself was valid, but t
 
 ## Logging Expectations
 
-All muncher diagnostics write through `[RandomLoadout][Command]`.
+All muncher diagnostics write through `[EtgGameplayDashboard][Command]`.
 
 The detailed trace is now optional and disabled by default.
 

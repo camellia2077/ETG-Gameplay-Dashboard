@@ -7,26 +7,26 @@ from typing import Callable
 from pathlib import Path
 
 
-PROJECT_NAME = "RandomLoadout"
+PROJECT_NAME = "EtgGameplayDashboard"
 CONFIGURATION_CHOICES = ("Debug", "Release")
 MSBUILD_PATH = Path(r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe")
 DEFAULT_CONFIG_DIRECTORY = Path("defaults") / "config"
 DEFAULT_CATALOG_DIRECTORY = Path("defaults") / "catalog"
 DEFAULT_PRESET_DIRECTORY = Path("defaults") / "presets"
 DEFAULT_CONFIG_RELATIVE_PATHS = (
-    Path("randomgun.randomloadout.cfg"),
+    Path("randomgun.etg-gameplay-dashboard.cfg"),
     Path("ETG-Gameplay-Dashboard.aliases.json5"),
     Path("ETG-Gameplay-Dashboard.localization.en.json5"),
     Path("ETG-Gameplay-Dashboard.localization.zh-CN.json5"),
     Path("ETG-Gameplay-Dashboard.rules.json5"),
 )
 DEFAULT_CATALOG_FILE_NAMES = (
-    "RandomLoadout.pickups.json",
-    "RandomLoadout.pickups.by-category.json",
-    "RandomLoadout.pickup-gameplay.json",
-    "RandomLoadout.pickup-info-terms.json",
-    "RandomLoadout.boss-names.json",
-    "RandomLoadout.rules.full-pool.json5",
+    "EtgGameplayDashboard.pickups.json",
+    "EtgGameplayDashboard.pickups.by-category.json",
+    "EtgGameplayDashboard.pickup-gameplay.json",
+    "EtgGameplayDashboard.pickup-info-terms.json",
+    "EtgGameplayDashboard.boss-names.json",
+    "EtgGameplayDashboard.rules.full-pool.json5",
 )
 REQUIRED_BUILD_DLLS = (
     "0Harmony.dll",
@@ -40,8 +40,8 @@ REQUIRED_BUILD_DLLS = (
 )
 
 VERSION_FILE_NAME = "VERSION"
-PLUGIN_VERSION_FILE = Path("src") / "RandomLoadout" / "Properties" / "Version.g.cs"
-CORE_VERSION_FILE = Path("src") / "RandomLoadout.Core" / "Properties" / "Version.g.cs"
+PLUGIN_VERSION_FILE = Path("src") / "EtgGameplayDashboard" / "Properties" / "Version.g.cs"
+CORE_VERSION_FILE = Path("src") / "EtgGameplayDashboard.Core" / "Properties" / "Version.g.cs"
 LICENSE_HEADER = (
     "// Copyright (C) 2026 camellia2077\n"
     "// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later."
@@ -77,7 +77,7 @@ using System.Reflection;
 [assembly: AssemblyFileVersion("{version}")]
 [assembly: AssemblyInformationalVersion("{version}")]
 
-namespace RandomLoadout
+namespace EtgGameplayDashboard
 {{
     internal static class BuildVersionInfo
     {{
@@ -146,7 +146,7 @@ def get_plugin_project_path(repo_root: Path) -> Path:
 
 
 def get_test_project_path(repo_root: Path) -> Path:
-    return repo_root / "tests" / "RandomLoadout.Core.Tests" / "RandomLoadout.Core.Tests.csproj"
+    return repo_root / "tests" / "EtgGameplayDashboard.Core.Tests" / "EtgGameplayDashboard.Core.Tests.csproj"
 
 
 def get_plugin_output_path(repo_root: Path, configuration: str) -> Path:
@@ -223,10 +223,10 @@ def get_test_output_path(repo_root: Path, configuration: str) -> Path:
     return (
         repo_root
         / "tests"
-        / "RandomLoadout.Core.Tests"
+        / "EtgGameplayDashboard.Core.Tests"
         / "bin"
         / configuration
-        / "RandomLoadout.Core.Tests.exe"
+        / "EtgGameplayDashboard.Core.Tests.exe"
     )
 
 

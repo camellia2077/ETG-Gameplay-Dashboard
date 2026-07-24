@@ -31,11 +31,11 @@ Do not use this pattern for:
 
 | File | Owns |
 | --- | --- |
-| `src/RandomLoadout/Commands/PlayerRuntimeOverrideServiceBase.cs` | generic player-level tracking lifecycle: store per-player override state, attach/update/reset flow, and shared helper utilities |
-| `src/RandomLoadout/Commands/PlayerHealthOverrideService.cs` | concrete health override implementation, including ETG health/gun event hooks and rollback detection/restoration |
-| `src/RandomLoadout/Commands/PlayerDebugCommandService.cs` | the current caller that registers health overrides after `+1 Max HP` succeeds |
-| `src/RandomLoadout/Plugin.Bootstrap.cs` | service construction and dependency wiring |
-| `src/RandomLoadout/Plugin.RunLifecycle.cs` | per-frame fallback update call |
+| `src/EtgGameplayDashboard/Commands/PlayerRuntimeOverrideServiceBase.cs` | generic player-level tracking lifecycle: store per-player override state, attach/update/reset flow, and shared helper utilities |
+| `src/EtgGameplayDashboard/Commands/PlayerHealthOverrideService.cs` | concrete health override implementation, including ETG health/gun event hooks and rollback detection/restoration |
+| `src/EtgGameplayDashboard/Commands/PlayerDebugCommandService.cs` | the current caller that registers health overrides after `+1 Max HP` succeeds |
+| `src/EtgGameplayDashboard/Plugin.Bootstrap.cs` | service construction and dependency wiring |
+| `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs` | per-frame fallback update call |
 
 ## How The Skeleton Works
 

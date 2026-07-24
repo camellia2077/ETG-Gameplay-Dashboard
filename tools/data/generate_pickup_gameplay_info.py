@@ -10,11 +10,12 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from stat_value_parts import build_stat_parts
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_CATALOG_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickups.json"
-DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "RandomLoadout.pickup-gameplay.en.json"
+DEFAULT_CATALOG_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickups.json"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "legacy" / "EtgGameplayDashboard.pickup-gameplay.en.json"
 DEFAULT_CACHE_PATH = REPO_ROOT / "temp" / "wiki.gg-pickup-gameplay-cache.json"
 WIKI_API_URL = "https://enterthegungeon.wiki.gg/api.php"
 USER_AGENT = "ETG-Gameplay-Dashboard/1.0 (pickup gameplay generator)"
@@ -126,7 +127,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate a gameplay-focused pickup info catalog from the Enter the Gungeon wiki."
     )
-    parser.add_argument("--catalog", default=str(DEFAULT_CATALOG_PATH), help="Path to RandomLoadout.pickups.json.")
+    parser.add_argument("--catalog", default=str(DEFAULT_CATALOG_PATH), help="Path to EtgGameplayDashboard.pickups.json.")
     parser.add_argument("--output", default=str(DEFAULT_OUTPUT_PATH), help="Output JSON path.")
     parser.add_argument("--cache", default=str(DEFAULT_CACHE_PATH), help="Local cache path for resolved wiki pages.")
     parser.add_argument(
@@ -633,13 +634,13 @@ def apply_catalog_fallbacks(entry: dict[str, Any], fields: dict[str, str]) -> di
 def build_stat_groups(fields: dict[str, str]) -> list[dict[str, Any]]:
     groups: list[dict[str, Any]] = []
     for group_key, label_keys in STAT_GROUP_DEFINITIONS:
-        stats: list[dict[str, str]] = []
+        stats: list[dict[str, Any]] = []
         for label_key in label_keys:
             field_name = STAT_FIELD_BY_LABEL_KEY[label_key]
             value = str(fields.get(field_name, "")).strip()
             if not value:
                 continue
-            stats.append({"labelKey": label_key, "value": value})
+            stats.append({"labelKey": label_key, "parts": build_stat_parts(value)})
 
         if stats:
             groups.append({"groupKey": group_key, "stats": stats})

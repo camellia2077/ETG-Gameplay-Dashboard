@@ -12,12 +12,12 @@ DEFAULT_INPUT_PATH = DEFAULT_WORK_FILE_PATH
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Localize structured English stat-value labels in defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json and sync the same mappings into valueMappings."
+        description="Localize structured English stat-part labels in defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json and sync the same mappings into valueMappings."
     )
     parser.add_argument(
         "--input",
         default=str(DEFAULT_INPUT_PATH),
-        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json.",
+        help="Path to defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json.",
     )
     parser.add_argument(
         "--output",
@@ -45,7 +45,7 @@ def main() -> int:
 
     write_json(output_path, payload)
     print(
-        "Synced {1} known stat-value label mapping(s) into valueMappings in {0}. stats[*].value was left unchanged.".format(
+        "Synced {1} known stat-part label mapping(s) into valueMappings in {0}. stats[*].parts remain source-aligned.".format(
             output_path,
             len(KNOWN_STAT_VALUE_LABEL_MAPPINGS) + len(EXACT_STAT_VALUE_PHRASE_MAPPINGS),
         )

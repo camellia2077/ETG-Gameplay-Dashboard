@@ -17,7 +17,7 @@ Do not hand-edit it; regenerate it from the grouped pickup catalog snapshot when
 
 ## Snapshot
 
-- Source: `defaults/catalog/RandomLoadout.pickups.by-category.json`
+- Source: `defaults/catalog/EtgGameplayDashboard.pickups.by-category.json`
 - Generated UTC: `2026-03-28 01:57:58`
 - Entry count: `670`
 

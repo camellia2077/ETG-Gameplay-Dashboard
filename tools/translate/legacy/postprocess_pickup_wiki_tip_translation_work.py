@@ -8,7 +8,7 @@ from translation_workflow import load_json, utc_now_text, write_json
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-wiki-tips.zh-CN.work.json"
+DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json"
 CHINESE_CHARACTER_PATTERN = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 
 
@@ -19,7 +19,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--work-file",
         default=str(DEFAULT_WORK_FILE_PATH),
-        help="Path to RandomLoadout.pickup-wiki-tips.zh-CN.work.json.",
+        help="Path to EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json.",
     )
     parser.add_argument(
         "--pickup-id",

@@ -8,10 +8,10 @@ page.
 
 ## Files
 
-Schema v2 uses two runtime JSON files under `defaults/catalog/`:
+Schema v3 uses two runtime JSON files under `defaults/catalog/`:
 
-- `RandomLoadout.pickup-gameplay.json`
-- `RandomLoadout.pickup-info-terms.json`
+- `EtgGameplayDashboard.pickup-gameplay.json`
+- `EtgGameplayDashboard.pickup-info-terms.json`
 
 Responsibilities:
 
@@ -41,11 +41,11 @@ Top-level structure:
 
 ```json
 {
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "generatedUtc": "2026-07-03 04:26:47",
   "sourceLanguageFiles": {
-    "en": "defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json",
-    "zh-CN": "defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json"
+    "en": "defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.en.json",
+    "zh-CN": "defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json"
   },
   "pickupCount": 668,
   "languages": ["en", "zh-CN"],
@@ -88,7 +88,7 @@ Top-level structure:
 
 - `schemaVersion`
   - required integer
-  - current value is `2`
+  - current value is `3`
 - `generatedUtc`
   - required UTC timestamp string
   - metadata only
@@ -162,16 +162,29 @@ Each stat entry supports:
 
 - `key`
   - stable stat identity key such as `class`, `dps`, `damage`, `fire_rate`
-- `value`
-  - raw runtime display source string
-  - keep this in source-language / raw form
-  - translate it through `pickup-info-terms.json` display-value mappings when needed
+- `parts`
+  - required ordered array of structured stat-value parts
+  - each part has a raw `value` and may have a raw `label`
+  - keep part content in source-language / raw form; translate it through `pickup-info-terms.json`
+
+Example:
+
+```json
+{
+  "key": "damage",
+  "parts": [
+    { "value": "22", "label": "Large" },
+    { "value": "8", "label": "Medium" },
+    { "value": "3", "label": "Small" }
+  ]
+}
+```
 
 Rules:
 
 - `statSections[*].key` is structural
 - `stats[*].key` is structural
-- `stats[*].value` is content
+- `stats[*].parts[*].value` and `stats[*].parts[*].label` are content
 - do not localize `stats[*].key`
 
 ### `text`
@@ -258,7 +271,7 @@ The nearby-pickup UI treats section labels and their values as separate data and
 - a section key selects the localized label and the matching `DashboardTheme.PickupInfo*Label` color only
 - section values, stat rows, and descriptive text always use the neutral `DashboardTheme.PickupInfoBody` color selected from the theme's `Primary` background
 
-Do not concatenate label and value into one styled field or let a section-label color propagate to its value. This separation is a runtime rendering contract, not a schema change, so preserving it does not require a new schema version. See [Dashboard UI Theme Rules](./ui-theme-rules.md) for the visual rules.
+Do not concatenate label and value into one styled field or let a section-label color propagate to its value. This separation is a runtime rendering contract over the structured `parts` data. See [Dashboard UI Theme Rules](./ui-theme-rules.md) for the visual rules.
 
 ### `stats`
 
@@ -342,7 +355,8 @@ Treat these as raw source values that should not be directly translated in `pick
 
 - `quality`
 - `type`
-- `statSections[*].stats[*].value`
+- `statSections[*].stats[*].parts[*].value`
+- `statSections[*].stats[*].parts[*].label`
 
 ## Runtime Expectations
 
@@ -351,14 +365,15 @@ Current runtime behavior assumes:
 - pickup lookup is by integer `pickupId`
 - UI label lookup uses `pickup-info-terms.json`
 - raw display-value lookup uses `pickup-info-terms.json`
+- each stat is rendered from its structured `parts` array; the old `stats[*].value` field is not supported
 - English fallback remains available inside the same runtime schema
 
 Relevant code:
 
-- [JsonPickupGameplayProvider.cs](/C:/code/ETG-Gameplay-Dashboard/src/RandomLoadout/Configuration/JsonPickupGameplayProvider.cs)
-- [PickupGameplayEntry.cs](/C:/code/ETG-Gameplay-Dashboard/src/RandomLoadout/Configuration/PickupGameplayEntry.cs)
-- [PickupInfoTermsRegistry.cs](/C:/code/ETG-Gameplay-Dashboard/src/RandomLoadout/Configuration/PickupInfoTermsRegistry.cs)
-- [Plugin.PickupWikiTips.cs](/C:/code/ETG-Gameplay-Dashboard/src/RandomLoadout/Plugin.PickupWikiTips.cs)
+- [JsonPickupGameplayProvider.cs](/C:/code/ETG-Gameplay-Dashboard/src/EtgGameplayDashboard/Configuration/JsonPickupGameplayProvider.cs)
+- [PickupGameplayEntry.cs](/C:/code/ETG-Gameplay-Dashboard/src/EtgGameplayDashboard/Configuration/PickupGameplayEntry.cs)
+- [PickupInfoTermsRegistry.cs](/C:/code/ETG-Gameplay-Dashboard/src/EtgGameplayDashboard/Configuration/PickupInfoTermsRegistry.cs)
+- [Plugin.PickupWikiTips.cs](/C:/code/ETG-Gameplay-Dashboard/src/EtgGameplayDashboard/Plugin.PickupWikiTips.cs)
 
 ## Guidance For Translation Tooling
 

@@ -19,7 +19,7 @@ They reuse the live pickup sprite that already exists on the runtime `PickupObje
 
 Implementation reference:
 
-- [InGameCommandController.PickupBrowser.cs](/C:/code/ETG-Gameplay-Dashboard/src/RandomLoadout/Commands/InGameCommandController.PickupBrowser.cs:849)
+- [InGameCommandController.PickupBrowser.cs](/C:/code/ETG-Gameplay-Dashboard/src/EtgGameplayDashboard/Commands/InGameCommandController.PickupBrowser.cs:849)
 
 Practical consequence:
 
@@ -40,8 +40,8 @@ Those rows reuse ETG's `GameUIAtlas` at runtime through `dfAtlas`:
 
 Implementation reference:
 
-- [InGameCommandController.LoadoutEditor.cs](/C:/code/ETG-Gameplay-Dashboard/src/RandomLoadout/Commands/InGameCommandController.LoadoutEditor.cs:898)
-- [InGameCommandController.PickupIcons.cs](/C:/code/ETG-Gameplay-Dashboard/src/RandomLoadout/Commands/InGameCommandController.PickupIcons.cs:1)
+- [InGameCommandController.LoadoutEditor.cs](/C:/code/ETG-Gameplay-Dashboard/src/EtgGameplayDashboard/Commands/InGameCommandController.LoadoutEditor.cs:898)
+- [InGameCommandController.PickupIcons.cs](/C:/code/ETG-Gameplay-Dashboard/src/EtgGameplayDashboard/Commands/InGameCommandController.PickupIcons.cs:1)
 
 Practical consequence:
 
@@ -63,7 +63,7 @@ These mappings are safe to reuse today for the Start Items preset pickups UI:
 
 Implementation reference:
 
-- [InGameCommandController.PickupIcons.cs](/C:/code/ETG-Gameplay-Dashboard/src/RandomLoadout/Commands/InGameCommandController.PickupIcons.cs:1)
+- [InGameCommandController.PickupIcons.cs](/C:/code/ETG-Gameplay-Dashboard/src/EtgGameplayDashboard/Commands/InGameCommandController.PickupIcons.cs:1)
 
 ## Rat Key Note
 

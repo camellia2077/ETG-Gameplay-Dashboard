@@ -62,7 +62,7 @@ Then continue with:
 
 `deploy_mod.py` builds first by default, then copies:
 
-- `RandomLoadout.dll`
+- `EtgGameplayDashboard.dll`
 - the MTG API runtime bundle from `lib\`
 - repository default config files and catalog snapshots when requested
 
@@ -84,31 +84,31 @@ Game-side config lives under `BepInEx\config\`.
 
 Important files:
 
-- `randomgun.randomloadout.cfg`
+- `randomgun.etg-gameplay-dashboard.cfg`
 - `ETG-Gameplay-Dashboard.aliases.json5`
 - `ETG-Gameplay-Dashboard.rules.json5`
 - `ETG-Gameplay-Dashboard.localization.en.json5`
 - `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
 - `presets\preset.default.json`
 - `presets\preset.casey_synergies.json`
-- `RandomLoadout.pickups.json`
-- `RandomLoadout.pickups.by-category.json`
-- `RandomLoadout.pickup-names.game-language.json`
-- `RandomLoadout.pickup-gameplay.json`
-- `RandomLoadout.pickup-info-terms.json`
-- `RandomLoadout.rules.full-pool.json5`
+- `EtgGameplayDashboard.pickups.json`
+- `EtgGameplayDashboard.pickups.by-category.json`
+- `EtgGameplayDashboard.pickup-names.game-language.json`
+- `EtgGameplayDashboard.pickup-gameplay.json`
+- `EtgGameplayDashboard.pickup-info-terms.json`
+- `EtgGameplayDashboard.rules.full-pool.json5`
 
 Default behavior:
 
 - existing config files are preserved unless `--overwrite-config` is used
 - repository copies under `defaults/` are read-only baselines
 - the plugin exports fresh runtime catalog files into the game directory after startup
-- `RandomLoadout.pickup-names.game-language.json` reflects the game's actual runtime language, so if ETG is running in
+- `EtgGameplayDashboard.pickup-names.game-language.json` reflects the game's actual runtime language, so if ETG is running in
   Simplified Chinese when the export happens, that file can be used as a game-aligned Chinese pickup-name reference
 
 Fallback behavior:
 
-- missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `RandomLoadout.rules.full-pool.json5`
+- missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `EtgGameplayDashboard.rules.full-pool.json5`
 - if both rule files are unavailable, the plugin falls back to built-in emergency defaults
 - missing `ETG-Gameplay-Dashboard.aliases.json5` falls back to built-in aliases for that session
 

@@ -8,7 +8,7 @@ For a task-to-file navigation map, read `../docs/reference/code-index.md` before
 
 ## Layer Boundaries
 
-### `src/RandomLoadout/`
+### `src/EtgGameplayDashboard/`
 
 Runtime integration layer:
 
@@ -22,7 +22,7 @@ Runtime integration layer:
 - logging
 - in-game command UI
 
-### `src/RandomLoadout.Core/`
+### `src/EtgGameplayDashboard.Core/`
 
 Pure logic layer:
 
@@ -32,7 +32,7 @@ Pure logic layer:
 - deterministic seed behavior
 - structured warnings and results
 
-Keep reusable, testable decision logic in `RandomLoadout.Core` when it does not need Unity, ETG, BepInEx, or file-system access.
+Keep reusable, testable decision logic in `EtgGameplayDashboard.Core` when it does not need Unity, ETG, BepInEx, or file-system access.
 
 ## ETG API Usage Order
 

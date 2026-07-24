@@ -14,8 +14,8 @@
 
 当前要服务的最终 runtime 目标是：
 
-- `defaults/catalog/RandomLoadout.pickup-gameplay.json`
-- `defaults/catalog/RandomLoadout.pickup-info-terms.json`
+- `defaults/catalog/EtgGameplayDashboard.pickup-gameplay.json`
+- `defaults/catalog/EtgGameplayDashboard.pickup-info-terms.json`
 
 也就是说，这里的脚本不应该再把旧 bilingual work 文件视为最终数据模型，而应该把它视为过渡性工作格式或中间源格式。
 
@@ -77,6 +77,42 @@
 - 避免多个脚本对“哪些字段可翻译”“如何识别条目完成状态”出现分歧
 
 如果这里的共用逻辑改了，通常会同时影响导出、规范化、回写几个阶段。
+
+### `localize_game_synergy_names.py`
+
+作用：
+
+- 读取 `tools/data/reference/etg-synergies.json` 中按 `synergies[NameKey]` 索引的游戏资源协同名称
+- 规范化 `chineseSynergyHighlights` 和 `chineseUsageNotes` 中以协同名开头的条目
+- 同时扫描英文单词加冒号的标题（例如 `Bug:`、`Altered:`、`Removed:`），检查中文是否保留为“中文标题（English Title）：正文”
+- 将游戏内正式中文协同名替换到中文协同文本标题中
+- 协同标题保留英文，统一输出为 `中文标题（English Title）`
+- `#SOULAIR` 的特殊名 `\\o/` 原样保留，并从普通缺失中文名统计中单独列出
+- 对标题边界不明确或中英文条目数量不一致的内容只生成报告，不自动修改
+
+默认先执行 dry-run；确认 `temp/game-synergy-name-localization.report.json` 后，再加 `--apply` 写回中文工作文件。
+
+例如：
+
+```powershell
+python .\tools\translate\localize_game_synergy_names.py --dry-run
+python .\tools\translate\localize_game_synergy_names.py --apply
+python .\tools\data\build_pickup_gameplay_v2.py
+```
+
+`tools/data/reference/etg-synergies.json` 是游戏资源快照，脚本本身必须保存在 `tools/translate/`，不要把处理逻辑放入 `temp/`。
+
+### `export_unresolved_game_synergy_names.py`
+
+作用：
+
+- 将未能安全自动替换的协同标题导出到 `temp/unresolved-game-synergy-names.json`
+- 保留 `pickupId`、物品名称、协同 key、游戏中文名、英文源文本和当前中文文本
+- 同时列出游戏资源本身没有中文名的协同，以及中英文条目数量不一致的记录
+
+```powershell
+python .\tools\translate\export_unresolved_game_synergy_names.py
+```
 
 ### `export_pickup_gameplay_translation_batch.py`
 
@@ -168,7 +204,7 @@
 
 作用：
 
-- 扫描旧工作格式里对应 runtime `statSections[*].stats[*].value` 的结构化英文标签
+- 扫描旧工作格式里对应 runtime `statSections[*].stats[*].parts[*].label` 的结构化英文标签
 - 区分：
   - 已有安全映射、应该写进 `valueMappings` 的固定标签
   - 还没有定中文、需要先补词表的未知标签
@@ -215,7 +251,7 @@
 
 作用：
 
-- 用 `defaults/catalog/legacy/RandomLoadout.pickup-gameplay.en.json` 恢复 `zh-CN.work.json` 里的 `stats[*].value`
+- 用 `defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.en.json` 恢复 `zh-CN.work.json` 里的 `stats[*].value`
 - 只恢复结构化英文源值，不动最终 terms 映射目标
 
 为什么要有它：

@@ -24,8 +24,8 @@ When enabled, the mod writes nearby-pickup diagnostics for both startup file loa
 Current nearby-pickup diagnostics include:
 
 - startup input-file inspection for:
-  - `RandomLoadout.pickup-gameplay.json`
-  - `RandomLoadout.pickup-info-terms.json`
+  - `EtgGameplayDashboard.pickup-gameplay.json`
+  - `EtgGameplayDashboard.pickup-info-terms.json`
 - file existence and byte-size snapshots for those inputs
 - nearby-pickup registry hit / miss diagnostics when a pickup enters range
 - overlay render-path warnings when the service has a visible pickup target but no gameplay entry can be resolved
@@ -82,8 +82,8 @@ Interpretation hints:
 
 If the target is detected but still does not render, inspect the overlay drawing path in:
 
-- `src/RandomLoadout/Plugin.PickupWikiTips.cs`
+- `src/EtgGameplayDashboard/Plugin.PickupWikiTips.cs`
 
 If the target is never detected, inspect the runtime scan path in:
 
-- `src/RandomLoadout/Runtime/NearbyPickupTipService.cs`
+- `src/EtgGameplayDashboard/Runtime/NearbyPickupTipService.cs`

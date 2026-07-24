@@ -15,8 +15,8 @@ from translation_workflow import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_ENGLISH_TIPS_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-wiki-tips.en.json"
-DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-wiki-tips.zh-CN.work.json"
+DEFAULT_ENGLISH_TIPS_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickup-wiki-tips.en.json"
+DEFAULT_OUTPUT_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json"
 
 
 def parse_args() -> argparse.Namespace:
@@ -26,12 +26,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--english-tips",
         default=str(DEFAULT_ENGLISH_TIPS_PATH),
-        help="Path to RandomLoadout.pickup-wiki-tips.en.json.",
+        help="Path to EtgGameplayDashboard.pickup-wiki-tips.en.json.",
     )
     parser.add_argument(
         "--game-language-names",
         default="",
-        help="Optional path to RandomLoadout.pickup-names.game-language.json exported from a Chinese ETG runtime.",
+        help="Optional path to EtgGameplayDashboard.pickup-names.game-language.json exported from a Chinese ETG runtime.",
     )
     parser.add_argument(
         "--output",

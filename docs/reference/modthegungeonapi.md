@@ -1,6 +1,6 @@
 # ModTheGungeonAPI Reference
 
-Use this page when you need curated upstream references from `ModTheGungeonAPI` that are relevant to `RandomLoadout`.
+Use this page when you need curated upstream references from `ModTheGungeonAPI` that are relevant to `EtgGameplayDashboard`.
 
 This is not a full upstream mirror. It is a project-focused reference index for adapting patterns safely.
 
@@ -23,7 +23,7 @@ Before copying or adapting an ETG runtime pattern from upstream, read:
 
 ## 30-Second Summary
 
-Use `ModTheGungeonAPI` as a behavioral reference, not as a promise that the exact same call sequence is safe in `RandomLoadout`.
+Use `ModTheGungeonAPI` as a behavioral reference, not as a promise that the exact same call sequence is safe in `EtgGameplayDashboard`.
 
 The highest-value references in this project are:
 
@@ -98,7 +98,7 @@ When the question is really about save or flag persistence, also check:
 - [`SpecialAPI/SaveAPI`](https://github.com/SpecialAPI/SaveAPI)
 - [`SaveAPIManager.cs#L417`](https://github.com/SpecialAPI/SaveAPI/blob/main/SaveAPIManager.cs#L417)
 
-## How RandomLoadout Uses These References
+## How EtgGameplayDashboard Uses These References
 
 Current project patterns:
 
@@ -115,10 +115,10 @@ Current project patterns:
 
 ## Local Code Areas That Commonly Use These Patterns
 
-- [`../../src/RandomLoadout/Commands/FoyerCharacterSwitchService.cs`](../../src/RandomLoadout/Commands/FoyerCharacterSwitchService.cs)
-- [`../../src/RandomLoadout/Etg/EtgPickupResolver.cs`](../../src/RandomLoadout/Etg/EtgPickupResolver.cs)
-- [`../../src/RandomLoadout/Etg/EtgPickupGranter.cs`](../../src/RandomLoadout/Etg/EtgPickupGranter.cs)
-- [`../../src/RandomLoadout/Runtime/BossRushService.cs`](../../src/RandomLoadout/Runtime/BossRushService.cs)
+- [`../../src/EtgGameplayDashboard/Commands/FoyerCharacterSwitchService.cs`](../../src/EtgGameplayDashboard/Commands/FoyerCharacterSwitchService.cs)
+- [`../../src/EtgGameplayDashboard/Etg/EtgPickupResolver.cs`](../../src/EtgGameplayDashboard/Etg/EtgPickupResolver.cs)
+- [`../../src/EtgGameplayDashboard/Etg/EtgPickupGranter.cs`](../../src/EtgGameplayDashboard/Etg/EtgPickupGranter.cs)
+- [`../../src/EtgGameplayDashboard/Runtime/BossRushService.cs`](../../src/EtgGameplayDashboard/Runtime/BossRushService.cs)
 
 Implementation details for several of these are split across matching `*.cs` partial files.
 

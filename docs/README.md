@@ -1,6 +1,11 @@
 # Docs
 
-This directory holds detailed documentation for `RandomLoadout`.
+This directory holds detailed documentation for `EtgGameplayDashboard`.
+
+The current internal project name is `EtgGameplayDashboard`; see [Project Naming](reference/project-naming.md)
+for the naming and migration rules. Existing historical references to
+`EtgGameplayDashboard` are retained only until the corresponding migration batch is
+completed.
 The repository root `README.md` stays high-level; operational and design details live here.
 
 ## Start Here

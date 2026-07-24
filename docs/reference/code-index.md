@@ -8,6 +8,9 @@ Use this page as the first code navigation map for a new agent. It answers:
 
 Keep this page index-like. Put long explanations in the linked docs.
 
+Project naming and the `EtgGameplayDashboard` to `EtgGameplayDashboard` migration are
+defined in [Project Naming](./project-naming.md).
+
 ## First Stop
 
 Before editing source:
@@ -22,9 +25,9 @@ If a feature touches ETG runtime behavior and the API is not already used in thi
 
 | Area | Owns | Start here |
 | --- | --- | --- |
-| `src/RandomLoadout/` | BepInEx plugin, Unity/ETG integration, runtime services, IMGUI command panel | [Source Guide](../../src/AGENTS.md) |
-| `src/RandomLoadout.Core/` | Pure parsing, config models, selection, warnings, seed behavior | [System Overview](../architecture/system-overview.md) |
-| `tests/RandomLoadout.Core.Tests/` | Core parser, rule, and selection checks | [Testing Matrix](./testing-matrix.md) |
+| `src/EtgGameplayDashboard/` | BepInEx plugin, Unity/ETG integration, runtime services, IMGUI command panel | [Source Guide](../../src/AGENTS.md) |
+| `src/EtgGameplayDashboard.Core/` | Pure parsing, config models, selection, warnings, seed behavior | [System Overview](../architecture/system-overview.md) |
+| `tests/EtgGameplayDashboard.Core.Tests/` | Core parser, rule, and selection checks | [Testing Matrix](./testing-matrix.md) |
 | `defaults/config/` and `defaults/presets/` | Shipped config, localization, catalog baselines, and built-in preset files | [Config Format](./config-format.md) |
 | `tools/` | Build, deploy, release, generated docs, developer utilities | [Development Setup](../getting-started/development-setup.md) |
 | `docs/` | Project knowledge, workflows, decisions, references | [Docs README](../README.md) |
@@ -35,13 +38,13 @@ Start with these when tracing how the mod enters the game:
 
 | File | Look here for |
 | --- | --- |
-| `src/RandomLoadout/Plugin.cs` | BepInEx plugin shell and root ownership |
-| `src/RandomLoadout/Plugin.Bootstrap.cs` | service construction, API bootstrap, game-manager startup wiring |
-| `src/RandomLoadout/Plugin.RunLifecycle.cs` | new-run observation and automatic start-item grant flow |
-| `src/RandomLoadout/Plugin.CatalogExport.cs` | runtime pickup catalog export |
-| `src/RandomLoadout/Plugin.State.cs` | plugin-level mutable state |
-| `src/RandomLoadout/Runtime/RunLifecycleTracker.cs` | run-start detection rules |
-| `src/RandomLoadout/Runtime/RunSceneWatcher.cs` | scene readiness observation |
+| `src/EtgGameplayDashboard/Plugin.cs` | BepInEx plugin shell and root ownership |
+| `src/EtgGameplayDashboard/Plugin.Bootstrap.cs` | service construction, API bootstrap, game-manager startup wiring |
+| `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs` | new-run observation and automatic start-item grant flow |
+| `src/EtgGameplayDashboard/Plugin.CatalogExport.cs` | runtime pickup catalog export |
+| `src/EtgGameplayDashboard/Plugin.State.cs` | plugin-level mutable state |
+| `src/EtgGameplayDashboard/Runtime/RunLifecycleTracker.cs` | run-start detection rules |
+| `src/EtgGameplayDashboard/Runtime/RunSceneWatcher.cs` | scene readiness observation |
 
 Read next:
 
@@ -50,7 +53,7 @@ Read next:
 
 ## Command Panel And UI
 
-All in-game command-panel work starts in `src/RandomLoadout/Commands/`.
+All in-game command-panel work starts in `src/EtgGameplayDashboard/Commands/`.
 
 | File | Look here for |
 | --- | --- |
@@ -97,7 +100,7 @@ Supporting services:
 | `AmmoModeToggleService.cs` | ammo mode toggle and locked-ammo behavior |
 | `InvincibilityToggleService.cs` | invincibility toggle |
 | `FoyerCharacterSwitchService*.cs` | foyer character switching and unlock helpers |
-| `src/RandomLoadout/Runtime/EtgFloorSceneResolver.cs` | floor token to ETG scene-name mapping, including special-floor exceptions such as Rat Den |
+| `src/EtgGameplayDashboard/Runtime/EtgFloorSceneResolver.cs` | floor token to ETG scene-name mapping, including special-floor exceptions such as Rat Den |
 
 Read next:
 
@@ -118,13 +121,13 @@ Use this route for changes to start-item rules, preset selection, add/remove, du
 
 | File | Look here for |
 | --- | --- |
-| `src/RandomLoadout/Commands/InGameCommandController.LoadoutEditor.cs` | Start Items and preset UI |
-| `src/RandomLoadout/Commands/LoadoutRuleEditorService*.cs` | editable rule entries, cache refresh, add/remove, preset operations |
-| `src/RandomLoadout/Commands/LoadoutRuleEditorEntry.cs` | UI-facing rule row model |
-| `src/RandomLoadout/Commands/LoadoutPresetEditorEntry.cs` | UI-facing preset row model |
-| `src/RandomLoadout/Configuration/JsonLoadoutRuleFileProvider*.cs` | load, parse, save, convert, and preset persistence |
-| `src/RandomLoadout/Configuration/LoadoutRuleFileModel.cs` | file model for rules/presets |
-| `src/RandomLoadout/Configuration/DefaultLoadoutRuleDefinitionFactory.cs` | default rule fallback |
+| `src/EtgGameplayDashboard/Commands/InGameCommandController.LoadoutEditor.cs` | Start Items and preset UI |
+| `src/EtgGameplayDashboard/Commands/LoadoutRuleEditorService*.cs` | editable rule entries, cache refresh, add/remove, preset operations |
+| `src/EtgGameplayDashboard/Commands/LoadoutRuleEditorEntry.cs` | UI-facing rule row model |
+| `src/EtgGameplayDashboard/Commands/LoadoutPresetEditorEntry.cs` | UI-facing preset row model |
+| `src/EtgGameplayDashboard/Configuration/JsonLoadoutRuleFileProvider*.cs` | load, parse, save, convert, and preset persistence |
+| `src/EtgGameplayDashboard/Configuration/LoadoutRuleFileModel.cs` | file model for rules/presets |
+| `src/EtgGameplayDashboard/Configuration/DefaultLoadoutRuleDefinitionFactory.cs` | default rule fallback |
 | `defaults/config/ETG-Gameplay-Dashboard.rules.json5` | shipped Start Items config anchor |
 | `defaults/presets/*.json` | shipped built-in preset files |
 
@@ -132,9 +135,9 @@ Pure core types:
 
 | File | Look here for |
 | --- | --- |
-| `src/RandomLoadout.Core/Configuration/LoadoutConfig.cs` | normalized loadout config |
-| `src/RandomLoadout.Core/Configuration/LoadoutRuleConfig.cs` | normalized rule config |
-| `src/RandomLoadout.Core/Selection/LoadoutSelectionService.cs` | selection and duplicate behavior |
+| `src/EtgGameplayDashboard.Core/Configuration/LoadoutConfig.cs` | normalized loadout config |
+| `src/EtgGameplayDashboard.Core/Configuration/LoadoutRuleConfig.cs` | normalized rule config |
+| `src/EtgGameplayDashboard.Core/Selection/LoadoutSelectionService.cs` | selection and duplicate behavior |
 
 Read next:
 
@@ -156,20 +159,20 @@ Use this route for item names, aliases, pickup cards, quality filters, categorie
 
 | File | Look here for |
 | --- | --- |
-| `src/RandomLoadout/Etg/EtgPickupResolver*.cs` | live pickup lookup, catalog lookup, aliases, category details |
-| `src/RandomLoadout/Etg/EtgPickupGranter.cs` | actual grant behavior against the player |
-| `src/RandomLoadout/Etg/EtgOwnedPickupReader.cs` | current player inventory reading |
-| `src/RandomLoadout/Etg/EtgPickupCatalogExporter.cs` | exporting pickup metadata |
-| `src/RandomLoadout/Runtime/NearbyPickupTipService.cs` | nearby dropped-pickup detection for gameplay overlay lookups |
-| `src/RandomLoadout/Commands/InGameCommandController.PickupBrowser.cs` | browser filtering and item card display |
-| `src/RandomLoadout/Configuration/JsonPickupAliasFileProvider.cs` | alias file loading |
-| `src/RandomLoadout/Configuration/PickupAliasRegistry.cs` | alias lookup |
-| `defaults/catalog/RandomLoadout.pickups.json` | shipped pickup catalog |
-| `defaults/catalog/RandomLoadout.pickups.by-category.json` | shipped grouped pickup catalog |
-| `RandomLoadout.pickup-names.game-language.json` in game config | compact exported pickup-name snapshot aligned to the current ETG runtime language |
-| `defaults/catalog/RandomLoadout.pickup-gameplay.json` | shipped nearby-pickup gameplay runtime catalog (schema v2) |
-| `defaults/catalog/RandomLoadout.pickup-info-terms.json` | shipped nearby-pickup section/stat/display-value terms (schema v2) |
-| `defaults/catalog/RandomLoadout.boss-names.json` | extracted Boss room names and English/Simplified Chinese display text keyed by vanilla room prototype |
+| `src/EtgGameplayDashboard/Etg/EtgPickupResolver*.cs` | live pickup lookup, catalog lookup, aliases, category details |
+| `src/EtgGameplayDashboard/Etg/EtgPickupGranter.cs` | actual grant behavior against the player |
+| `src/EtgGameplayDashboard/Etg/EtgOwnedPickupReader.cs` | current player inventory reading |
+| `src/EtgGameplayDashboard/Etg/EtgPickupCatalogExporter.cs` | exporting pickup metadata |
+| `src/EtgGameplayDashboard/Runtime/NearbyPickupTipService.cs` | nearby dropped-pickup detection for gameplay overlay lookups |
+| `src/EtgGameplayDashboard/Commands/InGameCommandController.PickupBrowser.cs` | browser filtering and item card display |
+| `src/EtgGameplayDashboard/Configuration/JsonPickupAliasFileProvider.cs` | alias file loading |
+| `src/EtgGameplayDashboard/Configuration/PickupAliasRegistry.cs` | alias lookup |
+| `defaults/catalog/EtgGameplayDashboard.pickups.json` | shipped pickup catalog |
+| `defaults/catalog/EtgGameplayDashboard.pickups.by-category.json` | shipped grouped pickup catalog |
+| `EtgGameplayDashboard.pickup-names.game-language.json` in game config | compact exported pickup-name snapshot aligned to the current ETG runtime language |
+| `defaults/catalog/EtgGameplayDashboard.pickup-gameplay.json` | shipped nearby-pickup gameplay runtime catalog (schema v2) |
+| `defaults/catalog/EtgGameplayDashboard.pickup-info-terms.json` | shipped nearby-pickup section/stat/display-value terms (schema v2) |
+| `defaults/catalog/EtgGameplayDashboard.boss-names.json` | extracted Boss room names and English/Simplified Chinese display text keyed by vanilla room prototype |
 | `defaults/config/ETG-Gameplay-Dashboard.aliases.json5` | shipped aliases |
 
 Read next:
@@ -188,13 +191,13 @@ Use this route for toggles that change live player, gun, or run behavior.
 
 | Feature | Start files |
 | --- | --- |
-| Rapid fire | `src/RandomLoadout/Commands/RapidFireToggleService.cs`, `InGameCommandController.CommandActions.cs` |
-| Auto reload | `src/RandomLoadout/Commands/AutoReloadToggleService.cs`, `InGameCommandController.CommandActions.cs` |
-| Ammo mode | `src/RandomLoadout/Commands/AmmoModeToggleService.cs`, `InGameCommandController.CommandActions.cs` |
-| Invincibility | `src/RandomLoadout/Commands/InvincibilityToggleService.cs`, `InGameCommandController.CommandActions.cs` |
-| Runtime property overrides | `src/RandomLoadout/Commands/PlayerRuntimeOverrideServiceBase.cs`, `src/RandomLoadout/Commands/PlayerHealthOverrideService.cs`, `src/RandomLoadout/Plugin.RunLifecycle.cs` |
-| Player stats panel | `src/RandomLoadout/Commands/InGameCommandController.PlayerStats.cs` |
-| Ammonomicon / game UI actions | `src/RandomLoadout/Commands/InGameCommandController.CommandActions.cs` |
+| Rapid fire | `src/EtgGameplayDashboard/Commands/RapidFireToggleService.cs`, `InGameCommandController.CommandActions.cs` |
+| Auto reload | `src/EtgGameplayDashboard/Commands/AutoReloadToggleService.cs`, `InGameCommandController.CommandActions.cs` |
+| Ammo mode | `src/EtgGameplayDashboard/Commands/AmmoModeToggleService.cs`, `InGameCommandController.CommandActions.cs` |
+| Invincibility | `src/EtgGameplayDashboard/Commands/InvincibilityToggleService.cs`, `InGameCommandController.CommandActions.cs` |
+| Runtime property overrides | `src/EtgGameplayDashboard/Commands/PlayerRuntimeOverrideServiceBase.cs`, `src/EtgGameplayDashboard/Commands/PlayerHealthOverrideService.cs`, `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs` |
+| Player stats panel | `src/EtgGameplayDashboard/Commands/InGameCommandController.PlayerStats.cs` |
+| Ammonomicon / game UI actions | `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandActions.cs` |
 
 Read next:
 
@@ -206,9 +209,9 @@ Read next:
 
 | Feature | Start files |
 | --- | --- |
-| Boss Rush UI | `src/RandomLoadout/Commands/InGameCommandController.BossRush.cs` |
-| Boss Rush runtime | `src/RandomLoadout/Runtime/BossRushService*.cs`, `BossRushHooks.cs`, `BossRushState.cs` |
-| Character switching | `src/RandomLoadout/Commands/FoyerCharacterSwitchService*.cs`, `InGameCommandController.CharacterPage.cs` |
+| Boss Rush UI | `src/EtgGameplayDashboard/Commands/InGameCommandController.BossRush.cs` |
+| Boss Rush runtime | `src/EtgGameplayDashboard/Runtime/BossRushService*.cs`, `BossRushHooks.cs`, `BossRushState.cs` |
+| Character switching | `src/EtgGameplayDashboard/Commands/FoyerCharacterSwitchService*.cs`, `InGameCommandController.CharacterPage.cs` |
 
 Read next:
 
@@ -220,12 +223,12 @@ Read next:
 
 | File | Look here for |
 | --- | --- |
-| `src/RandomLoadout/Localization/GuiText.cs` | language setting, lookup, fallback |
-| `src/RandomLoadout/Etg/EtgPickupResolver*.cs` | runtime-localized pickup names and English pickup-name fallback |
-| `src/RandomLoadout/Commands/InGameCommandController.cs` | language-change detection and page refresh |
+| `src/EtgGameplayDashboard/Localization/GuiText.cs` | language setting, lookup, fallback |
+| `src/EtgGameplayDashboard/Etg/EtgPickupResolver*.cs` | runtime-localized pickup names and English pickup-name fallback |
+| `src/EtgGameplayDashboard/Commands/InGameCommandController.cs` | language-change detection and page refresh |
 | `defaults/config/ETG-Gameplay-Dashboard.localization.en.json5` | English UI strings |
 | `defaults/config/ETG-Gameplay-Dashboard.localization.zh-CN.json5` | Simplified Chinese UI strings |
-| `src/RandomLoadout/Commands/InGameCommandController.CommandPage.cs` | language button location |
+| `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs` | language button location |
 
 Read next:
 
@@ -255,10 +258,10 @@ Common checks:
 
 | Test file | Covers |
 | --- | --- |
-| `tests/RandomLoadout.Core.Tests/GrantCommandParserTests.cs` | command parsing |
-| `tests/RandomLoadout.Core.Tests/LoadoutSelectionServiceTests.cs` | selection behavior |
-| `tests/RandomLoadout.Core.Tests/RuleFileProviderTests.cs` | rules and presets persistence behavior |
-| `tests/RandomLoadout.Core.Tests/AliasRegistryTests.cs` | alias lookup |
+| `tests/EtgGameplayDashboard.Core.Tests/GrantCommandParserTests.cs` | command parsing |
+| `tests/EtgGameplayDashboard.Core.Tests/LoadoutSelectionServiceTests.cs` | selection behavior |
+| `tests/EtgGameplayDashboard.Core.Tests/RuleFileProviderTests.cs` | rules and presets persistence behavior |
+| `tests/EtgGameplayDashboard.Core.Tests/AliasRegistryTests.cs` | alias lookup |
 
 Read next:
 

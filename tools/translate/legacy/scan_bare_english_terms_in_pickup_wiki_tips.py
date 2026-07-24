@@ -9,7 +9,7 @@ from translation_workflow import load_json
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-wiki-tips.zh-CN.work.json"
+DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json"
 
 # Match ASCII-led terms or phrases that still appear as bare English inside translated prose.
 ENGLISH_TERM_PATTERN = re.compile(
@@ -49,7 +49,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--work-file",
         default=str(DEFAULT_WORK_FILE_PATH),
-        help="Path to RandomLoadout.pickup-wiki-tips.zh-CN.work.json.",
+        help="Path to EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json.",
     )
     parser.add_argument("--min-pickup-id", type=int, default=1, help="Inclusive pickupId lower bound.")
     parser.add_argument("--max-pickup-id", type=int, default=60, help="Inclusive pickupId upper bound.")

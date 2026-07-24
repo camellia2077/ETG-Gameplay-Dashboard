@@ -17,7 +17,7 @@ Default:
 
 ## What It Adds
 
-When enabled, the plugin emits detailed `[RandomLoadout][Command]` lines for:
+When enabled, the plugin emits detailed `[EtgGameplayDashboard][Command]` lines for:
 
 - spawn request entry
 - loading-scene queue and retry polling

@@ -25,7 +25,7 @@ LOCALIZATION_CHECK_SCRIPT = Path(__file__).resolve().parents[1] / "devtools" / "
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Build and run the RandomLoadout core test executable."
+        description="Build and run the EtgGameplayDashboard core test executable."
     )
     add_configuration_argument(parser, "Build configuration. Defaults to Debug.")
     return parser.parse_args()

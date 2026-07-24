@@ -8,9 +8,9 @@ Treat them as "slow down and verify" zones.
 
 Files:
 
-- `src/RandomLoadout/Runtime/BossRush*.cs`
-- `src/RandomLoadout/Commands/InGameCommandController.BossRush.cs`
-- `src/RandomLoadout/Runtime/BossRushHooks.cs`
+- `src/EtgGameplayDashboard/Runtime/BossRush*.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.BossRush.cs`
+- `src/EtgGameplayDashboard/Runtime/BossRushHooks.cs`
 
 Risk:
 
@@ -32,8 +32,8 @@ Must verify:
 
 Files:
 
-- `src/RandomLoadout/Commands/FoyerCharacterSwitchService*.cs`
-- `src/RandomLoadout/Commands/InGameCommandController.Character*.cs`
+- `src/EtgGameplayDashboard/Commands/FoyerCharacterSwitchService*.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.Character*.cs`
 
 Risk:
 
@@ -52,9 +52,9 @@ Must verify:
 
 Files:
 
-- `src/RandomLoadout/Plugin.RunLifecycle.cs`
-- `src/RandomLoadout/Runtime/RunLifecycle*.cs`
-- `src/RandomLoadout/Runtime/RunSceneWatcher.cs`
+- `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs`
+- `src/EtgGameplayDashboard/Runtime/RunLifecycle*.cs`
+- `src/EtgGameplayDashboard/Runtime/RunSceneWatcher.cs`
 
 Risk:
 
@@ -72,9 +72,9 @@ Must verify:
 
 Files:
 
-- `src/RandomLoadout/Commands/PlayerRuntimeOverrideServiceBase.cs`
-- `src/RandomLoadout/Commands/PlayerHealthOverrideService.cs`
-- `src/RandomLoadout/Plugin.RunLifecycle.cs`
+- `src/EtgGameplayDashboard/Commands/PlayerRuntimeOverrideServiceBase.cs`
+- `src/EtgGameplayDashboard/Commands/PlayerHealthOverrideService.cs`
+- `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs`
 
 Risk:
 
@@ -96,7 +96,7 @@ Read next:
 
 Files:
 
-- `src/RandomLoadout/Runtime/BossRushHooks.cs`
+- `src/EtgGameplayDashboard/Runtime/BossRushHooks.cs`
 
 Risk:
 
@@ -114,8 +114,8 @@ Must verify:
 
 Files:
 
-- `src/RandomLoadout/Runtime/BossRushHooks.cs`
-- `src/RandomLoadout/Runtime/BossRushService*.cs`
+- `src/EtgGameplayDashboard/Runtime/BossRushHooks.cs`
+- `src/EtgGameplayDashboard/Runtime/BossRushService*.cs`
 
 Risk:
 

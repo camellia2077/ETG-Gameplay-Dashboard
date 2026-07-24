@@ -46,13 +46,13 @@ def stage_license_files(repo_root: Path, metadata: dict | None, staging_root: Pa
         output_path.write_text(license_text + "\n", encoding="utf-8")
         staged_components.append(component)
 
-    randomloadout_license_source = repo_root / "LICENSE"
-    if not randomloadout_license_source.is_file():
-        raise FileNotFoundError("Repository license file not found: {0}".format(randomloadout_license_source))
+    etg_dashboard_license_source = repo_root / "LICENSE"
+    if not etg_dashboard_license_source.is_file():
+        raise FileNotFoundError("Repository license file not found: {0}".format(etg_dashboard_license_source))
 
     shutil.copyfile(
-        str(randomloadout_license_source),
-        str(licenses_directory / "RandomLoadout-LICENSE.txt"),
+        str(etg_dashboard_license_source),
+        str(licenses_directory / "EtgGameplayDashboard-LICENSE.txt"),
     )
 
     return staged_components
@@ -74,14 +74,14 @@ Project:
 - Source code and releases: https://github.com/camellia2077/ETG-Gameplay-Dashboard
 
 Uninstall:
-- Remove `BepInEx\\plugins\\RandomLoadout.dll`
-- Remove `BepInEx\\config\\randomgun.randomloadout.cfg`
+- Remove `BepInEx\\plugins\\EtgGameplayDashboard.dll`
+- Remove `BepInEx\\config\\randomgun.etg-gameplay-dashboard.cfg`
 - Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.localization.en.json5`
 - Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.localization.zh-CN.json5`
 - Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.aliases.json5`
 - Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.rules.json5`
 - Remove `BepInEx\\config\\presets\\*.json`
-- Optionally remove the generated `RandomLoadout.pickups*.json` and `RandomLoadout.rules.full-pool.json5` files from `BepInEx\\config\\`
+- Optionally remove the generated `EtgGameplayDashboard.pickups*.json` and `EtgGameplayDashboard.rules.full-pool.json5` files from `BepInEx\\config\\`
 """.format(version_tag)
     else:
         install_text = """ETG-Gameplay-Dashboard {0} Standalone Install Guide
@@ -97,14 +97,14 @@ Project:
 - Source code and releases: https://github.com/camellia2077/ETG-Gameplay-Dashboard
 
 Uninstall:
-- Remove `BepInEx\\plugins\\RandomLoadout.dll`
-- Remove `BepInEx\\config\\randomgun.randomloadout.cfg`
+- Remove `BepInEx\\plugins\\EtgGameplayDashboard.dll`
+- Remove `BepInEx\\config\\randomgun.etg-gameplay-dashboard.cfg`
 - Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.localization.en.json5`
 - Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.localization.zh-CN.json5`
 - Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.aliases.json5`
 - Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.rules.json5`
 - Remove `BepInEx\\config\\presets\\*.json`
-- Optionally remove the generated `RandomLoadout.pickups*.json` and `RandomLoadout.rules.full-pool.json5` files from `BepInEx\\config\\`
+- Optionally remove the generated `EtgGameplayDashboard.pickups*.json` and `EtgGameplayDashboard.rules.full-pool.json5` files from `BepInEx\\config\\`
 - If you installed `BepInEx` only for this mod, you may also remove the `BepInEx` folder and the loader files that came from `BepInExPack_EtG`
 """.format(version_tag)
 
@@ -135,7 +135,7 @@ def write_third_party_notices(
         "- Project: `ETG-Gameplay-Dashboard`",
         "- Homepage: <https://github.com/camellia2077/ETG-Gameplay-Dashboard>",
         "- License: `GPL-3.0-only`",
-        "- Bundled license file: `licenses/RandomLoadout-LICENSE.txt`",
+        "- Bundled license file: `licenses/EtgGameplayDashboard-LICENSE.txt`",
         "",
     ]
 
@@ -213,15 +213,15 @@ def ensure_no_game_owned_dlls(staging_root: Path) -> None:
 
 def ensure_required_package_files_for_type(staging_root: Path, package_type: str, repo_root: Path) -> None:
     required_paths = (
-        staging_root / "BepInEx" / "plugins" / "RandomLoadout.dll",
-        staging_root / "BepInEx" / "config" / "randomgun.randomloadout.cfg",
+        staging_root / "BepInEx" / "plugins" / "EtgGameplayDashboard.dll",
+        staging_root / "BepInEx" / "config" / "randomgun.etg-gameplay-dashboard.cfg",
         staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.localization.en.json5",
         staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.localization.zh-CN.json5",
         staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.aliases.json5",
         staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.rules.json5",
         staging_root / "THIRD_PARTY_NOTICES.md",
         staging_root / "README-INSTALL.txt",
-        staging_root / "licenses" / "RandomLoadout-LICENSE.txt",
+        staging_root / "licenses" / "EtgGameplayDashboard-LICENSE.txt",
     ) + tuple(
         staging_root / "BepInEx" / "config" / "presets" / preset_path.name
         for preset_path in get_default_preset_paths(repo_root)
@@ -266,7 +266,7 @@ def build_plugin_if_needed(repo_root: Path, configuration: str, skip_build: bool
         raise OSError("Build failed with exit code {0}. Release packaging aborted.".format(exit_code))
 
 
-def overlay_randomloadout_files(repo_root: Path, configuration: str, staging_root: Path, include_runtime_dependencies: bool) -> None:
+def overlay_etg_dashboard_files(repo_root: Path, configuration: str, staging_root: Path, include_runtime_dependencies: bool) -> None:
     plugin_path = get_plugin_output_path(repo_root, configuration)
     if not plugin_path.is_file():
         raise FileNotFoundError("Build output not found: {0}".format(plugin_path))
@@ -334,14 +334,14 @@ def build_release_package(
     include_runtime_dependencies = package_type == "standalone"
     upstream_archive_path = ensure_cached_upstream_archive(cache_directory, metadata) if include_runtime_dependencies else None
 
-    with tempfile.TemporaryDirectory(prefix="randomloadout_release_") as temp_directory:
+    with tempfile.TemporaryDirectory(prefix="etg_gameplay_dashboard_release_") as temp_directory:
         staging_root = Path(temp_directory) / "staging"
         staging_root.mkdir(parents=True, exist_ok=True)
 
         if include_runtime_dependencies:
             extract_upstream_content(upstream_archive_path, metadata, staging_root)
 
-        overlay_randomloadout_files(repo_root, configuration, staging_root, include_runtime_dependencies)
+        overlay_etg_dashboard_files(repo_root, configuration, staging_root, include_runtime_dependencies)
         staged_components = stage_license_files(repo_root, metadata if include_runtime_dependencies else None, staging_root)
         write_install_readme(version_tag, package_type, staging_root)
         write_third_party_notices(version_tag, metadata if include_runtime_dependencies else None, staged_components, repo_root, staging_root, package_type)

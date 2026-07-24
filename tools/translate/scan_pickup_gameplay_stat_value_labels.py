@@ -30,6 +30,8 @@ KNOWN_STAT_VALUE_LABEL_MAPPINGS = {
     "Crystals": "晶体",
     "Dart": "飞镖",
     "Double Reload": "双重装填",
+    "Droplet": "水滴",
+    "Droplets": "水滴",
     "Duck": "鸭子",
     "Electric Beam": "电流光束",
     "Energy Ball": "能量球",
@@ -140,6 +142,24 @@ FRAGMENT_TOKEN_MAPPINGS = {
 EXACT_STAT_VALUE_PHRASE_MAPPINGS = {
     "Average": "平均",
     "Average damage": "平均伤害",
+    "Uncharged, depending on click speed": "未蓄力，取决于点击速度",
+    "15.6 with The Marine's starting Military Training": "15.6（拥有海军陆战队员的初始军事训练时）",
+    "0.96 with The Marine's starting Military Training": "0.96（拥有海军陆战队员的初始军事训练时）",
+    "4.15 with The Marine's starting Military Training": "4.15（拥有海军陆战队员的初始军事训练时）",
+    "3.5 with The Robot's starting Battery Bullets": "3.5（拥有机器人的初始电池子弹时）",
+    "11.7 on average": "平均 11.7",
+    "1 missing heart": "缺少1颗心",
+    "2 missing hearts": "缺少2颗心",
+    "3 uses remaining": "剩余3次使用",
+    "10 shots": "10发子弹",
+    "20 shots": "20发子弹",
+    "11 shots": "11发子弹",
+    "111 shots": "111发子弹",
+    "1 hit": "1次命中",
+    "Pistol, manual": "手枪，手动",
+    "Pistol, automatic": "手枪，自动",
+    "Beam, 0.50s charge time": "光束，0.50秒充能时间",
+    "maximum hits": "最大命中数",
     "After 1s": "1秒后",
     "After 3s": "3秒后",
     "After Full Clip": "打完整个弹匣后",
@@ -201,12 +221,12 @@ COLON_FRAGMENT_PATTERN = re.compile(r"\b([A-Za-z][A-Za-z0-9 &+/\-]+):")
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Scan stats[*].value strings for structured English labels that should be covered by valueMappings in the zh-CN gameplay work file."
+        description="Scan stats[*].parts labels for structured English labels that should be covered by valueMappings in the zh-CN gameplay work file."
     )
     parser.add_argument(
         "--input",
         default=str(DEFAULT_INPUT_PATH),
-        help="Path to defaults/catalog/legacy/RandomLoadout.pickup-gameplay.zh-CN.work.json.",
+        help="Path to defaults/catalog/legacy/EtgGameplayDashboard.pickup-gameplay.zh-CN.work.json.",
     )
     parser.add_argument(
         "--output",
@@ -245,6 +265,12 @@ def resolve_structured_fragment(fragment: str) -> str | None:
 
     if normalized in EXACT_STAT_VALUE_PHRASE_MAPPINGS:
         return EXACT_STAT_VALUE_PHRASE_MAPPINGS[normalized]
+
+    numeric_prefix = re.match(r"^(\d+)\s+(.+)$", normalized)
+    if numeric_prefix:
+        translated_suffix = resolve_structured_fragment(numeric_prefix.group(2))
+        if translated_suffix:
+            return numeric_prefix.group(1) + " " + translated_suffix
 
     pattern_handlers: list[tuple[re.Pattern[str], callable]] = [
         (re.compile(r"^excluding (.+)$", re.IGNORECASE), lambda m: "不计{0}".format(resolve_structured_fragment(m.group(1)) or "")),
@@ -314,7 +340,7 @@ def build_issue(entry: dict, stat: dict, group_key: str, matches: list[dict[str,
         "englishDisplayName": entry.get("englishDisplayName", ""),
         "groupKey": group_key,
         "labelKey": stat.get("labelKey", ""),
-        "value": stat.get("value", ""),
+        "parts": stat.get("parts", []),
         "matches": matches,
     }
 
@@ -352,11 +378,17 @@ def main() -> int:
             for stat in stats:
                 if not isinstance(stat, dict):
                     continue
-                value = str(stat.get("value", "")).strip()
-                if not value:
+                parts = stat.get("parts", [])
+                if not isinstance(parts, list) or not parts:
                     continue
 
-                fragments = collect_structured_fragments(value)
+                fragments = [
+                    {"kind": "part-label", "fragment": str(part.get("label", "")).strip()}
+                    for part in parts
+                    if isinstance(part, dict)
+                    and str(part.get("label", "")).strip()
+                    and any(character.isalpha() for character in str(part.get("label", "")))
+                ]
                 if not fragments:
                     continue
 
@@ -392,8 +424,8 @@ def main() -> int:
         "knownFragmentCounts": dict(sorted(known_counter.items(), key=lambda item: (-item[1], item[0]))),
         "unknownFragmentCounts": dict(sorted(unknown_counter.items(), key=lambda item: (-item[1], item[0]))),
         "notes": [
-            "This scanner only looks at entries[*].statGroups[*].stats[*].value.",
-            "stats[*].value is expected to remain aligned with the English source data.",
+            "This scanner looks at entries[*].statGroups[*].stats[*].parts[*].label.",
+            "stats[*].parts is the non-compatible structured stat-value schema.",
             "Known issues are structured English stat-value labels that already have a safe Chinese mapping and should be present in valueMappings.",
             "Unknown issues are structured English labels that still need mapping decisions before they should be added to valueMappings.",
         ],

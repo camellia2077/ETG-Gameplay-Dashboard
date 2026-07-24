@@ -54,9 +54,9 @@ Expected:
 
 Healthy log examples:
 
-- `[RandomLoadout][Init] Boss Rush startup self-check complete. Applied hooks=..., Skipped hooks=...`
-- `[RandomLoadout][Init] Boss Rush startup self-check passed.`
-- `[RandomLoadout][Init] RandomLoadout v... started successfully.`
+- `[EtgGameplayDashboard][Init] Boss Rush startup self-check complete. Applied hooks=..., Skipped hooks=...`
+- `[EtgGameplayDashboard][Init] Boss Rush startup self-check passed.`
+- `[EtgGameplayDashboard][Init] EtgGameplayDashboard v... started successfully.`
 
 3. Stay in the character-select hub and press the configured command-panel key (default `F7`).
 

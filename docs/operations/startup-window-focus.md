@@ -37,9 +37,9 @@ In practice, this means the fix is durable, and the diagnostic logs stay availab
 
 The startup focus logic is implemented in:
 
-- `src/RandomLoadout/Runtime/GameWindowFocusService.cs`
-- `src/RandomLoadout/Plugin.Bootstrap.cs`
-- `src/RandomLoadout/Plugin.RunLifecycle.cs`
+- `src/EtgGameplayDashboard/Runtime/GameWindowFocusService.cs`
+- `src/EtgGameplayDashboard/Plugin.Bootstrap.cs`
+- `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs`
 
 The final behavior is:
 

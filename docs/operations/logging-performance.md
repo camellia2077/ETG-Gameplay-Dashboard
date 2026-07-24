@@ -19,7 +19,7 @@ Leave it `false` for normal play.
 
 ## What It Captures
 
-When enabled, the plugin writes `[RandomLoadout][Performance]` lines for:
+When enabled, the plugin writes `[EtgGameplayDashboard][Performance]` lines for:
 
 - gameplay-only sampling in dungeon scenes, not the Breach / character-select hub
 - an extra focus window covering the first 10 seconds after entering a gameplay scene
@@ -45,7 +45,7 @@ Each log line also includes recent runtime context such as scene name, whether a
 2. Start the game through the normal launcher path that reproduces the stutter.
 3. Enter the Breach, switch characters if that is part of the repro, then start a run.
 4. Stop after the first obvious hitch or after the first room fully loads.
-5. Read `BepInEx\LogOutput.log` and search for `[RandomLoadout][Performance]`.
+5. Read `BepInEx\LogOutput.log` and search for `[EtgGameplayDashboard][Performance]`.
 
 ## What To Look For
 

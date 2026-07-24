@@ -1,0 +1,18 @@
+// Copyright (C) 2026 camellia2077
+// This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
+
+namespace EtgGameplayDashboard
+{
+    internal sealed class PickupAliasEntry
+    {
+        public PickupAliasEntry(string alias, int pickupId)
+        {
+            Alias = alias ?? string.Empty;
+            PickupId = pickupId;
+        }
+
+        public string Alias { get; private set; }
+
+        public int PickupId { get; private set; }
+    }
+}

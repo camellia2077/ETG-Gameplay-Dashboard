@@ -15,7 +15,7 @@ Before changing command UI, pickup grant behavior, Boss Rush entry flow, or char
 
 ### Command Panel
 
-- Press the configured command-panel key to open or close the command panel. The default is `F7`; change `[UI] CommandPanelKey` in `randomgun.randomloadout.cfg` to another Unity `KeyCode` name such as `F8`, `Insert`, or `BackQuote`.
+- Press the configured command-panel key to open or close the command panel. The default is `F7`; change `[UI] CommandPanelKey` in `randomgun.etg-gameplay-dashboard.cfg` to another Unity `KeyCode` name such as `F8`, `Insert`, or `BackQuote`.
 - The panel also supports opening from a configurable 360 controller shortcut. The default is `LB+R3`; `LB+X`, `LB+Y`, and `R3 (open 0.5s / close press)` are
   available from `Settings`.
 - `Settings -> Controller` can disable the controller shortcut without disabling the keyboard command-panel key; it is enabled by default.
@@ -94,7 +94,7 @@ Recommended input style:
 ### Combat Cursor Color Implementation
 
 The selected color is stored as a stable preset ID under `[Combat] CursorColorPreset`. The catalog and user-facing HEX values are defined in
-`src/RandomLoadout/CombatCursorColorCatalog.cs`:
+`src/EtgGameplayDashboard/CombatCursorColorCatalog.cs`:
 
 | ID | Display name | HEX |
 | --- | --- | --- |
@@ -123,7 +123,7 @@ the renderer logs `Cursor color shader unavailable` and falls back to the origin
 - `God OFF` / `God ON`
   Toggles invincibility. When enabled, the player is kept non-vulnerable and protected from touch damage, pits, and status effects; disabling restores the values captured when the toggle was enabled.
 - `Lang Auto` / `Lang EN` / `Lang CN`
-  Cycles the command panel language preference through `auto`, `en`, and `zh-CN`, then persists it to `randomgun.randomloadout.cfg` under `[UI] Language`.
+  Cycles the command panel language preference through `auto`, `en`, and `zh-CN`, then persists it to `randomgun.etg-gameplay-dashboard.cfg` under `[UI] Language`.
 - `Settings`
   Opens panel preferences. The current settings page includes keyboard key selection, UI size, language, experimental-mode controls, and the About page.
 - `Theme`
@@ -224,14 +224,14 @@ In the `Room` submenu:
 - `Rewind -> Rewind: ON/OFF`
   Controls whether standard and Boss rooms entered on the current floor are recorded for rewind. Turning it off immediately clears the current floor's saved room states and stops any active rewind.
 - `Rewind -> Rewind Method`
-  Cycles between `Rewind Room` (restores the same recorded enemy batches, types, and positions) and `Respawn Enemies` (generates enemies in the current room, but batches, types, and positions may differ). While the command panel is closed, press `C` during a run to activate the selected method. Rewind mode requires `Rewind: ON`; if it is disabled, the shortcut shows a warning instead of rewinding. Change `[UI] RoomEnemyRewindKey` in `randomgun.randomloadout.cfg` to another Unity `KeyCode` if needed. (`C` is chosen as the default key because it is unused by vanilla controls and allows keyboard+mouse players to trigger room rewind with their left thumb/index finger without lifting or moving either hand away from WASD or mouse controls during combat).
+  Cycles between `Rewind Room` (restores the same recorded enemy batches, types, and positions) and `Respawn Enemies` (generates enemies in the current room, but batches, types, and positions may differ). While the command panel is closed, press `C` during a run to activate the selected method. Rewind mode requires `Rewind: ON`; if it is disabled, the shortcut shows a warning instead of rewinding. Change `[UI] RoomEnemyRewindKey` in `randomgun.etg-gameplay-dashboard.cfg` to another Unity `KeyCode` if needed. (`C` is chosen as the default key because it is unused by vanilla controls and allows keyboard+mouse players to trigger room rewind with their left thumb/index finger without lifting or moving either hand away from WASD or mouse controls during combat).
 - `Rewind -> Spawn`
   Executes the currently selected `Rewind Method` directly from the command panel; it is equivalent to the configured `C` shortcut.
   Rewound enemies are immediately marked as engaged because the player is already inside the room when they are spawned.
 - `Rewind Room` requires the player to be physically inside a standard combat or Boss room's interior cells. `Respawn Enemies` is intended for standard combat rooms; when used in a Boss room, it automatically falls back to the exact Boss rewind path so the selected mode cannot block Boss replay. Both modes refuse connected corridors, exit cells, stale next-room selections, and rooms with no enemies; these conditions show a yellow warning and never seal a room or generate enemies.
 - `Boss`
   Shows the Boss selected for the next generated floor and the Boss choices valid for that floor's tileset. In the foyer this targets the first floor; while playing, it targets the next floor. Selecting one sets the vanilla pre-generation Boss-room choice (`BossManager.PriorFloorSelectedBossRoom`), so the dungeon incorporates the target Boss when generating the next level (this avoids live map replacement, as differing room prototype geometries would cause severe map mesh corruption).
-  Display names are read from `defaults/catalog/RandomLoadout.boss-names.json` (extracted from the game's `enemies.txt` text assets and keyed by vanilla Boss room prototype names). This static catalog bypasses repeated `AIActor` instantiation and `StringTableManager` lookups on every UI redraw, preventing UI frame stutter (note: baseline timing measurements were collected under a Debug build). If a custom or newly added room is missing from the catalog, the service safely falls back to the live game enemy actor API.
+  Display names are read from `defaults/catalog/EtgGameplayDashboard.boss-names.json` (extracted from the game's `enemies.txt` text assets and keyed by vanilla Boss room prototype names). This static catalog bypasses repeated `AIActor` instantiation and `StringTableManager` lookups on every UI redraw, preventing UI frame stutter (note: baseline timing measurements were collected under a Debug build). If a custom or newly added room is missing from the catalog, the service safely falls back to the live game enemy actor API.
   Boss choices are shown first in one or more rows. No room-layout buttons are shown until a Boss is selected; for a Boss with multiple vanilla layouts, a second row group then exposes the room prototype choices. Selecting only the Boss uses its first vanilla room layout by default.
 - `Spawn Gunber Muncher`
   Spawns the vanilla Gunber Muncher (常规吃枪怪) actor directly into the current room. This is a custom runtime spawn path, not a full recreation of the original muncher room.
@@ -261,11 +261,11 @@ The picker refuses normal teleports while Boss Rush is active so the Boss Rush s
 
 Implementation notes:
 
-- Gamepad shortcut detection, preset mapping, and basic controller navigation state currently live in `src/RandomLoadout/Commands/InGameCommandController.cs` and `src/RandomLoadout/Commands/InGameCommandController.State.cs`.
-- Main command-page controller focus and button routing currently live in `src/RandomLoadout/Commands/InGameCommandController.CommandPage.cs`.
-- Settings-page controller focus and preset controls currently live in `src/RandomLoadout/Commands/InGameCommandController.Settings.cs`.
-- Teleport buttons live in `src/RandomLoadout/Commands/InGameCommandController.Teleport.cs`.
-- Floor-token-to-scene mapping lives in `src/RandomLoadout/Runtime/EtgFloorSceneResolver.cs`.
+- Gamepad shortcut detection, preset mapping, and basic controller navigation state currently live in `src/EtgGameplayDashboard/Commands/InGameCommandController.cs` and `src/EtgGameplayDashboard/Commands/InGameCommandController.State.cs`.
+- Main command-page controller focus and button routing currently live in `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs`.
+- Settings-page controller focus and preset controls currently live in `src/EtgGameplayDashboard/Commands/InGameCommandController.Settings.cs`.
+- Teleport buttons live in `src/EtgGameplayDashboard/Commands/InGameCommandController.Teleport.cs`.
+- Floor-token-to-scene mapping lives in `src/EtgGameplayDashboard/Runtime/EtgFloorSceneResolver.cs`.
 - The flow intentionally follows the same high-level route as upstream `load_level` behavior:
   `Foyer.Instance.OnDepartedFoyer()` first when leaving the Breach, then `GameManager.Instance.LoadCustomLevel(sceneName)`.
 - Do not assume every floor uses a simple `tt_` scene prefix. The Rat Den is the important exception in the current picker:
@@ -324,7 +324,7 @@ In the `Characters` page:
 
 The automatic start-of-run loadout uses:
 
-- `randomgun.randomloadout.cfg`
+- `randomgun.etg-gameplay-dashboard.cfg`
   simple on/off switches
 - `ETG-Gameplay-Dashboard.rules.json5`
   Start Items config anchor and fallback entry point
@@ -364,7 +364,7 @@ Resolution priority:
 
 ### Runtime Notes
 
-- command execution logs are tagged with `[RandomLoadout][Command]`
+- command execution logs are tagged with `[EtgGameplayDashboard][Command]`
 - the command panel is intentionally a compact debug and experimentation surface, not a full console
 - Boss Rush entry and return actions touch ETG runtime hotspots and should be treated as manual-verify areas
 - invincibility uses ETG runtime damage flags (`HealthHaver.IsVulnerable`, `HealthHaver.PreventAllDamage`, and player immunity flags), so verify it in combat before release

@@ -9,7 +9,7 @@ If you are just joining the project, start with [Start Here](../getting-started/
 Read this page before:
 
 1. moving code across `src/`, `tools/`, `defaults/`, or `docs/`
-2. adding a new runtime feature and deciding whether it belongs in `RandomLoadout` or `RandomLoadout.Core`
+2. adding a new runtime feature and deciding whether it belongs in `EtgGameplayDashboard` or `EtgGameplayDashboard.Core`
 3. splitting a large class or introducing a new project area
 
 ## Must Read First
@@ -23,22 +23,22 @@ Before planning a code change, read:
 
 ## 30-Second Summary
 
-`RandomLoadout` is split into:
+`EtgGameplayDashboard` is split into:
 
-- ETG runtime integration in `src/RandomLoadout/`
-- pure selection and config logic in `src/RandomLoadout.Core/`
-- automated tests for core behavior in `tests/RandomLoadout.Core.Tests/`
+- ETG runtime integration in `src/EtgGameplayDashboard/`
+- pure selection and config logic in `src/EtgGameplayDashboard.Core/`
+- automated tests for core behavior in `tests/EtgGameplayDashboard.Core.Tests/`
 - operational tooling in `tools/`
 - deploy baselines in `defaults/`
 - project knowledge in `docs/`
 
-If a change needs Unity, ETG, BepInEx, scene state, live pickups, or runtime hooks, it belongs in `src/RandomLoadout/`.
+If a change needs Unity, ETG, BepInEx, scene state, live pickups, or runtime hooks, it belongs in `src/EtgGameplayDashboard/`.
 
-If a change is pure parsing, selection, or rule evaluation, it should go in `src/RandomLoadout.Core/` first when possible.
+If a change is pure parsing, selection, or rule evaluation, it should go in `src/EtgGameplayDashboard.Core/` first when possible.
 
 ## Responsibility Map
 
-### `src/RandomLoadout/`
+### `src/EtgGameplayDashboard/`
 
 This is the BepInEx and ETG-facing runtime layer.
 
@@ -55,7 +55,7 @@ It owns:
 
 This layer is allowed to depend on Unity, BepInEx, and game assemblies.
 
-### `src/RandomLoadout.Core/`
+### `src/EtgGameplayDashboard.Core/`
 
 This is the pure logic layer.
 
@@ -69,7 +69,7 @@ It owns:
 
 This layer should stay free of Unity, BepInEx, and ETG runtime types.
 
-### `tests/RandomLoadout.Core.Tests/`
+### `tests/EtgGameplayDashboard.Core.Tests/`
 
 This is the lightweight automated test layer.
 
@@ -119,8 +119,8 @@ It owns:
 
 When adding or changing behavior:
 
-- put pure decision logic in `src/RandomLoadout.Core/` first when possible
-- keep ETG-specific reflection, runtime database lookup, scene logic, and item grant behavior in `src/RandomLoadout/`
+- put pure decision logic in `src/EtgGameplayDashboard.Core/` first when possible
+- keep ETG-specific reflection, runtime database lookup, scene logic, and item grant behavior in `src/EtgGameplayDashboard/`
 - put workflow logic in `tools/`, not in source runtime code
 - put user, operator, and project knowledge in `docs/`, not in source comments unless it directly explains code behavior
 
@@ -148,9 +148,9 @@ If a type already uses this pattern, extend the matching partial instead of grow
 Use these quick calls when the boundary feels fuzzy:
 
 - new ETG hook or scene transition behavior:
-  `src/RandomLoadout/`
+  `src/EtgGameplayDashboard/`
 - new parser or deterministic selection rule:
-  `src/RandomLoadout.Core/`
+  `src/EtgGameplayDashboard.Core/`
 - build, deploy, log, or repository workflow helper:
   `tools/`
 - shipped baseline JSON, localization, or exported catalog seed:

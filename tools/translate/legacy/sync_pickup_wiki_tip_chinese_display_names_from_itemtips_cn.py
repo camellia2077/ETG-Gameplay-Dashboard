@@ -14,7 +14,7 @@ from translation_workflow import (
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "RandomLoadout.pickup-wiki-tips.zh-CN.work.json"
+DEFAULT_WORK_FILE_PATH = REPO_ROOT / "defaults" / "catalog" / "EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json"
 DEFAULT_ITEMTIPS_TIP_PATH = REPO_ROOT / "temp" / "etg-itemtips-cn" / "itemtips-cn.tip"
 
 # Confirmed game-facing override. The itemtips repo only exposes the shared Megahand entry name.
@@ -30,7 +30,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--work-file",
         default=str(DEFAULT_WORK_FILE_PATH),
-        help="Path to RandomLoadout.pickup-wiki-tips.zh-CN.work.json.",
+        help="Path to EtgGameplayDashboard.pickup-wiki-tips.zh-CN.work.json.",
     )
     parser.add_argument(
         "--itemtips-tip",

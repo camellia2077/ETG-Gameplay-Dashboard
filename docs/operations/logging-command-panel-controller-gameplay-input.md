@@ -1,6 +1,6 @@
 # Command-Panel Controller Gameplay Input Logging
 
-Use this diagnostic when left-stick gameplay movement stops working while the RandomLoadout Control Panel is open.
+Use this diagnostic when left-stick gameplay movement stops working while the EtgGameplayDashboard Control Panel is open.
 
 ## Enable
 
@@ -20,7 +20,7 @@ The switch is disabled by default. It logs only when the panel, device, input st
 3. Move the left stick again, then close the panel and repeat once more.
 4. Disable the switch after collecting the log.
 
-Relevant lines are prefixed with `[RandomLoadout][Command] [Input]` and contain `Device`, `DPad`, `LeftStick`,
+Relevant lines are prefixed with `[EtgGameplayDashboard][Command] [Input]` and contain `Device`, `DPad`, `LeftStick`,
 `RightStick`, `IsInputOverridden`, and `CurrentInputState`.
 
 ## Interpretation
@@ -36,5 +36,5 @@ Relevant lines are prefixed with `[RandomLoadout][Command] [Input]` and contain 
 Extract plugin lines with:
 
 ```powershell
-python .\tools\logs\extract_randomloadout_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" -o ".\controller-gameplay-input.log"
+python .\tools\logs\extract_etg_gameplay_dashboard_log.py "C:\Game\steam\steamapps\common\Enter the Gungeon\BepInEx\LogOutput.log" -o ".\controller-gameplay-input.log"
 ```

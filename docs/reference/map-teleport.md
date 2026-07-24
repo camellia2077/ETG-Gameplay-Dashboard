@@ -15,13 +15,13 @@ The current implementation targets the practical gameplay result, not the exact 
 
 Start here:
 
-- `src/RandomLoadout/Commands/InGameCommandController.CommandPage.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs`
   Button placement, enabled-state color, and controller focus entries.
-- `src/RandomLoadout/Commands/InGameCommandController.CommandActions.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandActions.cs`
   Button execution and status messaging.
-- `src/RandomLoadout/Commands/RoomDebugCommandService.cs`
+- `src/EtgGameplayDashboard/Commands/RoomDebugCommandService.cs`
   Runtime map reveal, teleporter promotion, and command logging.
-- `src/RandomLoadout/Commands/InGameCommandController.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.cs`
   Runtime sampling logs and room-transition observation while teleporter promotion is active.
 
 ## Implementation Summary
