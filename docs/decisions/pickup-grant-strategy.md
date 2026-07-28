@@ -15,7 +15,7 @@
 * 物品字符串输入过度依赖 `displayName`，容易受本地化文本、运行时注册状态和重名条目影响。
 * 不同类别的 grant 路径分散，排查“为什么这个物品能发、那个物品不能发”时缺少统一主路径。
 
-与此同时，`ModTheGungeonAPI` 的 `give` 更偏向：
+上游 `give` 命令的历史行为也体现了类似方向：
 
 * 使用稳定的物品标识进行查找
 * 使用 `LootEngine.TryGivePrefabToPlayer(...)` 作为统一运行时发放路径
@@ -26,7 +26,7 @@
 
 当前策略是：
 
-* 在物品查找上，优先向 `ModTheGungeonAPI give` 靠拢。
+* 在物品查找上，采用稳定的物品标识。
 * 在物品发放上，以 `LootEngine.TryGivePrefabToPlayer(...)` 为主路径。
 * 保留分类专用 fallback，避免为了“完全一致”牺牲实际成功率。
 
@@ -77,7 +77,7 @@
 * 稳定性更高：`pickupId` / `internalName` 比 `displayName` 更少受运行时文本环境影响。
 * 调试成本更低：统一主路径后，更容易判断问题是“查找失败”还是“grant 失败”。
 * 兼容性更强：保留 fallback 后，不需要把项目正确性完全押在单一 API 行为上。
-* 与上游更一致：对外输入语义和主要 grant 思路更接近 `ModTheGungeonAPI give`，降低理解和迁移成本。
+* 与稳定的运行时物品标识和统一 grant 思路一致，降低理解和迁移成本。
 
 ## 取舍
 
@@ -88,7 +88,7 @@
   * grant 结果更易观察
   * 行为更接近社区常见实现
 * 缺点：
-  * 不是对 `ModTheGungeonAPI give` 的逐行复刻
+  * 不是对任何上游 `give` 命令的逐行复刻
   * 仍然保留项目本地 fallback，因此实现层比“纯单一路径”更复杂
 
 ## 后续演进条件

@@ -143,6 +143,8 @@ namespace EtgGameplayDashboard
                 _commandController != null && _commandController.IsVisibleForDiagnostics);
             if (_commandController != null)
             {
+                string panelEventType = Event.current != null ? Event.current.type.ToString() : "<null>";
+                _commandController.LogPanelEndToEndHostStage("Plugin.OnGUI.begin", panelEventType);
                 PlayerController player = null;
                 GameManager gameManager = GameManager.Instance;
                 if ((object)gameManager != null)
@@ -151,10 +153,13 @@ namespace EtgGameplayDashboard
                 }
 
                 _commandController.OnGUI(player, Logger);
+                _commandController.LogPanelEndToEndHostStage("Plugin.OnGUI.after_command_panel", panelEventType);
                 CommandPanelCursorRenderHooks.LogPluginStage(
                     "Plugin.OnGUI.after_command_panel",
                     _commandController.IsVisibleForDiagnostics);
                 CommandPanelCursorRenderHooks.DrawCursorAfterPanel(_commandController.IsVisibleForDiagnostics);
+                _commandController.LogPanelEndToEndHostStage("CursorAfterPanel", panelEventType);
+                _commandController.CompletePanelEndToEndTraceOnRepaint(panelEventType);
             }
 
             DrawNearbyPickupTipOverlay();

@@ -6,6 +6,7 @@ using System.IO;
 using BepInEx;
 using EtgGameplayDashboard.Core;
 using EtgGameplayDashboard.Core.Input;
+using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
@@ -245,7 +246,7 @@ namespace EtgGameplayDashboard
                 "StartItems",
                 "ActivePreset",
                 StartItemsPresetNames.DefaultPresetId,
-                "Active start-items preset id from ETG-Gameplay-Dashboard.rules.json5.");
+                "Active start-items preset id from EtgGameplayDashboard.rules.json5.");
             _combatCursorColorEnabledConfig = Config.Bind(
                 "Combat",
                 "CursorColorEnabled",
@@ -404,7 +405,8 @@ namespace EtgGameplayDashboard
                 IsDamageDiagnosticsVerboseLoggingEnabled,
                 delegate { return _playerStatMultiplierService != null ? _playerStatMultiplierService.DamageMultiplier : 1f; });
             _pickupGranter = new EtgPickupGranter(_playerActiveItemCapacityOverrideService, IsActiveItemGrantVerboseLoggingEnabled);
-            _bossRushService = new BossRushService(Logger, IsBossRushVerboseLoggingEnabled);
+            _bossRushCoroutineHost = gameObject.AddComponent<BossRushCoroutineHost>();
+            _bossRushService = new BossRushService(Logger, IsBossRushVerboseLoggingEnabled, _bossRushCoroutineHost);
             _roomEnemyReplayService = new RoomEnemyReplayService(Logger, IsRoomEnemyReplayVerboseLoggingEnabled, IsPlayerRewindEnabled, IsRoomRewindCleanupEnabled, SetRoomEnemyRefreshRecordingEnabled);
             _roomEnemyReplayService.SetRecordingEnabled(IsRoomEnemyRefreshRecordingEnabled());
             _gameWindowFocusService = new GameWindowFocusService(Logger, IsStartupWindowFocusVerboseLoggingEnabled);

@@ -40,14 +40,17 @@ namespace EtgGameplayDashboard
             const float settingColumnWidth = 270f;
             const float settingLabelWidth = 154f;
             const float settingButtonWidth = 108f;
+            long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             SyncPersistedCombatTargetState(GetSelectedCommandTargetPlayer() ?? player);
             bool experimentalModeEnabled = IsExperimentalModeEnabled();
+            LogCommandPanelPerformanceStage("CommandPage.Player.Combat.State", stageStartedAtTimestamp);
             float secondSettingColumnX = contentRect.x + settingColumnWidth + ButtonGap;
             float firstRowY = contentRect.y;
             float secondRowY = firstRowY + controlHeight + ButtonGap;
             float thirdRowY = secondRowY + controlHeight + ButtonGap;
             float fourthRowY = thirdRowY + controlHeight + ButtonGap;
 
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             DrawCombatSettingRows(
                 new[]
                 {
@@ -82,18 +85,23 @@ namespace EtgGameplayDashboard
                 },
                 settingLabelWidth,
                 settingButtonWidth);
+            LogCommandPanelPerformanceStage("CommandPage.Player.Combat.SettingRows", stageStartedAtTimestamp);
 
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             DrawKeyboardAimAssistSetting(
                 new Rect(contentRect.x, fourthRowY + (controlHeight + ButtonGap) * 2f, contentRect.width, controlHeight),
                 controlHeight,
                 settingLabelWidth,
                 settingButtonWidth,
                 logger);
+            LogCommandPanelPerformanceStage("CommandPage.Player.Combat.KeyboardAimAssist", stageStartedAtTimestamp);
 
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             if (DrawControllerButton(new Rect(secondSettingColumnX + settingLabelWidth, fourthRowY, settingButtonWidth, controlHeight), "cmd.combat.full_ammo", GuiText.Get("gui.command.button.full_ammo"), _buttonStyle))
             {
                 ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteRefillCurrentGunAmmo(targetPlayer, logger); });
             }
+            LogCommandPanelPerformanceStage("CommandPage.Player.Combat.FullAmmo", stageStartedAtTimestamp);
 
         }
 

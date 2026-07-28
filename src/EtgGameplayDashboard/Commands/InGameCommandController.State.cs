@@ -489,6 +489,7 @@ namespace EtgGameplayDashboard
         private string _cursorColorCustomHexText = string.Empty;
         private ControllerNavDirection? _heldKeyboardNavigationDirection;
         private string _lastGuiLanguageCode = string.Empty;
+        private bool _commandPageTitleTextRenderingWarmedUp;
         private string _revealMapActivatedSceneName = string.Empty;
         private string _mapDirectTeleportActivatedSceneName = string.Empty;
         private float _nextMapDirectTeleportDebugLogAt;
@@ -589,6 +590,8 @@ namespace EtgGameplayDashboard
         private float _controllerShortcutR3PressedAt = -1f;
         private bool _controllerShortcutHoldTriggered;
         private readonly Dictionary<int, PickupIconData> _pickupIconCache = new Dictionary<int, PickupIconData>();
+        private readonly Queue<int> _loadoutPreviewIconWarmupQueue = new Queue<int>();
+        private readonly HashSet<int> _loadoutPreviewIconWarmupQueuedIds = new HashSet<int>();
         private readonly HashSet<int> _pickupNameDiagnosticsLogged = new HashSet<int>();
         private readonly HashSet<PlayerController> _autoReloadTargetStates = new HashSet<PlayerController>();
         private readonly HashSet<PlayerController> _ammoModeTargetStates = new HashSet<PlayerController>();

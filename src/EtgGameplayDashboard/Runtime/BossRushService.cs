@@ -30,6 +30,7 @@ namespace EtgGameplayDashboard
 
         private readonly ManualLogSource _logger;
         private readonly Func<bool> _verboseLoggingEnabledProvider;
+        private readonly BossRushCoroutineHost _coroutineHost;
         private BossRushState _state;
         private int _currentEncounterIndex;
         private RoomHandler _currentBossRoom;
@@ -40,10 +41,14 @@ namespace EtgGameplayDashboard
         private GameObject _selectedPlayerPrefab;
         private string _selectedCharacterLabel;
 
-        public BossRushService(ManualLogSource logger, Func<bool> verboseLoggingEnabledProvider)
+        public BossRushService(
+            ManualLogSource logger,
+            Func<bool> verboseLoggingEnabledProvider,
+            BossRushCoroutineHost coroutineHost)
         {
             _logger = logger;
             _verboseLoggingEnabledProvider = verboseLoggingEnabledProvider;
+            _coroutineHost = coroutineHost;
             _state = BossRushState.Idle;
             _currentEncounterIndex = -1;
             Instance = this;

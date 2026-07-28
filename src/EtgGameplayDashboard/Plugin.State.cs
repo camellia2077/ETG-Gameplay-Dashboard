@@ -117,6 +117,7 @@ namespace EtgGameplayDashboard
         private DamageDiagnosticsService _damageDiagnosticsService;
         private EtgPickupGranter _pickupGranter;
         private BossRushService _bossRushService;
+        private BossRushCoroutineHost _bossRushCoroutineHost;
         private RoomEnemyReplayService _roomEnemyReplayService;
         private RuntimeHookRegistry _runtimeHookRegistry;
         private GameWindowFocusService _gameWindowFocusService;

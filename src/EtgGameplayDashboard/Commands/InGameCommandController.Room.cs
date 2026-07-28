@@ -702,6 +702,17 @@ namespace EtgGameplayDashboard
 
         private void ExecuteSelectedRoomEnemyRefresh(PlayerController player, ManualLogSource logger)
         {
+            if (_bossRushService != null && _bossRushService.IsActive)
+            {
+                ShowStatus(
+                    GetLocalizedFallback(
+                        "result.room.rewind.boss_rush_disabled",
+                        "Rewind is temporarily disabled during Boss Rush because it can cause a game UI bug. A fix is in progress.",
+                        "Boss Rush 期间暂时禁用回溯，回溯可能导致游戏 UI 出现 Bug。修复正在进行中。"),
+                    true);
+                return;
+            }
+
             if (_roomEnemyRefreshMethod == RoomEnemyRefreshMethod.RespawnEnemies)
             {
                 ExecuteRefreshTemplateRoomEnemies(player, logger);

@@ -225,19 +225,19 @@ namespace EtgGameplayDashboard
         private void StartActiveCoroutine(IEnumerator routine)
         {
             StopActiveCoroutine();
-            if (routine == null || ETGMod.StartGlobalCoroutine == null)
+            if (routine == null || _coroutineHost == null)
             {
                 return;
             }
 
-            _activeCoroutine = ETGMod.StartGlobalCoroutine(routine);
+            _activeCoroutine = _coroutineHost.StartRoutine(routine);
         }
 
         private void StopActiveCoroutine()
         {
-            if ((object)_activeCoroutine != null && ETGMod.StopGlobalCoroutine != null)
+            if ((object)_activeCoroutine != null && _coroutineHost != null)
             {
-                ETGMod.StopGlobalCoroutine(_activeCoroutine);
+                _coroutineHost.StopRoutine(_activeCoroutine);
             }
 
             _activeCoroutine = null;

@@ -6,43 +6,29 @@ using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
-    internal sealed class LockedAmmoGunBehaviour : GunBehaviour
+    internal sealed class LockedAmmoComponent : MonoBehaviour
     {
         private static readonly FieldInfo ReloadWhenDoneFiringField = typeof(Gun).GetField("m_reloadWhenDoneFiring", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly FieldInfo IsReloadingField = typeof(Gun).GetField("m_isReloading", BindingFlags.Instance | BindingFlags.NonPublic);
+        private Gun _gun;
         private int _lockedAmmo;
         private int _lockedClipShotsRemaining;
+
+        private void Awake()
+        {
+            _gun = GetComponent<Gun>();
+        }
+
+        private void Update()
+        {
+            ApplyLockedState(_gun);
+        }
 
         public void SetLockedState(int lockedAmmo, int lockedClipShotsRemaining)
         {
             _lockedAmmo = lockedAmmo;
             _lockedClipShotsRemaining = lockedClipShotsRemaining;
-            ApplyLockedState(gun);
-        }
-
-        public override void AutoreloadOnEmptyClip(GameActor owner, Gun gun, ref bool autoreload)
-        {
-            autoreload = false;
-        }
-
-        public override void OnPostFired(PlayerController player, Gun gun)
-        {
-            ApplyLockedState(gun);
-        }
-
-        public override void OnAmmoChanged(PlayerController player, Gun gun)
-        {
-            ApplyLockedState(gun);
-        }
-
-        public override void OnFinishAttack(PlayerController player, Gun gun)
-        {
-            ApplyLockedState(gun);
-        }
-
-        public override void OnReloadPressed(PlayerController player, Gun gun, bool manual)
-        {
-            ApplyLockedState(gun);
+            ApplyLockedState(_gun);
         }
 
         private void ApplyLockedState(Gun gun)

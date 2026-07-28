@@ -36,9 +36,9 @@ Startup flow:
 
 1. `Plugin.Awake()` calls `GuiText.Initialize(Paths.ConfigPath)`.
 2. `GuiText` loads:
-   - `ETG-Gameplay-Dashboard.localization.en.json5`
-   - `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
-3. The plugin binds `[UI] Language` from `randomgun.etg-gameplay-dashboard.cfg`.
+   - `EtgGameplayDashboard.localization.en.json5`
+   - `EtgGameplayDashboard.localization.zh-CN.json5`
+3. The plugin binds `[UI] Language` from `etg-gameplay-dashboard.cfg`.
 4. The value is normalized to `auto`, `en`, or `zh-CN`.
 5. `GuiText.SetLanguageOverride(...)` stores the preference.
 
@@ -124,8 +124,8 @@ Mod-owned UI resources:
 These are localized by this project through:
 
 - `GuiText`
-- `ETG-Gameplay-Dashboard.localization.en.json5`
-- `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
+- `EtgGameplayDashboard.localization.en.json5`
+- `EtgGameplayDashboard.localization.zh-CN.json5`
 
 ETG-owned runtime resources:
 

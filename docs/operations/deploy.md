@@ -63,18 +63,13 @@ Then continue with:
 `deploy_mod.py` builds first by default, then copies:
 
 - `EtgGameplayDashboard.dll`
-- the MTG API runtime bundle from `lib\`
+- the project runtime dependencies from `lib\`
 - repository default config files and catalog snapshots when requested
 
-Current MTG API runtime bundle copy targets:
+Current runtime dependency copy targets:
 
 - `0Harmony.dll` -> `BepInEx\plugins\`
-- `ModTheGungeonAPI.dll` -> `BepInEx\plugins\MtGAPI\`
-- `Ionic.Zip.dll` -> `BepInEx\plugins\MtGAPI\`
-- `Newtonsoft.Json.dll` -> `BepInEx\plugins\MtGAPI\`
-- `System.Xml.dll` -> `BepInEx\plugins\MtGAPI\`
-- `System.Xml.Linq.dll` -> `BepInEx\plugins\MtGAPI\`
-- `UnityEngine.CoreModule.MTGAPIPatcher.mm.dll` -> `monomod\`
+- `Newtonsoft.Json.dll` -> `BepInEx\plugins\`
 
 Keep these DLLs present under `lib\` before deploying.
 
@@ -84,11 +79,11 @@ Game-side config lives under `BepInEx\config\`.
 
 Important files:
 
-- `randomgun.etg-gameplay-dashboard.cfg`
-- `ETG-Gameplay-Dashboard.aliases.json5`
-- `ETG-Gameplay-Dashboard.rules.json5`
-- `ETG-Gameplay-Dashboard.localization.en.json5`
-- `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
+- `etg-gameplay-dashboard.cfg`
+- `EtgGameplayDashboard.aliases.json5`
+- `EtgGameplayDashboard.rules.json5`
+- `EtgGameplayDashboard.localization.en.json5`
+- `EtgGameplayDashboard.localization.zh-CN.json5`
 - `presets\preset.default.json`
 - `presets\preset.casey_synergies.json`
 - `EtgGameplayDashboard.pickups.json`
@@ -108,9 +103,9 @@ Default behavior:
 
 Fallback behavior:
 
-- missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `EtgGameplayDashboard.rules.full-pool.json5`
+- missing or invalid `EtgGameplayDashboard.rules.json5` falls back to `EtgGameplayDashboard.rules.full-pool.json5`
 - if both rule files are unavailable, the plugin falls back to built-in emergency defaults
-- missing `ETG-Gameplay-Dashboard.aliases.json5` falls back to built-in aliases for that session
+- missing `EtgGameplayDashboard.aliases.json5` falls back to built-in aliases for that session
 
 ## Common Failure Cases
 

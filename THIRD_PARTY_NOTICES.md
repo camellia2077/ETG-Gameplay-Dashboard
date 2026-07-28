@@ -24,26 +24,13 @@ For redistributed package details, license texts, and upstream links, see:
 
 The player-facing release package does not redistribute game-owned files such as `Assembly-CSharp.dll` or `UnityEngine*.dll`.
 
-## Required Runtime Dependency Not Bundled In The Player-Facing Release Package
+## Runtime Dependencies Not Bundled In The Player-Facing Release Package
 
-`ETG-Gameplay-Dashboard` requires:
+`ETG-Gameplay-Dashboard` uses the runtime assemblies supplied by `BepInExPack_EtG` and
+the project-owned `Newtonsoft.Json.dll` and `0Harmony.dll` files copied during deployment.
 
-* [`SpecialAPI/ModTheGungeonAPI`](https://github.com/SpecialAPI/ModTheGungeonAPI) - `MIT`
-
-Current usage:
-
-* runtime integration dependency for `Boss Rush`
-* `HarmonyX`-based ETG hook infrastructure
-* level-load and character-select flow references such as `LoadCustomLevel(...)`, `OnDepartedFoyer()`, and `DelayedLoadCharacterSelect(...)`
-
-Important note:
-
-* local developer deploy flows copy `ModTheGungeonAPI.dll` and related support files into a test install
-* the player-facing release package described in `docs/operations/release-package.md` also bundles `ModTheGungeonAPI` and its required support files for plug-and-play installs
-
-License source:
-
-* [`ModTheGungeonAPI/LICENSE`](https://github.com/SpecialAPI/ModTheGungeonAPI/blob/main/LICENSE)
+Game-owned assemblies such as `Assembly-CSharp.dll` and `UnityEngine*.dll` are used only
+as build-time references and are not copied into the player-facing package.
 
 ## Reference Projects And Implementation Inspiration
 

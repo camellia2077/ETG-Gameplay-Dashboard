@@ -20,6 +20,7 @@ namespace EtgGameplayDashboard
 
         private void DrawCommandPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
+            LogCommandPanelPerformanceStage("CommandPage.begin");
             const float controlHeight = 34f;
             const float categoryButtonWidth = 92f;
             const float categoryButtonHeight = 28f;
@@ -29,26 +30,39 @@ namespace EtgGameplayDashboard
             Rect languageButtonRect = new Rect(themeButtonRect.x - ButtonGap - LanguageButtonWidth, themeButtonRect.y, LanguageButtonWidth, 30f);
             Rect settingsButtonRect = new Rect(languageButtonRect.x - ButtonGap - ButtonWidth, languageButtonRect.y, ButtonWidth, 30f);
 
+            long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
+            string commandPageTitle = GuiText.Get("gui.command.title");
+            LogCommandPanelPerformanceStage("CommandPage.Header.Title.Resolve", stageStartedAtTimestamp);
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 12f, settingsButtonRect.x - panelRect.x - 28f, 24f),
-                GuiText.Get("gui.command.title"),
+                commandPageTitle,
                 _titleStyle);
+            LogCommandPanelPerformanceStage("CommandPage.Header.Title.Draw", stageStartedAtTimestamp);
+
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             if (DrawControllerButton(settingsButtonRect, "cmd.settings", GuiText.Get("gui.command.button.settings"), _buttonStyle))
             {
                 OpenSettingsPage();
             }
+            LogCommandPanelPerformanceStage("CommandPage.Header.Settings", stageStartedAtTimestamp);
 
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             if (DrawControllerButton(languageButtonRect, "cmd.language", GetLanguageButtonLabel(), _buttonStyle))
             {
                 ExecuteToggleLanguage(logger);
             }
+            LogCommandPanelPerformanceStage("CommandPage.Header.Language", stageStartedAtTimestamp);
 
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             string themeButtonLabel = GetLocalizedFallback("gui.command.button.theme", "Theme", "主题") + ": " + GetThemeDisplayName();
             if (DrawControllerButton(themeButtonRect, "cmd.theme", themeButtonLabel, _buttonStyle))
             {
                 ExecuteCycleTheme();
             }
+            LogCommandPanelPerformanceStage("CommandPage.Header.Theme", stageStartedAtTimestamp);
 
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             GUI.Label(
                 new Rect(panelRect.x + 14f, panelRect.y + 40f, panelRect.width - 28f, 20f),
                 GuiText.Get("gui.command.hint.toggle", GetConfiguredToggleKeyName(), GetControllerShortcutDisplayName()),
@@ -62,10 +76,31 @@ namespace EtgGameplayDashboard
             DrawCommandCategoryButton(generalCategoryButtonRect, "cmd.category.general", CommandMenuCategory.General, GuiText.Get("gui.command.category.general"));
             DrawCommandCategoryButton(playerCategoryButtonRect, "cmd.category.player", CommandMenuCategory.Player, GuiText.Get("gui.command.category.player"));
             DrawCommandCategoryButton(roomCategoryButtonRect, "cmd.category.room", CommandMenuCategory.Room, GetLocalizedFallback("gui.command.category.room", "Room", "房间"));
+            LogCommandPanelPerformanceStage("CommandPage.CategoryTabs", stageStartedAtTimestamp);
 
             Rect contentRect = new Rect(panelRect.x + 14f, generalCategoryButtonRect.yMax + 14f, panelRect.width - 28f, panelRect.height - (generalCategoryButtonRect.yMax - panelRect.y) - 56f);
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             DrawCommandCategoryContent(contentRect, contentButtonWidth, controlHeight, player, logger);
+            LogCommandPanelPerformanceStage("CommandPage.CategoryContent", stageStartedAtTimestamp);
+            LogCommandPanelPerformanceStage("CommandPage.complete");
+        }
 
+        private void WarmUpCommandPageTitleTextIfNeeded()
+        {
+            if (_isVisible ||
+                _commandPageTitleTextRenderingWarmedUp ||
+                Event.current == null ||
+                Event.current.type != EventType.Repaint ||
+                Time.timeSinceLevelLoad < 3f)
+            {
+                return;
+            }
+
+            GUI.Label(
+                new Rect(-10000f, -10000f, 1f, 1f),
+                GuiText.Get("gui.command.title"),
+                _titleStyle);
+            _commandPageTitleTextRenderingWarmedUp = true;
         }
 
         private float GetCommandPanelHeight()
@@ -117,18 +152,22 @@ namespace EtgGameplayDashboard
 
         private void DrawCommandCategoryContent(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
         {
+            long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             if (_commandMenuCategory == CommandMenuCategory.General)
             {
                 DrawGeneralContent(contentRect, buttonWidth, controlHeight, player, logger);
+                LogCommandPanelPerformanceStage("CommandPage.Category.General", stageStartedAtTimestamp);
                 return;
             }
 
             if (_commandMenuCategory == CommandMenuCategory.Room)
             {
                 DrawRoomContent(contentRect, buttonWidth, controlHeight, player, logger);
+                LogCommandPanelPerformanceStage("CommandPage.Category.Room", stageStartedAtTimestamp);
                 return;
             }
             DrawPlayerContent(contentRect, buttonWidth, controlHeight, player, logger);
+            LogCommandPanelPerformanceStage("CommandPage.Category.Player", stageStartedAtTimestamp);
         }
 
         private bool DrawControllerButton(Rect rect, string controlId, string label, GUIStyle normalStyle)

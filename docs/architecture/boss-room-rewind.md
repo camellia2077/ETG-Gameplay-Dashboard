@@ -14,7 +14,7 @@ The main implementation is `src/EtgGameplayDashboard/Runtime/RoomEnemyReplayServ
 
 ## Configuration and activation
 
-The persistent settings are stored by BepInEx in `BepInEx/config/randomgun.etg-gameplay-dashboard.cfg`:
+The persistent settings are stored by BepInEx in `BepInEx/config/etg-gameplay-dashboard.cfg`:
 
 ```ini
 [UI]

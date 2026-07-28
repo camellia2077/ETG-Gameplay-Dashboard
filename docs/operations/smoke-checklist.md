@@ -33,7 +33,7 @@ Run this checklist after:
 - changing Harmony patches
 - changing Boss Rush lifecycle or dungeon-load behavior
 - changing deployment packaging for runtime DLL dependencies
-- updating `ModTheGungeonAPI` or other runtime libraries under `lib\`
+- updating runtime libraries under `lib\`
 - changing character-select-hub, reward, pause, or return-flow behavior
 
 ## Minimum Smoke Pass

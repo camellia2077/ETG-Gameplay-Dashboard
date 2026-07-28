@@ -15,7 +15,7 @@ Before changing command UI, pickup grant behavior, Boss Rush entry flow, or char
 
 ### Command Panel
 
-- Press the configured command-panel key to open or close the command panel. The default is `F7`; change `[UI] CommandPanelKey` in `randomgun.etg-gameplay-dashboard.cfg` to another Unity `KeyCode` name such as `F8`, `Insert`, or `BackQuote`.
+- Press the configured command-panel key to open or close the command panel. The default is `F7`; change `[UI] CommandPanelKey` in `etg-gameplay-dashboard.cfg` to another Unity `KeyCode` name such as `F8`, `Insert`, or `BackQuote`.
 - The panel also supports opening from a configurable 360 controller shortcut. The default is `LB+R3`; `LB+X`, `LB+Y`, and `R3 (open 0.5s / close press)` are
   available from `Settings`.
 - `Settings -> Controller` can disable the controller shortcut without disabling the keyboard command-panel key; it is enabled by default.
@@ -123,7 +123,7 @@ the renderer logs `Cursor color shader unavailable` and falls back to the origin
 - `God OFF` / `God ON`
   Toggles invincibility. When enabled, the player is kept non-vulnerable and protected from touch damage, pits, and status effects; disabling restores the values captured when the toggle was enabled.
 - `Lang Auto` / `Lang EN` / `Lang CN`
-  Cycles the command panel language preference through `auto`, `en`, and `zh-CN`, then persists it to `randomgun.etg-gameplay-dashboard.cfg` under `[UI] Language`.
+  Cycles the command panel language preference through `auto`, `en`, and `zh-CN`, then persists it to `etg-gameplay-dashboard.cfg` under `[UI] Language`.
 - `Settings`
   Opens panel preferences. The current settings page includes keyboard key selection, UI size, language, experimental-mode controls, and the About page.
 - `Theme`
@@ -224,10 +224,11 @@ In the `Room` submenu:
 - `Rewind -> Rewind: ON/OFF`
   Controls whether standard and Boss rooms entered on the current floor are recorded for rewind. Turning it off immediately clears the current floor's saved room states and stops any active rewind.
 - `Rewind -> Rewind Method`
-  Cycles between `Rewind Room` (restores the same recorded enemy batches, types, and positions) and `Respawn Enemies` (generates enemies in the current room, but batches, types, and positions may differ). While the command panel is closed, press `C` during a run to activate the selected method. Rewind mode requires `Rewind: ON`; if it is disabled, the shortcut shows a warning instead of rewinding. Change `[UI] RoomEnemyRewindKey` in `randomgun.etg-gameplay-dashboard.cfg` to another Unity `KeyCode` if needed. (`C` is chosen as the default key because it is unused by vanilla controls and allows keyboard+mouse players to trigger room rewind with their left thumb/index finger without lifting or moving either hand away from WASD or mouse controls during combat).
+  Cycles between `Rewind Room` (restores the same recorded enemy batches, types, and positions) and `Respawn Enemies` (generates enemies in the current room, but batches, types, and positions may differ). While the command panel is closed, press `C` during a run to activate the selected method. Rewind mode requires `Rewind: ON`; if it is disabled, the shortcut shows a warning instead of rewinding. Change `[UI] RoomEnemyRewindKey` in `etg-gameplay-dashboard.cfg` to another Unity `KeyCode` if needed. (`C` is chosen as the default key because it is unused by vanilla controls and allows keyboard+mouse players to trigger room rewind with their left thumb/index finger without lifting or moving either hand away from WASD or mouse controls during combat).
 - `Rewind -> Spawn`
   Executes the currently selected `Rewind Method` directly from the command panel; it is equivalent to the configured `C` shortcut.
   Rewound enemies are immediately marked as engaged because the player is already inside the room when they are spawned.
+- Rewind is temporarily disabled while Boss Rush is active because using it can cause a game UI bug. The command shows a warning while the fix is in progress.
 - `Rewind Room` requires the player to be physically inside a standard combat or Boss room's interior cells. `Respawn Enemies` is intended for standard combat rooms; when used in a Boss room, it automatically falls back to the exact Boss rewind path so the selected mode cannot block Boss replay. Both modes refuse connected corridors, exit cells, stale next-room selections, and rooms with no enemies; these conditions show a yellow warning and never seal a room or generate enemies.
 - `Boss`
   Shows the Boss selected for the next generated floor and the Boss choices valid for that floor's tileset. In the foyer this targets the first floor; while playing, it targets the next floor. Selecting one sets the vanilla pre-generation Boss-room choice (`BossManager.PriorFloorSelectedBossRoom`), so the dungeon incorporates the target Boss when generating the next level (this avoids live map replacement, as differing room prototype geometries would cause severe map mesh corruption).
@@ -324,11 +325,11 @@ In the `Characters` page:
 
 The automatic start-of-run loadout uses:
 
-- `randomgun.etg-gameplay-dashboard.cfg`
+- `etg-gameplay-dashboard.cfg`
   simple on/off switches
-- `ETG-Gameplay-Dashboard.rules.json5`
+- `EtgGameplayDashboard.rules.json5`
   Start Items config anchor and fallback entry point
-- `ETG-Gameplay-Dashboard.aliases.json5`
+- `EtgGameplayDashboard.aliases.json5`
   shared alias definitions for rules and commands
 
 Current minimum behavior:
@@ -356,7 +357,6 @@ Resolution priority:
 
 ### Implementation References
 
-- [ModTheGungeonAPI Reference](./modthegungeonapi.md)
 - [Muncher Spawn](./runtime-internals/muncher-spawn.md)
 - [Localization And Language Switching](./localization.md)
 - [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)

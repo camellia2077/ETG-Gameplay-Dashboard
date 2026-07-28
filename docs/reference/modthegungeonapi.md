@@ -1,6 +1,7 @@
-# ModTheGungeonAPI Reference
+# ModTheGungeonAPI Historical Reference
 
-Use this page when you need curated upstream references from `ModTheGungeonAPI` that are relevant to `EtgGameplayDashboard`.
+Use this page only for historical upstream behavior references. `EtgGameplayDashboard` no longer
+has a runtime or build dependency on `ModTheGungeonAPI`.
 
 This is not a full upstream mirror. It is a project-focused reference index for adapting patterns safely.
 
@@ -23,7 +24,8 @@ Before copying or adapting an ETG runtime pattern from upstream, read:
 
 ## 30-Second Summary
 
-Use `ModTheGungeonAPI` as a behavioral reference, not as a promise that the exact same call sequence is safe in `EtgGameplayDashboard`.
+Use the upstream material as historical behavioral context, not as a project dependency or a promise
+that the exact same call sequence is safe in `EtgGameplayDashboard`.
 
 The highest-value references in this project are:
 
@@ -100,12 +102,12 @@ When the question is really about save or flag persistence, also check:
 
 ## How EtgGameplayDashboard Uses These References
 
-Current project patterns:
+Historical project patterns:
 
 - character switching:
   uses `ETGModConsole.SwitchCharacter` as a behavioral reference, but relies on project-specific force-switch paths when native routes are unstable
 - item grant:
-  uses `ModTheGungeonAPI give` as the primary runtime reference
+  originally used `ModTheGungeonAPI give` as a behavioral reference; current code uses ETG native APIs
 - pickup lookup:
   prefers `pickupId` and `internalName` first, then uses `displayName` only as a compatibility fallback
 - Boss Rush flow:

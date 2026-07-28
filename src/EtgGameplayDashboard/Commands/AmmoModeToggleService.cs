@@ -136,7 +136,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            LockedAmmoGunBehaviour behaviour;
+            LockedAmmoComponent behaviour;
             if (!TryGetLockedAmmoBehaviour(gun, out behaviour))
             {
                 return;
@@ -149,7 +149,7 @@ namespace EtgGameplayDashboard
                     return;
                 }
 
-                behaviour = gun.gameObject.AddComponent<LockedAmmoGunBehaviour>();
+                behaviour = gun.gameObject.AddComponent<LockedAmmoComponent>();
             }
 
             behaviour.SetLockedState(_trackedAmmo, _trackedClipShotsRemaining);
@@ -162,7 +162,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            LockedAmmoGunBehaviour behaviour;
+            LockedAmmoComponent behaviour;
             if (!TryGetLockedAmmoBehaviour(gun, out behaviour))
             {
                 return;
@@ -174,7 +174,7 @@ namespace EtgGameplayDashboard
             }
         }
 
-        private static bool TryGetLockedAmmoBehaviour(Gun gun, out LockedAmmoGunBehaviour behaviour)
+        private static bool TryGetLockedAmmoBehaviour(Gun gun, out LockedAmmoComponent behaviour)
         {
             behaviour = null;
             if (!IsGunUsable(gun))
@@ -184,7 +184,7 @@ namespace EtgGameplayDashboard
 
             try
             {
-                behaviour = gun.GetComponent<LockedAmmoGunBehaviour>();
+                behaviour = gun.GetComponent<LockedAmmoComponent>();
                 return true;
             }
             catch (System.Exception)

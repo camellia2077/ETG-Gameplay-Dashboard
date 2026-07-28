@@ -30,7 +30,7 @@ namespace EtgGameplayDashboard
                 warnings.Add(
                     "Pickup alias file was not found at '" + _filePath + "'. " +
                     "This build now expects the repository default config to be deployed into BepInEx\\config. " +
-                    "Run deploy_mod.py again, or copy the repository default ETG-Gameplay-Dashboard.aliases.json5 into the game config directory. " +
+                    "Run deploy_mod.py again, or copy the repository default EtgGameplayDashboard.aliases.json5 into the game config directory. " +
                     "Falling back to built-in default aliases for this session.");
                 usedBuiltInDefault = true;
             }

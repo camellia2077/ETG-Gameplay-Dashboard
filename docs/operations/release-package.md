@@ -53,7 +53,7 @@ The generated zip includes:
 
 * the official `BepInExPack_EtG` package, redistributed unmodified
 * `BepInEx\plugins\EtgGameplayDashboard.dll`
-* `ModTheGungeonAPI` and its runtime dependencies (copied from the repository `lib/` directory)
+* project runtime dependencies such as `0Harmony.dll` and `Newtonsoft.Json.dll`
 * repository default config and catalog files in `BepInEx\config\`
 * `licenses\EtgGameplayDashboard-LICENSE.txt` containing this repository's GPLv3 text
 * `README-INSTALL.txt`
@@ -117,13 +117,12 @@ Repository-level attribution is also recorded in:
 That repository-level notice intentionally separates:
 
 * components redistributed in the player-facing release package
-* required runtime dependencies that are not bundled in the player-facing release package
+* runtime dependencies used by the plugin
 * reference-only projects used for implementation guidance or reverse-engineering context
 
 For this project, that distinction matters because:
 
 * `BepInExPack_EtG` and its bundled components are redistributed in the release zip
-* `ModTheGungeonAPI` and its runtime dependencies are bundled in the player-facing release-package to ensure plug-and-play compatibility
 * projects such as `SaveAPI` and `OnceMoreIntoTheBreach` are acknowledged as references, not redistributed package contents
 
 ## Notes

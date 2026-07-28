@@ -5,6 +5,6 @@ using System.Reflection;
 
 [assembly: AssemblyTitle("EtgGameplayDashboard.Core")]
 [assembly: AssemblyDescription("Core loadout selection logic for the EtgGameplayDashboard mod.")]
-[assembly: AssemblyCompany("randomgun")]
+[assembly: AssemblyCompany("EtgGameplayDashboard")]
 [assembly: AssemblyProduct("EtgGameplayDashboard.Core")]
 [assembly: AssemblyCopyright("Copyright (C) 2026 camellia2077")]

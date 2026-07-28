@@ -33,6 +33,7 @@ namespace EtgGameplayDashboard
             float secondRowY = firstRowY + controlHeight + ButtonGap;
             float thirdRowY = secondRowY + controlHeight + ButtonGap;
 
+            long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             if (DrawControllerButton(new Rect(contentRect.x, firstRowY, buttonWidth, controlHeight), "cmd.general.pickups", GuiText.Get("gui.command.button.pickups"), _buttonStyle))
             {
                 OpenPickupPage(logger);
@@ -73,7 +74,9 @@ namespace EtgGameplayDashboard
             {
                 ExecuteRandom(player, logger);
             }
+            LogCommandPanelPerformanceStage("CommandPage.General.MainActions", stageStartedAtTimestamp);
 
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             string statsButtonLabel = _showPlayerStatsPanel
                 ? GuiText.Get("gui.command.button.stats_on")
                 : GuiText.Get("gui.command.button.stats_off");
@@ -104,6 +107,7 @@ namespace EtgGameplayDashboard
             {
                 OpenCursorColorPage();
             }
+            LogCommandPanelPerformanceStage("CommandPage.General.OverlayAndSettings", stageStartedAtTimestamp);
 
         }
 

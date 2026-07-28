@@ -54,10 +54,6 @@
       <HintPath>..\..\lib\BepInEx.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <Reference Include="ModTheGungeonAPI">
-      <HintPath>..\..\lib\ModTheGungeonAPI.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
     <Reference Include="0Harmony">
       <HintPath>..\..\lib\0Harmony.dll</HintPath>
       <Private>false</Private>
@@ -292,6 +288,7 @@
     <Compile Include="Runtime\RoomEnemyReplayService.cs" />
     <Compile Include="Runtime\RuntimeHookRegistry.cs" />
     <Compile Include="Runtime\BossRushService.cs" />
+    <Compile Include="Runtime\BossRushCoroutineHost.cs" />
     <Compile Include="Runtime\BossRushService.Flow.cs" />
     <Compile Include="Runtime\BossRushService.Logging.cs" />
     <Compile Include="Runtime\BossRushService.Player.cs" />

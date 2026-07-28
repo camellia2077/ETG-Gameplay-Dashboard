@@ -10,8 +10,8 @@ from pathlib import Path
 SCRIPT_PATH = Path(__file__).resolve()
 SCRIPT_DIRECTORY = SCRIPT_PATH.parent
 REPOSITORY_ROOT = SCRIPT_DIRECTORY.parent.parent
-DEFAULT_ENGLISH_PATH = REPOSITORY_ROOT / "defaults" / "config" / "ETG-Gameplay-Dashboard.localization.en.json5"
-DEFAULT_SIMPLIFIED_CHINESE_PATH = REPOSITORY_ROOT / "defaults" / "config" / "ETG-Gameplay-Dashboard.localization.zh-CN.json5"
+DEFAULT_ENGLISH_PATH = REPOSITORY_ROOT / "defaults" / "config" / "EtgGameplayDashboard.localization.en.json5"
+DEFAULT_SIMPLIFIED_CHINESE_PATH = REPOSITORY_ROOT / "defaults" / "config" / "EtgGameplayDashboard.localization.zh-CN.json5"
 SOURCE_GLOBS = ("src/**/*.cs",)
 LOCALIZATION_KEY_PREFIXES = ("gui.", "label.", "result.", "parse.")
 LOCALIZATION_STRING_PATTERN = re.compile(r"\"(?P<key>(?:gui|label|result|parse)\.[^\"]+)\"")

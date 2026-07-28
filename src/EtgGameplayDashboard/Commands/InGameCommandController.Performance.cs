@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
@@ -14,23 +15,113 @@ namespace EtgGameplayDashboard
         private long _bossSelectionPagePerformanceTraceStartedAt;
         private bool _bossSelectionPagePerformanceTraceActive;
         private int _bossSelectionPagePerformanceTraceId;
+        private long _loadoutPagePerformanceTraceStartedAt;
+        private bool _loadoutPagePerformanceTraceActive;
+        private int _loadoutPagePerformanceTraceId;
+        private string _loadoutPagePerformanceTraceMode = string.Empty;
+        private long _panelEndToEndTraceStartedAt;
+        private bool _panelEndToEndTraceActive;
+        private bool _panelEndToEndFirstRepaintLogged;
+        private string _panelEndToEndTraceSource = string.Empty;
 
-        private void BeginCommandPanelPerformanceTrace()
+        private void BeginCommandPanelPerformanceTrace(string source)
         {
             if (!IsPickupBrowserPerformanceLoggingEnabled())
             {
                 return;
             }
 
+            if (_panelEndToEndTraceActive)
+            {
+                LogPanelEndToEndTrace("CancelledBeforeNextOpen", "<none>");
+            }
+
             _commandPanelPerformanceTraceStartedAt = Stopwatch.GetTimestamp();
             _commandPanelPerformanceTraceActive = true;
             _commandPanelPerformanceTraceId++;
+            _panelEndToEndTraceStartedAt = _commandPanelPerformanceTraceStartedAt;
+            _panelEndToEndTraceActive = true;
+            _panelEndToEndFirstRepaintLogged = false;
+            _panelEndToEndTraceSource = source ?? string.Empty;
+            LogPanelEndToEndTrace("InputDetected", "<none>");
             LogCommandPanelPerformanceMessage(
                 "OpenTrace: Toggle.open.begin. TraceId=" +
                 _commandPanelPerformanceTraceId +
                 ", Page=" +
                 _currentPage +
                 ".");
+        }
+
+        internal void LogPanelEndToEndHostStage(string stageName, string eventType)
+        {
+            if (!_panelEndToEndTraceActive)
+            {
+                return;
+            }
+
+            LogPanelEndToEndTrace(stageName, eventType);
+        }
+
+        internal void CompletePanelEndToEndTraceOnRepaint(string eventType)
+        {
+            if (!_panelEndToEndTraceActive || !string.Equals(eventType, "Repaint", StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            if (!_panelEndToEndFirstRepaintLogged)
+            {
+                _panelEndToEndFirstRepaintLogged = true;
+                LogPanelEndToEndTrace("FirstRepaint", eventType);
+            }
+
+            LogPanelEndToEndTrace("Complete", eventType);
+            _panelEndToEndTraceActive = false;
+            _panelEndToEndTraceStartedAt = 0L;
+            _panelEndToEndTraceSource = string.Empty;
+        }
+
+        private void CancelPanelEndToEndTrace(string stageName)
+        {
+            if (!_panelEndToEndTraceActive)
+            {
+                return;
+            }
+
+            LogPanelEndToEndTrace(stageName, "<none>");
+            _panelEndToEndTraceActive = false;
+            _panelEndToEndTraceStartedAt = 0L;
+            _panelEndToEndTraceSource = string.Empty;
+        }
+
+        private void LogPanelEndToEndTrace(string stageName, string eventType)
+        {
+            if (_performanceLogger == null ||
+                (!_panelEndToEndTraceActive && !string.Equals(stageName, "CancelledBeforeNextOpen", StringComparison.Ordinal)))
+            {
+                return;
+            }
+
+            double elapsedMs = _panelEndToEndTraceStartedAt == 0L
+                ? 0d
+                : GetCommandPanelPerformanceElapsedMilliseconds(_panelEndToEndTraceStartedAt);
+            _performanceLogger.LogInfo(
+                EtgGameplayDashboardLog.Performance(
+                    "PanelTrace: " +
+                    (stageName ?? string.Empty) +
+                    ". TraceId=" +
+                    _commandPanelPerformanceTraceId +
+                    ", ElapsedMs=" +
+                    elapsedMs.ToString("0.00") +
+                    ", Frame=" +
+                    Time.frameCount +
+                    ", Event=" +
+                    (eventType ?? string.Empty) +
+                    ", Source=" +
+                    _panelEndToEndTraceSource +
+                    ", Page=" +
+                    _currentPage +
+                    "."));
         }
 
         private long BeginCommandPanelPerformanceStage()
@@ -75,6 +166,13 @@ namespace EtgGameplayDashboard
             }
 
             LogCommandPanelPerformanceStage(stageName);
+            if (string.Equals(stageName, "OnGUI.complete", StringComparison.Ordinal) &&
+                Event.current != null &&
+                Event.current.type != EventType.Repaint)
+            {
+                return;
+            }
+
             _commandPanelPerformanceTraceActive = false;
             _commandPanelPerformanceTraceStartedAt = 0L;
         }
@@ -180,6 +278,66 @@ namespace EtgGameplayDashboard
                 ", Succeeded=" +
                 (result != null && result.Succeeded) +
                 ".");
+        }
+
+        private void BeginLoadoutPagePerformanceTrace(string mode)
+        {
+            if (!IsPickupBrowserPerformanceLoggingEnabled())
+            {
+                return;
+            }
+
+            _loadoutPagePerformanceTraceStartedAt = Stopwatch.GetTimestamp();
+            _loadoutPagePerformanceTraceActive = true;
+            _loadoutPagePerformanceTraceId++;
+            _loadoutPagePerformanceTraceMode = mode ?? string.Empty;
+            LogLoadoutPagePerformanceStage("Open.begin", 0L);
+        }
+
+        private long BeginLoadoutPagePerformanceStage()
+        {
+            return _loadoutPagePerformanceTraceActive ? Stopwatch.GetTimestamp() : 0L;
+        }
+
+        private void LogLoadoutPagePerformanceStage(string stageName, long stageStartedAtTimestamp)
+        {
+            if (!_loadoutPagePerformanceTraceActive)
+            {
+                return;
+            }
+
+            string stageDuration = stageStartedAtTimestamp == 0L
+                ? string.Empty
+                : ", StageMs=" + GetCommandPanelPerformanceElapsedMilliseconds(stageStartedAtTimestamp).ToString("0.00");
+            LogCommandPanelPerformanceMessage(
+                "LoadoutPage: Stage=" +
+                (stageName ?? string.Empty) +
+                ", TraceId=" +
+                _loadoutPagePerformanceTraceId +
+                ", TotalMs=" +
+                GetCommandPanelPerformanceElapsedMilliseconds(_loadoutPagePerformanceTraceStartedAt).ToString("0.00") +
+                stageDuration +
+                ", Mode=" +
+                _loadoutPagePerformanceTraceMode +
+                ".");
+        }
+
+        private void CompleteLoadoutPagePerformanceTrace(string stageName)
+        {
+            if (!_loadoutPagePerformanceTraceActive)
+            {
+                return;
+            }
+
+            LogLoadoutPagePerformanceStage(stageName, 0L);
+            if (Event.current != null && Event.current.type != EventType.Repaint)
+            {
+                return;
+            }
+
+            _loadoutPagePerformanceTraceActive = false;
+            _loadoutPagePerformanceTraceStartedAt = 0L;
+            _loadoutPagePerformanceTraceMode = string.Empty;
         }
     }
 }

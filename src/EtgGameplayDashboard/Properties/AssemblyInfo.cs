@@ -5,6 +5,6 @@ using System.Reflection;
 
 [assembly: AssemblyTitle("EtgGameplayDashboard")]
 [assembly: AssemblyDescription("Enter the Gungeon random starting loadout mod.")]
-[assembly: AssemblyCompany("randomgun")]
+[assembly: AssemblyCompany("EtgGameplayDashboard")]
 [assembly: AssemblyProduct("EtgGameplayDashboard")]
 [assembly: AssemblyCopyright("Copyright (C) 2026 camellia2077")]

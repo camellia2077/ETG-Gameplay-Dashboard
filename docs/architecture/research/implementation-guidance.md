@@ -12,7 +12,8 @@
 - 继承 `BaseUnityPlugin`
 - 依赖：
   - `BepInEx`
-  - `ModTheGungeonAPI`
+  - `0Harmony`
+  - `Newtonsoft.Json`
   - `Assembly-CSharp`
   - `UnityEngine`
 - 第一版只实现：
@@ -104,4 +105,3 @@
 - 是否需要对合作模式或特殊角色做额外判断
 
 这些问题已经不需要重新搜索生态资料，下一步应当进入本地反编译与最小实验阶段。
-

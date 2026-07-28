@@ -218,6 +218,7 @@ namespace EtgGameplayDashboard
 
         private void OpenLoadoutPresetPickupsDetail()
         {
+            BeginLoadoutPagePerformanceTrace("PresetPickupsDetail");
             _loadoutEditorMode = LoadoutEditorMode.PresetPickupsDetail;
             _loadoutEditorFocusedControlId = "loadout.pickups.add_max_health";
             _loadoutEditorScrollPosition = Vector2.zero;

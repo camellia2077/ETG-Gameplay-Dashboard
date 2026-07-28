@@ -9,7 +9,7 @@
 - 项目形态：优先做 `BepInEx` 插件，不走外部内存修改器路线。
 - 推荐语言：`C#`
 - 推荐目标框架：`.NET Framework 3.5`
-- 推荐基础依赖：`BepInEx 5`、`ModTheGungeonAPI`
+- 推荐基础依赖：`BepInEx 5`、`0Harmony`、`Newtonsoft.Json`
 - 推荐工具：`ILSpy`，调试可选 `dnSpyEx`
 - Hook 方案：优先找现成事件，不够再用 `HarmonyX` 或 `MonoMod.RuntimeDetour`
 - 第一阶段目标：在新 run 的合适时机，随机给玩家基础游戏已有的枪械、被动、主动道具
@@ -25,6 +25,7 @@
 ## 当前最重要的判断
 
 - `ETGMod / Mod the Gungeon` 已弃用，新项目应以 `BepInEx` 为基线。
+- 本项目不再运行时依赖 `ModTheGungeonAPI`；相关资料只保留为历史实现参考。
 - 第一版不需要自定义物品注册、自定义美术或资源管线，只需要把基础游戏已有内容发给玩家。
 - 当前最值得尽快验证的代码问题只有两个：
   - “新 run 开始且只执行一次”的最佳触发点

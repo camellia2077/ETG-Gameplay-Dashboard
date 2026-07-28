@@ -14,11 +14,11 @@ DEFAULT_CONFIG_DIRECTORY = Path("defaults") / "config"
 DEFAULT_CATALOG_DIRECTORY = Path("defaults") / "catalog"
 DEFAULT_PRESET_DIRECTORY = Path("defaults") / "presets"
 DEFAULT_CONFIG_RELATIVE_PATHS = (
-    Path("randomgun.etg-gameplay-dashboard.cfg"),
-    Path("ETG-Gameplay-Dashboard.aliases.json5"),
-    Path("ETG-Gameplay-Dashboard.localization.en.json5"),
-    Path("ETG-Gameplay-Dashboard.localization.zh-CN.json5"),
-    Path("ETG-Gameplay-Dashboard.rules.json5"),
+    Path("etg-gameplay-dashboard.cfg"),
+    Path("EtgGameplayDashboard.aliases.json5"),
+    Path("EtgGameplayDashboard.localization.en.json5"),
+    Path("EtgGameplayDashboard.localization.zh-CN.json5"),
+    Path("EtgGameplayDashboard.rules.json5"),
 )
 DEFAULT_CATALOG_FILE_NAMES = (
     "EtgGameplayDashboard.pickups.json",
@@ -32,7 +32,7 @@ REQUIRED_BUILD_DLLS = (
     "0Harmony.dll",
     "Assembly-CSharp.dll",
     "BepInEx.dll",
-    "ModTheGungeonAPI.dll",
+    "Newtonsoft.Json.dll",
     "UnityEngine.dll",
     "UnityEngine.CoreModule.dll",
     "UnityEngine.IMGUIModule.dll",
@@ -162,12 +162,7 @@ def get_local_dependency_path(repo_root: Path, file_name: str) -> Path:
 def get_runtime_dependency_specs() -> list[tuple[str, Path]]:
     return [
         ("0Harmony.dll", Path("BepInEx") / "plugins"),
-        ("ModTheGungeonAPI.dll", Path("BepInEx") / "plugins" / "MtGAPI"),
-        ("Ionic.Zip.dll", Path("BepInEx") / "plugins" / "MtGAPI"),
-        ("Newtonsoft.Json.dll", Path("BepInEx") / "plugins" / "MtGAPI"),
-        ("System.Xml.dll", Path("BepInEx") / "plugins" / "MtGAPI"),
-        ("System.Xml.Linq.dll", Path("BepInEx") / "plugins" / "MtGAPI"),
-        ("UnityEngine.CoreModule.MTGAPIPatcher.mm.dll", Path("monomod")),
+        ("Newtonsoft.Json.dll", Path("BepInEx") / "plugins"),
     ]
 
 

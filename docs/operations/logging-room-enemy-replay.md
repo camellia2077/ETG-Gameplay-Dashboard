@@ -4,7 +4,7 @@ Use this page when diagnosing `Room -> Enemies -> Rewind Room`.
 
 ## Enable
 
-Set this in `BepInEx\config\randomgun.etg-gameplay-dashboard.cfg`:
+Set this in `BepInEx\config\etg-gameplay-dashboard.cfg`:
 
 ```ini
 [Debug]

@@ -7,7 +7,7 @@
 - 推荐语言：`C#`
 - 推荐目标框架：`.NET Framework 3.5`
 - 推荐加载器：`BepInEx 5`
-- 推荐 API：`ModTheGungeonAPI`
+- 推荐 API：ETG 原生程序集（`Assembly-CSharp`）与项目自己的运行时封装
 - 推荐反编译工具：`ILSpy`
 - 调试可选：`dnSpyEx`
 - 运行时补丁：`HarmonyX` 或 `MonoMod.RuntimeDetour`
@@ -53,11 +53,6 @@
 - 负责加载插件 DLL
 - 提供 Unity 插件运行环境
 
-### ModTheGungeonAPI
-
-- 提供 ETG 相关 API、兼容层和实用工具
-- 降低直接贴原生游戏类的成本
-
 ### ILSpy
 
 - 打开 `Enter the Gungeon\EtG_Data\Managed\Assembly-CSharp.dll`
@@ -78,7 +73,8 @@
 建议先只保留这些：
 
 - `BepInEx`
-- `ModTheGungeonAPI`
+- `0Harmony`
+- `Newtonsoft.Json`
 - `Assembly-CSharp`
 - `UnityEngine`
 
@@ -93,4 +89,3 @@
 
 - 未来若要做游戏内配置界面可考虑
 - 第一阶段可以先用代码常量或简单配置
-

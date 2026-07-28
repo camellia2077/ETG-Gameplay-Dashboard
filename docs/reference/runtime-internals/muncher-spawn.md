@@ -40,8 +40,8 @@ Primary files:
 
 - `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs`
 - `src/EtgGameplayDashboard/Commands/RoomDebugCommandService.cs`
-- `defaults/config/ETG-Gameplay-Dashboard.localization.en.json5`
-- `defaults/config/ETG-Gameplay-Dashboard.localization.zh-CN.json5`
+- `defaults/config/EtgGameplayDashboard.localization.en.json5`
+- `defaults/config/EtgGameplayDashboard.localization.zh-CN.json5`
 
 Key entry points in `RoomDebugCommandService`:
 

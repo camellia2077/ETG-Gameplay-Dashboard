@@ -6,7 +6,7 @@ Do not hand-edit it; regenerate it from the grouped pickup catalog snapshot when
 ## How To Use
 
 - Prefer `pickupId` when exact matching matters or when you are copying values from config/catlog files.
-- Prefer `internalName` for string input. This matches the project command behavior more closely to `ModTheGungeonAPI give`.
+- Prefer `internalName` for string input. This matches the project's stable command behavior.
 - Use `alias` when one is listed.
 - `Display Name` is still accepted as a compatibility fallback, but it can be less stable because it depends on runtime-localized strings.
 - Command examples:
@@ -711,4 +711,3 @@ Count: `71`
 | Ticket | `320` | - | `A` | `TicketToTheGunShow` | Internal name or ID is recommended. Display name input should also work. |
 | Trusty Lockpicks | `356` | - | `D` | `Lockpicks` | Internal name or ID is recommended. Display name input should also work. |
 | Weird Egg | `637` | - | `D` | `GungeonEggItem` | Internal name or ID is recommended. Display name input should also work. |
-

@@ -5,11 +5,10 @@ using BepInEx;
 
 namespace EtgGameplayDashboard
 {
-    [BepInDependency("etgmodding.etg.mtgapi")]
     [BepInPlugin(GUID, NAME, VERSION)]
     public sealed partial class Plugin : BaseUnityPlugin
     {
-        public const string GUID = "randomgun.etg-gameplay-dashboard";
+        public const string GUID = "etg-gameplay-dashboard";
         public const string NAME = "EtgGameplayDashboard";
         public const string VERSION = BuildVersionInfo.Version;
     }

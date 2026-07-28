@@ -16,7 +16,7 @@ from tool_common import fail, get_repo_root, run_cli
 
 DEFAULT_INPUT = Path("defaults") / "catalog" / "EtgGameplayDashboard.pickups.by-category.json"
 DEFAULT_OUTPUT = Path("docs") / "reference" / "pickups.md"
-DEFAULT_ALIAS_INPUT = Path("defaults") / "config" / "ETG-Gameplay-Dashboard.aliases.json5"
+DEFAULT_ALIAS_INPUT = Path("defaults") / "config" / "EtgGameplayDashboard.aliases.json5"
 CATEGORY_ORDER = ("Gun", "Passive", "Active")
 
 
@@ -39,7 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--alias-input",
         default=str(DEFAULT_ALIAS_INPUT),
-        help="Optional alias JSON5 file used to annotate known aliases. Defaults to defaults/config/ETG-Gameplay-Dashboard.aliases.json5.",
+        help="Optional alias JSON5 file used to annotate known aliases. Defaults to defaults/config/EtgGameplayDashboard.aliases.json5.",
     )
     return parser.parse_args()
 
@@ -154,7 +154,7 @@ def generate_markdown(catalog_data: object, aliases_by_id: dict[int, list[str]])
     lines.append("## How To Use")
     lines.append("")
     lines.append("- Prefer `pickupId` when exact matching matters or when you are copying values from config/catlog files.")
-    lines.append("- Prefer `internalName` for string input. This matches the project command behavior more closely to `ModTheGungeonAPI give`.")
+    lines.append("- Prefer `internalName` for string input. This matches the project's stable command behavior.")
     lines.append("- Use `alias` when one is listed.")
     lines.append("- `Display Name` is still accepted as a compatibility fallback, but it can be less stable because it depends on runtime-localized strings.")
     lines.append("- Command examples:")

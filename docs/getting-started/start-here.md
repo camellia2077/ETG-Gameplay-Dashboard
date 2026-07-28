@@ -21,9 +21,8 @@ If you are changing Boss Rush:
 
 1. [Terminology And Naming](../reference/terminology.md)
 2. [Runtime Hotspots](../architecture/runtime-hotspots.md)
-3. [ModTheGungeonAPI Reference](../reference/modthegungeonapi.md)
-4. [Commands](../reference/commands.md)
-5. [Smoke Checklist](../operations/smoke-checklist.md)
+3. [Commands](../reference/commands.md)
+4. [Smoke Checklist](../operations/smoke-checklist.md)
 
 If you are changing character-select-hub behavior:
 
@@ -38,7 +37,6 @@ If you are changing command UI, item grant, or pickup lookup:
 2. [Commands](../reference/commands.md)
 3. [Pickup Grant Strategy](../decisions/pickup-grant-strategy.md)
 4. [Pickups](../reference/pickups.md)
-5. [ModTheGungeonAPI Reference](../reference/modthegungeonapi.md)
 
 If you are changing build, deploy, or workflow tooling:
 

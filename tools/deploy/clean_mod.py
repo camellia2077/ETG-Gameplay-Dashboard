@@ -50,19 +50,13 @@ def main() -> int:
         return fail(str(error))
 
     if args.plugins_only:
-        # Only clean up plugin DLL, MtGAPI dependencies, and monomod patcher DLL
+        # Only clean up the plugin DLL and runtime dependencies owned by this project.
         plugin_dll = game_path / "BepInEx" / "plugins" / "EtgGameplayDashboard.dll"
         delete_file_or_dir(plugin_dll)
 
         for file_name, relative_target_dir in get_runtime_dependency_specs():
             target_path = game_path / relative_target_dir / file_name
             delete_file_or_dir(target_path)
-
-        # Clean up empty MtGAPI directory if it exists and is empty
-        mtg_api_dir = game_path / "BepInEx" / "plugins" / "MtGAPI"
-        if mtg_api_dir.is_dir() and not any(mtg_api_dir.iterdir()):
-            mtg_api_dir.rmdir()
-            print("Removed empty directory: {0}".format(mtg_api_dir))
     else:
         # Default: Clean up BepInEx completely and all related loader/dependency files
         clean_targets = [

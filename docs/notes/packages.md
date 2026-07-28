@@ -3,7 +3,7 @@ python .\tools\release\build_release_package.py
 默认会同时产出两种包：
 
 - `standalone`：独立安装包，包含 `BepInExPack_EtG` 运行时，适合直接解压到游戏目录
-- `mod-manager`：Mod 启动器包，只包含本 Mod 的 DLL、配置、文本资源和预设；要求用户已安装 `BepInExPack_EtG` 和 `Mod the Gungeon API`
+- `mod-manager`：Mod 启动器包，只包含本 Mod 的 DLL、配置、文本资源和预设；要求用户已安装 `BepInExPack_EtG`
 
 ## 两种Release的zip
 

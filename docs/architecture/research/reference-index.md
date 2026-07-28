@@ -26,17 +26,16 @@
   - 我们的 DLL 最终会被放进 `BepInEx/plugins`
   - 开发前必须先确认这层加载环境工作正常
 
-### ModTheGungeonAPI
+### ModTheGungeonAPI（历史参考）
 
 - 链接：<https://thunderstore.io/c/enter-the-gungeon/p/MtG_API/Mod_the_Gungeon_API/>
 - 作用：
-  - 当前 ETG 的主要 API 层之一
-  - 在 `BepInEx` 上提供旧生态的重要能力
+  - 提供历史 ETG 模组 API 的实现资料
 - 对本项目的帮助：
-  - 发基础物品时，优先站在这层 API 上实现
-  - 减少直接和底层游戏类硬拼的工作量
+  - 仅用于理解早期物品发放、角色切换和楼层流程
+  - 当前项目不再安装、编译或运行时依赖它
 
-### ModTheGungeonAPI Releases
+### ModTheGungeonAPI Releases（历史资料）
 
 - 链接：<https://github.com/SpecialAPI/ModTheGungeonAPI/releases>
 - 已确认信息：
@@ -48,15 +47,14 @@
 
 ## 安装与开发环境
 
-### MTG API 安装指南
+### MTG API 安装指南（历史资料）
 
 - 链接：<https://github.com/SpecialAPI/ModTheGungeonAPI/wiki/BepInEx-and-Mod-the-Gungeon-API-installation-guide>
 - 作用：
   - 说明 `BepInEx` 与 `MTG API` 的安装顺序
   - 包含自动安装与手动安装思路
 - 对本项目的帮助：
-  - 后续搭开发测试环境时的优先参考
-  - 可作为环境验收标准的一部分
+  - 仅供追溯旧开发环境，不再作为当前环境要求
 
 ### EtG Modding Guide: 安装
 
@@ -205,4 +203,3 @@
   - 配置 API / 配置界面工具
 - 对本项目的帮助：
   - 未来若要把随机规则做成游戏内配置，可考虑接入
-

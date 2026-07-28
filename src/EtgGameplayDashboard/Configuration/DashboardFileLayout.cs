@@ -7,10 +7,10 @@ namespace EtgGameplayDashboard
 {
     internal static class DashboardFileLayout
     {
-        public const string RulesFileName = "ETG-Gameplay-Dashboard.rules.json5";
-        public const string AliasFileName = "ETG-Gameplay-Dashboard.aliases.json5";
-        public const string EnglishLocalizationFileName = "ETG-Gameplay-Dashboard.localization.en.json5";
-        public const string SimplifiedChineseLocalizationFileName = "ETG-Gameplay-Dashboard.localization.zh-CN.json5";
+        public const string RulesFileName = "EtgGameplayDashboard.rules.json5";
+        public const string AliasFileName = "EtgGameplayDashboard.aliases.json5";
+        public const string EnglishLocalizationFileName = "EtgGameplayDashboard.localization.en.json5";
+        public const string SimplifiedChineseLocalizationFileName = "EtgGameplayDashboard.localization.zh-CN.json5";
         public const string PresetsDirectoryName = "presets";
         public const string PickupGameplayFileName = "EtgGameplayDashboard.pickup-gameplay.json";
         public const string PickupInfoTermsFileName = "EtgGameplayDashboard.pickup-info-terms.json";

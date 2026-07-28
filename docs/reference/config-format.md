@@ -2,10 +2,10 @@
 
 `EtgGameplayDashboard` configuration uses `json5` files:
 
-- `ETG-Gameplay-Dashboard.rules.json5`
-- `ETG-Gameplay-Dashboard.aliases.json5`
-- `ETG-Gameplay-Dashboard.localization.en.json5`
-- `ETG-Gameplay-Dashboard.localization.zh-CN.json5`
+- `EtgGameplayDashboard.rules.json5`
+- `EtgGameplayDashboard.aliases.json5`
+- `EtgGameplayDashboard.localization.en.json5`
+- `EtgGameplayDashboard.localization.zh-CN.json5`
 - `EtgGameplayDashboard.rules.full-pool.json5`
 
 Start Items presets are stored as one file per preset under `presets/`, for example:
@@ -94,7 +94,7 @@ Each Start Items preset lives in its own `.json` file under `presets/`. Each pre
 
 This separation matters:
 
-- `id` is what the game stores in `randomgun.etg-gameplay-dashboard.cfg` as the active preset
+- `id` is what the game stores in `etg-gameplay-dashboard.cfg` as the active preset
 - `display_name_key` lets one shipped preset file show different names in Chinese and English
 - `name` is the plain display text for custom presets such as `边牧` or `Boss Rush Test`
 
@@ -149,10 +149,10 @@ Use `display_name_key` when one preset should show different names by UI languag
 With matching localization entries:
 
 ```json5
-// ETG-Gameplay-Dashboard.localization.zh-CN.json5
+// EtgGameplayDashboard.localization.zh-CN.json5
 "preset.casey_synergies": "卡西协同"
 
-// ETG-Gameplay-Dashboard.localization.en.json5
+// EtgGameplayDashboard.localization.en.json5
 "preset.casey_synergies": "Casey Synergies"
 ```
 
@@ -201,7 +201,7 @@ Use `name` when the preset should always display exactly what the author typed:
 }
 ```
 
-The active preset is stored in `randomgun.etg-gameplay-dashboard.cfg`:
+The active preset is stored in `etg-gameplay-dashboard.cfg`:
 
 ```ini
 [StartItems]
@@ -261,13 +261,13 @@ On a fresh deploy, built-in preset content is read from these shipped files:
 - `presets/preset.default.json`
 - `presets/preset.casey_synergies.json`
 
-`ETG-Gameplay-Dashboard.rules.json5` is now only the lightweight Start Items config anchor that ships beside the
+`EtgGameplayDashboard.rules.json5` is now only the lightweight Start Items config anchor that ships beside the
 directory-based preset files. The actual default preset content comes from those preset JSON files. Built-in preset
 names come from localization keys in the preset JSON, not from a hard-coded bilingual `name` field.
 
 ## Command Panel Config
 
-The command panel language and keyboard toggle key are stored in `randomgun.etg-gameplay-dashboard.cfg`:
+The command panel language and keyboard toggle key are stored in `etg-gameplay-dashboard.cfg`:
 
 ```ini
 [UI]
@@ -351,10 +351,10 @@ Each value is updated and saved when its control is changed. Auto Reload may sti
 
 ## Notes
 
-- Missing or invalid `ETG-Gameplay-Dashboard.rules.json5` falls back to `EtgGameplayDashboard.rules.full-pool.json5`, then to built-in defaults.
+- Missing or invalid `EtgGameplayDashboard.rules.json5` falls back to `EtgGameplayDashboard.rules.full-pool.json5`, then to built-in defaults.
 - `UI.Language` accepts `auto`, `en`, or `zh-CN`.
 - `UI.CommandPanelKey` chooses the key that opens and closes the in-game command panel.
 - The in-game command panel opens from the configured 360 controller shortcut (`LB+R3` by default). The standalone R3 mode
   requires a 0.5-second hold to open and closes immediately on the next R3 press.
 - `StartItems.ActivePreset` stores the active preset id, not the localized display text.
-- Missing or invalid `ETG-Gameplay-Dashboard.aliases.json5` falls back to built-in default aliases.
+- Missing or invalid `EtgGameplayDashboard.aliases.json5` falls back to built-in default aliases.

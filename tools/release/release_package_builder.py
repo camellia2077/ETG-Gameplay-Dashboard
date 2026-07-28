@@ -64,7 +64,7 @@ def write_install_readme(version_tag: str, package_type: str, staging_root: Path
 
 1. Close `Enter the Gungeon`.
 2. Open this archive.
-3. Make sure `BepInExPack_EtG` and `Mod the Gungeon API` are already installed in your active profile.
+3. Make sure `BepInExPack_EtG` is already installed in your active profile.
 4. Extract all files into the target profile or game root so the `BepInEx` folder merges in place.
 5. Allow overwrite if Windows asks.
 6. Launch the game. `ETG-Gameplay-Dashboard` should now be installed.
@@ -75,11 +75,11 @@ Project:
 
 Uninstall:
 - Remove `BepInEx\\plugins\\EtgGameplayDashboard.dll`
-- Remove `BepInEx\\config\\randomgun.etg-gameplay-dashboard.cfg`
-- Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.localization.en.json5`
-- Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.localization.zh-CN.json5`
-- Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.aliases.json5`
-- Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.rules.json5`
+- Remove `BepInEx\\config\\etg-gameplay-dashboard.cfg`
+- Remove `BepInEx\\config\\EtgGameplayDashboard.localization.en.json5`
+- Remove `BepInEx\\config\\EtgGameplayDashboard.localization.zh-CN.json5`
+- Remove `BepInEx\\config\\EtgGameplayDashboard.aliases.json5`
+- Remove `BepInEx\\config\\EtgGameplayDashboard.rules.json5`
 - Remove `BepInEx\\config\\presets\\*.json`
 - Optionally remove the generated `EtgGameplayDashboard.pickups*.json` and `EtgGameplayDashboard.rules.full-pool.json5` files from `BepInEx\\config\\`
 """.format(version_tag)
@@ -98,11 +98,11 @@ Project:
 
 Uninstall:
 - Remove `BepInEx\\plugins\\EtgGameplayDashboard.dll`
-- Remove `BepInEx\\config\\randomgun.etg-gameplay-dashboard.cfg`
-- Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.localization.en.json5`
-- Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.localization.zh-CN.json5`
-- Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.aliases.json5`
-- Remove `BepInEx\\config\\ETG-Gameplay-Dashboard.rules.json5`
+- Remove `BepInEx\\config\\etg-gameplay-dashboard.cfg`
+- Remove `BepInEx\\config\\EtgGameplayDashboard.localization.en.json5`
+- Remove `BepInEx\\config\\EtgGameplayDashboard.localization.zh-CN.json5`
+- Remove `BepInEx\\config\\EtgGameplayDashboard.aliases.json5`
+- Remove `BepInEx\\config\\EtgGameplayDashboard.rules.json5`
 - Remove `BepInEx\\config\\presets\\*.json`
 - Optionally remove the generated `EtgGameplayDashboard.pickups*.json` and `EtgGameplayDashboard.rules.full-pool.json5` files from `BepInEx\\config\\`
 - If you installed `BepInEx` only for this mod, you may also remove the `BepInEx` folder and the loader files that came from `BepInExPack_EtG`
@@ -179,7 +179,6 @@ def write_third_party_notices(
                 "### Required External Dependencies",
                 "",
                 "- `BepInExPack_EtG` must already be installed.",
-                "- `Mod the Gungeon API` must already be installed.",
                 "- This package does not redistribute those dependencies.",
             ]
         )
@@ -206,7 +205,6 @@ def ensure_no_game_owned_dlls(staging_root: Path) -> None:
         if name in FORBIDDEN_GAME_DLLS or (
             name.startswith("UnityEngine")
             and name.endswith(".dll")
-            and not name.endswith(".MTGAPIPatcher.mm.dll")
         ):
             raise OSError("Forbidden game-owned DLL found in release package staging area: {0}".format(path))
 
@@ -214,11 +212,13 @@ def ensure_no_game_owned_dlls(staging_root: Path) -> None:
 def ensure_required_package_files_for_type(staging_root: Path, package_type: str, repo_root: Path) -> None:
     required_paths = (
         staging_root / "BepInEx" / "plugins" / "EtgGameplayDashboard.dll",
-        staging_root / "BepInEx" / "config" / "randomgun.etg-gameplay-dashboard.cfg",
-        staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.localization.en.json5",
-        staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.localization.zh-CN.json5",
-        staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.aliases.json5",
-        staging_root / "BepInEx" / "config" / "ETG-Gameplay-Dashboard.rules.json5",
+        staging_root / "BepInEx" / "plugins" / "0Harmony.dll",
+        staging_root / "BepInEx" / "plugins" / "Newtonsoft.Json.dll",
+        staging_root / "BepInEx" / "config" / "etg-gameplay-dashboard.cfg",
+        staging_root / "BepInEx" / "config" / "EtgGameplayDashboard.localization.en.json5",
+        staging_root / "BepInEx" / "config" / "EtgGameplayDashboard.localization.zh-CN.json5",
+        staging_root / "BepInEx" / "config" / "EtgGameplayDashboard.aliases.json5",
+        staging_root / "BepInEx" / "config" / "EtgGameplayDashboard.rules.json5",
         staging_root / "THIRD_PARTY_NOTICES.md",
         staging_root / "README-INSTALL.txt",
         staging_root / "licenses" / "EtgGameplayDashboard-LICENSE.txt",
@@ -227,11 +227,7 @@ def ensure_required_package_files_for_type(staging_root: Path, package_type: str
         for preset_path in get_default_preset_paths(repo_root)
     )
 
-    extra_full_paths = (
-        staging_root / "BepInEx" / "plugins" / "MtGAPI" / "ModTheGungeonAPI.dll",
-        staging_root / "monomod" / "UnityEngine.CoreModule.MTGAPIPatcher.mm.dll",
-        staging_root / "licenses" / "BepInEx-LICENSE.txt",
-    )
+    extra_full_paths = (staging_root / "licenses" / "BepInEx-LICENSE.txt",)
 
     paths_to_check = required_paths + (extra_full_paths if package_type == "standalone" else tuple())
 
@@ -276,7 +272,7 @@ def overlay_etg_dashboard_files(repo_root: Path, configuration: str, staging_roo
     shutil.copyfile(str(plugin_path), str(plugin_target))
 
     if include_runtime_dependencies:
-        # Copy ModTheGungeonAPI runtime dependencies (from lib/)
+        # Copy project runtime dependencies (from lib/)
         for file_name, relative_target_dir in get_runtime_dependency_specs():
             source_path = get_local_dependency_path(repo_root, file_name)
             if not source_path.is_file():
@@ -331,20 +327,20 @@ def build_release_package(
 
     mod_version = version.strip() if version else detect_mod_version(repo_root)
     version_tag = normalize_version_tag(mod_version)
-    include_runtime_dependencies = package_type == "standalone"
-    upstream_archive_path = ensure_cached_upstream_archive(cache_directory, metadata) if include_runtime_dependencies else None
+    include_upstream_package = package_type == "standalone"
+    upstream_archive_path = ensure_cached_upstream_archive(cache_directory, metadata) if include_upstream_package else None
 
     with tempfile.TemporaryDirectory(prefix="etg_gameplay_dashboard_release_") as temp_directory:
         staging_root = Path(temp_directory) / "staging"
         staging_root.mkdir(parents=True, exist_ok=True)
 
-        if include_runtime_dependencies:
+        if include_upstream_package:
             extract_upstream_content(upstream_archive_path, metadata, staging_root)
 
-        overlay_etg_dashboard_files(repo_root, configuration, staging_root, include_runtime_dependencies)
-        staged_components = stage_license_files(repo_root, metadata if include_runtime_dependencies else None, staging_root)
+        overlay_etg_dashboard_files(repo_root, configuration, staging_root, True)
+        staged_components = stage_license_files(repo_root, metadata if include_upstream_package else None, staging_root)
         write_install_readme(version_tag, package_type, staging_root)
-        write_third_party_notices(version_tag, metadata if include_runtime_dependencies else None, staged_components, repo_root, staging_root, package_type)
+        write_third_party_notices(version_tag, metadata if include_upstream_package else None, staged_components, repo_root, staging_root, package_type)
         ensure_no_game_owned_dlls(staging_root)
         ensure_required_package_files_for_type(staging_root, package_type, repo_root)
 

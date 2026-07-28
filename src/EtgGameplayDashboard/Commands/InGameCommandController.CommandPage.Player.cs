@@ -102,31 +102,44 @@ namespace EtgGameplayDashboard
             const float sectionButtonHeight = 28f;
             Rect characterSectionRect = new Rect(contentRect.x, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect combatSectionRect = new Rect(characterSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
+            long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             DrawPlayerSectionButton(characterSectionRect, "cmd.player.section.character", PlayerMenuSection.Character, GetLocalizedFallback("gui.command.player.section.character", "Character", "角色"));
             DrawPlayerSectionButton(combatSectionRect, "cmd.player.section.combat", PlayerMenuSection.Combat, GetLocalizedFallback("gui.command.player.section.combat", "Combat", "战斗"));
             DrawPlayerTargetButton(contentRect, buttonWidth, controlHeight, logger);
+            LogCommandPanelPerformanceStage("CommandPage.Player.TargetAndSections", stageStartedAtTimestamp);
 
             Rect subsectionContentRect = new Rect(contentRect.x, contentRect.y + sectionButtonHeight + 8f, contentRect.width, contentRect.height - sectionButtonHeight - 8f);
             if (_playerMenuSection == PlayerMenuSection.Combat)
             {
+                stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
                 DrawPlayerCombatContent(subsectionContentRect, buttonWidth, controlHeight, player, logger);
+                LogCommandPanelPerformanceStage("CommandPage.Player.CombatContent", stageStartedAtTimestamp);
                 return;
             }
 
             Rect pickupsSectionRect = new Rect(contentRect.x, subsectionContentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect statsSectionRect = new Rect(pickupsSectionRect.xMax + 2f, subsectionContentRect.y, sectionButtonWidth, sectionButtonHeight);
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             DrawCharacterSectionButton(pickupsSectionRect, "cmd.player.character.pickups", CharacterMenuSection.Pickups, GetLocalizedFallback("gui.command.player.section.pickups", "Pickups", "拾取物"));
             DrawCharacterSectionButton(statsSectionRect, "cmd.player.character.stats", CharacterMenuSection.Stats, GetLocalizedFallback("gui.command.player.section.stats", "Stats", "属性"));
+            LogCommandPanelPerformanceStage("CommandPage.Player.CharacterSubsections", stageStartedAtTimestamp);
 
             Rect sectionContentRect = new Rect(contentRect.x, subsectionContentRect.y + sectionButtonHeight + 8f, contentRect.width, subsectionContentRect.height - sectionButtonHeight - 8f);
             if (_characterMenuSection == CharacterMenuSection.Stats)
             {
+                stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
                 DrawPlayerCharacterStatsContent(sectionContentRect, buttonWidth, controlHeight, player, logger);
+                LogCommandPanelPerformanceStage("CommandPage.Player.CharacterStatsContent", stageStartedAtTimestamp);
                 return;
             }
 
             const float actionRowHeight = 38f;
-            DrawPickupActionRows(sectionContentRect, sectionContentRect.y + controlHeight + ButtonGap, actionRowHeight, ButtonGap, BuildPlayerPickupRows(player, logger));
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
+            PickupActionRowDefinition[] pickupRows = BuildPlayerPickupRows(player, logger);
+            LogCommandPanelPerformanceStage("CommandPage.Player.PickupRows.Build", stageStartedAtTimestamp);
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
+            DrawPickupActionRows(sectionContentRect, sectionContentRect.y + controlHeight + ButtonGap, actionRowHeight, ButtonGap, pickupRows);
+            LogCommandPanelPerformanceStage("CommandPage.Player.PickupRows.Draw", stageStartedAtTimestamp);
         }
 
         private void DrawPlayerCharacterStatsContent(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)

@@ -128,7 +128,7 @@ Use this route for changes to start-item rules, preset selection, add/remove, du
 | `src/EtgGameplayDashboard/Configuration/JsonLoadoutRuleFileProvider*.cs` | load, parse, save, convert, and preset persistence |
 | `src/EtgGameplayDashboard/Configuration/LoadoutRuleFileModel.cs` | file model for rules/presets |
 | `src/EtgGameplayDashboard/Configuration/DefaultLoadoutRuleDefinitionFactory.cs` | default rule fallback |
-| `defaults/config/ETG-Gameplay-Dashboard.rules.json5` | shipped Start Items config anchor |
+| `defaults/config/EtgGameplayDashboard.rules.json5` | shipped Start Items config anchor |
 | `defaults/presets/*.json` | shipped built-in preset files |
 
 Pure core types:
@@ -173,11 +173,10 @@ Use this route for item names, aliases, pickup cards, quality filters, categorie
 | `defaults/catalog/EtgGameplayDashboard.pickup-gameplay.json` | shipped nearby-pickup gameplay runtime catalog (schema v2) |
 | `defaults/catalog/EtgGameplayDashboard.pickup-info-terms.json` | shipped nearby-pickup section/stat/display-value terms (schema v2) |
 | `defaults/catalog/EtgGameplayDashboard.boss-names.json` | extracted Boss room names and English/Simplified Chinese display text keyed by vanilla room prototype |
-| `defaults/config/ETG-Gameplay-Dashboard.aliases.json5` | shipped aliases |
+| `defaults/config/EtgGameplayDashboard.aliases.json5` | shipped aliases |
 
 Read next:
 
-- [ModTheGungeonAPI Reference](./modthegungeonapi.md)
 - [UI Icon Reuse](./ui-icon-reuse.md)
 - [Localization And Language Switching](./localization.md)
 - [Pickups](./pickups.md)
@@ -226,8 +225,8 @@ Read next:
 | `src/EtgGameplayDashboard/Localization/GuiText.cs` | language setting, lookup, fallback |
 | `src/EtgGameplayDashboard/Etg/EtgPickupResolver*.cs` | runtime-localized pickup names and English pickup-name fallback |
 | `src/EtgGameplayDashboard/Commands/InGameCommandController.cs` | language-change detection and page refresh |
-| `defaults/config/ETG-Gameplay-Dashboard.localization.en.json5` | English UI strings |
-| `defaults/config/ETG-Gameplay-Dashboard.localization.zh-CN.json5` | Simplified Chinese UI strings |
+| `defaults/config/EtgGameplayDashboard.localization.en.json5` | English UI strings |
+| `defaults/config/EtgGameplayDashboard.localization.zh-CN.json5` | Simplified Chinese UI strings |
 | `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs` | language button location |
 
 Read next:

@@ -10,14 +10,18 @@ namespace EtgGameplayDashboard
     {
         private void OpenLoadoutEditorPage(ManualLogSource logger)
         {
+            BeginLoadoutPagePerformanceTrace("PresetList");
             _currentPage = PanelPage.LoadoutEditor;
             _focusInputField = false;
             _focusPickupSearchField = false;
             _loadoutEditorMode = LoadoutEditorMode.PresetList;
             _loadoutEditorFocusedControlId = "loadout.preset_list.reload";
+            long stageStartedAtTimestamp = BeginLoadoutPagePerformanceStage();
             RefreshLoadoutPresetEntries();
             RefreshLoadoutEditorEntries();
             _loadoutPresetRenameText = GetLoadoutEditorActivePresetDisplayName();
+            QueueLoadoutPresetPreviewIconWarmup();
+            LogLoadoutPagePerformanceStage("Open.RefreshState", stageStartedAtTimestamp);
 
             if (logger != null)
             {
@@ -27,25 +31,30 @@ namespace EtgGameplayDashboard
 
         private void DrawLoadoutEditorPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
+            LogLoadoutPagePerformanceStage("Draw.begin", 0L);
             if (_loadoutEditorMode == LoadoutEditorMode.RandomPoolDetail)
             {
                 DrawLoadoutRandomPoolDetailPage(panelRect, logger);
+                CompleteLoadoutPagePerformanceTrace("Draw.RandomPoolDetail.complete");
                 return;
             }
 
             if (_loadoutEditorMode == LoadoutEditorMode.PresetPickupsDetail)
             {
                 DrawLoadoutPresetPickupsDetailPage(panelRect, logger);
+                CompleteLoadoutPagePerformanceTrace("Draw.PresetPickupsDetail.complete");
                 return;
             }
 
             if (_loadoutEditorMode == LoadoutEditorMode.PresetDetail)
             {
                 DrawLoadoutPresetDetailPage(panelRect, player, logger);
+                CompleteLoadoutPagePerformanceTrace("Draw.PresetDetail.complete");
                 return;
             }
 
             DrawLoadoutPresetListPage(panelRect, player, logger);
+            CompleteLoadoutPagePerformanceTrace("Draw.PresetList.complete");
         }
 
         private void DrawLoadoutPresetListPage(Rect panelRect, PlayerController player, ManualLogSource logger)
@@ -53,6 +62,7 @@ namespace EtgGameplayDashboard
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             const float reloadConfigButtonWidth = 128f;
             Rect reloadButtonRect = new Rect(backButtonRect.x - ButtonGap - reloadConfigButtonWidth, backButtonRect.y, reloadConfigButtonWidth, 30f);
+            long stageStartedAtTimestamp = BeginLoadoutPagePerformanceStage();
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("loadout.back", _buttonStyle)))
             {
                 _currentPage = PanelPage.Command;
@@ -131,8 +141,11 @@ namespace EtgGameplayDashboard
             {
                 ExecuteLoadoutEditorRenamePreset(logger);
             }
+            LogLoadoutPagePerformanceStage("PresetList.Controls", stageStartedAtTimestamp);
 
+            stageStartedAtTimestamp = BeginLoadoutPagePerformanceStage();
             DrawLoadoutPresetRows(new Rect(panelRect.x + 14f, panelRect.y + 176f, panelRect.width - 28f, panelRect.height - 190f), logger);
+            LogLoadoutPagePerformanceStage("PresetList.Rows", stageStartedAtTimestamp);
         }
 
         private bool IsStartItemsPresetIconsEnabled()
@@ -283,6 +296,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
+            long stageStartedAtTimestamp = BeginLoadoutPagePerformanceStage();
             float cardWidth = (listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth - ButtonGap) / LoadoutPresetColumnCount;
             int presetRowCount = (_cachedLoadoutPresetEntries.Length + LoadoutPresetColumnCount - 1) / LoadoutPresetColumnCount;
             float contentHeight = 4f;
@@ -298,7 +312,9 @@ namespace EtgGameplayDashboard
 
                 contentHeight += rowHeight;
             }
+            LogLoadoutPagePerformanceStage("PresetRows.Layout", stageStartedAtTimestamp);
 
+            stageStartedAtTimestamp = BeginLoadoutPagePerformanceStage();
             Rect viewRect = new Rect(0f, 0f, listRect.width - SharedScrollViewStyles.ViewportScrollbarReserveWidth, contentHeight);
             _loadoutPresetScrollPosition = BeginCommandScrollView(listRect, _loadoutPresetScrollPosition, viewRect);
             float visibleTop = _loadoutPresetScrollPosition.y;
@@ -328,6 +344,7 @@ namespace EtgGameplayDashboard
 
                 rowTop += rowHeight;
             }
+            LogLoadoutPagePerformanceStage("PresetRows.VisibleDraw", stageStartedAtTimestamp);
 
             GUI.EndScrollView();
         }
@@ -454,7 +471,7 @@ namespace EtgGameplayDashboard
 
                 Rect iconRect = new Rect(x, iconsRect.y, iconSize, iconSize);
                 PickupIconData iconData;
-                if (TryGetPickupIcon(pickupIds[index], out iconData))
+                if (TryGetLoadoutPreviewIcon(pickupIds[index], out iconData))
                 {
                     GUI.DrawTextureWithTexCoords(iconRect, iconData.Texture, iconData.TextureCoords, true);
                 }
@@ -463,6 +480,74 @@ namespace EtgGameplayDashboard
                     GUI.Box(iconRect, "?", _pickupIconFallbackStyle);
                 }
             }
+        }
+
+        private void QueueLoadoutPresetPreviewIconWarmup()
+        {
+            _loadoutPreviewIconWarmupQueue.Clear();
+            _loadoutPreviewIconWarmupQueuedIds.Clear();
+            if (!IsStartItemsPresetIconsEnabled() || _cachedLoadoutPresetEntries == null)
+            {
+                return;
+            }
+
+            for (int entryIndex = 0; entryIndex < _cachedLoadoutPresetEntries.Length; entryIndex++)
+            {
+                LoadoutPresetEditorEntry entry = _cachedLoadoutPresetEntries[entryIndex];
+                if (entry == null || entry.PreviewRows == null)
+                {
+                    continue;
+                }
+
+                for (int rowIndex = 0; rowIndex < entry.PreviewRows.Length; rowIndex++)
+                {
+                    LoadoutPresetPreviewRow previewRow = entry.PreviewRows[rowIndex];
+                    if (previewRow == null || previewRow.PickupIds == null)
+                    {
+                        continue;
+                    }
+
+                    for (int pickupIndex = 0; pickupIndex < previewRow.PickupIds.Length; pickupIndex++)
+                    {
+                        int pickupId = previewRow.PickupIds[pickupIndex];
+                        if (!_pickupIconCache.ContainsKey(pickupId) && _loadoutPreviewIconWarmupQueuedIds.Add(pickupId))
+                        {
+                            _loadoutPreviewIconWarmupQueue.Enqueue(pickupId);
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool TryGetLoadoutPreviewIcon(int pickupId, out PickupIconData iconData)
+        {
+            if (_pickupIconCache.TryGetValue(pickupId, out iconData))
+            {
+                return iconData.Texture != null;
+            }
+
+            if (_loadoutPreviewIconWarmupQueuedIds.Add(pickupId))
+            {
+                _loadoutPreviewIconWarmupQueue.Enqueue(pickupId);
+            }
+
+            iconData = PickupIconData.Empty;
+            return false;
+        }
+
+        private void ProcessLoadoutPreviewIconWarmup()
+        {
+            if (_currentPage != PanelPage.LoadoutEditor ||
+                !IsStartItemsPresetIconsEnabled() ||
+                _loadoutPreviewIconWarmupQueue.Count == 0)
+            {
+                return;
+            }
+
+            int pickupId = _loadoutPreviewIconWarmupQueue.Dequeue();
+            _loadoutPreviewIconWarmupQueuedIds.Remove(pickupId);
+            PickupIconData iconData;
+            TryGetPickupIcon(pickupId, out iconData);
         }
 
         private void DrawLoadoutEditorRows(Rect listRect, ManualLogSource logger)
@@ -735,6 +820,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
+            BeginLoadoutPagePerformanceTrace("PresetDetail");
             if (!entry.IsActive)
             {
                 GrantCommandExecutionResult result = _loadoutRuleEditorService.SelectPreset(entry.Id);
@@ -763,6 +849,7 @@ namespace EtgGameplayDashboard
 
         private void OpenLoadoutRandomPoolDetail(int ruleIndex)
         {
+            BeginLoadoutPagePerformanceTrace("RandomPoolDetail");
             _loadoutEditorMode = LoadoutEditorMode.RandomPoolDetail;
             _loadoutEditorFocusedControlId = "loadout.random_pool.add_item";
             _loadoutRandomPoolRuleIndex = ruleIndex;

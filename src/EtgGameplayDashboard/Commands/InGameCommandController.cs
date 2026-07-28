@@ -198,6 +198,10 @@ namespace EtgGameplayDashboard
                     "Command panel toggle accepted. Source=" +
                     (keyboardTogglePressed ? "Keyboard" : "Controller") +
                     ".");
+                if (!_isVisible)
+                {
+                    BeginCommandPanelPerformanceTrace(keyboardTogglePressed ? "Keyboard" : "Controller");
+                }
                 Toggle();
             }
 
@@ -208,6 +212,8 @@ namespace EtgGameplayDashboard
                 return;
             }
 
+            ProcessLoadoutPreviewIconWarmup();
+
             LogMouseButtonAttempts();
             LogDisabledKeyboardNavigationKeyAttempts();
         }
@@ -217,6 +223,7 @@ namespace EtgGameplayDashboard
             LogCommandPanelPerformanceStage("OnGUI.begin");
             long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             EnsureStyles();
+            WarmUpCommandPageTitleTextIfNeeded();
             LogCommandPanelPerformanceStage("EnsureStyles", stageStartedAtTimestamp);
             stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             ReleaseGuiFocusIfPending();
@@ -390,7 +397,6 @@ namespace EtgGameplayDashboard
             _isVisible = !_isVisible;
             if (_isVisible)
             {
-                BeginCommandPanelPerformanceTrace();
                 SyncPanelInputOverride();
                 _focusInputField = false;
                 _focusPickupSearchField = false;
@@ -400,6 +406,7 @@ namespace EtgGameplayDashboard
             }
 
             CompleteCommandPanelPerformanceTrace("Toggle.close");
+            CancelPanelEndToEndTrace("ClosedBeforeRepaint");
             ResetClosedPanelState();
         }
 
@@ -1861,6 +1868,7 @@ namespace EtgGameplayDashboard
 
         private void HandleLanguageChanged()
         {
+            _commandPageTitleTextRenderingWarmedUp = false;
             ResetPickupBrowserState();
             ResetCharacterPageCache();
             RefreshLocalizedLoadoutEditorState();

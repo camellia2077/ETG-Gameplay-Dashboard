@@ -158,8 +158,8 @@ def copy_runtime_dependencies(repo_root: Path, game_path: Path) -> int:
 METADATA_PATH = Path("release") / "release_package_metadata.json"
 CACHE_DIRECTORY = Path(".cache") / "release"
 LOCALIZATION_FILE_NAMES = {
-    "ETG-Gameplay-Dashboard.localization.en.json5",
-    "ETG-Gameplay-Dashboard.localization.zh-CN.json5",
+    "EtgGameplayDashboard.localization.en.json5",
+    "EtgGameplayDashboard.localization.zh-CN.json5",
 }
 JSON5_STRING_ENTRY_PATTERN = re.compile(
     r"(?:\"(?P<dqk>(?:\\.|[^\"])*)\"|'(?P<sqk>(?:\\.|[^'])*)'|(?P<bare>[A-Za-z0-9_.-]+))\s*:\s*(?:\"(?P<dqv>(?:\\.|[^\"])*)\"|'(?P<sqv>(?:\\.|[^'])*)')",

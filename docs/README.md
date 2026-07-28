@@ -36,7 +36,6 @@ I am changing ETG runtime behavior:
 I am changing Boss Rush:
 
 - [Runtime Hotspots](./architecture/runtime-hotspots.md)
-- [ModTheGungeonAPI Reference](./reference/modthegungeonapi.md)
 - [Commands](./reference/commands.md)
 - [Smoke Checklist](./operations/smoke-checklist.md)
 
@@ -123,7 +122,6 @@ I am changing build, deploy, or tools:
 - [Testing Matrix](./reference/testing-matrix.md)
 - [Config Format (JSON5)](./reference/config-format.md)
 - [Pickups](./reference/pickups.md)
-- [ModTheGungeonAPI Reference](./reference/modthegungeonapi.md)
 - [Character Switch Strategy](./decisions/character-switch-strategy.md)
 - [Pickup Grant Strategy](./decisions/pickup-grant-strategy.md)
 - [History](./history/)
