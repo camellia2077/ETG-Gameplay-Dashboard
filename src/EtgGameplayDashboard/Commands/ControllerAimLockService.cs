@@ -36,7 +36,9 @@ namespace EtgGameplayDashboard
                 return false;
             }
 
-            BraveInput input = BraveInput.GetInstanceForPlayer(player.PlayerIDX);
+            BraveInput input = BraveInput.HasInstanceForPlayer(player.PlayerIDX)
+                ? BraveInput.GetInstanceForPlayer(player.PlayerIDX)
+                : null;
             return input == null || !input.IsKeyboardAndMouse();
         }
 

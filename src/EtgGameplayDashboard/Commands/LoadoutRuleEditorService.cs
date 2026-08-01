@@ -15,6 +15,7 @@ namespace EtgGameplayDashboard
         private readonly Func<string> _activePresetProvider;
         private readonly Action<string> _activePresetSetter;
         private readonly EtgOwnedPickupReader _ownedPickupReader;
+        private string _editorPresetId;
 
         public LoadoutRuleEditorService(
             JsonLoadoutRuleFileProvider ruleFileProvider,
@@ -30,6 +31,33 @@ namespace EtgGameplayDashboard
             _activePresetProvider = activePresetProvider;
             _activePresetSetter = activePresetSetter;
             _ownedPickupReader = ownedPickupReader;
+            _editorPresetId = _activePresetProvider != null ? StartItemsPresetNames.NormalizePresetId(_activePresetProvider()) : StartItemsPresetNames.DefaultPresetId;
+        }
+
+        private LoadoutRuleFilePresetModel GetEditorPreset(LoadoutRuleFileModel model)
+        {
+            if (model == null)
+            {
+                return null;
+            }
+
+            LoadoutRuleFilePresetModel preset = _ruleFileProvider.GetPreset(model, _editorPresetId);
+            return preset ?? _ruleFileProvider.EnsureActivePreset(model);
+        }
+
+        public bool OpenPreset(string presetId)
+        {
+            string normalizedId = StartItemsPresetNames.NormalizePresetId(presetId);
+            LoadoutRuleFileModel model = LoadEditableModel();
+            bool isLegacyDefaultPreset = (model.Presets == null || model.Presets.Length == 0) &&
+                string.Equals(normalizedId, StartItemsPresetNames.DefaultPresetId, StringComparison.OrdinalIgnoreCase);
+            if (!isLegacyDefaultPreset && _ruleFileProvider.GetPreset(model, normalizedId) == null)
+            {
+                return false;
+            }
+
+            _editorPresetId = normalizedId;
+            return true;
         }
 
         public GrantCommandExecutionResult AddSpecific(EtgPickupCatalogEntry pickup)
@@ -40,7 +68,7 @@ namespace EtgGameplayDashboard
             }
 
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
             if (ContainsSpecificPickupId(rules, pickup.PickupId))
             {
@@ -67,7 +95,7 @@ namespace EtgGameplayDashboard
         public GrantCommandExecutionResult RemoveAt(int index)
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
             if (index < 0 || index >= rules.Count)
             {
@@ -90,7 +118,7 @@ namespace EtgGameplayDashboard
         public GrantCommandExecutionResult ToggleRuleEnabled(int index)
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
             if (index < 0 || index >= rules.Count || rules[index] == null)
             {
@@ -112,7 +140,7 @@ namespace EtgGameplayDashboard
         public GrantCommandExecutionResult AddRandomPoolRule()
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
             LoadoutRuleFileRuleModel newRule = CreateRandomPoolRule(CreateUniqueRandomPoolName(rules));
             rules.Add(newRule);
@@ -136,7 +164,7 @@ namespace EtgGameplayDashboard
             }
 
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
             if (ruleIndex < 0 || ruleIndex >= rules.Count || !IsRandomPoolRule(rules[ruleIndex]))
             {
@@ -172,7 +200,7 @@ namespace EtgGameplayDashboard
         public GrantCommandExecutionResult RemoveFromRandomPool(int ruleIndex, int poolIndex)
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
             if (ruleIndex < 0 || ruleIndex >= rules.Count || !IsRandomPoolRule(rules[ruleIndex]))
             {
@@ -215,7 +243,7 @@ namespace EtgGameplayDashboard
             }
 
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFileRuleModel> rules = new List<LoadoutRuleFileRuleModel>(activePreset.Rules ?? new LoadoutRuleFileRuleModel[0]);
             if (ruleIndex < 0 || ruleIndex >= rules.Count || !IsRandomPoolRule(rules[ruleIndex]))
             {
@@ -248,7 +276,8 @@ namespace EtgGameplayDashboard
         public GrantCommandExecutionResult Reload()
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFileRuleModel[] rules = _ruleFileProvider.GetActivePresetRules(model, null);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
+            LoadoutRuleFileRuleModel[] rules = activePreset != null ? activePreset.Rules ?? new LoadoutRuleFileRuleModel[0] : new LoadoutRuleFileRuleModel[0];
             int ruleCount = rules != null ? rules.Length : 0;
             InvalidateResolvedConfig();
             return new GrantCommandExecutionResult(

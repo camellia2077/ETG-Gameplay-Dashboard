@@ -83,6 +83,7 @@ Use them only while actively reproducing an issue. Leave them off for normal pla
 
 Feature guides:
 
+- [Known External Runtime Log Issues](./logging-known-external-issues.md)
 - [Map Reveal Logging](./logging-map-teleport.md)
 - [Muncher Spawn Logging](./logging-muncher-spawn.md)
 - [Room Enemy Replay Logging](./logging-room-enemy-replay.md)

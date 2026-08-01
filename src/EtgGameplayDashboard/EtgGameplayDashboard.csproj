@@ -234,6 +234,7 @@
     <Compile Include="Commands\KeyboardAimAssistUiDefinition.cs" />
     <Compile Include="Commands\KeyNoConsumeToggleService.cs" />
     <Compile Include="Commands\AmmoModeToggleService.cs" />
+    <Compile Include="Commands\ActiveItemNoCooldownToggleService.cs" />
     <Compile Include="Commands\RapidFireToggleService.cs" />
     <Compile Include="Etg\EtgGrantOutcome.cs" />
     <Compile Include="Etg\EtgPickupCatalogEntry.cs" />

@@ -17,7 +17,7 @@ namespace EtgGameplayDashboard
             }
 
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFilePickupModel> pickups = new List<LoadoutRuleFilePickupModel>(
                 StartItemPickupCatalog.MergePickups(activePreset.Pickups));
             bool updatedExistingPickup = false;
@@ -62,7 +62,7 @@ namespace EtgGameplayDashboard
         public GrantCommandExecutionResult ChangePresetPickupCount(int pickupIndex, int delta)
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFilePickupModel> pickups = new List<LoadoutRuleFilePickupModel>(
                 StartItemPickupCatalog.MergePickups(activePreset.Pickups));
             if (pickupIndex < 0 || pickupIndex >= pickups.Count)
@@ -95,7 +95,7 @@ namespace EtgGameplayDashboard
             }
 
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFilePickupModel> pickups = new List<LoadoutRuleFilePickupModel>(
                 StartItemPickupCatalog.MergePickups(activePreset.Pickups));
             if (pickupIndex < 0 || pickupIndex >= pickups.Count)
@@ -129,7 +129,7 @@ namespace EtgGameplayDashboard
         public GrantCommandExecutionResult RemovePresetPickupAt(int pickupIndex)
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             List<LoadoutRuleFilePickupModel> pickups = new List<LoadoutRuleFilePickupModel>(
                 StartItemPickupCatalog.MergePickups(activePreset.Pickups));
             if (pickupIndex < 0 || pickupIndex >= pickups.Count)
@@ -153,7 +153,7 @@ namespace EtgGameplayDashboard
         public GrantCommandExecutionResult ClearPresetPickups()
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePresetModel activePreset = _ruleFileProvider.EnsureActivePreset(model);
+            LoadoutRuleFilePresetModel activePreset = GetEditorPreset(model);
             LoadoutRuleFilePickupModel[] existingPickups = StartItemPickupCatalog.MergePickups(activePreset.Pickups);
             if (existingPickups.Length == 0)
             {

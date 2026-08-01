@@ -54,8 +54,18 @@ namespace EtgGameplayDashboard
 
         public void Reset()
         {
+            Reset(true);
+        }
+
+        public void Reset(bool recalculateStats)
+        {
             foreach (KeyValuePair<PlayerController, PlayerModifierState> pair in _states)
             {
+                if (!recalculateStats)
+                {
+                    continue;
+                }
+
                 RemoveModifier(pair.Key, pair.Value.DamageModifier);
                 RemoveModifier(pair.Key, pair.Value.MovementModifier);
                 if ((object)pair.Key != null && (object)pair.Key.stats != null)

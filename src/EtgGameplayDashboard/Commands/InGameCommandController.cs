@@ -26,6 +26,7 @@ namespace EtgGameplayDashboard
             KeyboardAimAssistService keyboardAimAssistService,
             PlayerStatMultiplierService playerStatMultiplierService,
             AmmoModeToggleService ammoModeToggleService,
+            ActiveItemNoCooldownToggleService activeItemNoCooldownToggleService,
             AmmonomiconFastOpenToggleService ammonomiconFastOpenToggleService,
             LoadoutRuleEditorService loadoutRuleEditorService,
             LoadoutPresetRandomService loadoutPresetRandomService,
@@ -100,6 +101,7 @@ namespace EtgGameplayDashboard
             _keyboardAimAssistService = keyboardAimAssistService;
             _playerStatMultiplierService = playerStatMultiplierService;
             _ammoModeToggleService = ammoModeToggleService;
+            _activeItemNoCooldownToggleService = activeItemNoCooldownToggleService;
             _ammonomiconFastOpenToggleService = ammonomiconFastOpenToggleService;
             _loadoutRuleEditorService = loadoutRuleEditorService;
             _loadoutPresetRandomService = loadoutPresetRandomService;
@@ -1957,6 +1959,13 @@ namespace EtgGameplayDashboard
                     currentSceneName +
                     ".");
             }
+            _revealMapActivatedSceneName = string.Empty;
+            _mapDirectTeleportActivatedSceneName = string.Empty;
+            _lastMapDirectTeleportRoomKey = string.Empty;
+        }
+
+        private void ClearMapFeatureActivationState()
+        {
             _revealMapActivatedSceneName = string.Empty;
             _mapDirectTeleportActivatedSceneName = string.Empty;
             _lastMapDirectTeleportRoomKey = string.Empty;

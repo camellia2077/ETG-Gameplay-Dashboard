@@ -80,6 +80,7 @@ namespace EtgGameplayDashboard
         private ConfigEntry<bool> _rapidFireEnabledConfig;
         private ConfigEntry<string> _autoReloadModeConfig;
         private ConfigEntry<string> _ammoModeConfig;
+        private ConfigEntry<bool> _activeItemNoCooldownEnabledConfig;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
         private LoadoutRuleFilePickupModel[] _activePresetPickups;
@@ -104,6 +105,7 @@ namespace EtgGameplayDashboard
         private BlankNoConsumeToggleService _blankNoConsumeToggleService;
         private KeyNoConsumeToggleService _keyNoConsumeToggleService;
         private CurrencyNoConsumeToggleService _currencyNoConsumeToggleService;
+        private ActiveItemNoCooldownToggleService _activeItemNoCooldownToggleService;
         private InvincibilityToggleService _invincibilityToggleService;
         private EnemyHealthBarToggleService _enemyHealthBarToggleService;
         private ControllerAimLockService _controllerAimLockService;

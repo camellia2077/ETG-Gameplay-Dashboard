@@ -153,7 +153,6 @@ namespace EtgGameplayDashboard
 
             if (executionResult.Succeeded)
             {
-                MarkRevealMapActivatedForCurrentScene();
                 LogCommandExecutionResult(logger, executionResult);
                 _focusInputField = true;
             }
@@ -585,6 +584,23 @@ namespace EtgGameplayDashboard
             else
             {
                 logger.LogWarning(EtgGameplayDashboardLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleActiveItemNoCooldown(PlayerController player, ManualLogSource logger)
+        {
+            if (_activeItemNoCooldownToggleService == null)
+            {
+                ShowStatus(GetLocalizedFallback("result.active_item_no_cooldown.unavailable", "Active item no-cooldown service is unavailable.", "主动道具无需充能服务当前不可用。"), true);
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _activeItemNoCooldownToggleService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            LogCommandExecutionResult(logger, executionResult);
+            if (executionResult.Succeeded)
+            {
+                _focusInputField = true;
             }
         }
 

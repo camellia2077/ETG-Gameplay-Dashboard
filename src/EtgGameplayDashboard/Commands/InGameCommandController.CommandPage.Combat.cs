@@ -49,6 +49,7 @@ namespace EtgGameplayDashboard
             float secondRowY = firstRowY + controlHeight + ButtonGap;
             float thirdRowY = secondRowY + controlHeight + ButtonGap;
             float fourthRowY = thirdRowY + controlHeight + ButtonGap;
+            float fifthRowY = fourthRowY + controlHeight + ButtonGap;
 
             stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             DrawCombatSettingRows(
@@ -82,6 +83,9 @@ namespace EtgGameplayDashboard
                     CreateControllerAimLockCombatSetting(
                         new Rect(contentRect.x, fourthRowY + controlHeight + ButtonGap, settingColumnWidth, controlHeight),
                         logger),
+                    CreateActiveItemNoCooldownCombatSetting(
+                        new Rect(secondSettingColumnX, fifthRowY, settingColumnWidth, controlHeight),
+                        logger),
                 },
                 settingLabelWidth,
                 settingButtonWidth);
@@ -89,7 +93,7 @@ namespace EtgGameplayDashboard
 
             stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             DrawKeyboardAimAssistSetting(
-                new Rect(contentRect.x, fourthRowY + (controlHeight + ButtonGap) * 2f, contentRect.width, controlHeight),
+                new Rect(contentRect.x, fifthRowY + controlHeight + ButtonGap, contentRect.width, controlHeight),
                 controlHeight,
                 settingLabelWidth,
                 settingButtonWidth,
@@ -103,6 +107,18 @@ namespace EtgGameplayDashboard
             }
             LogCommandPanelPerformanceStage("CommandPage.Player.Combat.FullAmmo", stageStartedAtTimestamp);
 
+        }
+
+        private CombatSettingRow CreateActiveItemNoCooldownCombatSetting(Rect rect, ManualLogSource logger)
+        {
+            bool isEnabled = _activeItemNoCooldownToggleService != null && _activeItemNoCooldownToggleService.IsEnabled;
+            return new CombatSettingRow(
+                rect,
+                "cmd.combat.active_item_no_cooldown",
+                GetLocalizedFallback("gui.command.setting.active_item_no_cooldown", "Active Cooldown", "主动道具冷却"),
+                GetOnOffStatusLabel(isEnabled),
+                isEnabled,
+                delegate { ExecuteToggleActiveItemNoCooldown(GetSelectedCommandTargetPlayer(), logger); });
         }
 
         private void SyncPersistedCombatTargetState(PlayerController player)
@@ -148,6 +164,7 @@ namespace EtgGameplayDashboard
                     new CommandPageActionBinding("cmd.combat.rapid", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteToggleRapidFire(targetPlayer, null); }); }),
                     new CommandPageActionBinding("cmd.combat.auto_reload", delegate { ExecuteToggleAutoReload(null); }),
                     new CommandPageActionBinding("cmd.combat.ammo_mode", delegate { ExecuteCycleAmmoMode(null); }),
+                    new CommandPageActionBinding("cmd.combat.active_item_no_cooldown", delegate { ExecuteToggleActiveItemNoCooldown(GetSelectedCommandTargetPlayer(), null); }),
                     new CommandPageActionBinding("cmd.combat.invincible", delegate { ExecuteToggleInvincibilityForSelectedTargets(player, null); }),
                     new CommandPageActionBinding("cmd.combat.ammonomicon", delegate { ExecuteToggleAmmonomiconFastOpen(null); }),
                 new CommandPageActionBinding("cmd.combat.enemy_health_bars", delegate { ExecuteToggleEnemyHealthBars(GetSelectedCommandTargetPlayer(), null); }),
@@ -163,6 +180,7 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.combat.rapid", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteToggleRapidFire(targetPlayer, null); }); }),
                 new CommandPageActionBinding("cmd.combat.auto_reload", delegate { ExecuteToggleAutoReload(null); }),
                 new CommandPageActionBinding("cmd.combat.ammo_mode", delegate { ExecuteCycleAmmoMode(null); }),
+                new CommandPageActionBinding("cmd.combat.active_item_no_cooldown", delegate { ExecuteToggleActiveItemNoCooldown(GetSelectedCommandTargetPlayer(), null); }),
                 new CommandPageActionBinding("cmd.combat.invincible", delegate { ExecuteToggleInvincibilityForSelectedTargets(player, null); }),
                 new CommandPageActionBinding("cmd.combat.ammonomicon", delegate { ExecuteToggleAmmonomiconFastOpen(null); }),
                 new CommandPageActionBinding("cmd.combat.enemy_health_bars", delegate { ExecuteToggleEnemyHealthBars(GetSelectedCommandTargetPlayer(), null); }),

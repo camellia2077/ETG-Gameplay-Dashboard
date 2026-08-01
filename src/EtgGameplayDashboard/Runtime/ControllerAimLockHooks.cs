@@ -91,7 +91,7 @@ namespace EtgGameplayDashboard
             // Temporarily setting PreventAimLook leaves the aim vector and gun rotation intact.
             __state = false;
             bool lockActive = s_service != null && s_service.IsControllerCameraAimLockActive();
-            BraveInput input = BraveInput.GetInstanceForPlayer(0);
+            BraveInput input = GetInputForPlayerIfAvailable(0);
             bool preventAimLookBefore = __instance != null && __instance.PreventAimLook;
             if (s_service == null || __instance == null || !lockActive)
             {
@@ -131,7 +131,7 @@ namespace EtgGameplayDashboard
             }
 
             s_lastLoggedFrame = Time.frameCount;
-            BraveInput input = BraveInput.GetInstanceForPlayer(player.PlayerIDX);
+            BraveInput input = GetInputForPlayerIfAvailable(player.PlayerIDX);
             bool isKeyboardAndMouse = input != null && input.IsKeyboardAndMouse();
             Vector2 center = player.CenterPosition;
             Vector2 rawOffset = new Vector2(rawAimPoint.x - center.x, rawAimPoint.y - center.y);
@@ -154,6 +154,16 @@ namespace EtgGameplayDashboard
                 ", Locked=" + (s_service != null && s_service.IsEnabled(player)) +
                 ", AimPointOverrideApplied=False" +
                 "."));
+        }
+
+        private static BraveInput GetInputForPlayerIfAvailable(int playerIndex)
+        {
+            if (!BraveInput.HasInstanceForPlayer(playerIndex))
+            {
+                return null;
+            }
+
+            return BraveInput.GetInstanceForPlayer(playerIndex);
         }
 
         private static void LogCameraAimSample(

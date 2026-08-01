@@ -51,7 +51,7 @@ namespace EtgGameplayDashboard
                         pickup.name ?? string.Empty,
                         GetEncounterGuid(pickup),
                         GetItemQualityLabel(pickup),
-                        pickup.PurchasePrice,
+                        GetPurchasePrice(pickup),
                         pickup.CanBeDropped,
                         pickup.CanBeSold,
                         pickup.encounterTrackable != null && pickup.encounterTrackable.SuppressInInventory,
@@ -142,6 +142,30 @@ namespace EtgGameplayDashboard
             }
 
             return pickup.quality.ToString();
+        }
+
+        private static int GetPurchasePrice(PickupObject pickup)
+        {
+            if ((object)pickup == null)
+            {
+                return 0;
+            }
+
+            // ETG's PurchasePrice calls GlobalDungeonData.GetBasePrice for non-custom
+            // costs. SPECIAL and EXCLUDED are valid catalog qualities but are not valid
+            // inputs for that ordinary shop-price lookup.
+            if (pickup.UsesCustomCost)
+            {
+                return pickup.CustomCost;
+            }
+
+            if (pickup.quality == PickupObject.ItemQuality.SPECIAL ||
+                pickup.quality == PickupObject.ItemQuality.EXCLUDED)
+            {
+                return 0;
+            }
+
+            return pickup.PurchasePrice;
         }
 
         private static string GetContentSourceLabel(PickupObject pickup)

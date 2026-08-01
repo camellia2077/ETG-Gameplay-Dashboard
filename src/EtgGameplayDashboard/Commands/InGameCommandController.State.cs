@@ -351,6 +351,7 @@ namespace EtgGameplayDashboard
         private readonly BlankNoConsumeToggleService _blankNoConsumeToggleService;
         private readonly KeyNoConsumeToggleService _keyNoConsumeToggleService;
         private readonly CurrencyNoConsumeToggleService _currencyNoConsumeToggleService;
+        private readonly ActiveItemNoCooldownToggleService _activeItemNoCooldownToggleService;
         private readonly InvincibilityToggleService _invincibilityToggleService;
         private readonly EnemyHealthBarToggleService _enemyHealthBarToggleService;
         private readonly ControllerAimLockService _controllerAimLockService;

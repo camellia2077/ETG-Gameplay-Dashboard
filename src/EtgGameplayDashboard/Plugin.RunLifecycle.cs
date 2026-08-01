@@ -112,6 +112,13 @@ namespace EtgGameplayDashboard
                 LogPerformanceStep("AmmoModeToggleService.Update", startedAtTimestamp);
             }
 
+            if (_activeItemNoCooldownToggleService != null)
+            {
+                long startedAtTimestamp = BeginPerformanceSample();
+                _activeItemNoCooldownToggleService.Update(player);
+                LogPerformanceStep("ActiveItemNoCooldownToggleService.Update", startedAtTimestamp);
+            }
+
             if (_playerHealthOverrideService != null)
             {
                 long startedAtTimestamp = BeginPerformanceSample();
@@ -700,7 +707,7 @@ namespace EtgGameplayDashboard
 
             if (selectionResult.Selections.Length == 0)
             {
-                Logger.LogWarning(EtgGameplayDashboardLog.Grant("No pickups were selected for this run."));
+                Logger.LogInfo(EtgGameplayDashboardLog.Grant("No pickups were selected for this run."));
             }
 
             GrantConfiguredPresetPickups(player);

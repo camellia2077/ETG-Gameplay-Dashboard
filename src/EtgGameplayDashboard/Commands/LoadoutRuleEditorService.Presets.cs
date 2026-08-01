@@ -16,7 +16,7 @@ namespace EtgGameplayDashboard
         public string GetActivePresetDisplayName()
         {
             LoadoutRuleFilePresetModel activePreset = _ruleFileProvider != null
-                ? _ruleFileProvider.GetActivePreset(LoadEditableModel())
+                ? GetEditorPreset(LoadEditableModel())
                 : null;
             return activePreset != null
                 ? StartItemsPresetNames.GetDisplayName(activePreset)
@@ -266,6 +266,7 @@ namespace EtgGameplayDashboard
         private void SetActivePresetId(string presetId)
         {
             string normalizedId = StartItemsPresetNames.NormalizePresetId(presetId);
+            _editorPresetId = normalizedId;
             if (_activePresetSetter != null)
             {
                 _activePresetSetter(normalizedId);

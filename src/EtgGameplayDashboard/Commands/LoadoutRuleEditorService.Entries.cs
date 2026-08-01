@@ -12,8 +12,9 @@ namespace EtgGameplayDashboard
         public LoadoutRuleEditorEntry[] GetEntries()
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFileRuleModel[] rules = _ruleFileProvider.GetActivePresetRules(model, null);
-            LoadoutRuleFilePickupModel[] presetPickups = _ruleFileProvider.GetActivePresetPickups(model, null);
+            LoadoutRuleFilePresetModel editorPreset = GetEditorPreset(model);
+            LoadoutRuleFileRuleModel[] rules = editorPreset != null ? editorPreset.Rules ?? new LoadoutRuleFileRuleModel[0] : new LoadoutRuleFileRuleModel[0];
+            LoadoutRuleFilePickupModel[] presetPickups = editorPreset != null ? editorPreset.Pickups ?? new LoadoutRuleFilePickupModel[0] : new LoadoutRuleFilePickupModel[0];
             Dictionary<int, EtgPickupCatalogEntry> catalogById = BuildCatalogById();
             List<LoadoutRuleEditorEntry> entries = new List<LoadoutRuleEditorEntry>();
 
@@ -98,7 +99,8 @@ namespace EtgGameplayDashboard
         public LoadoutRuleEditorEntry[] GetPresetPickupEntries()
         {
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFilePickupModel[] pickups = _ruleFileProvider.GetActivePresetPickups(model, null);
+            LoadoutRuleFilePresetModel editorPreset = GetEditorPreset(model);
+            LoadoutRuleFilePickupModel[] pickups = editorPreset != null ? editorPreset.Pickups ?? new LoadoutRuleFilePickupModel[0] : new LoadoutRuleFilePickupModel[0];
             List<LoadoutRuleEditorEntry> entries = new List<LoadoutRuleEditorEntry>();
             for (int i = 0; i < pickups.Length; i++)
             {
@@ -378,7 +380,8 @@ namespace EtgGameplayDashboard
             }
 
             LoadoutRuleFileModel model = LoadEditableModel();
-            LoadoutRuleFileRuleModel[] rules = _ruleFileProvider.GetActivePresetRules(model, null);
+            LoadoutRuleFilePresetModel editorPreset = GetEditorPreset(model);
+            LoadoutRuleFileRuleModel[] rules = editorPreset != null ? editorPreset.Rules ?? new LoadoutRuleFileRuleModel[0] : new LoadoutRuleFileRuleModel[0];
             return rules != null && ruleIndex < rules.Length ? rules[ruleIndex] : null;
         }
 

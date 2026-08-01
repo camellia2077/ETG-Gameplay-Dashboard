@@ -498,13 +498,13 @@ namespace EtgGameplayDashboard
                 return null;
             }
 
-            BraveInput playerOneInput = BraveInput.GetInstanceForPlayer(0);
+            BraveInput playerOneInput = GetInputForPlayerIfAvailable(0);
             if (playerOneInput != null && playerOneInput.HasMouse())
             {
                 return playerOneInput;
             }
 
-            BraveInput playerTwoInput = BraveInput.GetInstanceForPlayer(1);
+            BraveInput playerTwoInput = GetInputForPlayerIfAvailable(1);
             if (playerTwoInput != null && playerTwoInput.HasMouse())
             {
                 return playerTwoInput;
@@ -525,14 +525,24 @@ namespace EtgGameplayDashboard
                     false);
             }
 
-            BraveInput playerOneInput = BraveInput.GetInstanceForPlayer(0);
-            BraveInput playerTwoInput = BraveInput.GetInstanceForPlayer(1);
+            BraveInput playerOneInput = GetInputForPlayerIfAvailable(0);
+            BraveInput playerTwoInput = GetInputForPlayerIfAvailable(1);
             return s_cursorRenderOwnershipService.Evaluate(
                 panelVisible,
                 playerOneInput != null && playerOneInput.HasMouse(),
                 playerTwoInput != null && playerTwoInput.HasMouse(),
                 IsCustomCursorColorEnabled(),
                 GameCursorController.CursorOverride != null);
+        }
+
+        private static BraveInput GetInputForPlayerIfAvailable(int playerIndex)
+        {
+            if (!BraveInput.HasInstanceForPlayer(playerIndex))
+            {
+                return null;
+            }
+
+            return BraveInput.GetInstanceForPlayer(playerIndex);
         }
 
         private static void LogCursorRedrawSkip(bool panelVisible, string reason)

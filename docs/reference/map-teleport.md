@@ -9,6 +9,8 @@ The command panel currently exposes one related action on the `General` page:
 - `Reveal Map`
   Reveals the current floor on the minimap and also promotes already-registered teleporter rooms toward a usable teleport state on the current floor.
 
+`Reveal Map` is a one-time action for the current runtime floor. After it succeeds, the button remains visually enabled for that floor only. It does not persist as an enabled setting. A successful floor teleport closes the command panel and clears the temporary map-feature state; entering a new floor also clears it, and the destination floor is not revealed automatically.
+
 The current implementation targets the practical gameplay result, not the exact vanilla visual state. It does not fully recreate every visual or state transition that vanilla ETG performs when the player naturally discovers a teleporter room.
 
 ## Code Ownership

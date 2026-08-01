@@ -303,6 +303,11 @@ namespace EtgGameplayDashboard
                 "AmmoMode",
                 "Off",
                 "Persisted Ammo Mode: Off, InfiniteReserve, or NoConsume.");
+            _activeItemNoCooldownEnabledConfig = Config.Bind(
+                "Combat",
+                "ActiveItemNoCooldownEnabled",
+                false,
+                "Keep Active Item No Cooldown enabled across game launches. Disabled by default.");
         }
 
         private void InitializeResolversAndProviders()
@@ -394,6 +399,9 @@ namespace EtgGameplayDashboard
             _ammoModeToggleService = new AmmoModeToggleService(
                 ParseAmmoMode(_ammoModeConfig.Value),
                 PersistAmmoMode);
+            _activeItemNoCooldownToggleService = new ActiveItemNoCooldownToggleService(
+                _activeItemNoCooldownEnabledConfig.Value,
+                PersistActiveItemNoCooldownEnabled);
             _ammonomiconFastOpenToggleService = new AmmonomiconFastOpenToggleService();
             _ammonomiconFastOpenToggleService.SetIsFastOpenEnabled(_ammonomiconFastOpenEnabledConfig.Value);
             _playerHealthOverrideService = new PlayerHealthOverrideService(Logger, IsCommandPanelHealthVerboseLoggingEnabled);
@@ -495,6 +503,7 @@ namespace EtgGameplayDashboard
                 _keyboardAimAssistService,
                 _playerStatMultiplierService,
                 _ammoModeToggleService,
+                _activeItemNoCooldownToggleService,
                 _ammonomiconFastOpenToggleService,
                 loadoutRuleEditorService,
                 _loadoutPresetRandomService,
@@ -596,7 +605,7 @@ namespace EtgGameplayDashboard
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Pickup info sections: quality=" + (IsPickupInfoQualityEnabled() ? "on" : "off") + ", type=" + (IsPickupInfoTypeEnabled() ? "on" : "off") + ", effects=" + (IsPickupInfoEffectsEnabled() ? "on" : "off") + ", synergies=" + (IsPickupInfoSynergiesEnabled() ? "on" : "off") + ", summary=" + (IsPickupInfoSummaryEnabled() ? "on" : "off") + ", notes=" + (IsPickupInfoNotesEnabled() ? "on" : "off") + "."));
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Command panel experimental mode is " + (IsExperimentalModeEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Ammonomicon fast open is " + (IsAmmonomiconFastOpenEnabled() ? "enabled" : "disabled") + "."));
-            Logger.LogInfo(EtgGameplayDashboardLog.Init("Combat persisted states: rapid=" + (_rapidFireEnabledConfig.Value ? "on" : "off") + ", autoReload=" + _autoReloadModeConfig.Value + ", ammoMode=" + _ammoModeConfig.Value + "."));
+            Logger.LogInfo(EtgGameplayDashboardLog.Init("Combat persisted states: rapid=" + (_rapidFireEnabledConfig.Value ? "on" : "off") + ", autoReload=" + _autoReloadModeConfig.Value + ", ammoMode=" + _ammoModeConfig.Value + ", activeItemNoCooldown=" + (_activeItemNoCooldownEnabledConfig.Value ? "on" : "off") + "."));
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Nearby pickup info mode is gameplay."));
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Reveal Map verbose logs are " + (IsMapTeleportVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Muncher verbose logs are " + (IsMuncherVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
@@ -623,11 +632,11 @@ namespace EtgGameplayDashboard
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Boss Rush service initialized. Startup self-check is running."));
         }
 
-        private void ResetServices()
+        private void ResetServices(bool pluginDestroying = false)
         {
             if (_playerStatMultiplierService != null)
             {
-                _playerStatMultiplierService.Reset();
+                _playerStatMultiplierService.Reset(!pluginDestroying);
             }
 
             if (_damageDiagnosticsService != null)
@@ -637,7 +646,7 @@ namespace EtgGameplayDashboard
 
             if (_roomEnemyReplayService != null)
             {
-                _roomEnemyReplayService.Clear();
+                _roomEnemyReplayService.Clear(pluginDestroying);
             }
 
             if (_rapidFireToggleService != null)
@@ -683,6 +692,11 @@ namespace EtgGameplayDashboard
             if (_ammoModeToggleService != null)
             {
                 _ammoModeToggleService.Reset();
+            }
+
+            if (_activeItemNoCooldownToggleService != null)
+            {
+                _activeItemNoCooldownToggleService.Reset();
             }
 
             if (_playerHealthOverrideService != null)

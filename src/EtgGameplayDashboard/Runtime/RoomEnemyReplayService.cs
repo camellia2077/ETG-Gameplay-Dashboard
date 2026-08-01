@@ -431,9 +431,9 @@ namespace EtgGameplayDashboard
             LogRoomTeleportEligibility(room, "AfterBossEnemyDeregistered");
         }
 
-        public void Clear()
+        public void Clear(bool pluginDestroying = false)
         {
-            ClearSnapshots();
+            ClearSnapshots("plugin destroy", pluginDestroying);
         }
 
         public int ClearRoomRewindObjects(RoomHandler room)
@@ -684,9 +684,18 @@ namespace EtgGameplayDashboard
 
         public int ClearSnapshots(string reason)
         {
+            return ClearSnapshots(reason, false);
+        }
+
+        private int ClearSnapshots(string reason, bool pluginDestroying)
+        {
             int snapshotCount = _snapshots.Count;
-            LogFloorMapTeleportState("BeforeReplaySnapshotClear");
-            DestroyDecorationTemplates();
+            if (!pluginDestroying)
+            {
+                LogFloorMapTeleportState("BeforeReplaySnapshotClear");
+                DestroyDecorationTemplates();
+            }
+
             _snapshots.Clear();
             _replayingRooms.Clear();
             _bossClearRewardsHandled.Clear();

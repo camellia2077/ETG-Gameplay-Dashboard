@@ -29,7 +29,7 @@ namespace EtgGameplayDashboard
         private void OnDestroy()
         {
             CommandPanelCursorRenderHooks.ClearCursorOverride();
-            ResetServices();
+            ResetServices(true);
             UninstallRuntimeHooks();
 
             if (_sceneWatcher != null)
@@ -230,7 +230,15 @@ namespace EtgGameplayDashboard
             {
                 SelectionWarning warning = warnings[i];
                 string categoryPrefix = warning.Category.HasValue ? warning.Category.Value + ": " : string.Empty;
-                Logger.LogWarning(EtgGameplayDashboardLog.Grant(categoryPrefix + warning.Message + " [Code=" + warning.Code + "]"));
+                string message = EtgGameplayDashboardLog.Grant(categoryPrefix + warning.Message + " [Code=" + warning.Code + "]");
+                if (string.Equals(warning.Code, "ConfigEmpty", StringComparison.Ordinal))
+                {
+                    Logger.LogInfo(message);
+                }
+                else
+                {
+                    Logger.LogWarning(message);
+                }
             }
         }
 
@@ -932,6 +940,17 @@ namespace EtgGameplayDashboard
             }
 
             _ammoModeConfig.Value = mode.ToString();
+            Config.Save();
+        }
+
+        private void PersistActiveItemNoCooldownEnabled(bool enabled)
+        {
+            if (_activeItemNoCooldownEnabledConfig == null)
+            {
+                return;
+            }
+
+            _activeItemNoCooldownEnabledConfig.Value = enabled;
             Config.Save();
         }
 

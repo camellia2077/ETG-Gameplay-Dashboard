@@ -84,8 +84,8 @@ namespace EtgGameplayDashboard
             if (executionResult.Succeeded)
             {
                 _inputText = option.CommandText;
-                CloseTeleportPanel();
-                _focusInputField = true;
+                ClearMapFeatureActivationState();
+                Close();
             }
 
             if (logger == null)

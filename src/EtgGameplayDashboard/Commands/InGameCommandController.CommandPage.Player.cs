@@ -76,6 +76,7 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry(KeyboardAimAssistUiDefinition.MultiplierControlId, 8, 1),
             new ControllerFocusEntry("cmd.combat.boss_intro", 6, 0),
             new ControllerFocusEntry("cmd.combat.full_ammo", 6, 1),
+            new ControllerFocusEntry("cmd.combat.active_item_no_cooldown", 7, 1),
             new ControllerFocusEntry("cmd.player.damage_multiplier", 10, 0),
             new ControllerFocusEntry("cmd.player.move_multiplier", 10, 1),
         };
@@ -92,6 +93,7 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry(KeyboardAimAssistUiDefinition.ModeControlId, 8, 0),
             new ControllerFocusEntry(KeyboardAimAssistUiDefinition.MultiplierControlId, 8, 1),
             new ControllerFocusEntry("cmd.combat.full_ammo", 6, 1),
+            new ControllerFocusEntry("cmd.combat.active_item_no_cooldown", 7, 1),
             new ControllerFocusEntry("cmd.player.damage_multiplier", 10, 0),
             new ControllerFocusEntry("cmd.player.move_multiplier", 10, 1),
         };

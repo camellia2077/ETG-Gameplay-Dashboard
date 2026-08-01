@@ -821,16 +821,10 @@ namespace EtgGameplayDashboard
             }
 
             BeginLoadoutPagePerformanceTrace("PresetDetail");
-            if (!entry.IsActive)
+            if (!_loadoutRuleEditorService.OpenPreset(entry.Id))
             {
-                GrantCommandExecutionResult result = _loadoutRuleEditorService.SelectPreset(entry.Id);
-                ShowStatus(result.Message, !result.Succeeded);
-                LogLoadoutEditorResult(result, logger);
-                if (!result.Succeeded)
-                {
-                    RefreshLoadoutPresetEntries();
-                    return;
-                }
+                RefreshLoadoutPresetEntries();
+                return;
             }
 
             _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
