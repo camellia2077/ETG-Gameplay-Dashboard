@@ -27,6 +27,7 @@ namespace EtgGameplayDashboard
         private ConfigEntry<string> _uiLanguageConfig;
         private ConfigEntry<string> _commandPanelKeyConfig;
         private ConfigEntry<string> _roomEnemyRewindKeyConfig;
+        private ConfigEntry<string> _pickupShortcutsConfig;
         private ConfigEntry<bool> _roomEnemyRefreshRecordingEnabledConfig;
         private ConfigEntry<string> _roomEnemyRefreshMethodConfig;
         private ConfigEntry<bool> _playerRewindEnabledConfig;
@@ -38,6 +39,8 @@ namespace EtgGameplayDashboard
         private ConfigEntry<string> _themePresetConfig;
         private ConfigEntry<bool> _showStartItemsPresetIconsConfig;
         private ConfigEntry<bool> _showPlayerStatsPanelConfig;
+        private ConfigEntry<bool> _showCommandPanelCloseButtonConfig;
+        private ConfigEntry<bool> _revealMapEveryFloorConfig;
         private ConfigEntry<bool> _showPickupInfoOverlayConfig;
         private ConfigEntry<bool> _showPickupInfoQualityConfig;
         private ConfigEntry<bool> _showPickupInfoTypeConfig;
@@ -81,6 +84,7 @@ namespace EtgGameplayDashboard
         private ConfigEntry<string> _autoReloadModeConfig;
         private ConfigEntry<string> _ammoModeConfig;
         private ConfigEntry<bool> _activeItemNoCooldownEnabledConfig;
+        private PickupShortcutRegistry _pickupShortcutRegistry;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
         private LoadoutRuleFilePickupModel[] _activePresetPickups;

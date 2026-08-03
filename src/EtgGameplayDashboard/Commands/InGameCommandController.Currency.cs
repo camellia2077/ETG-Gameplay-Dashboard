@@ -2,7 +2,6 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System;
-using System.Collections.Generic;
 using BepInEx.Logging;
 using EtgGameplayDashboard.Core;
 using UnityEngine;
@@ -16,6 +15,8 @@ namespace EtgGameplayDashboard
             _currentPage = PanelPage.Currency;
             _focusInputField = false;
             _currencyPageFocusedControlId = "currency.max_health";
+            _isPickupShortcutConfigurationMode = false;
+            CancelPickupShortcutCapture();
 
             if (logger != null)
             {
@@ -27,6 +28,11 @@ namespace EtgGameplayDashboard
         {
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             Rect targetButtonRect = new Rect(backButtonRect.x - ButtonGap - ButtonWidth, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect shortcutConfigurationButtonRect = new Rect(
+                targetButtonRect.x - ButtonGap - 148f,
+                panelRect.y + 12f,
+                148f,
+                30f);
             GUIStyle targetButtonStyle = _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer
                 ? _enabledButtonStyle
                 : _buttonStyle;
@@ -36,12 +42,25 @@ namespace EtgGameplayDashboard
             }
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("currency.back", _buttonStyle)))
             {
-                CloseCurrencyPage();
+                HandleCurrencyBack();
                 return;
+            }
+            if (GUI.Button(
+                shortcutConfigurationButtonRect,
+                _isPickupShortcutConfigurationMode
+                    ? GetPickupShortcutExitConfigurationButtonLabel()
+                    : GetPickupShortcutConfigurationButtonLabel(),
+                _buttonStyle))
+            {
+                TogglePickupShortcutConfigurationMode();
             }
 
             GUI.Label(
-                new Rect(panelRect.x + 14f, panelRect.y + 12f, panelRect.width - ButtonWidth - 32f, 24f),
+                new Rect(
+                    panelRect.x + 14f,
+                    panelRect.y + 12f,
+                    shortcutConfigurationButtonRect.x - panelRect.x - 24f,
+                    24f),
                 GetLocalizedFallback("gui.command.currency.title", "Pickups", "拾取物"),
                 _titleStyle);
             GUI.Label(
@@ -60,8 +79,18 @@ namespace EtgGameplayDashboard
             DrawPickupActionRows(contentRect, top, rowHeight, rowGap, BuildCurrencyPickupRows(player, logger));
         }
 
-        private void CloseCurrencyPage()
+        private void HandleCurrencyBack()
         {
+            CancelPickupShortcutCapture();
+
+            if (_isPickupShortcutConfigurationMode)
+            {
+                _isPickupShortcutConfigurationMode = false;
+                _currencyPageFocusedControlId = "currency.max_health";
+                return;
+            }
+
+            _isPickupShortcutConfigurationMode = false;
             _currentPage = PanelPage.Command;
             _focusInputField = true;
         }
@@ -73,10 +102,15 @@ namespace EtgGameplayDashboard
 
         private void ExecuteCurrencyPageFocusedControl(PlayerController player, ManualLogSource logger)
         {
+            if (_isPickupShortcutConfigurationMode)
+            {
+                return;
+            }
+
             switch (_currencyPageFocusedControlId)
             {
                 case "currency.back":
-                    CloseCurrencyPage();
+                    HandleCurrencyBack();
                     return;
                 case "currency.target":
                     ToggleCharacterSwitchTarget(logger);
@@ -115,6 +149,11 @@ namespace EtgGameplayDashboard
 
         private PickupActionRowDefinition[] BuildCurrencyPickupRows(PlayerController player, ManualLogSource logger)
         {
+            if (_isPickupShortcutConfigurationMode)
+            {
+                return BuildCurrencyShortcutRows();
+            }
+
             string actionLabel = GetLocalizedFallback("gui.command.currency.button.spawn", "Spawn", "生成");
             return new[]
             {
@@ -171,5 +210,6 @@ namespace EtgGameplayDashboard
                     }),
             };
         }
+
     }
 }

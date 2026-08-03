@@ -835,6 +835,21 @@ namespace EtgGameplayDashboard
 
         private void ExecuteRevealCurrentFloorMap(PlayerController player, ManualLogSource logger)
         {
+            if (_revealMapEnabled)
+            {
+                _revealMapEnabled = false;
+                ClearMapFeatureActivationState();
+                ShowStatus(
+                    GetLocalizedFallback("result.map_reveal.disabled", "Reveal Map disabled.", "已关闭地图全开。"),
+                    false);
+                if (logger != null)
+                {
+                    logger.LogInfo(EtgGameplayDashboardLog.Command("Reveal Map disabled."));
+                }
+
+                return;
+            }
+
             if (logger != null && ShouldLogMapTeleportVerbose())
             {
                 logger.LogInfo(
@@ -850,21 +865,28 @@ namespace EtgGameplayDashboard
             GrantCommandExecutionResult executionResult = _roomDebugCommandService.RevealCurrentFloorMap(player, logger);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
-            if (logger == null)
-            {
-                return;
-            }
-
             if (executionResult.Succeeded)
             {
+                _revealMapEnabled = true;
                 MarkRevealMapActivatedForCurrentScene();
                 MarkMapDirectTeleportActivatedForCurrentScene();
-                logger.LogInfo(EtgGameplayDashboardLog.Command(executionResult.LogMessage));
+                if (_revealMapEveryFloor)
+                {
+                    _autoRevealMapSceneName = GetCurrentMapFeatureActivationKey();
+                    _nextAutoRevealMapAttemptAt = 0f;
+                }
+                if (logger != null)
+                {
+                    logger.LogInfo(EtgGameplayDashboardLog.Command(executionResult.LogMessage));
+                }
                 _focusInputField = true;
             }
             else
             {
-                logger.LogWarning(EtgGameplayDashboardLog.Command(executionResult.LogMessage));
+                if (logger != null)
+                {
+                    logger.LogWarning(EtgGameplayDashboardLog.Command(executionResult.LogMessage));
+                }
             }
         }
 

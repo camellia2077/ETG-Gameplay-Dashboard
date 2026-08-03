@@ -159,6 +159,7 @@
     <Compile Include="Configuration\PickupGameplayEntry.cs" />
     <Compile Include="Configuration\PickupGameplayRegistry.cs" />
     <Compile Include="Configuration\PickupInfoTermsRegistry.cs" />
+    <Compile Include="Configuration\PickupShortcutRegistry.cs" />
     <Compile Include="Configuration\RandomPoolSelectionStateProvider.cs" />
     <Compile Include="Configuration\StartItemsPresetNames.cs" />
     <Compile Include="Commands\GrantCommandExecutionResult.cs" />
@@ -193,6 +194,7 @@
     <Compile Include="Commands\InGameCommandController.PickupIcons.cs" />
     <Compile Include="Commands\InGameCommandController.PickupInfoConfig.cs" />
     <Compile Include="Commands\InGameCommandController.PickupBrowser.cs" />
+    <Compile Include="Commands\InGameCommandController.PickupShortcuts.cs" />
     <Compile Include="Commands\InGameCommandController.PlayerStats.cs" />
     <Compile Include="Commands\InGameCommandController.Settings.cs" />
     <Compile Include="Commands\InGameCommandController.State.cs" />

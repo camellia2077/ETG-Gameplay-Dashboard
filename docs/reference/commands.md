@@ -80,6 +80,7 @@ Recommended input style:
   Opens the Boss Rush page.
 - `Pickups`
   Opens the in-game pickup browser with search, category filters, and runtime sprite icons.
+  In Grant mode, use the `Set Shortcuts` entry at the top of this page to enter shortcut setup. Each pickup row then has a keyboard shortcut button and a clear button. Click the shortcut button, press a keyboard key, and use the existing `Back` button to return to General; the assigned pickup is granted to the selected player when that key is pressed while the panel is closed. The command-panel key, arrow navigation keys, `Insert`, `Delete`, and the room-enemy rewind key cannot be assigned. Pickup shortcuts are keyboard-only and are persisted in `[UI] PickupShortcuts` as `targetId=KeyCode` pairs. Catalog pickups use numeric target IDs, while currency actions use names such as `currency.max_health`.
 - `Start Items`
   Opens the start-items editor for the current rules file.
 - `Rapid OFF` / `Rapid ON`
@@ -126,6 +127,7 @@ the renderer logs `Cursor color shader unavailable` and falls back to the origin
   Cycles the command panel language preference through `auto`, `en`, and `zh-CN`, then persists it to `etg-gameplay-dashboard.cfg` under `[UI] Language`.
 - `Settings`
   Opens panel preferences. The current settings page includes keyboard key selection, UI size, language, experimental-mode controls, and the About page.
+  Display settings also include a persisted `ShowCommandPanelCloseButton` toggle, enabled by default, for showing or hiding the title-bar `×` close button. Hiding it does not disable the keyboard or controller close shortcuts.
 - `Theme`
   Cycles the selected dashboard theme. The theme action is grouped with `Settings` and `Language` in the command-panel header.
 - `Currency`
@@ -135,7 +137,7 @@ the renderer logs `Cursor color shader unavailable` and falls back to the origin
 - `Teleport`
   Opens a separate left-side floor picker. Each row loads one configured floor through the same vanilla level-load route as the console `load_level` flow.
 - `Reveal Map`
-  Runs the current-floor minimap reveal pass and promotes teleporter-capable rooms toward a usable teleport state. This is not the same thing as reproducing the exact vanilla minimap-discovery visuals for every room.
+  Toggles the map-reveal feature. `ON` runs the current-floor reveal pass and promotes teleporter-capable rooms toward a usable teleport state; `OFF` stops the feature. `Settings -> Display -> Reveal Map Mode` controls only the scope: `Current Floor` resets to `OFF` after changing floors, while `Every Floor` keeps the feature enabled and runs the same pass when each new floor becomes ready. This is not the same thing as reproducing the exact vanilla minimap-discovery visuals for every room.
 
 ### Pickup Browser
 

@@ -184,7 +184,7 @@ namespace EtgGameplayDashboard
         private const float PickupBrowserPanelHeight = 496f;
         private const float LoadoutEditorPanelHeight = 440f;
         private const float AboutPanelHeight = 404f;
-        private const float SettingsPanelHeight = 560f;
+        private const float SettingsPanelHeight = 700f;
         private const float PickupInfoConfigPanelHeight = 428f;
         private const float AdvancedToolsPanelHeight = 254f;
         private const float ControllerHelpPanelHeight = 356f;
@@ -225,6 +225,8 @@ namespace EtgGameplayDashboard
         private const float PickupBrowserIconWidth = 64f;
         private const float PickupBrowserIconHeight = 40f;
         private const float PickupGrantButtonWidth = 72f;
+        private const float PickupShortcutButtonWidth = 96f;
+        private const float PickupShortcutClearButtonWidth = 44f;
 
         private static Color PanelBackgroundColor { get { return DashboardTheme.PanelBackground; } }
         private static Color SecondaryColor { get { return DashboardTheme.Secondary; } }
@@ -256,6 +258,8 @@ namespace EtgGameplayDashboard
         private static readonly Color StatusFailureBackgroundColor = new Color32(185, 56, 56, 230);
         private static readonly Color StatusWarningBackgroundColor = new Color32(154, 103, 0, 230);
         private static readonly Color StatusInformationBackgroundColor = new Color32(29, 95, 155, 230);
+        private static readonly Color CloseButtonHoverTextColor = new Color32(232, 93, 93, 255);
+        private static readonly Color CloseButtonActiveTextColor = new Color32(184, 60, 60, 255);
         private readonly AmmonomiconFastOpenToggleService _ammonomiconFastOpenToggleService;
         private static readonly FoyerCharacterOption[] EmptyCharacterOptions = new FoyerCharacterOption[0];
         private static readonly PickupBrowserEntry[] EmptyPickupBrowserEntries = new PickupBrowserEntry[0];
@@ -295,8 +299,10 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry("settings.about", 10, 0),
             new ControllerFocusEntry("settings.ui_scale", 6, 0),
             new ControllerFocusEntry("settings.language", 7, 0),
-            new ControllerFocusEntry("settings.advanced_tools", 8, 0),
-            new ControllerFocusEntry("settings.experimental_mode", 9, 0),
+            new ControllerFocusEntry("settings.close_button", 8, 0),
+            new ControllerFocusEntry("settings.reveal_map_mode", 9, 0),
+            new ControllerFocusEntry("settings.advanced_tools", 10, 0),
+            new ControllerFocusEntry("settings.experimental_mode", 11, 0),
         };
 
         private static readonly ControllerFocusEntry[] CursorColorPageFocusEntries =
@@ -363,6 +369,8 @@ namespace EtgGameplayDashboard
         private readonly Func<EtgPickupCatalogEntry[]> _pickupCatalogProvider;
         private readonly Func<int, string> _pickupGameplayNameProvider;
         private readonly Func<PickupAliasRegistry> _aliasRegistryProvider;
+        private PickupShortcutRegistry _pickupShortcutRegistry;
+        private readonly Action<string> _pickupShortcutConfigSetter;
         private readonly Func<string> _languageProvider;
         private readonly Action<string> _languageSetter;
         private readonly Action<string> _inputLogHandler;
@@ -384,6 +392,10 @@ namespace EtgGameplayDashboard
         private readonly Action<bool> _startItemsPresetIconsEnabledSetter;
         private readonly Func<bool> _playerStatsPanelShownProvider;
         private readonly Action<bool> _playerStatsPanelShownSetter;
+        private readonly Func<bool> _commandPanelCloseButtonShownProvider;
+        private readonly Action<bool> _commandPanelCloseButtonShownSetter;
+        private readonly Func<bool> _revealMapEveryFloorProvider;
+        private readonly Action<bool> _revealMapEveryFloorSetter;
         private readonly Func<bool> _pickupInfoOverlayEnabledProvider;
         private readonly Action<bool> _pickupInfoOverlayEnabledSetter;
         private readonly Func<bool> _pickupInfoQualityEnabledProvider;
@@ -437,6 +449,8 @@ namespace EtgGameplayDashboard
         private GUIStyle _commandContentActiveFocusButtonStyle;
         private GUIStyle _headerActionButtonStyle;
         private GUIStyle _headerActionFocusButtonStyle;
+        private GUIStyle _closeButtonStyle;
+        private GUIStyle _closeButtonFocusStyle;
         private GUIStyle _statusStyle;
         private GUIStyle _statusSuccessStyle;
         private GUIStyle _statusErrorStyle;
@@ -467,6 +481,9 @@ namespace EtgGameplayDashboard
         private bool _isVisible;
         private bool _showTeleportPanel;
         private bool _showPlayerStatsPanel;
+        private bool _showCommandPanelCloseButton;
+        private bool _revealMapEveryFloor;
+        private bool _revealMapEnabled;
         private bool _showPickupInfoOverlay;
         private bool _showPickupInfoQuality;
         private bool _showPickupInfoType;
@@ -477,6 +494,9 @@ namespace EtgGameplayDashboard
         private bool _showExperimentalModeConfirmDialog;
         private bool _focusInputField;
         private bool _focusPickupSearchField;
+        private bool _isCapturingPickupShortcut;
+        private bool _isPickupShortcutConfigurationMode;
+        private string _pickupShortcutCaptureTargetId = string.Empty;
         private bool _releaseGuiFocusPending;
         private PanelPage _currentPage;
         private string _commandPageFocusedControlId = "cmd.settings";
@@ -492,6 +512,12 @@ namespace EtgGameplayDashboard
         private string _lastGuiLanguageCode = string.Empty;
         private bool _commandPageTitleTextRenderingWarmedUp;
         private string _revealMapActivatedSceneName = string.Empty;
+        private string _autoRevealMapSceneName = string.Empty;
+        private float _nextAutoRevealMapAttemptAt;
+        private string _autoRevealMapReadyRoomKey = string.Empty;
+        private int _autoRevealMapReadyRoomFrames;
+        private string _mapRevealDiagnosticSceneName = string.Empty;
+        private int _mapRevealDiagnosticSceneStartFrame = -1;
         private string _mapDirectTeleportActivatedSceneName = string.Empty;
         private float _nextMapDirectTeleportDebugLogAt;
         private string _lastMapDirectTeleportRoomKey = string.Empty;

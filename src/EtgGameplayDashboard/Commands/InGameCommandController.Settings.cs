@@ -102,7 +102,23 @@ namespace EtgGameplayDashboard
                 GuiText.Get("gui.settings.setting.language"),
                 GetLanguageDisplayName(GetConfiguredLanguage()),
                 delegate { ExecuteToggleLanguage(logger); });
-            rowTop += 128f;
+            DrawSettingsToggleRow(
+                new Rect(right, rowTop + 108f, columnWidth, 34f),
+                "settings.close_button",
+                GuiText.Get("gui.settings.setting.close_button"),
+                IsCommandPanelCloseButtonShown(),
+                delegate { ExecuteToggleCommandPanelCloseButton(logger); },
+                GuiText.Get("gui.settings.button.show"),
+                GuiText.Get("gui.settings.button.hide"));
+            rowTop = panelRect.y + 268f;
+            DrawSettingsSectionLabel(right, rowTop, columnWidth, GuiText.Get("gui.settings.section.game"));
+            DrawSettingsActionRow(
+                new Rect(right, rowTop + 28f, columnWidth, 34f),
+                "settings.reveal_map_mode",
+                GuiText.Get("gui.settings.setting.reveal_map_mode"),
+                GetRevealMapModeDisplayName(),
+                delegate { ExecuteToggleRevealMapEveryFloor(logger); });
+            rowTop += 68f;
             DrawSettingsSectionLabel(right, rowTop, columnWidth, GuiText.Get("gui.settings.section.experimental"));
             DrawSettingsActionRow(
                 new Rect(right, rowTop + 28f, columnWidth, 34f),
@@ -189,6 +205,25 @@ namespace EtgGameplayDashboard
 
         private void DrawSettingsToggleRow(Rect rowRect, string controlId, string label, bool isEnabled, System.Action onClick)
         {
+            DrawSettingsToggleRow(
+                rowRect,
+                controlId,
+                label,
+                isEnabled,
+                onClick,
+                GuiText.Get("gui.settings.button.enable"),
+                GuiText.Get("gui.settings.button.disable"));
+        }
+
+        private void DrawSettingsToggleRow(
+            Rect rowRect,
+            string controlId,
+            string label,
+            bool isEnabled,
+            System.Action onClick,
+            string enabledButtonLabel,
+            string disabledButtonLabel)
+        {
             const float buttonWidth = 132f;
             GUI.Label(new Rect(rowRect.x, rowRect.y + 5f, rowRect.width - buttonWidth - ButtonGap, 24f), label, _hintStyle);
             if (onClick == null)
@@ -196,9 +231,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            string buttonLabel = isEnabled
-                ? GuiText.Get("gui.settings.button.enable")
-                : GuiText.Get("gui.settings.button.disable");
+            string buttonLabel = isEnabled ? enabledButtonLabel : disabledButtonLabel;
             GUIStyle buttonStyle = isEnabled ? _enabledButtonStyle : _buttonStyle;
             if (GUI.Button(new Rect(rowRect.xMax - buttonWidth, rowRect.y, buttonWidth, rowRect.height), buttonLabel, GetControllerButtonStyle(controlId, buttonStyle)))
             {
@@ -216,6 +249,28 @@ namespace EtgGameplayDashboard
 
             _showExperimentalModeConfirmDialog = true;
             RequestGuiFocusRelease();
+        }
+
+        private string GetRevealMapModeDisplayName()
+        {
+            return _revealMapEveryFloor
+                ? GetLocalizedFallback("gui.settings.value.reveal_map_every_floor", "Every Floor", "每层自动开启")
+                : GetLocalizedFallback("gui.settings.value.reveal_map_current_floor", "Current Floor", "仅当前层");
+        }
+
+        private void ExecuteToggleRevealMapEveryFloor(ManualLogSource logger)
+        {
+            _revealMapEveryFloor = !_revealMapEveryFloor;
+            if (_revealMapEveryFloorSetter != null)
+            {
+                _revealMapEveryFloorSetter(_revealMapEveryFloor);
+            }
+
+            if (_revealMapEveryFloor)
+            {
+                _autoRevealMapSceneName = string.Empty;
+                _nextAutoRevealMapAttemptAt = 0f;
+            }
         }
 
         private void SetExperimentalModeEnabled(bool isEnabled, ManualLogSource logger)
@@ -471,6 +526,12 @@ namespace EtgGameplayDashboard
                     return;
                 case "settings.language":
                     ExecuteToggleLanguage(null);
+                    return;
+                case "settings.close_button":
+                    ExecuteToggleCommandPanelCloseButton(null);
+                    return;
+                case "settings.reveal_map_mode":
+                    ExecuteToggleRevealMapEveryFloor(null);
                     return;
                 case "settings.experimental_mode":
                     ExecuteExperimentalModeToggle(null);

@@ -13,6 +13,7 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry("cmd.settings", 0, 0),
             new ControllerFocusEntry("cmd.language", 0, 1),
             new ControllerFocusEntry("cmd.theme", 0, 2),
+            new ControllerFocusEntry("cmd.close", 0, 3),
             new ControllerFocusEntry("cmd.category.general", 1, 0),
             new ControllerFocusEntry("cmd.category.player", 1, 1),
             new ControllerFocusEntry("cmd.category.room", 1, 2),
@@ -26,7 +27,9 @@ namespace EtgGameplayDashboard
             const float categoryButtonHeight = 28f;
             const float contentButtonWidth = 132f;
             const float themeButtonWidth = 180f;
-            Rect themeButtonRect = new Rect(panelRect.x + panelRect.width - themeButtonWidth - 14f, panelRect.y + 12f, themeButtonWidth, 30f);
+            const float closeButtonWidth = 30f;
+            Rect closeButtonRect = new Rect(panelRect.x + panelRect.width - closeButtonWidth - 14f, panelRect.y + 12f, closeButtonWidth, 30f);
+            Rect themeButtonRect = new Rect(closeButtonRect.x - ButtonGap - themeButtonWidth, closeButtonRect.y, themeButtonWidth, 30f);
             Rect languageButtonRect = new Rect(themeButtonRect.x - ButtonGap - LanguageButtonWidth, themeButtonRect.y, LanguageButtonWidth, 30f);
             Rect settingsButtonRect = new Rect(languageButtonRect.x - ButtonGap - ButtonWidth, languageButtonRect.y, ButtonWidth, 30f);
 
@@ -61,6 +64,13 @@ namespace EtgGameplayDashboard
                 ExecuteCycleTheme();
             }
             LogCommandPanelPerformanceStage("CommandPage.Header.Theme", stageStartedAtTimestamp);
+
+            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
+            if (_showCommandPanelCloseButton && DrawCloseButton(closeButtonRect, "cmd.close"))
+            {
+                Close();
+            }
+            LogCommandPanelPerformanceStage("CommandPage.Header.Close", stageStartedAtTimestamp);
 
             stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             GUI.Label(
@@ -198,6 +208,11 @@ namespace EtgGameplayDashboard
                 return isControllerFocusActive ? _headerActionFocusButtonStyle : _headerActionButtonStyle;
             }
 
+            if (string.Equals(controlId, "cmd.close", System.StringComparison.Ordinal))
+            {
+                return isControllerFocusActive ? _closeButtonFocusStyle : _closeButtonStyle;
+            }
+
             if (!hasControllerFocus)
             {
                 if (isCommandContentButton)
@@ -269,6 +284,13 @@ namespace EtgGameplayDashboard
             return string.Equals(controlId, "cmd.settings", System.StringComparison.Ordinal) ||
                 string.Equals(controlId, "cmd.language", System.StringComparison.Ordinal) ||
                 string.Equals(controlId, "cmd.theme", System.StringComparison.Ordinal);
+        }
+
+        private bool DrawCloseButton(Rect rect, string controlId)
+        {
+            bool hasControllerFocus = IsControllerFocusActive("cmd", controlId);
+            GUIStyle style = hasControllerFocus ? _closeButtonFocusStyle : _closeButtonStyle;
+            return GUI.Button(rect, "\u00D7", style);
         }
 
         private bool IsControllerFocusActive(string pagePrefix, string controlId)
@@ -435,6 +457,7 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.settings", delegate { OpenSettingsPage(); }),
                 new CommandPageActionBinding("cmd.language", delegate { ExecuteToggleLanguage(null); }),
                 new CommandPageActionBinding("cmd.theme", delegate { ExecuteCycleTheme(); }),
+                new CommandPageActionBinding("cmd.close", delegate { Close(); }),
                 new CommandPageActionBinding("cmd.category.general", delegate { SetCommandMenuCategory(CommandMenuCategory.General); }),
                 new CommandPageActionBinding("cmd.category.player", delegate { SetCommandMenuCategory(CommandMenuCategory.Player); }),
                 new CommandPageActionBinding("cmd.category.room", delegate { SetCommandMenuCategory(CommandMenuCategory.Room); }),
@@ -504,19 +527,43 @@ namespace EtgGameplayDashboard
                 : gameManager.PrimaryPlayer;
         }
 
-        private static ControllerFocusEntry[] BuildCommandPageFocusEntries(params ControllerFocusEntry[][] contentGroups)
+        private ControllerFocusEntry[] BuildCommandPageFocusEntries(params ControllerFocusEntry[][] contentGroups)
         {
-            int entryCount = CommandPageSharedFocusEntries.Length;
+            ControllerFocusEntry[] sharedEntries = GetVisibleCommandPageSharedFocusEntries();
+            int entryCount = sharedEntries.Length;
             for (int groupIndex = 0; groupIndex < contentGroups.Length; groupIndex++)
             {
                 entryCount += contentGroups[groupIndex].Length;
             }
 
             ControllerFocusEntry[] entries = new ControllerFocusEntry[entryCount];
-            int writeIndex = CopyFocusEntries(CommandPageSharedFocusEntries, entries, 0);
+            int writeIndex = CopyFocusEntries(sharedEntries, entries, 0);
             for (int groupIndex = 0; groupIndex < contentGroups.Length; groupIndex++)
             {
                 writeIndex = CopyFocusEntries(contentGroups[groupIndex], entries, writeIndex);
+            }
+
+            return entries;
+        }
+
+        private ControllerFocusEntry[] GetVisibleCommandPageSharedFocusEntries()
+        {
+            if (_showCommandPanelCloseButton)
+            {
+                return CommandPageSharedFocusEntries;
+            }
+
+            ControllerFocusEntry[] entries = new ControllerFocusEntry[CommandPageSharedFocusEntries.Length - 1];
+            int writeIndex = 0;
+            for (int index = 0; index < CommandPageSharedFocusEntries.Length; index++)
+            {
+                if (string.Equals(CommandPageSharedFocusEntries[index].ControlId, "cmd.close", System.StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
+                entries[writeIndex] = CommandPageSharedFocusEntries[index];
+                writeIndex++;
             }
 
             return entries;
@@ -658,6 +705,26 @@ namespace EtgGameplayDashboard
             if (_playerStatsPanelShownSetter != null)
             {
                 _playerStatsPanelShownSetter(isEnabled);
+            }
+        }
+
+        private bool IsCommandPanelCloseButtonShown()
+        {
+            return _showCommandPanelCloseButton;
+        }
+
+        private void ExecuteToggleCommandPanelCloseButton(ManualLogSource logger)
+        {
+            bool isEnabled = !_showCommandPanelCloseButton;
+            _showCommandPanelCloseButton = isEnabled;
+            if (_commandPanelCloseButtonShownSetter != null)
+            {
+                _commandPanelCloseButtonShownSetter(isEnabled);
+            }
+
+            if (!isEnabled && string.Equals(_commandPageFocusedControlId, "cmd.close", System.StringComparison.Ordinal))
+            {
+                _commandPageFocusedControlId = "cmd.settings";
             }
         }
 

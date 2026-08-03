@@ -402,6 +402,35 @@ namespace EtgGameplayDashboard
             return _showPlayerStatsPanelConfig != null && _showPlayerStatsPanelConfig.Value;
         }
 
+        private PickupShortcutRegistry GetPickupShortcutRegistry()
+        {
+            if (_pickupShortcutRegistry == null)
+            {
+                _pickupShortcutRegistry = PickupShortcutRegistry.Parse(
+                    _pickupShortcutsConfig != null ? _pickupShortcutsConfig.Value : string.Empty);
+            }
+
+            return _pickupShortcutRegistry;
+        }
+
+        private void SetPickupShortcuts(string serialized)
+        {
+            PickupShortcutRegistry normalizedRegistry = PickupShortcutRegistry.Parse(serialized);
+            _pickupShortcutRegistry = normalizedRegistry;
+            if (_pickupShortcutsConfig != null)
+            {
+                _pickupShortcutsConfig.Value = normalizedRegistry.Serialize();
+                Config.Save();
+            }
+
+            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup keyboard shortcuts updated."));
+        }
+
+        private bool IsCommandPanelCloseButtonShown()
+        {
+            return _showCommandPanelCloseButtonConfig == null || _showCommandPanelCloseButtonConfig.Value;
+        }
+
         private bool IsPlayerRewindEnabled()
         {
             return _playerRewindEnabledConfig != null && _playerRewindEnabledConfig.Value;
@@ -517,6 +546,33 @@ namespace EtgGameplayDashboard
             }
 
             Logger.LogInfo(EtgGameplayDashboardLog.Command("Player stats side panel " + (isEnabled ? "enabled" : "disabled") + "."));
+        }
+
+        private void SetCommandPanelCloseButtonShown(bool isEnabled)
+        {
+            if (_showCommandPanelCloseButtonConfig != null)
+            {
+                _showCommandPanelCloseButtonConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel close button " + (isEnabled ? "shown" : "hidden") + "."));
+        }
+
+        private bool IsRevealMapEveryFloor()
+        {
+            return _revealMapEveryFloorConfig != null && _revealMapEveryFloorConfig.Value;
+        }
+
+        private void SetRevealMapEveryFloor(bool isEnabled)
+        {
+            if (_revealMapEveryFloorConfig != null)
+            {
+                _revealMapEveryFloorConfig.Value = isEnabled;
+                Config.Save();
+            }
+
+            Logger.LogInfo(EtgGameplayDashboardLog.Command("Reveal Map every-floor mode " + (isEnabled ? "enabled" : "disabled") + "."));
         }
 
         private void SetStartItemsPresetIconsEnabled(bool isEnabled)

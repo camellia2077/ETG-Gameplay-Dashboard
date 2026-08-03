@@ -36,6 +36,8 @@ namespace EtgGameplayDashboard
             _commandContentActiveFocusButtonStyle = null;
             _headerActionButtonStyle = null;
             _headerActionFocusButtonStyle = null;
+            _closeButtonStyle = null;
+            _closeButtonFocusStyle = null;
             _statusStyle = null;
             _statusSuccessStyle = null;
             _statusErrorStyle = null;
@@ -267,6 +269,26 @@ namespace EtgGameplayDashboard
             _headerActionFocusButtonStyle.normal.textColor = DashboardTheme.GetContrastingText(DashboardTheme.ControllerFocusButtonBackground);
             _headerActionFocusButtonStyle.hover.textColor = _headerActionFocusButtonStyle.normal.textColor;
             _headerActionFocusButtonStyle.active.textColor = _headerActionFocusButtonStyle.normal.textColor;
+
+            _closeButtonStyle = new GUIStyle(_headerActionButtonStyle);
+            _closeButtonStyle.alignment = TextAnchor.MiddleCenter;
+            _closeButtonStyle.fontSize = 22;
+            _closeButtonStyle.padding = new RectOffset(0, 0, 0, 1);
+            _closeButtonStyle.normal.textColor = PrimaryTextColor;
+            _closeButtonStyle.hover.textColor = CloseButtonHoverTextColor;
+            _closeButtonStyle.active.textColor = CloseButtonActiveTextColor;
+
+            _closeButtonFocusStyle = new GUIStyle(_closeButtonStyle);
+            _closeButtonFocusStyle.normal.background = MakeInsetBorderedTexture(
+                DashboardTheme.ControllerFocusButtonBackground,
+                DashboardTheme.HeaderActionBorder,
+                2,
+                2);
+            _closeButtonFocusStyle.hover.background = _closeButtonFocusStyle.normal.background;
+            _closeButtonFocusStyle.active.background = _closeButtonFocusStyle.normal.background;
+            _closeButtonFocusStyle.normal.textColor = DashboardTheme.GetContrastingText(DashboardTheme.ControllerFocusButtonBackground);
+            _closeButtonFocusStyle.hover.textColor = CloseButtonHoverTextColor;
+            _closeButtonFocusStyle.active.textColor = CloseButtonActiveTextColor;
 
             _statusStyle = new GUIStyle(GUI.skin.box);
             _statusStyle.normal.textColor = PrimaryTextColor;

@@ -33,6 +33,8 @@ namespace EtgGameplayDashboard
             System.Func<EtgPickupCatalogEntry[]> pickupCatalogProvider,
             System.Func<int, string> pickupGameplayNameProvider,
             System.Func<PickupAliasRegistry> aliasRegistryProvider,
+            System.Func<PickupShortcutRegistry> pickupShortcutRegistryProvider,
+            System.Action<string> pickupShortcutConfigSetter,
             System.Func<string> languageProvider,
             System.Action<string> languageSetter,
             System.Action<string> inputLogHandler,
@@ -54,6 +56,10 @@ namespace EtgGameplayDashboard
             System.Action<bool> startItemsPresetIconsEnabledSetter,
             System.Func<bool> playerStatsPanelShownProvider,
             System.Action<bool> playerStatsPanelShownSetter,
+            System.Func<bool> commandPanelCloseButtonShownProvider,
+            System.Action<bool> commandPanelCloseButtonShownSetter,
+            System.Func<bool> revealMapEveryFloorProvider,
+            System.Action<bool> revealMapEveryFloorSetter,
             System.Func<bool> pickupInfoOverlayEnabledProvider,
             System.Action<bool> pickupInfoOverlayEnabledSetter,
             System.Func<bool> pickupInfoQualityEnabledProvider,
@@ -108,6 +114,10 @@ namespace EtgGameplayDashboard
             _pickupCatalogProvider = pickupCatalogProvider;
             _pickupGameplayNameProvider = pickupGameplayNameProvider;
             _aliasRegistryProvider = aliasRegistryProvider;
+            _pickupShortcutRegistry = pickupShortcutRegistryProvider != null
+                ? pickupShortcutRegistryProvider()
+                : PickupShortcutRegistry.Parse(string.Empty);
+            _pickupShortcutConfigSetter = pickupShortcutConfigSetter;
             _languageProvider = languageProvider;
             _languageSetter = languageSetter;
             _inputLogHandler = inputLogHandler;
@@ -129,6 +139,10 @@ namespace EtgGameplayDashboard
             _startItemsPresetIconsEnabledSetter = startItemsPresetIconsEnabledSetter;
             _playerStatsPanelShownProvider = playerStatsPanelShownProvider;
             _playerStatsPanelShownSetter = playerStatsPanelShownSetter;
+            _commandPanelCloseButtonShownProvider = commandPanelCloseButtonShownProvider;
+            _commandPanelCloseButtonShownSetter = commandPanelCloseButtonShownSetter;
+            _revealMapEveryFloorProvider = revealMapEveryFloorProvider;
+            _revealMapEveryFloorSetter = revealMapEveryFloorSetter;
             _pickupInfoOverlayEnabledProvider = pickupInfoOverlayEnabledProvider;
             _pickupInfoOverlayEnabledSetter = pickupInfoOverlayEnabledSetter;
             _pickupInfoQualityEnabledProvider = pickupInfoQualityEnabledProvider;
@@ -163,6 +177,8 @@ namespace EtgGameplayDashboard
                 ? RoomEnemyRefreshMethod.RespawnEnemies
                 : RoomEnemyRefreshMethod.Rewind;
             _showPlayerStatsPanel = _playerStatsPanelShownProvider != null && _playerStatsPanelShownProvider();
+            _showCommandPanelCloseButton = _commandPanelCloseButtonShownProvider == null || _commandPanelCloseButtonShownProvider();
+            _revealMapEveryFloor = _revealMapEveryFloorProvider != null && _revealMapEveryFloorProvider();
             _showPickupInfoOverlay = _pickupInfoOverlayEnabledProvider == null || _pickupInfoOverlayEnabledProvider();
             _showPickupInfoQuality = _pickupInfoQualityEnabledProvider == null || _pickupInfoQualityEnabledProvider();
             _showPickupInfoType = _pickupInfoTypeEnabledProvider == null || _pickupInfoTypeEnabledProvider();
@@ -186,6 +202,8 @@ namespace EtgGameplayDashboard
             LogHealthDiagnosticStateChanges();
             LogCursorVisibilityStateChanges();
             UpdateMapFeatureActivationState();
+            LogMapRevealTransitionDiagnostics("update_before_auto_reveal");
+            UpdateAutomaticRevealMap();
             LogMapDirectTeleportRoomTransitionIfNeeded();
             LogMapDirectTeleportRuntimeStateIfNeeded();
 
@@ -208,6 +226,7 @@ namespace EtgGameplayDashboard
             }
 
             TryHandleRoomEnemyRewindShortcut();
+            TryHandlePickupShortcut();
 
             if (!_isVisible)
             {
@@ -235,6 +254,10 @@ namespace EtgGameplayDashboard
                 _lastGuiLanguageCode = currentLanguageCode;
                 HandleLanguageChanged();
             }
+            // Shortcut capture is shared by the catalog and currency pickup pages.
+            // Handle it at the common IMGUI entry point so the active page cannot
+            // accidentally omit keyboard capture.
+            HandlePickupShortcutCapture();
             LogCommandPanelPerformanceStage("LanguageAndFocus", stageStartedAtTimestamp);
 
             FoyerCharacterOption[] characterOptions = EmptyCharacterOptions;
@@ -310,6 +333,15 @@ namespace EtgGameplayDashboard
                 Rect panelRect = GetMainPanelRect(panelHeight);
                 GUI.Box(ExpandPanelBorderRect(panelRect), GUIContent.none, _panelStyle);
                 DrawTeleportPanelIfEnabled(panelRect, logger);
+                if (_currentPage != PanelPage.Command && _showCommandPanelCloseButton)
+                {
+                    Rect closeButtonRect = new Rect(panelRect.x + panelRect.width - 44f, panelRect.y + 12f, 30f, 30f);
+                    if (DrawCloseButton(closeButtonRect, "cmd.close"))
+                    {
+                        Close();
+                        return;
+                    }
+                }
                 if (_currentPage == PanelPage.Characters)
                 {
                     DrawCharacterPage(panelRect, characterOptions, characterAvailability, logger);
@@ -415,6 +447,12 @@ namespace EtgGameplayDashboard
         private void HandleControllerNavigation()
         {
             if (!_isVisible)
+            {
+                ResetControllerNavigationAxes();
+                return;
+            }
+
+            if (_isCapturingPickupShortcut)
             {
                 ResetControllerNavigationAxes();
                 return;
@@ -712,7 +750,7 @@ namespace EtgGameplayDashboard
                     "Controller back press detected on currency page. Focus=" +
                     _currencyPageFocusedControlId +
                     ".");
-                CloseCurrencyPage();
+                HandleCurrencyBack();
                 return;
             }
 
@@ -1949,6 +1987,7 @@ namespace EtgGameplayDashboard
 
             if (ShouldLogMapTeleportVerbose())
             {
+                LogMapRevealTransitionDiagnostics("floor_scene_changed_before_reset");
                 LogGamepadShortcutState(
                     "Map feature activation reset. " +
                     "PreviousRevealMapScene=" +
@@ -1961,13 +2000,282 @@ namespace EtgGameplayDashboard
             }
             _revealMapActivatedSceneName = string.Empty;
             _mapDirectTeleportActivatedSceneName = string.Empty;
+            if (!_revealMapEveryFloor)
+            {
+                _revealMapEnabled = false;
+            }
             _lastMapDirectTeleportRoomKey = string.Empty;
+        }
+
+        private void UpdateAutomaticRevealMap()
+        {
+            if (!_revealMapEveryFloor || !_revealMapEnabled)
+            {
+                _autoRevealMapSceneName = string.Empty;
+                _autoRevealMapReadyRoomKey = string.Empty;
+                _autoRevealMapReadyRoomFrames = 0;
+                return;
+            }
+
+            string currentSceneName = GetCurrentMapFeatureActivationKey();
+            if (string.IsNullOrEmpty(currentSceneName) ||
+                string.Equals(currentSceneName, "foyer", System.StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(currentSceneName, _autoRevealMapSceneName, System.StringComparison.Ordinal) ||
+                Time.time < _nextAutoRevealMapAttemptAt)
+            {
+                return;
+            }
+
+            GameManager gameManager = GameManager.Instance;
+            PlayerController player = gameManager != null ? gameManager.PrimaryPlayer : null;
+            RoomHandler currentRoom = player != null ? player.CurrentRoom : null;
+            if ((object)player == null || (object)currentRoom == null || gameManager == null || gameManager.Dungeon == null || gameManager.Dungeon.data == null || !Minimap.HasInstance)
+            {
+                _autoRevealMapReadyRoomKey = string.Empty;
+                _autoRevealMapReadyRoomFrames = 0;
+                _nextAutoRevealMapAttemptAt = Time.time + 0.5f;
+                return;
+            }
+
+            // CurrentRoom becomes valid before the vanilla elevator arrival sequence has
+            // released player control. RevealAllRooms and DeferredMarkVisibleRoomsActive
+            // can otherwise run while the player is still in NoInput, which prevents the
+            // arrival flow from completing and leaves the player inside the elevator.
+            if (player.IsInputOverridden || player.CurrentInputState != PlayerInputState.AllInput)
+            {
+                _autoRevealMapReadyRoomKey = string.Empty;
+                _autoRevealMapReadyRoomFrames = 0;
+                _nextAutoRevealMapAttemptAt = Time.time + 0.25f;
+                return;
+            }
+
+            string currentRoomKey = GetMapDirectTeleportRoomKey(currentRoom);
+            if (!string.Equals(_autoRevealMapReadyRoomKey, currentRoomKey, System.StringComparison.Ordinal))
+            {
+                _autoRevealMapReadyRoomKey = currentRoomKey;
+                _autoRevealMapReadyRoomFrames = 0;
+            }
+
+            _autoRevealMapReadyRoomFrames++;
+            if (_autoRevealMapReadyRoomFrames < 10)
+            {
+                return;
+            }
+
+            LogMapRevealTransitionDiagnostics("auto_reveal_before_request");
+            GrantCommandExecutionResult executionResult = _roomDebugCommandService.RevealCurrentFloorMap(player, _performanceLogger);
+            if (!executionResult.Succeeded)
+            {
+                LogMapRevealTransitionDiagnostics("auto_reveal_failed");
+                _nextAutoRevealMapAttemptAt = Time.time + 0.5f;
+                return;
+            }
+
+            _autoRevealMapSceneName = currentSceneName;
+            _nextAutoRevealMapAttemptAt = 0f;
+            MarkRevealMapActivatedForCurrentScene();
+            MarkMapDirectTeleportActivatedForCurrentScene();
+            LogMapRevealTransitionDiagnostics("auto_reveal_completed");
+            if (_performanceLogger != null)
+            {
+                _performanceLogger.LogInfo(EtgGameplayDashboardLog.Command("Automatic Reveal Map completed for floor " + currentSceneName + "."));
+            }
+        }
+
+        private void LogMapRevealTransitionDiagnostics(string phase)
+        {
+            if (!ShouldLogMapTeleportVerbose() || (!_revealMapEveryFloor && !_revealMapEnabled))
+            {
+                return;
+            }
+
+            int currentFrame = Time.frameCount;
+            string currentSceneName = GetCurrentMapFeatureActivationKey();
+            if (!string.Equals(_mapRevealDiagnosticSceneName, currentSceneName, System.StringComparison.Ordinal))
+            {
+                _mapRevealDiagnosticSceneName = currentSceneName;
+                _mapRevealDiagnosticSceneStartFrame = currentFrame;
+            }
+
+            int relativeFrame = _mapRevealDiagnosticSceneStartFrame >= 0
+                ? currentFrame - _mapRevealDiagnosticSceneStartFrame
+                : -1;
+            bool isSampleFrame = relativeFrame >= 0 &&
+                (relativeFrame <= 30 ||
+                 relativeFrame == 60 ||
+                 relativeFrame == 90 ||
+                 relativeFrame == 120 ||
+                 relativeFrame == 180 ||
+                 relativeFrame == 300);
+            bool isImportantPhase = phase.StartsWith("auto_reveal", System.StringComparison.Ordinal) ||
+                phase.StartsWith("floor_scene_changed", System.StringComparison.Ordinal);
+            if (!isSampleFrame && !isImportantPhase)
+            {
+                return;
+            }
+
+            GameManager gameManager = GameManager.Instance;
+            PlayerController player = gameManager != null ? gameManager.PrimaryPlayer : null;
+            RoomHandler currentRoom = player != null ? player.CurrentRoom : null;
+            Dungeonator.Dungeon dungeon = gameManager != null ? gameManager.Dungeon : null;
+            Minimap minimap = Minimap.HasInstance ? Minimap.Instance : null;
+            int roomCount = dungeon != null && dungeon.data != null && dungeon.data.rooms != null
+                ? dungeon.data.rooms.Count
+                : -1;
+            int minimapTeleportEntryCount = minimap != null && minimap.RoomToTeleportMap != null
+                ? minimap.RoomToTeleportMap.Count
+                : -1;
+            string playerPosition = player != null && player.transform != null
+                ? player.transform.position.ToString("F3")
+                : "<none>";
+            string currentRoomLabel = currentRoom != null ? DescribeMapDirectTeleportRoom(currentRoom) : "<none>";
+            string currentRoomState = currentRoom != null
+                ? "CanFrom=" + currentRoom.CanTeleportFromRoom() +
+                  ",CanTo=" + currentRoom.CanTeleportToRoom() +
+                  ",TeleportersActive=" + currentRoom.TeleportersActive +
+                  ",Revealed=" + currentRoom.RevealedOnMap
+                : "CanFrom=<unknown>,CanTo=<unknown>,TeleportersActive=<unknown>,Revealed=<unknown>";
+            string playerInputState = player != null ? player.CurrentInputState.ToString() : "<none>";
+            string elevatorObjectState = DescribeElevatorTransitionObjects();
+
+            LogGamepadShortcutState(
+                "Map reveal transition diagnostic. " +
+                "Phase=" + phase +
+                ", Frame=" + currentFrame +
+                ", RelativeFloorFrame=" + relativeFrame +
+                ", Time=" + Time.time.ToString("F3") +
+                ", Realtime=" + Time.realtimeSinceStartup.ToString("F3") +
+                ", UnityScene=" + GetLoadedUnitySceneName() +
+                ", LastLoadedDungeonScene=" + GetLastLoadedDungeonSceneName(gameManager) +
+                ", ActivationKey=" + currentSceneName +
+                ", RevealMapEnabled=" + _revealMapEnabled +
+                ", RevealMapEveryFloor=" + _revealMapEveryFloor +
+                ", AutoRevealScene=" + _autoRevealMapSceneName +
+                ", PlayerReady=" + ((object)player != null) +
+                ", PlayerActive=" + (player != null ? player.gameObject.activeInHierarchy.ToString() : "<unknown>") +
+                ", PlayerInputOverridden=" + (player != null ? player.IsInputOverridden.ToString() : "<unknown>") +
+                ", PlayerInputState=" + playerInputState +
+                ", PlayerPosition=" + playerPosition +
+                ", CurrentRoom=" + currentRoomLabel +
+                ", CurrentRoomState=" + currentRoomState +
+                ", DungeonReady=" + ((object)dungeon != null && dungeon.data != null) +
+                ", DungeonAllRoomsVisited=" + (dungeon != null ? dungeon.AllRoomsVisited.ToString() : "<unknown>") +
+                ", DungeonRoomCount=" + roomCount +
+                ", MinimapHasInstance=" + Minimap.HasInstance +
+                ", MinimapTeleportEntries=" + minimapTeleportEntryCount +
+                ", PlayerEverHadMap=" + (player != null ? player.EverHadMap.ToString() : "<unknown>") +
+                ", ElevatorTransitionObjects=" + elevatorObjectState +
+                ".");
+        }
+
+        private string DescribeElevatorTransitionObjects()
+        {
+            try
+            {
+                Component[] components = UnityEngine.Object.FindObjectsOfType<Component>();
+                if (components == null || components.Length == 0)
+                {
+                    return "<none>";
+                }
+
+                System.Collections.Generic.List<string> matches = new System.Collections.Generic.List<string>();
+                for (int index = 0; index < components.Length; index++)
+                {
+                    Component component = components[index];
+                    if ((object)component == null || (object)component.gameObject == null)
+                    {
+                        continue;
+                    }
+
+                    string objectName = component.gameObject.name ?? string.Empty;
+                    string componentType = component.GetType().FullName ?? component.GetType().Name;
+                    string searchableText = (objectName + " " + componentType).ToLowerInvariant();
+                    if (searchableText.IndexOf("elevator", System.StringComparison.Ordinal) < 0 &&
+                        searchableText.IndexOf("stair", System.StringComparison.Ordinal) < 0 &&
+                        searchableText.IndexOf("entrance", System.StringComparison.Ordinal) < 0)
+                    {
+                        continue;
+                    }
+
+                    string fsmState = DescribeFsmState(component);
+                    string match = objectName +
+                        "[type=" + component.GetType().Name +
+                        ",active=" + component.gameObject.activeInHierarchy +
+                        (fsmState != "<none>" ? ",fsm=" + fsmState : string.Empty) +
+                        "]";
+                    if (!matches.Contains(match))
+                    {
+                        matches.Add(match);
+                    }
+
+                    if (matches.Count >= 24)
+                    {
+                        break;
+                    }
+                }
+
+                return matches.Count > 0 ? string.Join(";", matches.ToArray()) : "<none>";
+            }
+            catch (System.Exception exception)
+            {
+                return "<scan-failed:" + exception.GetType().Name + ">";
+            }
+        }
+
+        private string DescribeFsmState(Component component)
+        {
+            if ((object)component == null)
+            {
+                return "<none>";
+            }
+
+            System.Type componentType = component.GetType();
+            string typeName = componentType.FullName ?? componentType.Name;
+            if (typeName.IndexOf("PlayMakerFSM", System.StringComparison.OrdinalIgnoreCase) < 0 &&
+                typeName.IndexOf("FSM", System.StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                return "<none>";
+            }
+
+            try
+            {
+                System.Reflection.PropertyInfo activeStateProperty = componentType.GetProperty("ActiveStateName");
+                if (activeStateProperty != null)
+                {
+                    object activeState = activeStateProperty.GetValue(component, null);
+                    if (activeState != null)
+                    {
+                        return activeState.ToString();
+                    }
+                }
+
+                System.Reflection.FieldInfo fsmField = componentType.GetField("Fsm");
+                object fsm = fsmField != null ? fsmField.GetValue(component) : null;
+                if (fsm != null)
+                {
+                    System.Reflection.PropertyInfo nestedStateProperty = fsm.GetType().GetProperty("ActiveStateName");
+                    object nestedState = nestedStateProperty != null ? nestedStateProperty.GetValue(fsm, null) : null;
+                    if (nestedState != null)
+                    {
+                        return nestedState.ToString();
+                    }
+                }
+
+                return "<fsm-state-unavailable>";
+            }
+            catch (System.Exception exception)
+            {
+                return "<fsm-state-failed:" + exception.GetType().Name + ">";
+            }
         }
 
         private void ClearMapFeatureActivationState()
         {
             _revealMapActivatedSceneName = string.Empty;
             _mapDirectTeleportActivatedSceneName = string.Empty;
+            _autoRevealMapSceneName = string.Empty;
+            _autoRevealMapReadyRoomKey = string.Empty;
+            _autoRevealMapReadyRoomFrames = 0;
             _lastMapDirectTeleportRoomKey = string.Empty;
         }
 
@@ -1976,6 +2284,11 @@ namespace EtgGameplayDashboard
             return
                 !string.IsNullOrEmpty(_revealMapActivatedSceneName) &&
                 string.Equals(_revealMapActivatedSceneName, GetCurrentMapFeatureActivationKey(), System.StringComparison.Ordinal);
+        }
+
+        private bool IsRevealMapEnabled()
+        {
+            return _revealMapEnabled;
         }
 
         private void MarkRevealMapActivatedForCurrentScene()

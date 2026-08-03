@@ -34,6 +34,7 @@ namespace EtgGameplayDashboard
             long startedAtTimestamp = StartPickupBrowserPerformanceTimer();
             _currentPage = PanelPage.Pickups;
             _pickupBrowserMode = mode;
+            _isPickupShortcutConfigurationMode = false;
             _focusInputField = false;
             _focusPickupSearchField = false;
             _pickupPageFocusedControlId = "pickups.back";
@@ -58,12 +59,27 @@ namespace EtgGameplayDashboard
 
             Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
             Rect targetButtonRect = new Rect(backButtonRect.x - ButtonGap - ButtonWidth, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect shortcutConfigurationButtonRect = new Rect(
+                targetButtonRect.x - ButtonGap - 146f,
+                panelRect.y + 12f,
+                146f,
+                30f);
             GUIStyle targetButtonStyle = _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer
                 ? _enabledButtonStyle
                 : _buttonStyle;
             if (GUI.Button(targetButtonRect, GetCharacterSwitchTargetButtonLabel(), GetControllerButtonStyle("pickups.target", targetButtonStyle)))
             {
                 ToggleCharacterSwitchTarget(logger);
+            }
+
+            if (_pickupBrowserMode == PickupBrowserMode.Grant &&
+                !_isPickupShortcutConfigurationMode &&
+                GUI.Button(
+                    shortcutConfigurationButtonRect,
+                    GetPickupShortcutConfigurationButtonLabel(),
+                    _isPickupShortcutConfigurationMode ? _enabledButtonStyle : _buttonStyle))
+            {
+                TogglePickupShortcutConfigurationMode();
             }
 
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("pickups.back", _buttonStyle)))
@@ -73,7 +89,13 @@ namespace EtgGameplayDashboard
             }
 
             GUI.Label(
-                new Rect(panelRect.x + 14f, panelRect.y + 12f, targetButtonRect.x - panelRect.x - 24f, 24f),
+                    new Rect(
+                        panelRect.x + 14f,
+                        panelRect.y + 12f,
+                    (_pickupBrowserMode == PickupBrowserMode.Grant && !_isPickupShortcutConfigurationMode
+                        ? shortcutConfigurationButtonRect.x
+                        : targetButtonRect.x) - panelRect.x - 24f,
+                    24f),
                 GetPickupBrowserTitle(),
                 _titleStyle);
             GUI.Label(
@@ -314,9 +336,13 @@ namespace EtgGameplayDashboard
 
             const float addButtonWidth = 64f;
             bool isAddMode = _pickupBrowserMode == PickupBrowserMode.AddToStartItems || _pickupBrowserMode == PickupBrowserMode.AddToRandomPool;
-            float actionButtonsWidth = isAddMode ? addButtonWidth : PickupGrantButtonWidth;
+            float actionButtonsWidth = isAddMode
+                ? addButtonWidth
+                : _isPickupShortcutConfigurationMode
+                    ? PickupShortcutButtonWidth + PickupShortcutClearButtonWidth + ButtonGap
+                    : PickupGrantButtonWidth;
             Rect rowButtonRect = new Rect(rowRect.x, rowRect.y, rowRect.width - actionButtonsWidth - ButtonGap, rowRect.height);
-            if (GUI.Button(rowButtonRect, GUIContent.none, _pickupRowButtonStyle))
+            if (!_isPickupShortcutConfigurationMode && GUI.Button(rowButtonRect, GUIContent.none, _pickupRowButtonStyle))
             {
                 if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
                 {
@@ -368,10 +394,36 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            Rect grantButtonRect = new Rect(rowRect.x + rowRect.width - PickupGrantButtonWidth - 8f, rowRect.y + 8f, PickupGrantButtonWidth, rowRect.height - 16f);
-            if (GUI.Button(grantButtonRect, GuiText.Get("gui.command.button.grant"), GetControllerButtonStyle(GetPickupRowActionControlId(entry), _pickupGrantButtonStyle)))
+            if (!_isPickupShortcutConfigurationMode)
             {
-                ExecutePickupBrowserGrant(entry, player, logger);
+                Rect grantButtonRect = new Rect(rowRect.x + rowRect.width - PickupGrantButtonWidth - 8f, rowRect.y + 8f, PickupGrantButtonWidth, rowRect.height - 16f);
+                if (GUI.Button(grantButtonRect, GuiText.Get("gui.command.button.grant"), GetControllerButtonStyle(GetPickupRowActionControlId(entry), _pickupGrantButtonStyle)))
+                {
+                    ExecutePickupBrowserGrant(entry, player, logger);
+                }
+            }
+
+            Rect clearShortcutButtonRect = new Rect(
+                rowRect.x + rowRect.width - PickupShortcutClearButtonWidth - 8f,
+                rowRect.y + 8f,
+                PickupShortcutClearButtonWidth,
+                rowRect.height - 16f);
+            if (_isPickupShortcutConfigurationMode && GUI.Button(clearShortcutButtonRect, GuiText.Get("gui.pickups.button.shortcut_clear"), _buttonStyle))
+            {
+                ClearPickupShortcut(entry);
+            }
+
+            Rect shortcutButtonRect = new Rect(
+                clearShortcutButtonRect.x - ButtonGap - PickupShortcutButtonWidth,
+                rowRect.y + 8f,
+                PickupShortcutButtonWidth,
+                rowRect.height - 16f);
+            GUIStyle shortcutButtonStyle = string.Equals(_pickupShortcutCaptureTargetId, entry.CatalogEntry.PickupId.ToString(), StringComparison.Ordinal)
+                ? _enabledButtonStyle
+                : _buttonStyle;
+            if (_isPickupShortcutConfigurationMode && GUI.Button(shortcutButtonRect, GetPickupShortcutButtonLabel(entry), shortcutButtonStyle))
+            {
+                BeginPickupShortcutCapture(entry);
             }
         }
 
@@ -389,6 +441,14 @@ namespace EtgGameplayDashboard
 
         private string GetPickupBrowserActionHint()
         {
+            if (_isPickupShortcutConfigurationMode)
+            {
+                return GetLocalizedFallback(
+                    "gui.pickups.hint.configure_shortcuts",
+                    "Click a pickup key button, then press a keyboard key. Reserved control-panel keys are unavailable.",
+                    "点击物品的快捷键按钮，再按下要绑定的键盘按键。控制面板占用的按键不可用。");
+            }
+
             if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
             {
                 return GuiText.Get("gui.pickups.hint.add_start_items");
@@ -673,6 +733,8 @@ namespace EtgGameplayDashboard
 
         private void ResetPickupBrowserState()
         {
+            CancelPickupShortcutCapture();
+            _isPickupShortcutConfigurationMode = false;
             _cachedPickupEntries = EmptyPickupBrowserEntries;
             _pickupSearchText = string.Empty;
             _pickupBrowserMode = PickupBrowserMode.Grant;
@@ -834,6 +896,11 @@ namespace EtgGameplayDashboard
                 if (!string.Equals(_pickupPageFocusedControlId, GetPickupRowActionControlId(entry), StringComparison.Ordinal))
                 {
                     continue;
+                }
+
+                if (_isPickupShortcutConfigurationMode)
+                {
+                    return;
                 }
 
                 if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)

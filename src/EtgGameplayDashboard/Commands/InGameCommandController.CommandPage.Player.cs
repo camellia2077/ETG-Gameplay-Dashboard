@@ -139,8 +139,31 @@ namespace EtgGameplayDashboard
             stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             PickupActionRowDefinition[] pickupRows = BuildPlayerPickupRows(player, logger);
             LogCommandPanelPerformanceStage("CommandPage.Player.PickupRows.Build", stageStartedAtTimestamp);
+            float pickupRowsTop = sectionContentRect.y + controlHeight + ButtonGap;
+            Rect shortcutConfigurationButtonRect = new Rect(
+                sectionContentRect.xMax - buttonWidth,
+                sectionContentRect.y,
+                buttonWidth,
+                controlHeight);
+            if (_isPickupShortcutConfigurationMode && DrawControllerButton(
+                shortcutConfigurationButtonRect,
+                "cmd.player.pickups.shortcuts.back",
+                GetPickupShortcutExitConfigurationButtonLabel(),
+                _buttonStyle))
+            {
+                CancelPickupShortcutCapture();
+                _isPickupShortcutConfigurationMode = false;
+            }
+            else if (!_isPickupShortcutConfigurationMode && DrawControllerButton(
+                shortcutConfigurationButtonRect,
+                "cmd.player.pickups.shortcuts",
+                GetPickupShortcutConfigurationButtonLabel(),
+                _buttonStyle))
+            {
+                TogglePickupShortcutConfigurationMode();
+            }
             stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
-            DrawPickupActionRows(sectionContentRect, sectionContentRect.y + controlHeight + ButtonGap, actionRowHeight, ButtonGap, pickupRows);
+            DrawPickupActionRows(sectionContentRect, pickupRowsTop, actionRowHeight, ButtonGap, pickupRows);
             LogCommandPanelPerformanceStage("CommandPage.Player.PickupRows.Draw", stageStartedAtTimestamp);
         }
 
@@ -227,6 +250,11 @@ namespace EtgGameplayDashboard
 
         private PickupActionRowDefinition[] BuildPlayerPickupRows(PlayerController player, ManualLogSource logger)
         {
+            if (_isPickupShortcutConfigurationMode)
+            {
+                return BuildPlayerPickupShortcutRows();
+            }
+
             return new[]
             {
                 new PickupActionRowDefinition(
@@ -294,6 +322,8 @@ namespace EtgGameplayDashboard
             GUIStyle style = _playerMenuSection == section ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle;
             if (DrawControllerButton(rect, controlId, label, style))
             {
+                CancelPickupShortcutCapture();
+                _isPickupShortcutConfigurationMode = false;
                 _playerMenuSection = section;
             }
         }
@@ -303,6 +333,8 @@ namespace EtgGameplayDashboard
             GUIStyle style = _characterMenuSection == section ? _pickupFilterActiveButtonStyle : _pickupFilterButtonStyle;
             if (DrawControllerButton(rect, controlId, label, style))
             {
+                CancelPickupShortcutCapture();
+                _isPickupShortcutConfigurationMode = false;
                 _characterMenuSection = section;
             }
         }

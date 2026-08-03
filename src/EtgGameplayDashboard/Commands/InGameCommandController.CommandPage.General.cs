@@ -64,8 +64,11 @@ namespace EtgGameplayDashboard
                 OpenBossRushPage(logger);
             }
 
-            GUIStyle revealMapButtonStyle = IsRevealMapActive() ? _enabledButtonStyle : _buttonStyle;
-            if (DrawControllerButton(new Rect(thirdColumnX, secondRowY, buttonWidth, controlHeight), "cmd.general.reveal_map", GetLocalizedFallback("gui.command.button.reveal_map", "Reveal Map", "地图全开"), revealMapButtonStyle))
+            string revealMapButtonLabel = _revealMapEnabled
+                ? GetLocalizedFallback("gui.command.button.reveal_map_on", "Reveal Map: ON", "地图全开：开")
+                : GetLocalizedFallback("gui.command.button.reveal_map_off", "Reveal Map: OFF", "地图全开：关");
+            GUIStyle revealMapButtonStyle = _revealMapEnabled ? _enabledButtonStyle : _buttonStyle;
+            if (DrawControllerButton(new Rect(thirdColumnX, secondRowY, buttonWidth, controlHeight), "cmd.general.reveal_map", revealMapButtonLabel, revealMapButtonStyle))
             {
                 ExecuteRevealCurrentFloorMap(player, logger);
             }

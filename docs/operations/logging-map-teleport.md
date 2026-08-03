@@ -25,6 +25,7 @@ When enabled, the plugin emits high-frequency `[EtgGameplayDashboard][Command]` 
 - direct teleporter-promotion attempts
 - room-transition observation while promotion is active
 - runtime sampling after reveal
+- floor-transition timeline around automatic Reveal Map, including frame number, scene names, player position, current room, Dungeon/Minimap readiness, and teleporter state
 
 Typical useful lines include:
 
@@ -36,6 +37,7 @@ Typical useful lines include:
 - `Map direct teleport activated`
 - `Map direct teleport room transition`
 - `Map direct teleport runtime sample`
+- `Map reveal transition diagnostic`
 - `Room map teleport eligibility` (always logged at rewind setup, Boss/room clear-reward completion, and replay completion; includes `CanTeleportFromRoom`, `IsSealed`, and active-enemy counts)
 - `Floor map teleporter state` (always logged before replay snapshots are cleared and after a new floor finishes loading; includes room counts, minimap registration count, active teleporter count, revealed-room count, and per-room registration/activation state)
 - `Minimap teleport attempt` (always logged from the game's private map-click entry; includes the selected target room, target eligibility, icon registration/activation, global teleport prevention, and whether the game accepted the attempt)
@@ -59,10 +61,17 @@ Failure-oriented warnings still remain visible, such as:
 
 ## Typical Workflow
 
-1. Enter a normal dungeon floor.
-2. Press `Reveal Map`.
-3. Check whether known teleporter rooms become usable without natural discovery.
-4. If behavior differs from expectation, compare `CanTeleportFromRoom`, `CanTeleportToRoom`, `TeleportersActive`, and `Minimap.RoomToTeleportMap` registration in the log.
+1. Set `EnableMapTeleportVerboseLogs = true` and restart the game.
+2. Set `Settings -> Display -> Reveal Map Mode` to `Every Floor`.
+3. Turn `Reveal Map` ON on a floor before using the in-game stairs/elevator to move to the next floor.
+4. Reproduce the stuck-elevator issue once, then stop; do not repeat the action while collecting the same log.
+5. Compare the `Map reveal transition diagnostic` lines around `floor_scene_changed_before_reset`, `auto_reveal_before_request`, and `auto_reveal_completed`.
+6. Pay particular attention to whether `PlayerPosition`/`CurrentRoom` changes before or after `auto_reveal_completed`, and whether `DungeonReady`/`MinimapHasInstance` became true before the automatic reveal ran.
+7. In `PlayerInputOverridden`/`PlayerInputState`, check whether vanilla still owns the player transition. In `ElevatorTransitionObjects`, check whether elevator/stair/entrance objects exist, are active, and expose an FSM state during the same frames.
+
+Automatic Reveal Map waits for a non-null `CurrentRoom` to remain stable for 10 frames and for vanilla player control to be restored (`PlayerInputOverridden=false`, `PlayerInputState=AllInput`) before running. `CurrentRoom` can become valid while the elevator arrival sequence is still holding the player in `NoInput`, so the input state is part of the readiness gate.
+
+The transition diagnostic also performs a sampled scan of active scene components whose object or type names contain `Elevator`, `Stair`, or `Entrance`. PlayMaker FSM components are read through reflection so the diagnostic does not add a compile-time PlayMaker dependency. This scan is diagnostic-only and does not enable, disable, or modify the discovered objects.
 
 ## Read Next
 

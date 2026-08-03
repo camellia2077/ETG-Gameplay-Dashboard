@@ -38,6 +38,12 @@ namespace EtgGameplayDashboard
                 "C",
                 "Room enemy rewind keyboard shortcut. Use a Unity KeyCode name such as C, Z, X, or V.");
             _roomEnemyRewindKeyConfig.Value = NormalizeRoomEnemyRewindKeyName(_roomEnemyRewindKeyConfig.Value);
+            _pickupShortcutsConfig = Config.Bind(
+                "UI",
+                "PickupShortcuts",
+                string.Empty,
+                "Keyboard pickup shortcuts as targetId=KeyCode pairs separated by commas. Catalog pickups use numeric IDs; currency actions use names such as currency.max_health. Control panel keys are not allowed.");
+            _pickupShortcutRegistry = PickupShortcutRegistry.Parse(_pickupShortcutsConfig.Value);
             _roomEnemyRefreshRecordingEnabledConfig = Config.Bind(
                 "UI",
                 "RoomEnemyRefreshRecordingEnabled",
@@ -92,6 +98,16 @@ namespace EtgGameplayDashboard
                 "ShowPlayerStatsPanel",
                 false,
                 "Show or hide the player stats side panel by default.");
+            _showCommandPanelCloseButtonConfig = Config.Bind(
+                "UI",
+                "ShowCommandPanelCloseButton",
+                true,
+                "Show or hide the X close button on the command panel.");
+            _revealMapEveryFloorConfig = Config.Bind(
+                "UI",
+                "RevealMapEveryFloor",
+                false,
+                "Automatically reveal each new floor after entering it. Disabled keeps Reveal Map as a current-floor-only action.");
             _showPickupInfoOverlayConfig = Config.Bind(
                 "UI",
                 "ShowPickupInfoOverlay",
@@ -141,7 +157,7 @@ namespace EtgGameplayDashboard
                 "Debug",
                 "EnableMapTeleportVerboseLogs",
                 false,
-                "Enable verbose Reveal Map diagnostic logs, including teleporter-promotion sampling. Keep disabled for normal play and enable only when debugging map or teleporter behavior.");
+                "Enable verbose Reveal Map and floor-transition diagnostic logs, including teleporter-promotion sampling. Keep disabled for normal play and enable only when debugging map, stairs/elevator, or teleporter behavior.");
             _muncherVerboseLogsConfig = Config.Bind(
                 "Debug",
                 "EnableMuncherVerboseLogs",
@@ -510,6 +526,8 @@ namespace EtgGameplayDashboard
                 _pickupResolver.GetGrantablePickupCatalog,
                 GetPickupGameplayDisplayName,
                 GetAliasRegistry,
+                GetPickupShortcutRegistry,
+                SetPickupShortcuts,
                 GetUiLanguage,
                 SetUiLanguage,
                 LogCommandInput,
@@ -531,6 +549,10 @@ namespace EtgGameplayDashboard
                 SetStartItemsPresetIconsEnabled,
                 IsPlayerStatsPanelShown,
                 SetPlayerStatsPanelShown,
+                IsCommandPanelCloseButtonShown,
+                SetCommandPanelCloseButtonShown,
+                IsRevealMapEveryFloor,
+                SetRevealMapEveryFloor,
                 IsPickupInfoOverlayEnabled,
                 SetPickupInfoOverlayEnabled,
                 IsPickupInfoQualityEnabled,
