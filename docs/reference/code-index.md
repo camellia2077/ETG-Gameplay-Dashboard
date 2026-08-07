@@ -39,8 +39,11 @@ Start with these when tracing how the mod enters the game:
 | File | Look here for |
 | --- | --- |
 | `src/EtgGameplayDashboard/Plugin.cs` | BepInEx plugin shell and root ownership |
-| `src/EtgGameplayDashboard/Plugin.Bootstrap.cs` | service construction, API bootstrap, game-manager startup wiring |
-| `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs` | new-run observation and automatic start-item grant flow |
+| `src/EtgGameplayDashboard/Plugin.Bootstrap.cs` | plugin startup orchestration and API bootstrap |
+| `src/EtgGameplayDashboard/Plugin.Bootstrap.Setup.cs` | service construction and game-manager startup wiring |
+| `src/EtgGameplayDashboard/PluginConfigurationFacade.cs` | configuration binding, normalization, and persistence callbacks |
+| `src/EtgGameplayDashboard/Plugin.Lifecycle.cs` | plugin lifecycle callbacks and teardown coordination |
+| `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs` | run observation, automatic start-item grants, runtime fallback updates, and deferred floor teleport state |
 | `src/EtgGameplayDashboard/Plugin.CatalogExport.cs` | runtime pickup catalog export |
 | `src/EtgGameplayDashboard/Plugin.State.cs` | plugin-level mutable state |
 | `src/EtgGameplayDashboard/Runtime/RunLifecycleTracker.cs` | run-start detection rules |
@@ -58,6 +61,7 @@ All in-game command-panel work starts in `src/EtgGameplayDashboard/Commands/`.
 | File | Look here for |
 | --- | --- |
 | `InGameCommandController.cs` | controller shell and page dispatch |
+| `InGameCommandController.Navigation.cs` | shared controller navigation routing across command-panel pages |
 | `InGameCommandController.State.cs` | UI state, selected page/category, controller-focus state, dimensions, colors, cached data |
 | `InGameCommandController.Styles.cs` | IMGUI styles |
 | `InGameCommandController.CommandPage.cs` | main command page layout, top-level controls, and first-stage controller navigation routing |
@@ -69,9 +73,14 @@ All in-game command-panel work starts in `src/EtgGameplayDashboard/Commands/`.
 | `InGameCommandController.Currency.cs` | money, keys, blanks, armor, health controls |
 | `InGameCommandController.CursorColor.cs` | combat cursor color page, enable/disable button, color selection, and controller navigation |
 | `InGameCommandController.Room.cs` | room tools such as chest spawning |
+| `InGameCommandController.Room.BossSelection.cs` | Boss-room option enumeration, selection state, and controller focus for Boss selection |
 | `InGameCommandController.PlayerStats.cs` | player stat panel |
 | `InGameCommandController.PickupBrowser.cs` | item-browser page rendering, filter controls, item cards, and add/select actions |
+| `InGameCommandController.PickupBrowser.Navigation.cs` | pickup-browser focus movement, filter navigation, and controller selection actions |
 | `InGameCommandController.LoadoutEditor.cs` | Start Items and preset editor page rendering and actions |
+| `InGameCommandController.LoadoutEditor.Navigation.cs` | loadout-editor focus movement and controller selection actions |
+| `InGameCommandController.InputDiagnostics.cs` | command-panel keyboard/controller input diagnostics |
+| `InGameCommandController.MapDiagnostics.cs` | command-panel map and teleporter diagnostic sampling |
 | `InGameCommandController.PickupIcons.cs` | shared runtime pickup and GameUI atlas icon resolution for command pages and loadout views |
 | `InGameCommandController.About.cs` | About / Credits page |
 | `InGameCommandController.Settings.cs` | settings page layout, keyboard key config, and first-stage controller navigation routing |
@@ -93,7 +102,8 @@ Supporting services:
 | `CombatCursorColorCatalog.cs` | combat cursor color IDs, target HEX values, Unity colors, and normalization |
 | `Runtime/CommandPanelCursorRenderHooks.cs` | ETG cursor suppression, panel-layer redraw, and custom cursor color material rendering |
 | `Runtime/RoomEnemyReplayHooks.cs` | Harmony entry points for room entry, reinforcement capture, and replay-wave insertion |
-| `Runtime/RoomEnemyReplayService.cs` | room-replay coordination, snapshot lifecycle, replay validation, Boss reward re-arming, and runtime hook-facing state |
+| `Runtime/RoomEnemyReplayService.cs` | room-replay coordination, snapshot lifecycle, wave sequencing, Boss reward re-arming, and runtime hook-facing state |
+| `Runtime/RoomEnemyReplayService.Diagnostics.cs` | room map/teleporter diagnostics, replay verification, and deferred Boss sprite/intro diagnostics |
 | `Runtime/RoomRewindCleanupService.cs` | room-scoped projectile, corpse, VFX, debris, pickup, and Boss reward-pedestal cleanup |
 | `Runtime/BossRoomDecorationRestorer.cs` | Boss-room decoration capture, prototype/template resolution, and destructible restoration |
 | `Runtime/RoomPlayerStateRestorer.cs` | player health, stats, inventory, gun, passive-item, and active-item snapshot restoration |

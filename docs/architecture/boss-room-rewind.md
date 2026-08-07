@@ -4,7 +4,7 @@ This document describes the current Boss-room rewind contract for future runtime
 
 ## Entry points
 
-The replay flow is coordinated by `src/EtgGameplayDashboard/Runtime/RoomEnemyReplayService.cs` and uses focused runtime collaborators:
+The replay flow is coordinated by `src/EtgGameplayDashboard/Runtime/RoomEnemyReplayService.cs` and its diagnostics partial, `src/EtgGameplayDashboard/Runtime/RoomEnemyReplayService.Diagnostics.cs`, and uses focused runtime collaborators:
 
 - `RoomRewindCleanupService` removes room-local replay artifacts.
 - `BossRoomDecorationRestorer` captures and restores Boss-room destructibles.
@@ -12,7 +12,7 @@ The replay flow is coordinated by `src/EtgGameplayDashboard/Runtime/RoomEnemyRep
 - `RoomReplayStateModels` contains the shared replay snapshot models.
 - `RoomEnemyWaveSpawner` instantiates recorded waves and restores replayed Boss visibility.
 
-The coordinator remains responsible for hook-facing lifecycle state, replay validation, wave sequencing, and Boss reward re-arming.
+The coordinator remains responsible for hook-facing lifecycle state, wave sequencing, and Boss reward re-arming. Replay verification, map/teleporter state sampling, and deferred Boss sprite/intro diagnostics are isolated in `RoomEnemyReplayService.Diagnostics.cs`; they share the coordinator's state and logging helpers without expanding the replay lifecycle file.
 
 - `RoomEnemyReplayHooks.OnEnteredPrefix` records the first active enemy wave. The real vanilla parameter name is `p`; Harmony binds ordinary patch arguments by name, so this must not be renamed to `player`.
 - `TriggerReinforcementLayerPrefix/Postfix` records later vanilla reinforcement waves.

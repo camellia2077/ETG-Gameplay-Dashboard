@@ -173,6 +173,9 @@
     <Compile Include="Commands\FoyerCharacterSwitchService.Switching.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.Unlocking.cs" />
     <Compile Include="Commands\InGameCommandController.cs" />
+    <Compile Include="Commands\InGameCommandController.InputDiagnostics.cs" />
+    <Compile Include="Commands\InGameCommandController.MapDiagnostics.cs" />
+    <Compile Include="Commands\InGameCommandController.Navigation.cs" />
     <Compile Include="Commands\ControllerFocusNavigator.cs" />
     <Compile Include="Commands\CommandPanelLifecycleCoordinator.cs" />
     <Compile Include="Commands\LoadoutEditorState.cs" />
@@ -192,11 +195,14 @@
     <Compile Include="Commands\InGameCommandController.Currency.cs" />
     <Compile Include="Commands\InGameCommandController.CursorColor.cs" />
     <Compile Include="Commands\InGameCommandController.Room.cs" />
+    <Compile Include="Commands\InGameCommandController.Room.BossSelection.cs" />
     <Compile Include="Commands\InGameCommandController.LoadoutEditor.cs" />
+    <Compile Include="Commands\InGameCommandController.LoadoutEditor.Navigation.cs" />
     <Compile Include="Commands\InGameCommandController.LoadoutPickups.cs" />
     <Compile Include="Commands\InGameCommandController.PickupIcons.cs" />
     <Compile Include="Commands\InGameCommandController.PickupInfoConfig.cs" />
     <Compile Include="Commands\InGameCommandController.PickupBrowser.cs" />
+    <Compile Include="Commands\InGameCommandController.PickupBrowser.Navigation.cs" />
     <Compile Include="Commands\PickupBrowserFilters.cs" />
     <Compile Include="Commands\PickupBrowserEntry.cs" />
     <Compile Include="Commands\PickupBrowserQueryService.cs" />
@@ -265,6 +271,8 @@
     <Compile Include="Properties\Version.g.cs" />
     <Compile Include="Plugin.cs" />
     <Compile Include="Plugin.Bootstrap.cs" />
+    <Compile Include="PluginConfigurationFacade.cs" />
+    <Compile Include="Plugin.Lifecycle.cs" />
     <Compile Include="Plugin.Bootstrap.Setup.cs" />
     <Compile Include="Plugin.CatalogExport.cs" />
     <Compile Include="Plugin.Performance.cs" />
@@ -302,8 +310,9 @@
     <Compile Include="Runtime\BossRoomDecorationRestorer.cs" />
     <Compile Include="Runtime\RoomReplayStateModels.cs" />
     <Compile Include="Runtime\RoomEnemyWaveSpawner.cs" />
-    <Compile Include="Runtime\RoomEnemyReplayService.cs" />
-    <Compile Include="Runtime\RoomReplayWaveDiagnostics.cs" />
+      <Compile Include="Runtime\RoomEnemyReplayService.cs" />
+      <Compile Include="Runtime\RoomEnemyReplayService.Diagnostics.cs" />
+      <Compile Include="Runtime\RoomReplayWaveDiagnostics.cs" />
     <Compile Include="Runtime\PrivateFieldAccessor.cs" />
     <Compile Include="Runtime\RuntimeHookRegistry.cs" />
     <Compile Include="Runtime\BossRushService.cs" />

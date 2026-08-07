@@ -264,9 +264,10 @@ The picker refuses normal teleports while Boss Rush is active so the Boss Rush s
 
 Implementation notes:
 
-- Gamepad shortcut detection, preset mapping, and basic controller navigation state currently live in `src/EtgGameplayDashboard/Commands/InGameCommandController.cs` and `src/EtgGameplayDashboard/Commands/InGameCommandController.State.cs`.
-- Main command-page controller focus and button routing currently live in `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs`.
-- Settings-page controller focus and preset controls currently live in `src/EtgGameplayDashboard/Commands/InGameCommandController.Settings.cs`.
+- Gamepad shortcut detection and controller-navigation state live in `src/EtgGameplayDashboard/Commands/InGameCommandController.cs`, `src/EtgGameplayDashboard/Commands/InGameCommandController.State.cs`, and the shared `src/EtgGameplayDashboard/Commands/InGameCommandController.Navigation.cs` partial.
+- Main command-page controller focus and button routing live in `src/EtgGameplayDashboard/Commands/InGameCommandController.CommandPage.cs` and `src/EtgGameplayDashboard/Commands/InGameCommandController.Navigation.cs`.
+- Page-specific controller focus is split into matching responsibility partials, including `InGameCommandController.Settings.cs`, `InGameCommandController.LoadoutEditor.Navigation.cs`, `InGameCommandController.PickupBrowser.Navigation.cs`, and `InGameCommandController.Room.BossSelection.cs`.
+- Keyboard/controller input diagnostics live in `src/EtgGameplayDashboard/Commands/InGameCommandController.InputDiagnostics.cs`.
 - Teleport buttons live in `src/EtgGameplayDashboard/Commands/InGameCommandController.Teleport.cs`.
 - Floor-token-to-scene mapping lives in `src/EtgGameplayDashboard/Runtime/EtgFloorSceneResolver.cs`.
 - The flow intentionally follows the same high-level route as upstream `load_level` behavior:

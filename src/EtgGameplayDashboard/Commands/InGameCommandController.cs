@@ -282,7 +282,28 @@ namespace EtgGameplayDashboard
             FoyerCharacterOption[] characterOptions = EmptyCharacterOptions;
             string characterAvailability = _cachedCharacterAvailability;
             float panelHeight = GetCommandPanelHeight();
-            stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
+            PreparePageDataForGui(ref characterOptions, ref characterAvailability, ref panelHeight);
+
+            Matrix4x4 previousGuiMatrix = GUI.matrix;
+            GUI.matrix = GetAutoScaledGuiMatrix();
+            LogCommandPanelPerformanceStage("GuiMatrix", BeginCommandPanelPerformanceStage());
+            try
+            {
+                DrawPanelContent(panelHeight, characterOptions, characterAvailability, player, logger);
+            }
+            finally
+            {
+                CompleteCommandPanelPerformanceTrace("OnGUI.complete");
+                GUI.matrix = previousGuiMatrix;
+            }
+        }
+
+        private void PreparePageDataForGui(
+            ref FoyerCharacterOption[] characterOptions,
+            ref string characterAvailability,
+            ref float panelHeight)
+        {
+            long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             if (_isVisible && _currentPage == PanelPage.Pickups)
             {
                 RefreshPickupBrowserData();
@@ -335,114 +356,122 @@ namespace EtgGameplayDashboard
             {
                 panelHeight = CursorColorPanelHeight;
             }
+
             LogCommandPanelPerformanceStage("PageDataAndHeight", stageStartedAtTimestamp);
+        }
 
-            Matrix4x4 previousGuiMatrix = GUI.matrix;
-            GUI.matrix = GetAutoScaledGuiMatrix();
-            LogCommandPanelPerformanceStage("GuiMatrix", BeginCommandPanelPerformanceStage());
-            try
+        private void DrawPanelContent(
+            float panelHeight,
+            FoyerCharacterOption[] characterOptions,
+            string characterAvailability,
+            PlayerController player,
+            BepInEx.Logging.ManualLogSource logger)
+        {
+            DrawPlayerStatsPanelIfEnabled(player);
+            DrawStatusOverlay(panelHeight);
+            if (!_isVisible)
             {
-                DrawPlayerStatsPanelIfEnabled(player);
-                DrawStatusOverlay(panelHeight);
-                if (!_isVisible)
+                return;
+            }
+
+            Rect panelRect = GetMainPanelRect(panelHeight);
+            GUI.Box(ExpandPanelBorderRect(panelRect), GUIContent.none, _panelStyle);
+            DrawTeleportPanelIfEnabled(panelRect, logger);
+            if (_currentPage != PanelPage.Command && _showCommandPanelCloseButton)
+            {
+                Rect closeButtonRect = new Rect(panelRect.x + panelRect.width - 44f, panelRect.y + 12f, 30f, 30f);
+                if (DrawCloseButton(closeButtonRect, "cmd.close"))
                 {
+                    Close();
                     return;
                 }
+            }
 
-                Rect panelRect = GetMainPanelRect(panelHeight);
-                GUI.Box(ExpandPanelBorderRect(panelRect), GUIContent.none, _panelStyle);
-                DrawTeleportPanelIfEnabled(panelRect, logger);
-                if (_currentPage != PanelPage.Command && _showCommandPanelCloseButton)
-                {
-                    Rect closeButtonRect = new Rect(panelRect.x + panelRect.width - 44f, panelRect.y + 12f, 30f, 30f);
-                    if (DrawCloseButton(closeButtonRect, "cmd.close"))
-                    {
-                        Close();
-                        return;
-                    }
-                }
-                if (_currentPage == PanelPage.Characters)
-                {
-                    DrawCharacterPage(panelRect, characterOptions, characterAvailability, logger);
-                    return;
-                }
+            DrawCurrentPage(panelRect, characterOptions, characterAvailability, player, logger);
+        }
 
-                if (_currentPage == PanelPage.Pickups)
-                {
-                    DrawPickupPage(panelRect, player, logger);
-                    return;
-                }
+        private void DrawCurrentPage(
+            Rect panelRect,
+            FoyerCharacterOption[] characterOptions,
+            string characterAvailability,
+            PlayerController player,
+            BepInEx.Logging.ManualLogSource logger)
+        {
+            if (_currentPage == PanelPage.Characters)
+            {
+                DrawCharacterPage(panelRect, characterOptions, characterAvailability, logger);
+                return;
+            }
 
-                if (_currentPage == PanelPage.Currency)
-                {
-                    DrawCurrencyPage(panelRect, player, logger);
-                    return;
-                }
+            if (_currentPage == PanelPage.Pickups)
+            {
+                DrawPickupPage(panelRect, player, logger);
+                return;
+            }
 
-                if (_currentPage == PanelPage.BossRush)
-                {
-                    DrawBossRushPage(panelRect, logger);
-                    return;
-                }
+            if (_currentPage == PanelPage.Currency)
+            {
+                DrawCurrencyPage(panelRect, player, logger);
+                return;
+            }
 
-                if (_currentPage == PanelPage.LoadoutEditor)
-                {
-                    DrawLoadoutEditorPage(panelRect, player, logger);
-                    return;
-                }
+            if (_currentPage == PanelPage.BossRush)
+            {
+                DrawBossRushPage(panelRect, logger);
+                return;
+            }
 
-                if (_currentPage == PanelPage.About)
-                {
-                    DrawAboutPage(panelRect);
-                    return;
-                }
+            if (_currentPage == PanelPage.LoadoutEditor)
+            {
+                DrawLoadoutEditorPage(panelRect, player, logger);
+                return;
+            }
 
-                if (_currentPage == PanelPage.AdvancedTools)
-                {
-                    DrawAdvancedToolsPage(panelRect, player, logger);
-                    return;
-                }
+            if (_currentPage == PanelPage.About)
+            {
+                DrawAboutPage(panelRect);
+                return;
+            }
 
-                if (_currentPage == PanelPage.ControllerHelp)
-                {
-                    DrawControllerHelpPage(panelRect);
-                    return;
-                }
+            if (_currentPage == PanelPage.AdvancedTools)
+            {
+                DrawAdvancedToolsPage(panelRect, player, logger);
+                return;
+            }
 
-                if (_currentPage == PanelPage.KeyboardHelp)
-                {
-                    DrawKeyboardHelpPage(panelRect);
-                    return;
-                }
+            if (_currentPage == PanelPage.ControllerHelp)
+            {
+                DrawControllerHelpPage(panelRect);
+                return;
+            }
 
-                if (_currentPage == PanelPage.CursorColor)
-                {
-                    DrawCursorColorPage(panelRect);
-                    return;
-                }
+            if (_currentPage == PanelPage.KeyboardHelp)
+            {
+                DrawKeyboardHelpPage(panelRect);
+                return;
+            }
 
-                if (_currentPage == PanelPage.Settings)
-                {
-                    DrawSettingsPage(panelRect, logger);
-                    DrawExperimentalModeConfirmDialog(panelRect, logger);
-                    return;
-                }
+            if (_currentPage == PanelPage.CursorColor)
+            {
+                DrawCursorColorPage(panelRect);
+                return;
+            }
 
-                if (_currentPage == PanelPage.PickupInfoConfig)
-                {
-                    DrawPickupInfoConfigPage(panelRect);
-                    return;
-                }
-
-                DrawCommandPage(panelRect, player, logger);
-
+            if (_currentPage == PanelPage.Settings)
+            {
+                DrawSettingsPage(panelRect, logger);
                 DrawExperimentalModeConfirmDialog(panelRect, logger);
+                return;
             }
-            finally
+
+            if (_currentPage == PanelPage.PickupInfoConfig)
             {
-                CompleteCommandPanelPerformanceTrace("OnGUI.complete");
-                GUI.matrix = previousGuiMatrix;
+                DrawPickupInfoConfigPage(panelRect);
+                return;
             }
+
+            DrawCommandPage(panelRect, player, logger);
+            DrawExperimentalModeConfirmDialog(panelRect, logger);
         }
 
         private void Toggle()
@@ -463,445 +492,6 @@ namespace EtgGameplayDashboard
             ResetClosedPanelState();
         }
 
-        private void HandleControllerNavigation()
-        {
-            if (!_isVisible)
-            {
-                ResetControllerNavigationAxes();
-                return;
-            }
-
-            if (_isCapturingPickupShortcut)
-            {
-                ResetControllerNavigationAxes();
-                return;
-            }
-
-            bool isControllerBackPressed = IsPanelBackPressed();
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState(
-                    "Detected controller back press. Page=" +
-                    _currentPage +
-                    ", CommandFocus=" +
-                    _commandPageFocusedControlId +
-                    ", SettingsFocus=" +
-                    _settingsPageFocusedControlId +
-                    ", ExperimentalDialog=" +
-                    _showExperimentalModeConfirmDialog +
-                    ".");
-            }
-
-            if (_showExperimentalModeConfirmDialog && _currentPage == PanelPage.Settings)
-            {
-                if (isControllerBackPressed)
-                {
-                    LogGamepadShortcutState("Controller back press dismissed the experimental mode confirmation dialog.");
-                    _showExperimentalModeConfirmDialog = false;
-                }
-
-                if (IsPanelConfirmPressed())
-                {
-                    SetExperimentalModeEnabled(true, null);
-                }
-
-                ResetControllerNavigationAxes();
-                return;
-            }
-
-            if (_showTeleportPanel)
-            {
-                HandleTeleportPanelControllerNavigation(isControllerBackPressed);
-                return;
-            }
-
-            switch (_currentPage)
-            {
-                case PanelPage.Command:
-                    HandleCommandPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.Settings:
-                    HandleSettingsPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.PickupInfoConfig:
-                    HandlePickupInfoConfigPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.Characters:
-                    HandleCharacterPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.AdvancedTools:
-                    HandleAdvancedToolsPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.ControllerHelp:
-                    HandleControllerHelpPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.KeyboardHelp:
-                    HandleKeyboardHelpPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.CursorColor:
-                    HandleCursorColorPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.Pickups:
-                    HandlePickupPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.Currency:
-                    HandleCurrencyPageControllerNavigation(isControllerBackPressed);
-                    return;
-                case PanelPage.LoadoutEditor:
-                    HandleLoadoutEditorPageControllerNavigation(isControllerBackPressed);
-                    return;
-                default:
-                    if (isControllerBackPressed)
-                    {
-                        LogGamepadShortcutState(
-                            "Controller back press detected on a page without controller back handling. Page=" +
-                            _currentPage +
-                            ".");
-                    }
-
-                    ResetControllerNavigationAxes();
-                    return;
-            }
-        }
-
-        private void HandleCommandPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState("Controller back press is closing the command page.");
-                Close();
-                return;
-            }
-
-            if (Input.GetKeyDown(GetJoystickButtonKeyCode(4)))
-            {
-                CycleCommandCategory(-1);
-            }
-
-            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
-            if (navigationDirection.HasValue)
-            {
-                string previousControlId = _commandPageFocusedControlId;
-                _commandPageFocusedControlId = MoveControllerFocus(GetCommandPageFocusEntries(), _commandPageFocusedControlId, navigationDirection.Value);
-                if (IsCommandPanelHealthVerboseLoggingEnabled())
-                {
-                    LogGamepadShortcutState(
-                        "Command page controller navigation moved focus. Direction=" +
-                        navigationDirection.Value +
-                        ", From=" +
-                        previousControlId +
-                        ", To=" +
-                        _commandPageFocusedControlId +
-                        ", PlayerVitals=" +
-                        DescribePlayerVitals(GetCurrentPlayer()) +
-                        ".");
-                }
-            }
-
-            if (IsPanelConfirmPressed())
-            {
-                ExecuteCommandPageFocusedControl();
-            }
-        }
-
-        private void HandleSettingsPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState("Controller back press is returning from settings to the command page.");
-                _currentPage = PanelPage.Command;
-                return;
-            }
-
-            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
-            if (navigationDirection.HasValue)
-            {
-                string previousControlId = _settingsPageFocusedControlId;
-                _settingsPageFocusedControlId = MoveControllerFocus(GetSettingsPageFocusEntries(), _settingsPageFocusedControlId, navigationDirection.Value);
-                LogGamepadShortcutState(
-                    "Settings page controller navigation moved focus. Direction=" +
-                    navigationDirection.Value +
-                    ", From=" +
-                    previousControlId +
-                    ", To=" +
-                    _settingsPageFocusedControlId +
-                    ".");
-            }
-
-            if (IsPanelConfirmPressed())
-            {
-                ExecuteSettingsPageFocusedControl();
-            }
-        }
-
-        private void HandlePickupInfoConfigPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState("Controller back press is returning from pickup info config to the command page.");
-                _currentPage = PanelPage.Command;
-                return;
-            }
-
-            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
-            if (navigationDirection.HasValue)
-            {
-                string previousControlId = _pickupInfoConfigFocusedControlId;
-                _pickupInfoConfigFocusedControlId = MoveControllerFocus(PickupInfoConfigPageFocusEntries, _pickupInfoConfigFocusedControlId, navigationDirection.Value);
-                LogGamepadShortcutState(
-                    "Pickup info config controller navigation moved focus. Direction=" +
-                    navigationDirection.Value +
-                    ", From=" +
-                    previousControlId +
-                    ", To=" +
-                    _pickupInfoConfigFocusedControlId +
-                    ".");
-            }
-
-            if (IsPanelConfirmPressed())
-            {
-                ExecutePickupInfoConfigPageFocusedControl();
-            }
-        }
-
-        private void HandleCharacterPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState("Controller back press is returning from characters to the command page.");
-                CloseCharacterPage();
-                return;
-            }
-
-            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
-            if (navigationDirection.HasValue)
-            {
-                string previousControlId = _characterPageFocusedControlId;
-                _characterPageFocusedControlId = MoveControllerFocus(
-                    GetCharacterPageFocusEntries(_cachedCharacterOptions),
-                    _characterPageFocusedControlId,
-                    navigationDirection.Value);
-                LogGamepadShortcutState(
-                    "Character page controller navigation moved focus. Direction=" +
-                    navigationDirection.Value +
-                    ", From=" +
-                    previousControlId +
-                    ", To=" +
-                    _characterPageFocusedControlId +
-                    ".");
-            }
-
-            if (IsPanelConfirmPressed())
-            {
-                ExecuteCharacterPageFocusedControl(null);
-            }
-        }
-
-        private void HandleControllerHelpPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed || IsPanelConfirmPressed())
-            {
-                LogGamepadShortcutState("Controller navigation is returning from controller help to settings.");
-                OpenSettingsPage();
-                return;
-            }
-
-            ResetControllerNavigationAxes();
-        }
-
-        private void HandleKeyboardHelpPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed || IsPanelConfirmPressed())
-            {
-                LogGamepadShortcutState("Keyboard navigation is returning from keyboard help to settings.");
-                OpenSettingsPage();
-                return;
-            }
-
-            ResetControllerNavigationAxes();
-        }
-
-        private void HandlePickupPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState(
-                    "Controller back press detected on pickup browser. Mode=" +
-                    _pickupBrowserMode +
-                    ", Focus=" +
-                    _pickupPageFocusedControlId +
-                    ".");
-                ReturnFromPickupPage();
-                return;
-            }
-
-            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
-            if (navigationDirection.HasValue)
-            {
-                string previousControlId = _pickupPageFocusedControlId;
-                _pickupPageFocusedControlId = MoveControllerFocus(
-                    GetPickupPageFocusEntries(),
-                    _pickupPageFocusedControlId,
-                    navigationDirection.Value);
-                LogGamepadShortcutState(
-                    "Pickup browser controller navigation moved focus. Mode=" +
-                    _pickupBrowserMode +
-                    ", Direction=" +
-                    navigationDirection.Value +
-                    ", From=" +
-                    previousControlId +
-                    ", To=" +
-                    _pickupPageFocusedControlId +
-                    ".");
-            }
-
-            if (IsPanelConfirmPressed())
-            {
-                ExecutePickupPageFocusedControl(GetSelectedCommandTargetPlayer(), null);
-            }
-        }
-
-        private void HandleCurrencyPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState(
-                    "Controller back press detected on currency page. Focus=" +
-                    _currencyPageFocusedControlId +
-                    ".");
-                HandleCurrencyBack();
-                return;
-            }
-
-            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
-            if (navigationDirection.HasValue)
-            {
-                string previousControlId = _currencyPageFocusedControlId;
-                _currencyPageFocusedControlId = MoveControllerFocus(
-                    GetCurrencyPageFocusEntries(),
-                    _currencyPageFocusedControlId,
-                    navigationDirection.Value);
-                if (IsCommandPanelHealthVerboseLoggingEnabled())
-                {
-                    LogGamepadShortcutState(
-                        "Currency page controller navigation moved focus. Direction=" +
-                        navigationDirection.Value +
-                        ", From=" +
-                        previousControlId +
-                        ", To=" +
-                        _currencyPageFocusedControlId +
-                        ", PlayerVitals=" +
-                        DescribePlayerVitals(GetCurrentPlayer()) +
-                        ".");
-                }
-            }
-
-            if (IsPanelConfirmPressed())
-            {
-                LogGamepadShortcutState(
-                    "Controller confirm is activating currency page control. Focus=" +
-                    _currencyPageFocusedControlId +
-                    ".");
-                ExecuteCurrencyPageFocusedControl(GetCurrentPlayer(), null);
-            }
-        }
-
-        private void HandleLoadoutEditorPageControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState(
-                    "Controller back press detected on loadout editor. Mode=" +
-                    _loadoutEditorMode +
-                    ", Focus=" +
-                    _loadoutEditorFocusedControlId +
-                    ".");
-                HandleLoadoutEditorBackNavigation();
-                return;
-            }
-
-            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
-            if (navigationDirection.HasValue)
-            {
-                string previousControlId = _loadoutEditorFocusedControlId;
-                _loadoutEditorFocusedControlId = MoveControllerFocus(
-                    GetLoadoutEditorFocusEntries(),
-                    _loadoutEditorFocusedControlId,
-                    navigationDirection.Value);
-                LogGamepadShortcutState(
-                    "Loadout editor controller navigation moved focus. Mode=" +
-                    _loadoutEditorMode +
-                    ", Direction=" +
-                    navigationDirection.Value +
-                    ", From=" +
-                    previousControlId +
-                    ", To=" +
-                    _loadoutEditorFocusedControlId +
-                    ".");
-            }
-
-            if (IsPanelConfirmPressed())
-            {
-                ExecuteLoadoutEditorFocusedControl(GetCurrentPlayer(), null);
-            }
-        }
-
-        private void HandleTeleportPanelControllerNavigation(bool isControllerBackPressed)
-        {
-            if (isControllerBackPressed)
-            {
-                LogGamepadShortcutState("Controller back press is closing the teleport panel.");
-                CloseTeleportPanel();
-                return;
-            }
-
-            ControllerNavDirection? navigationDirection = GetControllerNavigationDirection();
-            if (navigationDirection.HasValue)
-            {
-                int previousIndex = _teleportSelectedIndex;
-                switch (navigationDirection.Value)
-                {
-                    case ControllerNavDirection.Up:
-                        _teleportSelectedIndex = (_teleportSelectedIndex + TeleportOptions.Length - 1) % TeleportOptions.Length;
-                        break;
-                    case ControllerNavDirection.Down:
-                        _teleportSelectedIndex = (_teleportSelectedIndex + 1) % TeleportOptions.Length;
-                        break;
-                    default:
-                        LogGamepadShortcutState(
-                            "Ignored teleport panel horizontal navigation. Direction=" +
-                            navigationDirection.Value +
-                            ", SelectedIndex=" +
-                            _teleportSelectedIndex +
-                            ".");
-                        return;
-                }
-
-                LogGamepadShortcutState(
-                    "Teleport panel selection changed. Direction=" +
-                    navigationDirection.Value +
-                    ", FromIndex=" +
-                    previousIndex +
-                    ", ToIndex=" +
-                    _teleportSelectedIndex +
-                    ", Token=" +
-                    TeleportOptions[_teleportSelectedIndex].CommandToken +
-                    ".");
-                return;
-            }
-
-            if (IsPanelConfirmPressed())
-            {
-                TeleportOption selectedOption = TeleportOptions[_teleportSelectedIndex];
-                LogGamepadShortcutState(
-                    "Controller confirm is activating teleport option. SelectedIndex=" +
-                    _teleportSelectedIndex +
-                    ", Token=" +
-                    selectedOption.CommandToken +
-                    ".");
-                ExecuteTeleport(selectedOption, null);
-            }
-        }
 
         private ControllerNavDirection? GetControllerNavigationDirection()
         {
@@ -1190,614 +780,6 @@ namespace EtgGameplayDashboard
             return _controllerShortcutEnabledProvider == null || _controllerShortcutEnabledProvider();
         }
 
-        private void LogJoystickButtonStateChanges()
-        {
-            for (int i = 0; i < _wasJoystickButtonPressed.Length; i++)
-            {
-                KeyCode buttonKeyCode = GetJoystickButtonKeyCode(i);
-                bool isPressed = Input.GetKey(buttonKeyCode);
-                if (isPressed == _wasJoystickButtonPressed[i])
-                {
-                    continue;
-                }
-
-                _wasJoystickButtonPressed[i] = isPressed;
-                LogGamepadShortcutState(
-                    "Observed joystick button state change. Button=" +
-                    i +
-                    ", Pressed=" +
-                    isPressed +
-                    ", Down=" +
-                    Input.GetKeyDown(buttonKeyCode) +
-                    ", Up=" +
-                    Input.GetKeyUp(buttonKeyCode) +
-                    ".");
-            }
-        }
-
-        private void LogControllerStickStateChanges()
-        {
-            BraveInput braveInput = BraveInput.PrimaryPlayerInstance;
-            if ((object)braveInput == null)
-            {
-                braveInput = BraveInput.PlayerlessInstance;
-            }
-
-            InControl.InputDevice activeDevice =
-                (object)braveInput != null && braveInput.ActiveActions != null
-                    ? braveInput.ActiveActions.Device
-                    : null;
-            if (activeDevice == null || activeDevice.DeviceClass != InControl.InputDeviceClass.Controller)
-            {
-                return;
-            }
-
-            float dpadX = activeDevice.DPadX != null ? activeDevice.DPadX.Value : 0f;
-            float dpadY = activeDevice.DPadY != null ? activeDevice.DPadY.Value : 0f;
-            float leftStickX = activeDevice.LeftStickX != null ? activeDevice.LeftStickX.Value : 0f;
-            float leftStickY = activeDevice.LeftStickY != null ? activeDevice.LeftStickY.Value : 0f;
-            float rightStickX = activeDevice.RightStickX != null ? activeDevice.RightStickX.Value : 0f;
-            float rightStickY = activeDevice.RightStickY != null ? activeDevice.RightStickY.Value : 0f;
-
-            LogNamedControllerAxisStateChange(
-                "DPad",
-                dpadX,
-                dpadY,
-                ref _lastLoggedControllerDpadHorizontalAxis,
-                ref _lastLoggedControllerDpadVerticalAxis);
-            LogNamedControllerAxisStateChange(
-                "LeftStick",
-                leftStickX,
-                leftStickY,
-                ref _lastLoggedControllerLeftStickHorizontalAxis,
-                ref _lastLoggedControllerLeftStickVerticalAxis);
-            LogNamedControllerAxisStateChange(
-                "RightStick",
-                rightStickX,
-                rightStickY,
-                ref _lastLoggedControllerRightStickHorizontalAxis,
-                ref _lastLoggedControllerRightStickVerticalAxis);
-        }
-
-        private void LogDisabledKeyboardNavigationKeyAttempts()
-        {
-            if (Input.GetKeyDown(KeyCode.W))
-            {
-                LogDisabledKeyboardNavigationKeyAttempt(KeyCode.W, "Up");
-            }
-
-            if (Input.GetKeyDown(KeyCode.A))
-            {
-                LogDisabledKeyboardNavigationKeyAttempt(KeyCode.A, "Left");
-            }
-
-            if (Input.GetKeyDown(KeyCode.S))
-            {
-                LogDisabledKeyboardNavigationKeyAttempt(KeyCode.S, "Down");
-            }
-
-            if (Input.GetKeyDown(KeyCode.D))
-            {
-                LogDisabledKeyboardNavigationKeyAttempt(KeyCode.D, "Right");
-            }
-        }
-
-        private void LogGameplayKeyboardInputState()
-        {
-            if (!IsCommandPanelGameplayInputVerboseLoggingEnabled())
-            {
-                _hasLoggedGameplayInputState = false;
-                return;
-            }
-
-            bool isWPressed = Input.GetKey(KeyCode.W);
-            bool isAPressed = Input.GetKey(KeyCode.A);
-            bool isSPressed = Input.GetKey(KeyCode.S);
-            bool isDPressed = Input.GetKey(KeyCode.D);
-            PlayerController player = GetCurrentPlayer();
-            bool isInputOverridden = (object)player != null && player.IsInputOverridden;
-            string inputState = (object)player != null ? player.CurrentInputState.ToString() : "<none>";
-            bool stateChanged = !_hasLoggedGameplayInputState ||
-                _lastLoggedGameplayPanelVisible != _isVisible ||
-                _lastLoggedGameplayW != isWPressed ||
-                _lastLoggedGameplayA != isAPressed ||
-                _lastLoggedGameplayS != isSPressed ||
-                _lastLoggedGameplayD != isDPressed ||
-                _lastLoggedGameplayInputOverridden != isInputOverridden ||
-                !string.Equals(_lastLoggedGameplayInputState, inputState, System.StringComparison.Ordinal);
-            if (!stateChanged)
-            {
-                return;
-            }
-
-            LogGamepadShortcutState(
-                "Observed gameplay keyboard input state. PanelVisible=" +
-                _isVisible +
-                ", Page=" +
-                _currentPage +
-                ", W=" +
-                isWPressed +
-                ", A=" +
-                isAPressed +
-                ", S=" +
-                isSPressed +
-                ", D=" +
-                isDPressed +
-                ", PlayerId=" +
-                ((object)player != null ? player.GetInstanceID().ToString() : "<none>") +
-                ", IsInputOverridden=" +
-                isInputOverridden +
-                ", CurrentInputState=" +
-                inputState +
-                ", CurrentFocus=" +
-                GUIUtility.keyboardControl +
-                ".");
-
-            _hasLoggedGameplayInputState = true;
-            _lastLoggedGameplayPanelVisible = _isVisible;
-            _lastLoggedGameplayW = isWPressed;
-            _lastLoggedGameplayA = isAPressed;
-            _lastLoggedGameplayS = isSPressed;
-            _lastLoggedGameplayD = isDPressed;
-            _lastLoggedGameplayInputOverridden = isInputOverridden;
-            _lastLoggedGameplayInputState = inputState;
-        }
-
-        private void LogControllerGameplayInputState()
-        {
-            if (!IsCommandPanelControllerGameplayInputVerboseLoggingEnabled())
-            {
-                _hasLoggedControllerGameplayInputState = false;
-                return;
-            }
-
-            BraveInput braveInput = BraveInput.PrimaryPlayerInstance;
-            if ((object)braveInput == null)
-            {
-                braveInput = BraveInput.PlayerlessInstance;
-            }
-
-            InControl.InputDevice activeDevice =
-                (object)braveInput != null && braveInput.ActiveActions != null
-                    ? braveInput.ActiveActions.Device
-                    : null;
-            string device = activeDevice == null
-                ? "<none>"
-                : activeDevice.DeviceClass + "/" + activeDevice.GetType().Name;
-            float dpadX = activeDevice != null && activeDevice.DPadX != null ? activeDevice.DPadX.Value : 0f;
-            float dpadY = activeDevice != null && activeDevice.DPadY != null ? activeDevice.DPadY.Value : 0f;
-            float leftStickX = activeDevice != null && activeDevice.LeftStickX != null ? activeDevice.LeftStickX.Value : 0f;
-            float leftStickY = activeDevice != null && activeDevice.LeftStickY != null ? activeDevice.LeftStickY.Value : 0f;
-            float rightStickX = activeDevice != null && activeDevice.RightStickX != null ? activeDevice.RightStickX.Value : 0f;
-            float rightStickY = activeDevice != null && activeDevice.RightStickY != null ? activeDevice.RightStickY.Value : 0f;
-            PlayerController player = GetCurrentPlayer();
-            bool isInputOverridden = (object)player != null && player.IsInputOverridden;
-            string inputState = (object)player != null ? player.CurrentInputState.ToString() : "<none>";
-            bool stateChanged = !_hasLoggedControllerGameplayInputState ||
-                _lastLoggedControllerGameplayPanelVisible != _isVisible ||
-                !string.Equals(_lastLoggedControllerGameplayDevice, device, System.StringComparison.Ordinal) ||
-                _lastLoggedControllerGameplayInputOverridden != isInputOverridden ||
-                !string.Equals(_lastLoggedControllerGameplayInputState, inputState, System.StringComparison.Ordinal) ||
-                Mathf.Abs(_lastLoggedControllerGameplayDpadHorizontal - dpadX) > 0.01f ||
-                Mathf.Abs(_lastLoggedControllerGameplayDpadVertical - dpadY) > 0.01f ||
-                Mathf.Abs(_lastLoggedControllerGameplayLeftStickHorizontal - leftStickX) > 0.01f ||
-                Mathf.Abs(_lastLoggedControllerGameplayLeftStickVertical - leftStickY) > 0.01f ||
-                Mathf.Abs(_lastLoggedControllerGameplayRightStickHorizontal - rightStickX) > 0.01f ||
-                Mathf.Abs(_lastLoggedControllerGameplayRightStickVertical - rightStickY) > 0.01f;
-            if (!stateChanged)
-            {
-                return;
-            }
-
-            LogGamepadShortcutState(
-                "Observed gameplay controller input state. PanelVisible=" +
-                _isVisible +
-                ", Page=" +
-                _currentPage +
-                ", Device=" +
-                device +
-                ", DPad=" +
-                dpadX.ToString("F2") +
-                "," +
-                dpadY.ToString("F2") +
-                ", LeftStick=" +
-                leftStickX.ToString("F2") +
-                "," +
-                leftStickY.ToString("F2") +
-                ", RightStick=" +
-                rightStickX.ToString("F2") +
-                "," +
-                rightStickY.ToString("F2") +
-                ", PlayerId=" +
-                ((object)player != null ? player.GetInstanceID().ToString() : "<none>") +
-                ", IsInputOverridden=" +
-                isInputOverridden +
-                ", CurrentInputState=" +
-                inputState +
-                ", CurrentFocus=" +
-                GUIUtility.keyboardControl +
-                ".");
-
-            _hasLoggedControllerGameplayInputState = true;
-            _lastLoggedControllerGameplayPanelVisible = _isVisible;
-            _lastLoggedControllerGameplayDevice = device;
-            _lastLoggedControllerGameplayInputOverridden = isInputOverridden;
-            _lastLoggedControllerGameplayInputState = inputState;
-            _lastLoggedControllerGameplayDpadHorizontal = dpadX;
-            _lastLoggedControllerGameplayDpadVertical = dpadY;
-            _lastLoggedControllerGameplayLeftStickHorizontal = leftStickX;
-            _lastLoggedControllerGameplayLeftStickVertical = leftStickY;
-            _lastLoggedControllerGameplayRightStickHorizontal = rightStickX;
-            _lastLoggedControllerGameplayRightStickVertical = rightStickY;
-        }
-
-        private void LogDisabledKeyboardNavigationKeyAttempt(KeyCode keyCode, string mappedDirection)
-        {
-            LogGamepadShortcutState(
-                "Observed disabled keyboard navigation key press. Key=" +
-                keyCode +
-                ", MappedDirection=" +
-                mappedDirection +
-                ", Visible=" +
-                _isVisible +
-                ", Page=" +
-                _currentPage +
-                ".");
-        }
-
-        private void LogMouseButtonAttempts()
-        {
-            if (!IsCommandPanelCursorVerboseLoggingEnabled())
-            {
-                return;
-            }
-
-            if (Input.GetMouseButtonDown(0))
-            {
-                LogMouseButtonAttempt(0, "Left");
-            }
-
-            if (Input.GetMouseButtonDown(1))
-            {
-                LogMouseButtonAttempt(1, "Right");
-            }
-        }
-
-        private void LogMouseButtonAttempt(int buttonIndex, string buttonName)
-        {
-            Vector3 mousePosition = Input.mousePosition;
-            LogGamepadShortcutState(
-                "Observed mouse button press. Button=" +
-                buttonName +
-                ", ButtonIndex=" +
-                buttonIndex +
-                ", MouseX=" +
-                mousePosition.x.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
-                ", MouseY=" +
-                mousePosition.y.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
-                ", Visible=" +
-                _isVisible +
-                ", Page=" +
-                _currentPage +
-                ".");
-        }
-
-        private static KeyCode GetJoystickButtonKeyCode(int buttonIndex)
-        {
-            return KeyCode.JoystickButton0 + buttonIndex;
-        }
-
-        private static string DescribePlayerVitals(PlayerController player)
-        {
-            if ((object)player == null)
-            {
-                return "<player:null>";
-            }
-
-            HealthHaver healthHaver = player.healthHaver;
-            if ((object)healthHaver == null)
-            {
-                return "<health:null>";
-            }
-
-            return
-                "CurrentHealth=" +
-                healthHaver.GetCurrentHealth().ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
-                ", MaxHealth=" +
-                healthHaver.GetMaxHealth().ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
-                ", Armor=" +
-                healthHaver.Armor.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
-                ", Blanks=" +
-                player.Blanks.ToString(System.Globalization.CultureInfo.InvariantCulture);
-        }
-
-        private void LogHealthDiagnosticStateChanges()
-        {
-            if (!IsCommandPanelHealthVerboseLoggingEnabled())
-            {
-                ResetHealthDiagnosticState();
-                return;
-            }
-
-            PlayerController player = GetCurrentPlayer();
-            if ((object)player == null || (object)player.healthHaver == null)
-            {
-                ResetHealthDiagnosticState();
-                return;
-            }
-
-            HealthHaver healthHaver = player.healthHaver;
-            Gun currentGun = player.CurrentGun;
-            int gunId = (object)currentGun != null ? currentGun.GetInstanceID() : 0;
-            string gunName = (object)currentGun != null ? currentGun.name : "<none>";
-            float currentHealth = healthHaver.GetCurrentHealth();
-            float maxHealth = healthHaver.GetMaxHealth();
-            float armor = healthHaver.Armor;
-            bool playerChanged = !ReferenceEquals(_lastHealthDiagnosticPlayer, player);
-            bool gunChanged = playerChanged || gunId != _lastHealthDiagnosticGunId;
-            bool vitalsChanged = playerChanged ||
-                float.IsNaN(_lastHealthDiagnosticCurrentHealth) ||
-                Mathf.Abs(currentHealth - _lastHealthDiagnosticCurrentHealth) > 0.001f ||
-                Mathf.Abs(maxHealth - _lastHealthDiagnosticMaxHealth) > 0.001f ||
-                Mathf.Abs(armor - _lastHealthDiagnosticArmor) > 0.001f;
-
-            if (gunChanged || vitalsChanged)
-            {
-                LogCommandPanelHealthDiagnostic(
-                    "Observed player health state change. PreviousCurrentHealth=" +
-                    FormatDiagnosticFloat(_lastHealthDiagnosticCurrentHealth) +
-                    ", PreviousMaxHealth=" +
-                    FormatDiagnosticFloat(_lastHealthDiagnosticMaxHealth) +
-                    ", PreviousArmor=" +
-                    FormatDiagnosticFloat(_lastHealthDiagnosticArmor) +
-                    ", CurrentCurrentHealth=" +
-                    FormatDiagnosticFloat(currentHealth) +
-                    ", CurrentMaxHealth=" +
-                    FormatDiagnosticFloat(maxHealth) +
-                    ", CurrentArmor=" +
-                    FormatDiagnosticFloat(armor) +
-                    ", PreviousGunId=" +
-                    _lastHealthDiagnosticGunId +
-                    ", PreviousGunName=" +
-                    (_lastHealthDiagnosticGunName ?? "<none>") +
-                    ", CurrentGunId=" +
-                    gunId +
-                    ", CurrentGunName=" +
-                    gunName +
-                    ", GunChanged=" +
-                    gunChanged +
-                    ", VitalsChanged=" +
-                    vitalsChanged +
-                    ", Visible=" +
-                    _isVisible +
-                    ", Page=" +
-                    _currentPage +
-                    ", PlayerFocus=" +
-                    _commandPageFocusedControlId +
-                    ", SettingsFocus=" +
-                    _settingsPageFocusedControlId +
-                    ".");
-            }
-
-            _lastHealthDiagnosticPlayer = player;
-            _lastHealthDiagnosticCurrentHealth = currentHealth;
-            _lastHealthDiagnosticMaxHealth = maxHealth;
-            _lastHealthDiagnosticArmor = armor;
-            _lastHealthDiagnosticGunId = gunId;
-            _lastHealthDiagnosticGunName = gunName;
-        }
-
-        private void ResetHealthDiagnosticState()
-        {
-            _lastHealthDiagnosticPlayer = null;
-            _lastHealthDiagnosticCurrentHealth = float.NaN;
-            _lastHealthDiagnosticMaxHealth = float.NaN;
-            _lastHealthDiagnosticArmor = float.NaN;
-            _lastHealthDiagnosticGunId = -1;
-            _lastHealthDiagnosticGunName = string.Empty;
-        }
-
-        private static string FormatDiagnosticFloat(float value)
-        {
-            return float.IsNaN(value)
-                ? "<unset>"
-                : value.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
-        }
-
-        private void LogNamedControllerAxisStateChange(
-            string inputName,
-            float horizontal,
-            float vertical,
-            ref float lastHorizontal,
-            ref float lastVertical)
-        {
-            bool didHorizontalChange =
-                float.IsNaN(lastHorizontal) ||
-                Mathf.Abs(horizontal - lastHorizontal) > 0.01f;
-            bool didVerticalChange =
-                float.IsNaN(lastVertical) ||
-                Mathf.Abs(vertical - lastVertical) > 0.01f;
-            if (!didHorizontalChange && !didVerticalChange)
-            {
-                return;
-            }
-
-            lastHorizontal = horizontal;
-            lastVertical = vertical;
-            LogGamepadShortcutState(
-                "Observed controller input axis change. Input=" +
-                inputName +
-                ", Horizontal=" +
-                horizontal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
-                ", Vertical=" +
-                vertical.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
-                ", Visible=" +
-                _isVisible +
-                ", Page=" +
-                _currentPage +
-                ".");
-        }
-
-        private void LogControllerNavigationAxisState(float horizontal, float vertical)
-        {
-            bool didHorizontalChange =
-                float.IsNaN(_lastLoggedControllerHorizontalAxis) ||
-                Mathf.Abs(horizontal - _lastLoggedControllerHorizontalAxis) > 0.01f;
-            bool didVerticalChange =
-                float.IsNaN(_lastLoggedControllerVerticalAxis) ||
-                Mathf.Abs(vertical - _lastLoggedControllerVerticalAxis) > 0.01f;
-            if (!didHorizontalChange && !didVerticalChange)
-            {
-                return;
-            }
-
-            _lastLoggedControllerHorizontalAxis = horizontal;
-            _lastLoggedControllerVerticalAxis = vertical;
-            LogGamepadShortcutState(
-                "Observed controller navigation axis change. Horizontal=" +
-                horizontal.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
-                ", Vertical=" +
-                vertical.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
-                ", Visible=" +
-                _isVisible +
-                ", Page=" +
-                _currentPage +
-                ", HorizontalLatched=" +
-                _wasControllerHorizontalNavigationActive +
-                ", VerticalLatched=" +
-                _wasControllerVerticalNavigationActive +
-                ".");
-        }
-
-        private void LogGamepadShortcutState(string message)
-        {
-            if (_inputLogHandler != null)
-            {
-                _inputLogHandler(message);
-            }
-        }
-
-        private void Close()
-        {
-            _isVisible = false;
-            ResetClosedPanelState();
-        }
-
-        private void SyncPanelInputOverride()
-        {
-            _commandPanelLifecycleCoordinator.SyncInputOverride();
-        }
-
-        private void ClearPanelInputOverride()
-        {
-            _commandPanelLifecycleCoordinator.ClearInputOverride();
-        }
-
-        private bool IsCommandPanelHealthVerboseLoggingEnabled()
-        {
-            return _commandPanelHealthVerboseLoggingEnabledProvider != null &&
-                _commandPanelHealthVerboseLoggingEnabledProvider();
-        }
-
-        private bool IsCommandPanelCursorVerboseLoggingEnabled()
-        {
-            return _commandPanelCursorVerboseLoggingEnabledProvider != null &&
-                _commandPanelCursorVerboseLoggingEnabledProvider();
-        }
-
-        private bool IsCommandPanelGameplayInputVerboseLoggingEnabled()
-        {
-            return _commandPanelGameplayInputVerboseLoggingEnabledProvider != null &&
-                _commandPanelGameplayInputVerboseLoggingEnabledProvider();
-        }
-
-        private bool IsCommandPanelControllerGameplayInputVerboseLoggingEnabled()
-        {
-            return _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider != null &&
-                _commandPanelControllerGameplayInputVerboseLoggingEnabledProvider();
-        }
-
-        private bool IsCommandPanelShortcutVerboseLoggingEnabled()
-        {
-            return _commandPanelShortcutVerboseLoggingEnabledProvider != null &&
-                _commandPanelShortcutVerboseLoggingEnabledProvider();
-        }
-
-        private void LogCommandPanelShortcutDiagnostic(string message)
-        {
-            if (!IsCommandPanelShortcutVerboseLoggingEnabled())
-            {
-                return;
-            }
-
-            LogGamepadShortcutState("Command panel shortcut diagnostic. " + message);
-        }
-
-        private void LogCommandPanelShortcutState(bool keyboardTogglePressed, bool controllerTogglePressed)
-        {
-            if (!IsCommandPanelShortcutVerboseLoggingEnabled())
-            {
-                _hasLoggedCommandPanelShortcutState = false;
-                return;
-            }
-
-            KeyCode toggleKey = GetToggleKey();
-            bool keyboardToggleHeld = Input.GetKey(toggleKey);
-            GameManager gameManager = GameManager.Instance;
-            string gameType = (object)gameManager != null ? gameManager.CurrentGameType.ToString() : "<null>";
-            string primaryPlayer = (object)gameManager != null ? DescribeCommandPanelShortcutPlayer(gameManager.PrimaryPlayer) : "<none>";
-            string secondaryPlayer = (object)gameManager != null ? DescribeCommandPanelShortcutPlayer(gameManager.SecondaryPlayer) : "<none>";
-            bool stateChanged = !_hasLoggedCommandPanelShortcutState ||
-                _lastLoggedCommandPanelKeyboardHeld != keyboardToggleHeld ||
-                _lastLoggedCommandPanelKeyboardDown != keyboardTogglePressed ||
-                _lastLoggedCommandPanelControllerDetected != controllerTogglePressed ||
-                _lastLoggedCommandPanelVisible != _isVisible;
-            if (!stateChanged)
-            {
-                return;
-            }
-
-            LogGamepadShortcutState(
-                "Command panel shortcut sample. " +
-                "ToggleKey=" + toggleKey +
-                ", KeyboardHeld=" + keyboardToggleHeld +
-                ", KeyboardDown=" + keyboardTogglePressed +
-                ", ControllerDetected=" + controllerTogglePressed +
-                ", ControllerShortcutEnabled=" + IsControllerShortcutEnabled() +
-                ", ConfiguredControllerShortcut=" + GetConfiguredControllerShortcut() +
-                ", Visible=" + _isVisible +
-                ", GameType=" + gameType +
-                ", P1=" + primaryPlayer +
-                ", P2=" + secondaryPlayer +
-                ".");
-
-            _hasLoggedCommandPanelShortcutState = true;
-            _lastLoggedCommandPanelKeyboardHeld = keyboardToggleHeld;
-            _lastLoggedCommandPanelKeyboardDown = keyboardTogglePressed;
-            _lastLoggedCommandPanelControllerDetected = controllerTogglePressed;
-            _lastLoggedCommandPanelVisible = _isVisible;
-        }
-
-        private static string DescribeCommandPanelShortcutPlayer(PlayerController player)
-        {
-            if ((object)player == null)
-            {
-                return "<null>";
-            }
-
-            try
-            {
-                return "Id=" + player.GetInstanceID() +
-                       ",Name=" + player.name +
-                       ",Active=" + player.gameObject.activeInHierarchy +
-                       ",InputOverridden=" + player.IsInputOverridden;
-            }
-            catch (System.Exception exception)
-            {
-                return "StateReadFailed=" + exception.GetType().Name;
-            }
-        }
-
         private void LogCommandPanelHealthDiagnostic(string message)
         {
             if (!IsCommandPanelHealthVerboseLoggingEnabled())
@@ -1856,428 +838,6 @@ namespace EtgGameplayDashboard
         private void RequestGuiFocusRelease()
         {
             _commandPanelLifecycleCoordinator.RequestGuiFocusRelease();
-        }
-
-        private void LogMapRevealTransitionDiagnostics(string phase)
-        {
-            if (!ShouldLogMapTeleportVerbose() || (!_revealMapEveryFloor && !_revealMapEnabled))
-            {
-                return;
-            }
-
-            int currentFrame = Time.frameCount;
-            string currentSceneName = GetCurrentMapFeatureActivationKey();
-            if (!string.Equals(_mapRevealDiagnosticSceneName, currentSceneName, System.StringComparison.Ordinal))
-            {
-                _mapRevealDiagnosticSceneName = currentSceneName;
-                _mapRevealDiagnosticSceneStartFrame = currentFrame;
-            }
-
-            int relativeFrame = _mapRevealDiagnosticSceneStartFrame >= 0
-                ? currentFrame - _mapRevealDiagnosticSceneStartFrame
-                : -1;
-            bool isSampleFrame = relativeFrame >= 0 &&
-                (relativeFrame <= 30 ||
-                 relativeFrame == 60 ||
-                 relativeFrame == 90 ||
-                 relativeFrame == 120 ||
-                 relativeFrame == 180 ||
-                 relativeFrame == 300);
-            bool isImportantPhase = phase.StartsWith("auto_reveal", System.StringComparison.Ordinal) ||
-                phase.StartsWith("floor_scene_changed", System.StringComparison.Ordinal);
-            if (!isSampleFrame && !isImportantPhase)
-            {
-                return;
-            }
-
-            GameManager gameManager = GameManager.Instance;
-            PlayerController player = gameManager != null ? gameManager.PrimaryPlayer : null;
-            RoomHandler currentRoom = player != null ? player.CurrentRoom : null;
-            Dungeonator.Dungeon dungeon = gameManager != null ? gameManager.Dungeon : null;
-            Minimap minimap = Minimap.HasInstance ? Minimap.Instance : null;
-            int roomCount = dungeon != null && dungeon.data != null && dungeon.data.rooms != null
-                ? dungeon.data.rooms.Count
-                : -1;
-            int minimapTeleportEntryCount = minimap != null && minimap.RoomToTeleportMap != null
-                ? minimap.RoomToTeleportMap.Count
-                : -1;
-            string playerPosition = player != null && player.transform != null
-                ? player.transform.position.ToString("F3")
-                : "<none>";
-            string currentRoomLabel = currentRoom != null ? DescribeMapDirectTeleportRoom(currentRoom) : "<none>";
-            string currentRoomState = currentRoom != null
-                ? "CanFrom=" + currentRoom.CanTeleportFromRoom() +
-                  ",CanTo=" + currentRoom.CanTeleportToRoom() +
-                  ",TeleportersActive=" + currentRoom.TeleportersActive +
-                  ",Revealed=" + currentRoom.RevealedOnMap
-                : "CanFrom=<unknown>,CanTo=<unknown>,TeleportersActive=<unknown>,Revealed=<unknown>";
-            string playerInputState = player != null ? player.CurrentInputState.ToString() : "<none>";
-            string elevatorObjectState = DescribeElevatorTransitionObjects();
-
-            LogGamepadShortcutState(
-                "Map reveal transition diagnostic. " +
-                "Phase=" + phase +
-                ", Frame=" + currentFrame +
-                ", RelativeFloorFrame=" + relativeFrame +
-                ", Time=" + Time.time.ToString("F3") +
-                ", Realtime=" + Time.realtimeSinceStartup.ToString("F3") +
-                ", UnityScene=" + GetLoadedUnitySceneName() +
-                ", LastLoadedDungeonScene=" + GetLastLoadedDungeonSceneName(gameManager) +
-                ", ActivationKey=" + currentSceneName +
-                ", RevealMapEnabled=" + _revealMapEnabled +
-                ", RevealMapEveryFloor=" + _revealMapEveryFloor +
-                ", AutoRevealScene=" + _mapFeatureRuntimeCoordinator.AutomaticRevealMapSceneName +
-                ", PlayerReady=" + ((object)player != null) +
-                ", PlayerActive=" + (player != null ? player.gameObject.activeInHierarchy.ToString() : "<unknown>") +
-                ", PlayerInputOverridden=" + (player != null ? player.IsInputOverridden.ToString() : "<unknown>") +
-                ", PlayerInputState=" + playerInputState +
-                ", PlayerPosition=" + playerPosition +
-                ", CurrentRoom=" + currentRoomLabel +
-                ", CurrentRoomState=" + currentRoomState +
-                ", DungeonReady=" + ((object)dungeon != null && dungeon.data != null) +
-                ", DungeonAllRoomsVisited=" + (dungeon != null ? dungeon.AllRoomsVisited.ToString() : "<unknown>") +
-                ", DungeonRoomCount=" + roomCount +
-                ", MinimapHasInstance=" + Minimap.HasInstance +
-                ", MinimapTeleportEntries=" + minimapTeleportEntryCount +
-                ", PlayerEverHadMap=" + (player != null ? player.EverHadMap.ToString() : "<unknown>") +
-                ", ElevatorTransitionObjects=" + elevatorObjectState +
-                ".");
-        }
-
-        private string DescribeElevatorTransitionObjects()
-        {
-            try
-            {
-                Component[] components = UnityEngine.Object.FindObjectsOfType<Component>();
-                if (components == null || components.Length == 0)
-                {
-                    return "<none>";
-                }
-
-                System.Collections.Generic.List<string> matches = new System.Collections.Generic.List<string>();
-                for (int index = 0; index < components.Length; index++)
-                {
-                    Component component = components[index];
-                    if ((object)component == null || (object)component.gameObject == null)
-                    {
-                        continue;
-                    }
-
-                    string objectName = component.gameObject.name ?? string.Empty;
-                    string componentType = component.GetType().FullName ?? component.GetType().Name;
-                    string searchableText = (objectName + " " + componentType).ToLowerInvariant();
-                    if (searchableText.IndexOf("elevator", System.StringComparison.Ordinal) < 0 &&
-                        searchableText.IndexOf("stair", System.StringComparison.Ordinal) < 0 &&
-                        searchableText.IndexOf("entrance", System.StringComparison.Ordinal) < 0)
-                    {
-                        continue;
-                    }
-
-                    string fsmState = DescribeFsmState(component);
-                    string match = objectName +
-                        "[type=" + component.GetType().Name +
-                        ",active=" + component.gameObject.activeInHierarchy +
-                        (fsmState != "<none>" ? ",fsm=" + fsmState : string.Empty) +
-                        "]";
-                    if (!matches.Contains(match))
-                    {
-                        matches.Add(match);
-                    }
-
-                    if (matches.Count >= 24)
-                    {
-                        break;
-                    }
-                }
-
-                return matches.Count > 0 ? string.Join(";", matches.ToArray()) : "<none>";
-            }
-            catch (System.Exception exception)
-            {
-                return "<scan-failed:" + exception.GetType().Name + ">";
-            }
-        }
-
-        private string DescribeFsmState(Component component)
-        {
-            if ((object)component == null)
-            {
-                return "<none>";
-            }
-
-            System.Type componentType = component.GetType();
-            string typeName = componentType.FullName ?? componentType.Name;
-            if (typeName.IndexOf("PlayMakerFSM", System.StringComparison.OrdinalIgnoreCase) < 0 &&
-                typeName.IndexOf("FSM", System.StringComparison.OrdinalIgnoreCase) < 0)
-            {
-                return "<none>";
-            }
-
-            try
-            {
-                System.Reflection.PropertyInfo activeStateProperty = componentType.GetProperty("ActiveStateName");
-                if (activeStateProperty != null)
-                {
-                    object activeState = activeStateProperty.GetValue(component, null);
-                    if (activeState != null)
-                    {
-                        return activeState.ToString();
-                    }
-                }
-
-                System.Reflection.FieldInfo fsmField = componentType.GetField("Fsm");
-                object fsm = fsmField != null ? fsmField.GetValue(component) : null;
-                if (fsm != null)
-                {
-                    System.Reflection.PropertyInfo nestedStateProperty = fsm.GetType().GetProperty("ActiveStateName");
-                    object nestedState = nestedStateProperty != null ? nestedStateProperty.GetValue(fsm, null) : null;
-                    if (nestedState != null)
-                    {
-                        return nestedState.ToString();
-                    }
-                }
-
-                return "<fsm-state-unavailable>";
-            }
-            catch (System.Exception exception)
-            {
-                return "<fsm-state-failed:" + exception.GetType().Name + ">";
-            }
-        }
-
-        private void ClearMapFeatureActivationState()
-        {
-            _mapFeatureRuntimeCoordinator.ClearActivationState();
-            ResetMapDirectTeleportDiagnostics();
-        }
-
-        private void ResetMapDirectTeleportDiagnostics()
-        {
-            _lastMapDirectTeleportRoomKey = string.Empty;
-            _nextMapDirectTeleportDebugLogAt = 0f;
-        }
-
-        private bool IsRevealMapActive()
-        {
-            return _mapFeatureRuntimeCoordinator.IsRevealMapActive();
-        }
-
-        private bool IsRevealMapEnabled()
-        {
-            return _revealMapEnabled;
-        }
-
-        private void MarkRevealMapActivatedForCurrentScene()
-        {
-            _mapFeatureRuntimeCoordinator.MarkRevealMapActivatedForCurrentScene();
-        }
-
-        private bool IsMapDirectTeleportActive()
-        {
-            return _mapFeatureRuntimeCoordinator.IsMapDirectTeleportActive();
-        }
-
-        private void MarkMapDirectTeleportActivatedForCurrentScene()
-        {
-            _mapFeatureRuntimeCoordinator.MarkMapDirectTeleportActivatedForCurrentScene();
-            ResetMapDirectTeleportDiagnostics();
-        }
-
-        private static string GetCurrentMapFeatureActivationKey()
-        {
-            GameManager gameManager = GameManager.Instance;
-            string dungeonSceneName = GetLastLoadedDungeonSceneName(gameManager);
-            if (!string.IsNullOrEmpty(dungeonSceneName) &&
-                !string.Equals(dungeonSceneName, "<unknown>", System.StringComparison.Ordinal) &&
-                !string.Equals(dungeonSceneName, "<no_game_manager>", System.StringComparison.Ordinal) &&
-                !dungeonSceneName.StartsWith("<exception:", System.StringComparison.Ordinal))
-            {
-                return dungeonSceneName;
-            }
-
-            return GetLoadedUnitySceneName();
-        }
-
-        private void LogMapDirectTeleportRoomTransitionIfNeeded()
-        {
-            if (!IsMapDirectTeleportActive() || !ShouldLogMapTeleportVerbose())
-            {
-                return;
-            }
-
-            GameManager gameManager = GameManager.Instance;
-            PlayerController player = gameManager != null ? gameManager.PrimaryPlayer : null;
-            RoomHandler currentRoom = player != null ? player.CurrentRoom : null;
-            string currentRoomKey = GetMapDirectTeleportRoomKey(currentRoom);
-            if (string.Equals(currentRoomKey, _lastMapDirectTeleportRoomKey, System.StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            _lastMapDirectTeleportRoomKey = currentRoomKey;
-            Minimap minimap = Minimap.HasInstance ? Minimap.Instance : null;
-            int minimapTeleportEntryCount = minimap != null && minimap.RoomToTeleportMap != null ? minimap.RoomToTeleportMap.Count : -1;
-            LogGamepadShortcutState(
-                "Map direct teleport room transition. " +
-                "UnityScene=" +
-                GetLoadedUnitySceneName() +
-                ", LastLoadedDungeonScene=" +
-                GetLastLoadedDungeonSceneName(gameManager) +
-                ", CurrentRoom=" +
-                DescribeMapDirectTeleportRoom(currentRoom) +
-                ", CurrentRoomCanTeleportFrom=" +
-                (currentRoom != null ? currentRoom.CanTeleportFromRoom().ToString() : "<unknown>") +
-                ", CurrentRoomCanTeleportTo=" +
-                (currentRoom != null ? currentRoom.CanTeleportToRoom().ToString() : "<unknown>") +
-                ", CurrentRoomTeleportersActive=" +
-                (currentRoom != null ? currentRoom.TeleportersActive.ToString() : "<unknown>") +
-                ", CurrentRoomRevealedOnMap=" +
-                (currentRoom != null ? currentRoom.RevealedOnMap.ToString() : "<unknown>") +
-                ", CurrentRoomMinimapTeleportRegistered=" +
-                IsMapDirectTeleportRoomRegistered(minimap, currentRoom) +
-                ", MinimapTeleportEntries=" +
-                minimapTeleportEntryCount +
-                ", ConnectedRooms=[" +
-                DescribeConnectedMapDirectTeleportRooms(currentRoom, minimap) +
-                "].");
-        }
-
-        private void LogMapDirectTeleportRuntimeStateIfNeeded()
-        {
-            if (!IsMapDirectTeleportActive() || !ShouldLogMapTeleportVerbose() || Time.unscaledTime < _nextMapDirectTeleportDebugLogAt)
-            {
-                return;
-            }
-
-            _nextMapDirectTeleportDebugLogAt = Time.unscaledTime + 1f;
-            GameManager gameManager = GameManager.Instance;
-            PlayerController player = gameManager != null ? gameManager.PrimaryPlayer : null;
-            RoomHandler currentRoom = player != null ? player.CurrentRoom : null;
-            Minimap minimap = Minimap.HasInstance ? Minimap.Instance : null;
-            string currentRoomLabel = currentRoom != null ? DescribeMapDirectTeleportRoom(currentRoom) : "<none>";
-            string currentRoomCanTeleportFrom = currentRoom != null ? currentRoom.CanTeleportFromRoom().ToString() : "<unknown>";
-            string currentRoomCanTeleportTo = currentRoom != null ? currentRoom.CanTeleportToRoom().ToString() : "<unknown>";
-            string currentRoomTeleportersActive = currentRoom != null ? currentRoom.TeleportersActive.ToString() : "<unknown>";
-            int minimapTeleportEntryCount = minimap != null && minimap.RoomToTeleportMap != null ? minimap.RoomToTeleportMap.Count : -1;
-            string lastLoadedDungeonScene = GetLastLoadedDungeonSceneName(gameManager);
-            LogGamepadShortcutState(
-                "Map direct teleport runtime sample. " +
-                "UnityScene=" +
-                GetLoadedUnitySceneName() +
-                ", LastLoadedDungeonScene=" +
-                lastLoadedDungeonScene +
-                ", ActiveSceneBinding=" +
-                _mapFeatureRuntimeCoordinator.GetMapDirectTeleportActivationSceneName() +
-                ", MinimapHasInstance=" +
-                Minimap.HasInstance +
-                ", MinimapTeleportEntries=" +
-                minimapTeleportEntryCount +
-                ", CurrentRoom=" +
-                currentRoomLabel +
-                ", CurrentRoomCanTeleportFrom=" +
-                currentRoomCanTeleportFrom +
-                ", CurrentRoomCanTeleportTo=" +
-                currentRoomCanTeleportTo +
-                ", CurrentRoomTeleportersActive=" +
-                currentRoomTeleportersActive +
-                ", PlayerReady=" +
-                ((object)player != null) +
-                ", DungeonReady=" +
-                ((object)gameManager != null && (object)gameManager.Dungeon != null && gameManager.Dungeon.data != null) +
-                ".");
-        }
-
-        private static string DescribeMapDirectTeleportRoom(RoomHandler room)
-        {
-            if ((object)room == null)
-            {
-                return "<null>";
-            }
-
-            string roomName = room.GetRoomName();
-            IntVector2 basePosition = room.area != null ? room.area.basePosition : IntVector2.Zero;
-            string category = room.area != null ? room.area.PrototypeRoomCategory.ToString() : "<unknown>";
-            return
-                (string.IsNullOrEmpty(roomName) ? "<unnamed>" : roomName) +
-                "@" +
-                basePosition.x +
-                "," +
-                basePosition.y +
-                "#" +
-                category;
-        }
-
-        private static bool IsMapDirectTeleportRoomRegistered(Minimap minimap, RoomHandler room)
-        {
-            return minimap != null &&
-                minimap.RoomToTeleportMap != null &&
-                room != null &&
-                minimap.RoomToTeleportMap.ContainsKey(room);
-        }
-
-        private static string GetMapDirectTeleportRoomKey(RoomHandler room)
-        {
-            return room != null ? DescribeMapDirectTeleportRoom(room) : "<none>";
-        }
-
-        private static string DescribeConnectedMapDirectTeleportRooms(RoomHandler room, Minimap minimap)
-        {
-            if (room == null || room.connectedRooms == null || room.connectedRooms.Count == 0)
-            {
-                return string.Empty;
-            }
-
-            System.Collections.Generic.List<string> roomLabels = new System.Collections.Generic.List<string>();
-            for (int index = 0; index < room.connectedRooms.Count; index++)
-            {
-                RoomHandler connectedRoom = room.connectedRooms[index];
-                roomLabels.Add(
-                    DescribeMapDirectTeleportRoom(connectedRoom) +
-                    "{CanTo=" +
-                    (connectedRoom != null ? connectedRoom.CanTeleportToRoom().ToString() : "<unknown>") +
-                    ", TeleActive=" +
-                    (connectedRoom != null ? connectedRoom.TeleportersActive.ToString() : "<unknown>") +
-                    ", Revealed=" +
-                    (connectedRoom != null ? connectedRoom.RevealedOnMap.ToString() : "<unknown>") +
-                    ", Registered=" +
-                    IsMapDirectTeleportRoomRegistered(minimap, connectedRoom) +
-                    "}");
-            }
-
-            return string.Join("; ", roomLabels.ToArray());
-        }
-
-        private static string GetLastLoadedDungeonSceneName(GameManager gameManager)
-        {
-            if ((object)gameManager == null)
-            {
-                return "<no_game_manager>";
-            }
-
-            try
-            {
-                GameLevelDefinition levelDefinition = gameManager.GetLastLoadedLevelDefinition();
-                if (levelDefinition == null || string.IsNullOrEmpty(levelDefinition.dungeonSceneName))
-                {
-                    return "<unknown>";
-                }
-
-                return levelDefinition.dungeonSceneName;
-            }
-            catch (System.Exception exception)
-            {
-                return "<exception:" + exception.GetType().Name + ">";
-            }
-        }
-
-        private bool ShouldLogMapTeleportVerbose()
-        {
-            return _mapTeleportVerboseLoggingEnabledProvider != null && _mapTeleportVerboseLoggingEnabledProvider();
-        }
-
-        private bool ShouldLogFloorTeleportVerbose()
-        {
-            return _floorTeleportVerboseLoggingEnabledProvider != null && _floorTeleportVerboseLoggingEnabledProvider();
         }
 
         private void ReleaseGuiFocusIfPending()

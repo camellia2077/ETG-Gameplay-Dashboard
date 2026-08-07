@@ -2,8 +2,6 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System;
-using System.Collections;
-using BepInEx;
 using EtgGameplayDashboard.Core;
 using EtgGameplayDashboard.Core.Input;
 using UnityEngine;
@@ -12,162 +10,6 @@ namespace EtgGameplayDashboard
 {
     public sealed partial class Plugin
     {
-        private void Awake()
-        {
-            GuiText.Initialize(Paths.ConfigPath);
-            BindConfiguration();
-            InitializeResolversAndProviders();
-            InitializeServices();
-            InitializeControllers();
-            InitializeRuntimeState();
-            CreateRuntimeHookRegistry();
-            LogStartupConfiguration();
-            InstallRuntimeHooks();
-            StartCoroutine(WaitForGameManagerAndSubscribe());
-        }
-
-        private void OnDestroy()
-        {
-            CommandPanelCursorRenderHooks.ClearCursorOverride();
-            ResetServices(true);
-            UninstallRuntimeHooks();
-
-            if (_sceneWatcher != null)
-            {
-                _sceneWatcher.Unsubscribe(OnNewLevelFullyLoaded);
-            }
-        }
-
-        private IEnumerator WaitForGameManagerAndSubscribe()
-        {
-            while ((object)GameManager.Instance == null)
-            {
-                yield return null;
-            }
-
-            EnsureAliasRegistryLoaded();
-            _sceneWatcher.Subscribe(GameManager.Instance, OnNewLevelFullyLoaded);
-            TryExportPickupCatalogOnce();
-            Logger.LogInfo(EtgGameplayDashboardLog.Init("GameManager startup detected. Scene watcher subscribed and GUI controller is ready."));
-            Logger.LogInfo(EtgGameplayDashboardLog.Init(NAME + " v" + VERSION + " started successfully."));
-            StartWindowForegroundMonitor();
-        }
-
-        private void ScheduleGameWindowFocusRetryAfterSceneReady()
-        {
-            if (_gameWindowFocusService == null || _hasScheduledSceneReadyWindowFocusRetry)
-            {
-                return;
-            }
-
-            // Real-world ETG startup logs showed that focusing during plugin Awake/GameManager startup
-            // was too early: Steam audio had started, but the foreground-capable ETG windows were not
-            // yet stable. We therefore schedule exactly one retry after the first playable foyer load.
-            _hasScheduledSceneReadyWindowFocusRetry = true;
-            StartCoroutine(FocusGameWindowAfterDelay(4.0f, "first_level_loaded"));
-        }
-
-        private IEnumerator FocusGameWindowAfterDelay(float delaySeconds, string reason)
-        {
-            if (delaySeconds > 0f)
-            {
-                if (IsStartupWindowFocusVerboseLoggingEnabled())
-                {
-                    Logger.LogInfo(
-                        EtgGameplayDashboardLog.Init(
-                            "Scheduling startup window focus attempt after " +
-                            delaySeconds.ToString("0.00") +
-                            " seconds. Reason=" +
-                            reason +
-                            "."));
-                }
-
-                yield return new WaitForSecondsRealtime(delaySeconds);
-            }
-
-            if (_gameWindowFocusService == null)
-            {
-                yield break;
-            }
-
-            // Keep the 1s settle delay aligned with the proven external helper timing. The successful
-            // real-machine repro path was: wait for foyer readiness, allow ETG/BepInEx windows to settle,
-            // then attempt foreground handoff.
-            yield return StartCoroutine(_gameWindowFocusService.FocusWhenReady(10f, 0.25f, 1.0f));
-        }
-
-        private void StartWindowForegroundMonitor()
-        {
-            if (_gameWindowFocusService == null || _hasStartedWindowForegroundMonitor || !IsStartupWindowFocusVerboseLoggingEnabled())
-            {
-                return;
-            }
-
-            _hasStartedWindowForegroundMonitor = true;
-            StartCoroutine(_gameWindowFocusService.LogForegroundWindowChanges(20f, 0.25f, "startup_monitor"));
-        }
-
-        private void LogBossRushHookSelfCheck(BossRushHookInstallReport report)
-        {
-            if (report == null)
-            {
-                Logger.LogWarning(EtgGameplayDashboardLog.Init("Boss Rush startup self-check did not produce a hook report."));
-                return;
-            }
-
-            Logger.LogInfo(
-                EtgGameplayDashboardLog.Init(
-                    "Boss Rush startup self-check complete. Applied hooks=" +
-                    report.AppliedCount +
-                    ", Skipped hooks=" +
-                    report.SkippedCount +
-                    "."));
-
-            if (!report.HasSkippedHooks)
-            {
-                Logger.LogInfo(EtgGameplayDashboardLog.Init("Boss Rush startup self-check passed."));
-                return;
-            }
-
-            string[] skippedHooks = report.SkippedHooks;
-            for (int i = 0; i < skippedHooks.Length; i++)
-            {
-                Logger.LogWarning(EtgGameplayDashboardLog.Init("Boss Rush startup self-check warning: " + skippedHooks[i]));
-            }
-        }
-
-        private void OnGUI()
-        {
-            CommandPanelCursorRenderHooks.LogPluginStage(
-                "Plugin.OnGUI.begin",
-                _commandController != null && _commandController.IsVisibleForDiagnostics);
-            if (_commandController != null)
-            {
-                string panelEventType = Event.current != null ? Event.current.type.ToString() : "<null>";
-                _commandController.LogPanelEndToEndHostStage("Plugin.OnGUI.begin", panelEventType);
-                PlayerController player = null;
-                GameManager gameManager = GameManager.Instance;
-                if ((object)gameManager != null)
-                {
-                    player = gameManager.PrimaryPlayer;
-                }
-
-                _commandController.OnGUI(player, Logger);
-                _commandController.LogPanelEndToEndHostStage("Plugin.OnGUI.after_command_panel", panelEventType);
-                CommandPanelCursorRenderHooks.LogPluginStage(
-                    "Plugin.OnGUI.after_command_panel",
-                    _commandController.IsVisibleForDiagnostics);
-                CommandPanelCursorRenderHooks.DrawCursorAfterPanel(_commandController.IsVisibleForDiagnostics);
-                _commandController.LogPanelEndToEndHostStage("CursorAfterPanel", panelEventType);
-                _commandController.CompletePanelEndToEndTraceOnRepaint(panelEventType);
-            }
-
-            DrawNearbyPickupTipOverlay();
-            CommandPanelCursorRenderHooks.LogPluginStage(
-                "Plugin.OnGUI.end",
-                _commandController != null && _commandController.IsVisibleForDiagnostics);
-        }
-
         private void EnsureResolvedLoadoutConfig()
         {
             if (_hasResolvedLoadoutConfig)
@@ -254,832 +96,467 @@ namespace EtgGameplayDashboard
 
         private string GetUiLanguage()
         {
-            return _uiLanguageConfig != null ? GuiText.NormalizeLanguageOverride(_uiLanguageConfig.Value) : "auto";
+            return _configuration.GetUiLanguage();
         }
 
         private void SetUiLanguage(string languageCode)
         {
-            string normalized = GuiText.NormalizeLanguageOverride(languageCode);
-            if (_uiLanguageConfig != null)
-            {
-                _uiLanguageConfig.Value = normalized;
-                Config.Save();
-            }
-
-            GuiText.SetLanguageOverride(normalized);
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel language preference changed to " + normalized + "."));
+            _configuration.SetUiLanguage(languageCode);
         }
 
         private void LogCommandInput(string message)
         {
-            if (Logger != null && !string.IsNullOrEmpty(message))
-            {
-                Logger.LogInfo(EtgGameplayDashboardLog.Command("[Input] " + message));
-            }
+            _configuration.LogCommandInput(message);
         }
 
         private KeyCode GetCommandPanelKey()
         {
-            KeyCode keyCode = ParseCommandPanelKey(GetCommandPanelKeyName());
-            return keyCode != KeyCode.None ? keyCode : KeyCode.F7;
+            return _configuration.GetCommandPanelKey();
         }
 
         private string GetCommandPanelKeyName()
         {
-            string keyName = _commandPanelKeyConfig != null ? _commandPanelKeyConfig.Value : "F7";
-            return ParseCommandPanelKey(keyName) != KeyCode.None ? keyName.Trim() : "F7";
+            return _configuration.GetCommandPanelKeyName();
         }
 
         private void SetCommandPanelKey(string keyName)
         {
-            string normalized = NormalizeCommandPanelKeyName(keyName);
-            if (_commandPanelKeyConfig != null)
-            {
-                _commandPanelKeyConfig.Value = normalized;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel keyboard toggle key changed to " + normalized + "."));
+            _configuration.SetCommandPanelKey(keyName);
         }
 
         private KeyCode GetRoomEnemyRewindKey()
         {
-            string keyName = _roomEnemyRewindKeyConfig != null ? _roomEnemyRewindKeyConfig.Value : "C";
-            KeyCode keyCode = ParseCommandPanelKey(keyName);
-            return keyCode != KeyCode.None ? keyCode : KeyCode.C;
+            return _configuration.GetRoomEnemyRewindKey();
         }
 
         private string GetCommandPanelControllerShortcut()
         {
-            return NormalizeCommandPanelControllerShortcut(_commandPanelControllerShortcutConfig != null ? _commandPanelControllerShortcutConfig.Value : "LB+R3");
+            return _configuration.GetCommandPanelControllerShortcut();
         }
 
         private void SetCommandPanelControllerShortcut(string shortcut)
         {
-            string normalized = NormalizeCommandPanelControllerShortcut(shortcut);
-            if (_commandPanelControllerShortcutConfig != null)
-            {
-                _commandPanelControllerShortcutConfig.Value = normalized;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel controller shortcut changed to " + normalized + "."));
+            _configuration.SetCommandPanelControllerShortcut(shortcut);
         }
 
         private bool IsCommandPanelControllerShortcutEnabled()
         {
-            return _disableCommandPanelControllerShortcutConfig == null ||
-                !_disableCommandPanelControllerShortcutConfig.Value;
+            return _configuration.IsCommandPanelControllerShortcutEnabled();
         }
 
         private void SetCommandPanelControllerShortcutEnabled(bool isEnabled)
         {
-            if (_disableCommandPanelControllerShortcutConfig != null)
-            {
-                _disableCommandPanelControllerShortcutConfig.Value = !isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel controller shortcut is " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetCommandPanelControllerShortcutEnabled(isEnabled);
         }
 
         private static string NormalizeCommandPanelControllerShortcut(string shortcut)
         {
-            if (string.Equals(shortcut, "LB+R3", System.StringComparison.OrdinalIgnoreCase)) return "LB+R3";
-            if (string.Equals(shortcut, "LB+X", System.StringComparison.OrdinalIgnoreCase)) return "LB+X";
-            if (string.Equals(shortcut, "LB+Y", System.StringComparison.OrdinalIgnoreCase)) return "LB+Y";
-            if (string.Equals(shortcut, "R3", System.StringComparison.OrdinalIgnoreCase)) return "R3";
-            return "LB+R3";
+            return PluginConfigurationFacade.NormalizeCommandPanelControllerShortcut(shortcut);
         }
 
         private string GetUiScalePreset()
         {
-            return NormalizeUiScalePreset(_uiScalePresetConfig != null ? _uiScalePresetConfig.Value : UiScalePresetCatalog.DefaultPreset);
+            return _configuration.GetUiScalePreset();
         }
 
         private void SetUiScalePreset(string presetName)
         {
-            string normalized = NormalizeUiScalePreset(presetName);
-            if (_uiScalePresetConfig != null)
-            {
-                _uiScalePresetConfig.Value = normalized;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel UI size preset changed to " + normalized + "."));
+            _configuration.SetUiScalePreset(presetName);
         }
 
         private string GetThemePreset()
         {
-            return DashboardThemeCatalog.Normalize(_themePresetConfig != null ? _themePresetConfig.Value : DashboardThemeCatalog.DefaultThemeId);
+            return _configuration.GetThemePreset();
         }
 
         private void SetThemePreset(string themeId)
         {
-            string normalized = DashboardThemeCatalog.Normalize(themeId);
-            if (_themePresetConfig != null)
-            {
-                _themePresetConfig.Value = normalized;
-                Config.Save();
-            }
-
-            DashboardTheme.Select(normalized);
-            if (_commandController != null)
-            {
-                _commandController.RefreshTheme();
-            }
-
-            RefreshPickupWikiTipTheme();
+            _configuration.SetThemePreset(themeId);
         }
 
         private bool IsExperimentalModeEnabled()
         {
-            return _experimentalModeConfig != null && _experimentalModeConfig.Value;
+            return _configuration.IsExperimentalModeEnabled();
         }
 
         private bool IsPlayerStatsPanelShown()
         {
-            return _showPlayerStatsPanelConfig != null && _showPlayerStatsPanelConfig.Value;
+            return _configuration.IsPlayerStatsPanelShown();
         }
 
         private PickupShortcutRegistry GetPickupShortcutRegistry()
         {
-            if (_pickupShortcutRegistry == null)
-            {
-                _pickupShortcutRegistry = PickupShortcutRegistry.Parse(
-                    _pickupShortcutsConfig != null ? _pickupShortcutsConfig.Value : string.Empty);
-            }
-
-            return _pickupShortcutRegistry;
+            return _configuration.GetPickupShortcutRegistry();
         }
 
         private void SetPickupShortcuts(string serialized)
         {
-            PickupShortcutRegistry normalizedRegistry = PickupShortcutRegistry.Parse(serialized);
-            _pickupShortcutRegistry = normalizedRegistry;
-            if (_pickupShortcutsConfig != null)
-            {
-                _pickupShortcutsConfig.Value = normalizedRegistry.Serialize();
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup keyboard shortcuts updated."));
+            _configuration.SetPickupShortcuts(serialized);
         }
 
         private bool IsCommandPanelCloseButtonShown()
         {
-            return _showCommandPanelCloseButtonConfig == null || _showCommandPanelCloseButtonConfig.Value;
+            return _configuration.IsCommandPanelCloseButtonShown();
         }
 
         private bool IsPlayerRewindEnabled()
         {
-            return _playerRewindEnabledConfig != null && _playerRewindEnabledConfig.Value;
+            return _configuration.IsPlayerRewindEnabled();
         }
 
         private bool IsRoomEnemyRefreshRecordingEnabled()
         {
-            return _roomEnemyRefreshRecordingEnabledConfig != null && _roomEnemyRefreshRecordingEnabledConfig.Value;
+            return _configuration.IsRoomEnemyRefreshRecordingEnabled();
         }
 
         private void SetRoomEnemyRefreshRecordingEnabled(bool isEnabled)
         {
-            if (_roomEnemyRefreshRecordingEnabledConfig != null)
-            {
-                _roomEnemyRefreshRecordingEnabledConfig.Value = isEnabled;
-                Config.Save();
-                Logger.LogInfo(EtgGameplayDashboardLog.Command("Room enemy refresh recording is " + (isEnabled ? "enabled" : "disabled") + "."));
-            }
+            _configuration.SetRoomEnemyRefreshRecordingEnabled(isEnabled);
         }
 
         private string GetRoomEnemyRefreshMethod()
         {
-            return NormalizeRoomEnemyRefreshMethod(_roomEnemyRefreshMethodConfig != null ? _roomEnemyRefreshMethodConfig.Value : "rewind");
+            return _configuration.GetRoomEnemyRefreshMethod();
         }
 
         private void SetRoomEnemyRefreshMethod(string method)
         {
-            string normalized = NormalizeRoomEnemyRefreshMethod(method);
-            if (_roomEnemyRefreshMethodConfig != null)
-            {
-                _roomEnemyRefreshMethodConfig.Value = normalized;
-                Config.Save();
-                Logger.LogInfo(EtgGameplayDashboardLog.Command("Room enemy refresh method changed to " + normalized + "."));
-            }
+            _configuration.SetRoomEnemyRefreshMethod(method);
         }
 
         private static string NormalizeRoomEnemyRefreshMethod(string method)
         {
-            return string.Equals(method, "respawn", StringComparison.OrdinalIgnoreCase) ? "respawn" : "rewind";
+            return PluginConfigurationFacade.NormalizeRoomEnemyRefreshMethod(method);
         }
 
         private void SetPlayerRewindEnabled(bool isEnabled)
         {
-            if (_playerRewindEnabledConfig != null)
-            {
-                _playerRewindEnabledConfig.Value = isEnabled;
-                Config.Save();
-                Logger.LogInfo(EtgGameplayDashboardLog.Command("Player rewind is " + (isEnabled ? "enabled" : "disabled") + "."));
-            }
+            _configuration.SetPlayerRewindEnabled(isEnabled);
         }
 
         private bool IsRoomRewindCleanupEnabled()
         {
-            return _roomRewindCleanupEnabledConfig != null && _roomRewindCleanupEnabledConfig.Value;
+            return _configuration.IsRoomRewindCleanupEnabled();
         }
 
         private void SetRoomRewindCleanupEnabled(bool isEnabled)
         {
-            if (_roomRewindCleanupEnabledConfig != null)
-            {
-                _roomRewindCleanupEnabledConfig.Value = isEnabled;
-                Config.Save();
-                Logger.LogInfo(EtgGameplayDashboardLog.Command("Room rewind cleanup is " + (isEnabled ? "enabled" : "disabled") + "."));
-            }
+            _configuration.SetRoomRewindCleanupEnabled(isEnabled);
         }
 
         private bool IsStartItemsPresetIconsEnabled()
         {
-            return _showStartItemsPresetIconsConfig != null && _showStartItemsPresetIconsConfig.Value;
+            return _configuration.IsStartItemsPresetIconsEnabled();
         }
 
         private bool IsPickupInfoOverlayEnabled()
         {
-            return _showPickupInfoOverlayConfig == null || _showPickupInfoOverlayConfig.Value;
+            return _configuration.IsPickupInfoOverlayEnabled();
         }
 
         private bool IsPickupInfoQualityEnabled()
         {
-            return _showPickupInfoQualityConfig == null || _showPickupInfoQualityConfig.Value;
+            return _configuration.IsPickupInfoQualityEnabled();
         }
 
         private bool IsPickupInfoTypeEnabled()
         {
-            return _showPickupInfoTypeConfig == null || _showPickupInfoTypeConfig.Value;
+            return _configuration.IsPickupInfoTypeEnabled();
         }
 
         private bool IsPickupInfoEffectsEnabled()
         {
-            return _showPickupInfoEffectsConfig == null || _showPickupInfoEffectsConfig.Value;
+            return _configuration.IsPickupInfoEffectsEnabled();
         }
 
         private bool IsPickupInfoSynergiesEnabled()
         {
-            return _showPickupInfoSynergiesConfig == null || _showPickupInfoSynergiesConfig.Value;
+            return _configuration.IsPickupInfoSynergiesEnabled();
         }
 
         private bool IsPickupInfoSummaryEnabled()
         {
-            return _showPickupInfoSummaryConfig == null || _showPickupInfoSummaryConfig.Value;
+            return _configuration.IsPickupInfoSummaryEnabled();
         }
 
         private bool IsPickupInfoNotesEnabled()
         {
-            return _showPickupInfoNotesConfig == null || _showPickupInfoNotesConfig.Value;
+            return _configuration.IsPickupInfoNotesEnabled();
         }
 
         private void SetPlayerStatsPanelShown(bool isEnabled)
         {
-            if (_showPlayerStatsPanelConfig != null)
-            {
-                _showPlayerStatsPanelConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Player stats side panel " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetPlayerStatsPanelShown(isEnabled);
         }
 
         private void SetCommandPanelCloseButtonShown(bool isEnabled)
         {
-            if (_showCommandPanelCloseButtonConfig != null)
-            {
-                _showCommandPanelCloseButtonConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel close button " + (isEnabled ? "shown" : "hidden") + "."));
+            _configuration.SetCommandPanelCloseButtonShown(isEnabled);
         }
 
         private bool IsRevealMapEveryFloor()
         {
-            return _revealMapEveryFloorConfig != null && _revealMapEveryFloorConfig.Value;
+            return _configuration.IsRevealMapEveryFloor();
         }
 
         private void SetRevealMapEveryFloor(bool isEnabled)
         {
-            if (_revealMapEveryFloorConfig != null)
-            {
-                _revealMapEveryFloorConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Reveal Map every-floor mode " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetRevealMapEveryFloor(isEnabled);
         }
 
         private void SetStartItemsPresetIconsEnabled(bool isEnabled)
         {
-            if (_showStartItemsPresetIconsConfig != null)
-            {
-                _showStartItemsPresetIconsConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Start Items preset icons " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetStartItemsPresetIconsEnabled(isEnabled);
         }
 
         private void SetPickupInfoOverlayEnabled(bool isEnabled)
         {
-            if (_showPickupInfoOverlayConfig != null)
-            {
-                _showPickupInfoOverlayConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup info overlay " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetPickupInfoOverlayEnabled(isEnabled);
         }
 
         private void SetPickupInfoQualityEnabled(bool isEnabled)
         {
-            if (_showPickupInfoQualityConfig != null)
-            {
-                _showPickupInfoQualityConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup info quality section " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetPickupInfoQualityEnabled(isEnabled);
         }
 
         private void SetPickupInfoTypeEnabled(bool isEnabled)
         {
-            if (_showPickupInfoTypeConfig != null)
-            {
-                _showPickupInfoTypeConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup info type section " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetPickupInfoTypeEnabled(isEnabled);
         }
 
         private void SetPickupInfoEffectsEnabled(bool isEnabled)
         {
-            if (_showPickupInfoEffectsConfig != null)
-            {
-                _showPickupInfoEffectsConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup info effects section " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetPickupInfoEffectsEnabled(isEnabled);
         }
 
         private void SetPickupInfoSynergiesEnabled(bool isEnabled)
         {
-            if (_showPickupInfoSynergiesConfig != null)
-            {
-                _showPickupInfoSynergiesConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup info synergies section " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetPickupInfoSynergiesEnabled(isEnabled);
         }
 
         private void SetPickupInfoSummaryEnabled(bool isEnabled)
         {
-            if (_showPickupInfoSummaryConfig != null)
-            {
-                _showPickupInfoSummaryConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup info summary section " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetPickupInfoSummaryEnabled(isEnabled);
         }
 
         private void SetPickupInfoNotesEnabled(bool isEnabled)
         {
-            if (_showPickupInfoNotesConfig != null)
-            {
-                _showPickupInfoNotesConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup info notes section " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetPickupInfoNotesEnabled(isEnabled);
         }
 
         private void SetExperimentalModeEnabled(bool isEnabled)
         {
-            if (_experimentalModeConfig != null)
-            {
-                _experimentalModeConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel experimental mode " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetExperimentalModeEnabled(isEnabled);
         }
 
         private bool IsAmmonomiconFastOpenEnabled()
         {
-            if (_ammonomiconFastOpenToggleService != null)
-            {
-                return AmmonomiconFastOpenToggleService.IsFastOpenEnabled;
-            }
-
-            return _ammonomiconFastOpenEnabledConfig != null && _ammonomiconFastOpenEnabledConfig.Value;
+            return _configuration.IsAmmonomiconFastOpenEnabled();
         }
 
         private void SetAmmonomiconFastOpenEnabled(bool isEnabled)
         {
-            if (_ammonomiconFastOpenEnabledConfig != null)
-            {
-                _ammonomiconFastOpenEnabledConfig.Value = isEnabled;
-                Config.Save();
-            }
-
-            if (_ammonomiconFastOpenToggleService != null &&
-                AmmonomiconFastOpenToggleService.IsFastOpenEnabled != isEnabled)
-            {
-                _ammonomiconFastOpenToggleService.SetIsFastOpenEnabled(isEnabled);
-            }
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Ammonomicon fast open " + (isEnabled ? "enabled" : "disabled") + "."));
+            _configuration.SetAmmonomiconFastOpenEnabled(isEnabled);
         }
 
         private bool IsMapTeleportVerboseLoggingEnabled()
         {
-            return _mapTeleportVerboseLogsConfig != null && _mapTeleportVerboseLogsConfig.Value;
+            return _configuration.IsMapTeleportVerboseLoggingEnabled();
         }
 
         private bool IsMuncherVerboseLoggingEnabled()
         {
-            return _muncherVerboseLogsConfig != null && _muncherVerboseLogsConfig.Value;
+            return _configuration.IsMuncherVerboseLoggingEnabled();
         }
 
         private bool IsRoomEnemyReplayVerboseLoggingEnabled()
         {
-            return _roomEnemyReplayVerboseLogsConfig != null && _roomEnemyReplayVerboseLogsConfig.Value;
+            return _configuration.IsRoomEnemyReplayVerboseLoggingEnabled();
         }
 
         private bool IsBossIntroSkipVerboseLoggingEnabled()
         {
-            return _bossIntroSkipVerboseLogsConfig != null && _bossIntroSkipVerboseLogsConfig.Value;
+            return _configuration.IsBossIntroSkipVerboseLoggingEnabled();
         }
 
         private bool IsFloorTeleportVerboseLoggingEnabled()
         {
-            return _floorTeleportVerboseLogsConfig != null && _floorTeleportVerboseLogsConfig.Value;
+            return _configuration.IsFloorTeleportVerboseLoggingEnabled();
         }
 
         private bool IsBossRushVerboseLoggingEnabled()
         {
-            return _bossRushVerboseLogsConfig != null && _bossRushVerboseLogsConfig.Value;
+            return _configuration.IsBossRushVerboseLoggingEnabled();
         }
 
         private bool IsBossSelectionVerboseLoggingEnabled()
         {
-            // Keep diagnostics code-only so BepInEx does not recreate the old
-            // [Debug] config entry and its comments in generated config files.
-            return false;
+            return _configuration.IsBossSelectionVerboseLoggingEnabled();
         }
 
         private bool IsCommandPanelHealthVerboseLoggingEnabled()
         {
-            return _commandPanelHealthVerboseLogsConfig != null && _commandPanelHealthVerboseLogsConfig.Value;
+            return _configuration.IsCommandPanelHealthVerboseLoggingEnabled();
         }
 
         private bool IsCommandPanelCursorVerboseLoggingEnabled()
         {
-            return _commandPanelCursorVerboseLogsConfig != null && _commandPanelCursorVerboseLogsConfig.Value;
+            return _configuration.IsCommandPanelCursorVerboseLoggingEnabled();
         }
 
         private bool IsCommandPanelGameplayInputVerboseLoggingEnabled()
         {
-            return _commandPanelGameplayInputVerboseLogsConfig != null && _commandPanelGameplayInputVerboseLogsConfig.Value;
+            return _configuration.IsCommandPanelGameplayInputVerboseLoggingEnabled();
         }
 
         private bool IsCommandPanelControllerGameplayInputVerboseLoggingEnabled()
         {
-            return _commandPanelControllerGameplayInputVerboseLogsConfig != null && _commandPanelControllerGameplayInputVerboseLogsConfig.Value;
+            return _configuration.IsCommandPanelControllerGameplayInputVerboseLoggingEnabled();
         }
 
         private bool IsCommandPanelShortcutVerboseLoggingEnabled()
         {
-            return _commandPanelShortcutVerboseLogsConfig != null && _commandPanelShortcutVerboseLogsConfig.Value;
+            return _configuration.IsCommandPanelShortcutVerboseLoggingEnabled();
         }
 
         private bool IsCommandPanelCursorRenderVerboseLoggingEnabled()
         {
-            return _commandPanelCursorRenderVerboseLogsConfig != null && _commandPanelCursorRenderVerboseLogsConfig.Value;
+            return _configuration.IsCommandPanelCursorRenderVerboseLoggingEnabled();
         }
 
         private bool IsControllerAimVerboseLoggingEnabled()
         {
-            return _controllerAimVerboseLogsConfig != null && _controllerAimVerboseLogsConfig.Value;
+            return _configuration.IsControllerAimVerboseLoggingEnabled();
         }
 
         private bool IsCommandPanelCursorRenderProbeEnabled()
         {
-            return _commandPanelCursorRenderProbeConfig != null && _commandPanelCursorRenderProbeConfig.Value;
+            return _configuration.IsCommandPanelCursorRenderProbeEnabled();
         }
 
         private bool IsCommandPanelCursorAbovePanelEnabled()
         {
-            return _enableCommandPanelCursorAbovePanelConfig != null && _enableCommandPanelCursorAbovePanelConfig.Value;
+            return _configuration.IsCommandPanelCursorAbovePanelEnabled();
         }
 
         private bool IsActiveItemGrantVerboseLoggingEnabled()
         {
-            return _activeItemGrantVerboseLogsConfig != null && _activeItemGrantVerboseLogsConfig.Value;
+            return _configuration.IsActiveItemGrantVerboseLoggingEnabled();
         }
 
         private bool IsNearbyPickupVerboseLoggingEnabled()
         {
-            return _nearbyPickupVerboseLogsConfig != null && _nearbyPickupVerboseLogsConfig.Value;
+            return _configuration.IsNearbyPickupVerboseLoggingEnabled();
         }
 
         private bool IsStartupWindowFocusVerboseLoggingEnabled()
         {
-            return _startupWindowFocusVerboseLogsConfig != null && _startupWindowFocusVerboseLogsConfig.Value;
+            return _configuration.IsStartupWindowFocusVerboseLoggingEnabled();
         }
 
         private bool IsPerformanceVerboseLoggingEnabled()
         {
-            return _performanceVerboseLogsConfig != null && _performanceVerboseLogsConfig.Value;
+            return _configuration.IsPerformanceVerboseLoggingEnabled();
         }
 
         private bool IsCharacterSwitchVerboseLoggingEnabled()
         {
-            return _characterSwitchVerboseLogsConfig != null && _characterSwitchVerboseLogsConfig.Value;
+            return _configuration.IsCharacterSwitchVerboseLoggingEnabled();
         }
 
         private bool IsDamageDiagnosticsVerboseLoggingEnabled()
         {
-            return _damageDiagnosticsVerboseLogsConfig != null && _damageDiagnosticsVerboseLogsConfig.Value;
+            return _configuration.IsDamageDiagnosticsVerboseLoggingEnabled();
         }
 
         private string NormalizeUiScalePreset(string presetName)
         {
-            string normalized = UiScalePresetCatalog.Normalize(presetName);
-            if (string.Equals(normalized, presetName, System.StringComparison.OrdinalIgnoreCase))
-            {
-                return normalized;
-            }
-
-            Logger.LogWarning(EtgGameplayDashboardLog.Init("Invalid command panel UI size preset '" + presetName + "'. Falling back to " + UiScalePresetCatalog.DefaultPreset + "."));
-            return normalized;
+            return _configuration.NormalizeUiScalePreset(presetName);
         }
 
         private string NormalizeCommandPanelKeyName(string keyName)
         {
-            string normalized = string.IsNullOrEmpty(keyName) ? "F7" : keyName.Trim();
-            if (ParseCommandPanelKey(normalized) != KeyCode.None)
-            {
-                return normalized;
-            }
-
-            Logger.LogWarning(EtgGameplayDashboardLog.Init("Invalid command panel keyboard key '" + normalized + "'. Falling back to F7."));
-            return "F7";
+            return _configuration.NormalizeCommandPanelKeyName(keyName);
         }
-
 
         private static KeyCode ParseCommandPanelKey(string keyName)
         {
-            if (string.IsNullOrEmpty(keyName))
-            {
-                return KeyCode.F7;
-            }
-
-            try
-            {
-                object parsed = System.Enum.Parse(typeof(KeyCode), keyName.Trim(), true);
-                if (!(parsed is KeyCode) || !System.Enum.IsDefined(typeof(KeyCode), parsed))
-                {
-                    return KeyCode.None;
-                }
-
-                return (KeyCode)parsed;
-            }
-            catch (System.ArgumentException)
-            {
-                return KeyCode.None;
-            }
+            return PluginConfigurationFacade.ParseCommandPanelKey(keyName);
         }
 
         private string GetActiveStartItemsPreset()
         {
-            return _activeStartItemsPresetConfig != null
-                ? StartItemsPresetNames.NormalizePresetId(_activeStartItemsPresetConfig.Value)
-                : StartItemsPresetNames.DefaultPresetId;
+            return _configuration.GetActiveStartItemsPreset();
         }
 
         private void SetActiveStartItemsPreset(string presetName)
         {
-            string normalized = StartItemsPresetNames.NormalizePresetId(presetName);
-
-            if (_activeStartItemsPresetConfig != null)
-            {
-                _activeStartItemsPresetConfig.Value = normalized;
-                Config.Save();
-            }
-
-            if (_ruleFileProvider != null)
-            {
-                _ruleFileProvider.ActivePresetName = normalized;
-            }
-
-            InvalidateResolvedLoadoutConfig();
-            Logger.LogInfo(EtgGameplayDashboardLog.Command("Active start-items preset changed to " + normalized + "."));
+            _configuration.SetActiveStartItemsPreset(presetName);
         }
 
         private string NormalizeRoomEnemyRewindKeyName(string keyName)
         {
-            string normalized = string.IsNullOrEmpty(keyName) ? "C" : keyName.Trim();
-            if (ParseCommandPanelKey(normalized) != KeyCode.None)
-            {
-                return normalized;
-            }
-
-            Logger.LogWarning(EtgGameplayDashboardLog.Init("Invalid room enemy rewind keyboard key '" + normalized + "'. Falling back to C."));
-            return "C";
+            return _configuration.NormalizeRoomEnemyRewindKeyName(keyName);
         }
 
         private string GetCombatCursorColor()
         {
-            if (_combatCursorColorEnabledConfig == null || !_combatCursorColorEnabledConfig.Value)
-            {
-                return CombatCursorColorCatalog.DisabledId;
-            }
-
-            return _combatCursorColorPresetConfig != null
-                ? CombatCursorColorCatalog.Normalize(_combatCursorColorPresetConfig.Value)
-                : CombatCursorColorCatalog.DefaultPresetId;
+            return _configuration.GetCombatCursorColor();
         }
 
         private void PersistEnemyHealthBarsEnabled(bool enabled)
         {
-            if (_enemyHealthBarsEnabledConfig == null)
-            {
-                return;
-            }
-
-            _enemyHealthBarsEnabledConfig.Value = enabled;
-            Config.Save();
+            _configuration.PersistEnemyHealthBarsEnabled(enabled);
         }
 
         private void PersistControllerAimLockEnabled(bool enabled)
         {
-            if (_controllerAimLockEnabledConfig == null)
-            {
-                return;
-            }
-
-            _controllerAimLockEnabledConfig.Value = enabled;
-            Config.Save();
+            _configuration.PersistControllerAimLockEnabled(enabled);
         }
 
         private void PersistKeyboardAimAssistSettings(KeyboardAimAssistSettings settings)
         {
-            if (settings == null)
-            {
-                return;
-            }
-
-            bool changed = false;
-            string mode = KeyboardAimAssistSettings.GetModeConfigValue(settings.Mode);
-            if (_keyboardAimAssistModeConfig != null && _keyboardAimAssistModeConfig.Value != mode)
-            {
-                _keyboardAimAssistModeConfig.Value = mode;
-                changed = true;
-            }
-            if (_keyboardAimAssistMultiplierConfig != null &&
-                !Mathf.Approximately(_keyboardAimAssistMultiplierConfig.Value, settings.Multiplier))
-            {
-                _keyboardAimAssistMultiplierConfig.Value = settings.Multiplier;
-                changed = true;
-            }
-            if (_keyboardAimAssistEnabledConfig != null &&
-                _keyboardAimAssistEnabledConfig.Value != settings.IsEnabled)
-            {
-                _keyboardAimAssistEnabledConfig.Value = settings.IsEnabled;
-                changed = true;
-            }
-
-            if (changed)
-            {
-                Config.Save();
-            }
+            _configuration.PersistKeyboardAimAssistSettings(settings);
         }
 
         private void PersistRapidFireEnabled(bool enabled)
         {
-            if (_rapidFireEnabledConfig == null)
-            {
-                return;
-            }
-
-            _rapidFireEnabledConfig.Value = enabled;
-            Config.Save();
+            _configuration.PersistRapidFireEnabled(enabled);
         }
 
         private void PersistAutoReloadMode(AutoReloadMode mode)
         {
-            if (_autoReloadModeConfig == null)
-            {
-                return;
-            }
-
-            _autoReloadModeConfig.Value = mode.ToString();
-            Config.Save();
+            _configuration.PersistAutoReloadMode(mode);
         }
 
         private void PersistAmmoMode(AmmoMode mode)
         {
-            if (_ammoModeConfig == null)
-            {
-                return;
-            }
-
-            _ammoModeConfig.Value = mode.ToString();
-            Config.Save();
+            _configuration.PersistAmmoMode(mode);
         }
 
         private void PersistActiveItemNoCooldownEnabled(bool enabled)
         {
-            if (_activeItemNoCooldownEnabledConfig == null)
-            {
-                return;
-            }
-
-            _activeItemNoCooldownEnabledConfig.Value = enabled;
-            Config.Save();
+            _configuration.PersistActiveItemNoCooldownEnabled(enabled);
         }
 
         private static AutoReloadMode ParseAutoReloadMode(string value)
         {
-            if (string.Equals(value, "Instant", StringComparison.OrdinalIgnoreCase))
-            {
-                return AutoReloadMode.Instant;
-            }
-
-            if (string.Equals(value, "Animated", StringComparison.OrdinalIgnoreCase))
-            {
-                return AutoReloadMode.Animated;
-            }
-
-            return AutoReloadMode.Off;
+            return PluginConfigurationFacade.ParseAutoReloadMode(value);
         }
 
         private static AmmoMode ParseAmmoMode(string value)
         {
-            if (string.Equals(value, "InfiniteReserve", StringComparison.OrdinalIgnoreCase))
-            {
-                return AmmoMode.InfiniteReserve;
-            }
-
-            if (string.Equals(value, "NoConsume", StringComparison.OrdinalIgnoreCase))
-            {
-                return AmmoMode.NoConsume;
-            }
-
-            return AmmoMode.Off;
+            return PluginConfigurationFacade.ParseAmmoMode(value);
         }
 
         private Color GetCombatCursorColorValue()
         {
-            return CombatCursorColorCatalog.IsEnabled(GetCombatCursorColor())
-                ? CombatCursorColorCatalog.Get(GetCombatCursorColor()).Color
-                : Color.white;
+            return _configuration.GetCombatCursorColorValue();
         }
 
         private void SetCombatCursorColor(string colorId)
         {
-            string normalized = CombatCursorColorCatalog.Normalize(colorId);
-            if (string.Equals(normalized, CombatCursorColorCatalog.DisabledId, System.StringComparison.OrdinalIgnoreCase))
-            {
-                if (_combatCursorColorEnabledConfig != null)
-                {
-                    _combatCursorColorEnabledConfig.Value = false;
-                }
-
-                Config.Save();
-                Logger.LogInfo(EtgGameplayDashboardLog.Command("Combat cursor color disabled."));
-                return;
-            }
-
-            CombatCursorColorOption selectedOption = CombatCursorColorCatalog.Get(normalized);
-            if (_combatCursorColorPresetConfig != null)
-            {
-                _combatCursorColorPresetConfig.Value = normalized;
-            }
-
-            if (_combatCursorColorEnabledConfig != null)
-            {
-                _combatCursorColorEnabledConfig.Value = true;
-            }
-
-            Config.Save();
-
-            Logger.LogInfo(EtgGameplayDashboardLog.Command(
-                "Combat cursor color changed to " + normalized + " " + selectedOption.Hex +
-                " RGB(" + selectedOption.Color.r.ToString("F3") + "," +
-                selectedOption.Color.g.ToString("F3") + "," +
-                selectedOption.Color.b.ToString("F3") + ")."));
+            _configuration.SetCombatCursorColor(colorId);
         }
 
 

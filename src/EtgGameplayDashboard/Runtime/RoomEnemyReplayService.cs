@@ -18,7 +18,7 @@ namespace EtgGameplayDashboard
     /// recording.  Recording the result is intentional: room definitions contain random
     /// variants and probability checks, neither of which can be reconstructed after clear.
     /// </summary>
-    internal sealed class RoomEnemyReplayService
+    internal sealed partial class RoomEnemyReplayService
     {
         // Die() is called immediately before the vanilla death animation starts. Keep the
         // room unavailable long enough for the fixed Boss exit/reward transition to settle.
@@ -223,67 +223,11 @@ namespace EtgGameplayDashboard
                 ", PlayerAvailable=" + ((object)player != null) +
                 ", PlayerCurrentRoomMatches=" + ((object)player != null && player.CurrentRoom == room) +
                 ", IsLoadingLevel=" + IsLoadingLevel() + ".");
-            if (!_recordingEnabled)
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.room.rewind.recording_disabled");
-            }
-
-            if (!CanTrack(room))
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.room.refresh_enemies.failed");
-            }
-
-            string pendingBossDeath;
-            float bossDeathBlockedUntil;
-            if (TryGetBossDeathRewindCooldown(room, out bossDeathBlockedUntil))
-            {
-                LogAlways(
-                    "Rejected rewind during Boss death cooldown. Room=" + GetRoomLabel(room) +
-                    ", RemainingSeconds=" + Mathf.Max(0f, bossDeathBlockedUntil - Time.unscaledTime).ToString("F2") +
-                    ", CurrentFloor=" + GetCurrentFloor() + ".");
-                return GrantCommandExecutionResult.Localized(false, "result.room.rewind.boss_death_animation_pending");
-            }
-
-            if (TryGetPendingBossDeathAnimation(room, out pendingBossDeath))
-            {
-                LogAlways(
-                    "Rejected rewind while Boss death animation is pending. Room=" +
-                    GetRoomLabel(room) +
-                    ", PendingBoss=" + pendingBossDeath +
-                    ", CurrentFloor=" + GetCurrentFloor() + ".");
-                return GrantCommandExecutionResult.Localized(false, "result.room.rewind.boss_death_animation_pending");
-            }
-
-            if (room.HasActiveEnemies(RoomHandler.ActiveEnemyType.All))
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.room.refresh_enemies.room_not_cleared");
-            }
-
-            // A Boss can have zero active enemies for a short interval while vanilla is
-            // still processing the clear reward and door animation. Rewinding in that
-            // interval re-enters Boss generation before the room-clear state is stable.
-            if (IsBossRoom(room) && !_bossClearRewardsHandled.Contains(room))
-            {
-                LogWarning(
-                    "Rejected Boss rewind before vanilla clear reward completed. Room=" +
-                    GetRoomLabel(room) +
-                    ", RoomId=" + GetRoomInstanceId(room) +
-                    ", CurrentFloor=" + GetCurrentFloor() +
-                    ", IsSealed=" + room.IsSealed + ".");
-                return GrantCommandExecutionResult.Localized(false, "result.room.rewind.boss_clear_pending");
-            }
-
             RoomEnemyReplaySnapshot snapshot;
-            if (!_snapshots.TryGetValue(room, out snapshot) || snapshot.Waves.Count == 0)
+            GrantCommandExecutionResult validationFailure;
+            if (!TryValidateRefreshRequest(room, out snapshot, out validationFailure))
             {
-                LogWarning(
-                    "Room enemy replay snapshot lookup failed. Room=" + GetRoomLabel(room) +
-                    ", RoomId=" + GetRoomInstanceId(room) +
-                    ", CurrentFloor=" + GetCurrentFloor() +
-                    ", SnapshotCount=" + _snapshots.Count +
-                    ", IsLoadingLevel=" + IsLoadingLevel() +
-                    ", Reason=" + (snapshot == null ? "SnapshotMissing" : "SnapshotHasNoWaves") + ".");
-                return GrantCommandExecutionResult.Localized(false, "result.room.refresh_enemies.no_snapshot");
+                return validationFailure;
             }
 
             LogAlways(
@@ -292,11 +236,6 @@ namespace EtgGameplayDashboard
                 ", Waves=" + snapshot.Waves.Count +
                 ", RecordedPlayerSnapshot=" + (snapshot.Player != null) +
                 ", RecordedEnemyCount=" + RoomReplayWaveDiagnostics.CountSnapshotEnemies(snapshot) + ".");
-
-            if (!RoomReplayWaveDiagnostics.SnapshotContainsEnemies(snapshot))
-            {
-                return GrantCommandExecutionResult.Localized(false, "result.room.rewind.no_enemies");
-            }
 
             ClearRoomRewindObjects(room);
             double cleanupMilliseconds = GetElapsedMilliseconds(timingStart);
@@ -364,6 +303,91 @@ namespace EtgGameplayDashboard
             LogReplayVerification(room, 0, snapshot.Waves[0], actualWave);
             LogAlways("Started recorded room enemy replay. Spawned=" + spawned + ", " + Describe(room, snapshot));
             return GrantCommandExecutionResult.Localized(true, "result.room.refresh_enemies.success", spawned);
+        }
+
+        private bool TryValidateRefreshRequest(
+            RoomHandler room,
+            out RoomEnemyReplaySnapshot snapshot,
+            out GrantCommandExecutionResult failure)
+        {
+            snapshot = null;
+            failure = null;
+            if (!_recordingEnabled)
+            {
+                failure = GrantCommandExecutionResult.Localized(false, "result.room.rewind.recording_disabled");
+                return false;
+            }
+
+            if (!CanTrack(room))
+            {
+                failure = GrantCommandExecutionResult.Localized(false, "result.room.refresh_enemies.failed");
+                return false;
+            }
+
+            string pendingBossDeath;
+            float bossDeathBlockedUntil;
+            if (TryGetBossDeathRewindCooldown(room, out bossDeathBlockedUntil))
+            {
+                LogAlways(
+                    "Rejected rewind during Boss death cooldown. Room=" + GetRoomLabel(room) +
+                    ", RemainingSeconds=" + Mathf.Max(0f, bossDeathBlockedUntil - Time.unscaledTime).ToString("F2") +
+                    ", CurrentFloor=" + GetCurrentFloor() + ".");
+                failure = GrantCommandExecutionResult.Localized(false, "result.room.rewind.boss_death_animation_pending");
+                return false;
+            }
+
+            if (TryGetPendingBossDeathAnimation(room, out pendingBossDeath))
+            {
+                LogAlways(
+                    "Rejected rewind while Boss death animation is pending. Room=" +
+                    GetRoomLabel(room) +
+                    ", PendingBoss=" + pendingBossDeath +
+                    ", CurrentFloor=" + GetCurrentFloor() + ".");
+                failure = GrantCommandExecutionResult.Localized(false, "result.room.rewind.boss_death_animation_pending");
+                return false;
+            }
+
+            if (room.HasActiveEnemies(RoomHandler.ActiveEnemyType.All))
+            {
+                failure = GrantCommandExecutionResult.Localized(false, "result.room.refresh_enemies.room_not_cleared");
+                return false;
+            }
+
+            // A Boss can have zero active enemies for a short interval while vanilla is
+            // still processing the clear reward and door animation. Rewinding in that
+            // interval re-enters Boss generation before the room-clear state is stable.
+            if (IsBossRoom(room) && !_bossClearRewardsHandled.Contains(room))
+            {
+                LogWarning(
+                    "Rejected Boss rewind before vanilla clear reward completed. Room=" +
+                    GetRoomLabel(room) +
+                    ", RoomId=" + GetRoomInstanceId(room) +
+                    ", CurrentFloor=" + GetCurrentFloor() +
+                    ", IsSealed=" + room.IsSealed + ".");
+                failure = GrantCommandExecutionResult.Localized(false, "result.room.rewind.boss_clear_pending");
+                return false;
+            }
+
+            if (!_snapshots.TryGetValue(room, out snapshot) || snapshot.Waves.Count == 0)
+            {
+                LogWarning(
+                    "Room enemy replay snapshot lookup failed. Room=" + GetRoomLabel(room) +
+                    ", RoomId=" + GetRoomInstanceId(room) +
+                    ", CurrentFloor=" + GetCurrentFloor() +
+                    ", SnapshotCount=" + _snapshots.Count +
+                    ", IsLoadingLevel=" + IsLoadingLevel() +
+                    ", Reason=" + (snapshot == null ? "SnapshotMissing" : "SnapshotHasNoWaves") + ".");
+                failure = GrantCommandExecutionResult.Localized(false, "result.room.refresh_enemies.no_snapshot");
+                return false;
+            }
+
+            if (!RoomReplayWaveDiagnostics.SnapshotContainsEnemies(snapshot))
+            {
+                failure = GrantCommandExecutionResult.Localized(false, "result.room.rewind.no_enemies");
+                return false;
+            }
+
+            return true;
         }
 
         private void LogReplayTiming(
@@ -489,82 +513,6 @@ namespace EtgGameplayDashboard
             return snapshotCount;
         }
 
-        public void LogFloorMapTeleportState(string phase)
-        {
-            GameManager gameManager = GameManager.Instance;
-            Dungeon dungeon = gameManager != null ? gameManager.Dungeon : null;
-            List<RoomHandler> rooms = dungeon != null && dungeon.data != null ? dungeon.data.rooms : null;
-            Minimap minimap = Minimap.HasInstance ? Minimap.Instance : null;
-            Dictionary<RoomHandler, GameObject> teleportMap = minimap != null ? minimap.RoomToTeleportMap : null;
-            int teleportableRoomCount = 0;
-            int activeTeleporterCount = 0;
-            int revealedRoomCount = 0;
-            int registeredRoomCount = teleportMap != null ? teleportMap.Count : -1;
-            List<string> roomStates = new List<string>();
-
-            if (rooms != null)
-            {
-                for (int index = 0; index < rooms.Count; index++)
-                {
-                    RoomHandler room = rooms[index];
-                    if (room == null)
-                    {
-                        continue;
-                    }
-
-                    bool canTeleportTo = false;
-                    try
-                    {
-                        canTeleportTo = room.CanTeleportToRoom();
-                    }
-                    catch (Exception exception)
-                    {
-                        roomStates.Add(GetRoomLabel(room) + "{Exception=" + exception.GetType().Name + "}");
-                        continue;
-                    }
-
-                    if (canTeleportTo)
-                    {
-                        teleportableRoomCount++;
-                    }
-
-                    if (room.TeleportersActive)
-                    {
-                        activeTeleporterCount++;
-                    }
-
-                    if (room.RevealedOnMap)
-                    {
-                        revealedRoomCount++;
-                    }
-
-                    if (room.TeleportersActive || room.RevealedOnMap || (teleportMap != null && teleportMap.ContainsKey(room)))
-                    {
-                        roomStates.Add(
-                            GetRoomLabel(room) +
-                            "{CanTo=" + canTeleportTo +
-                            ",TeleActive=" + room.TeleportersActive +
-                            ",Revealed=" + room.RevealedOnMap +
-                            ",Visited=" + room.hasEverBeenVisited +
-                            ",Force=" + room.forceTeleportersActive +
-                            ",Registered=" + (teleportMap != null && teleportMap.ContainsKey(room)) + "}");
-                    }
-                }
-            }
-
-            LogAlways(
-                "Floor map teleporter state. Phase=" + (phase ?? "<unknown>") +
-                ", CurrentFloor=" + GetCurrentFloor() +
-                ", IsLoadingLevel=" + IsLoadingLevel() +
-                ", DungeonPresent=" + (dungeon != null) +
-                ", Rooms=" + (rooms != null ? rooms.Count : -1) +
-                ", MinimapPresent=" + (minimap != null) +
-                ", MinimapTeleportEntries=" + registeredRoomCount +
-                ", TeleportableRooms=" + teleportableRoomCount +
-                ", ActiveTeleporters=" + activeTeleporterCount +
-                ", RevealedRooms=" + revealedRoomCount +
-                ", RoomStates=[" + string.Join(";", roomStates.ToArray()) + "].");
-        }
 
         public void NotifyBossClearRewardHandled(RoomHandler room)
         {
@@ -664,48 +612,6 @@ namespace EtgGameplayDashboard
                 ", TargetException=" + (string.IsNullOrEmpty(targetException) ? "<none>" : targetException) + ".");
         }
 
-        private void LogRoomTeleportEligibility(RoomHandler room, string phase)
-        {
-            if ((object)room == null)
-            {
-                LogAlways(
-                    "Room map teleport eligibility. Phase=" + (phase ?? "<unknown>") +
-                    ", Room=<null>, CanTeleportFromRoom=<unknown>." );
-                return;
-            }
-
-            bool canTeleportFromRoom = false;
-            bool canTeleportToRoom = false;
-            int activeEnemiesAll = -1;
-            int activeEnemiesRoomClear = -1;
-            string exceptionText = string.Empty;
-            try
-            {
-                canTeleportFromRoom = room.CanTeleportFromRoom();
-                canTeleportToRoom = room.CanTeleportToRoom();
-                activeEnemiesAll = room.GetActiveEnemiesCount(RoomHandler.ActiveEnemyType.All);
-                activeEnemiesRoomClear = room.GetActiveEnemiesCount(RoomHandler.ActiveEnemyType.RoomClear);
-            }
-            catch (Exception exception)
-            {
-                exceptionText = exception.GetType().Name + ":" + exception.Message;
-            }
-
-            LogAlways(
-                "Room map teleport eligibility. Phase=" + (phase ?? "<unknown>") +
-                ", Room=" + GetRoomLabel(room) +
-                ", RoomId=" + GetRoomInstanceId(room) +
-                ", CurrentFloor=" + GetCurrentFloor() +
-                ", CanTeleportFromRoom=" + canTeleportFromRoom +
-                ", CanTeleportToRoom=" + canTeleportToRoom +
-                ", IsSealed=" + room.IsSealed +
-                ", TeleportersActive=" + room.TeleportersActive +
-                ", HasEverBeenVisited=" + room.hasEverBeenVisited +
-                ", ForceTeleportersActive=" + room.forceTeleportersActive +
-                ", ActiveEnemiesAll=" + activeEnemiesAll +
-                ", ActiveEnemiesRoomClear=" + activeEnemiesRoomClear +
-                ", Exception=" + (string.IsNullOrEmpty(exceptionText) ? "<none>" : exceptionText) + ".");
-        }
 
         private static bool CanTrack(RoomHandler room)
         {
@@ -823,162 +729,6 @@ namespace EtgGameplayDashboard
             return room != null && _replayingRooms.Contains(room);
         }
 
-        private void ScheduleDeferredBossSpriteMaterialDiagnostics(RoomHandler room)
-        {
-            GameManager gameManager = GameManager.Instance;
-            if ((object)gameManager != null && room != null)
-            {
-                gameManager.StartCoroutine(LogDeferredBossSpriteMaterialState(room));
-            }
-        }
-
-        private IEnumerator LogDeferredBossSpriteMaterialState(RoomHandler room)
-        {
-            int[] sampleFrames = new[] { 1, 5, 30 };
-            int currentFrame = 0;
-            for (int sampleIndex = 0; sampleIndex < sampleFrames.Length; sampleIndex++)
-            {
-                int targetFrame = sampleFrames[sampleIndex];
-                while (currentFrame < targetFrame)
-                {
-                    yield return null;
-                    currentFrame++;
-                }
-
-                if (targetFrame == 1)
-                {
-                    FinalizeReplayedBulletBrosIntro(room);
-                }
-
-                List<AIActor> activeEnemies = room != null
-                    ? room.GetActiveEnemies(RoomHandler.ActiveEnemyType.All)
-                    : null;
-                if (activeEnemies == null)
-                {
-                    yield break;
-                }
-
-                for (int index = 0; index < activeEnemies.Count; index++)
-                {
-                    AIActor enemy = activeEnemies[index];
-                    if ((object)enemy == null || enemy.healthHaver == null || !enemy.healthHaver.IsBoss)
-                    {
-                        continue;
-                    }
-
-                    _roomEnemyWaveSpawner.LogBossSpriteMaterialState(
-                        enemy,
-                        enemy.GetComponentsInChildren<tk2dSprite>(true),
-                        "AfterSpawnFrame" + targetFrame);
-                }
-            }
-        }
-
-        private void FinalizeReplayedBulletBrosIntro(RoomHandler room)
-        {
-            if (room == null)
-            {
-                return;
-            }
-
-            List<AIActor> activeEnemies = room.GetActiveEnemies(RoomHandler.ActiveEnemyType.All);
-            if (activeEnemies == null)
-            {
-                return;
-            }
-
-            for (int index = 0; index < activeEnemies.Count; index++)
-            {
-                AIActor enemy = activeEnemies[index];
-                if ((object)enemy == null || enemy.healthHaver == null || !enemy.healthHaver.IsBoss)
-                {
-                    continue;
-                }
-
-                BulletBrosIntroDoer intro = enemy.GetComponent<BulletBrosIntroDoer>();
-                if (intro == null)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    // BulletBrosIntroDoer.Update hides both paired Bosses during its
-                    // intro setup. Vanilla later calls EndIntro, but replay deliberately
-                    // skips the native intro, leaving both Bosses permanently invisible.
-                    // At this point its paired references have been initialized, so the
-                    // public vanilla cleanup method is safe and restores both actors.
-                    intro.EndIntro();
-                    LogAlways(
-                        "Finalized replayed Bullet Bros intro. Room=" +
-                        GetRoomLabel(room) +
-                        ", Enemy=" + enemy.EnemyGuid +
-                        ", Frame=1, Action=EndIntro.");
-                }
-                catch (Exception exception)
-                {
-                    LogWarning(
-                        "Failed to finalize replayed Bullet Bros intro. Room=" +
-                        GetRoomLabel(room) +
-                        ", Enemy=" + enemy.EnemyGuid +
-                        ", Exception=" + exception.GetType().Name + ":" + exception.Message + ".");
-                }
-
-                return;
-            }
-        }
-
-        private void SkipBossReplayIntro(RoomHandler room)
-        {
-            if (!IsBossRoom(room))
-            {
-                return;
-            }
-
-            List<AIActor> activeEnemies = room.GetActiveEnemies(RoomHandler.ActiveEnemyType.All);
-            int bossCount = 0;
-            if (activeEnemies != null)
-            {
-                for (int index = 0; index < activeEnemies.Count; index++)
-                {
-                    AIActor enemy = activeEnemies[index];
-                    if ((object)enemy == null || (object)enemy.healthHaver == null || !enemy.healthHaver.IsBoss)
-                    {
-                        continue;
-                    }
-
-                    bossCount++;
-                }
-            }
-
-            Log(
-                "Skipped native Boss replay intro. Room=" + GetRoomLabel(room) +
-                ", ActiveBossCount=" + bossCount +
-                ", Reason=ReplayIntroCanReenterBossSpecificCoroutine.");
-        }
-
-        private void LogReplayVerification(
-            RoomHandler room,
-            int waveIndex,
-            List<RoomEnemyReplayEntry> expectedWave,
-            List<RoomEnemyReplayEntry> actualWave)
-        {
-            bool matches = RoomReplayWaveDiagnostics.WavesMatch(expectedWave, actualWave);
-            string message =
-                "Room enemy replay verification. Room=" + GetRoomLabel(room) +
-                ", Wave=" + waveIndex +
-                ", Match=" + matches +
-                ", Expected=[" + RoomReplayWaveDiagnostics.DescribeWave(expectedWave) + "]" +
-                ", Actual=[" + RoomReplayWaveDiagnostics.DescribeWave(actualWave) + "].";
-            if (matches)
-            {
-                Log(message);
-            }
-            else
-            {
-                LogWarning(message);
-            }
-        }
 
         private static List<AIActor> CopyActiveEnemies(RoomHandler room)
         {

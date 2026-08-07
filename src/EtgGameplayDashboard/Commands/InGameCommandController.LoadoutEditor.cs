@@ -8,6 +8,11 @@ namespace EtgGameplayDashboard
 {
     internal sealed partial class InGameCommandController
     {
+        private bool DrawLoadoutButton(Rect rect, string label, string controlId, GUIStyle style)
+        {
+            return GUI.Button(rect, label, GetControllerButtonStyle(controlId, style));
+        }
+
         private void OpenLoadoutEditorPage(ManualLogSource logger)
         {
             BeginLoadoutPagePerformanceTrace("PresetList");
@@ -63,14 +68,14 @@ namespace EtgGameplayDashboard
             const float reloadConfigButtonWidth = 128f;
             Rect reloadButtonRect = new Rect(backButtonRect.x - ButtonGap - reloadConfigButtonWidth, backButtonRect.y, reloadConfigButtonWidth, 30f);
             long stageStartedAtTimestamp = BeginLoadoutPagePerformanceStage();
-            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("loadout.back", _buttonStyle)))
+            if (DrawLoadoutButton(backButtonRect, GuiText.Get("gui.common.back"), "loadout.back", _buttonStyle))
             {
                 _currentPage = PanelPage.Command;
                 _focusInputField = true;
                 return;
             }
 
-            if (GUI.Button(reloadButtonRect, GuiText.Get("gui.loadout_editor.button.reload"), GetControllerButtonStyle("loadout.preset_list.reload", _buttonStyle)))
+            if (DrawLoadoutButton(reloadButtonRect, GuiText.Get("gui.loadout_editor.button.reload"), "loadout.preset_list.reload", _buttonStyle))
             {
                 ExecuteLoadoutEditorReload(logger);
             }
@@ -92,30 +97,31 @@ namespace EtgGameplayDashboard
             Rect fillCurrentPresetButtonRect = new Rect(deletePresetButtonRect.xMax + ButtonGap, newPresetButtonRect.y, fillCurrentPresetButtonWidth, 28f);
             const float randomPresetButtonWidth = 124f;
             Rect randomPresetButtonRect = new Rect(fillCurrentPresetButtonRect.xMax + ButtonGap, newPresetButtonRect.y, randomPresetButtonWidth, 28f);
-            if (GUI.Button(newPresetButtonRect, GuiText.Get("gui.loadout_editor.button.new_preset"), GetControllerButtonStyle("loadout.preset_list.new", _buttonStyle)))
+            if (DrawLoadoutButton(newPresetButtonRect, GuiText.Get("gui.loadout_editor.button.new_preset"), "loadout.preset_list.new", _buttonStyle))
             {
                 ExecuteLoadoutEditorCreatePreset(logger);
             }
 
-            if (GUI.Button(duplicatePresetButtonRect, GuiText.Get("gui.loadout_editor.button.duplicate_preset"), GetControllerButtonStyle("loadout.preset_list.duplicate", _buttonStyle)))
+            if (DrawLoadoutButton(duplicatePresetButtonRect, GuiText.Get("gui.loadout_editor.button.duplicate_preset"), "loadout.preset_list.duplicate", _buttonStyle))
             {
                 ExecuteLoadoutEditorDuplicatePreset(logger);
             }
 
-            if (GUI.Button(deletePresetButtonRect, GuiText.Get("gui.loadout_editor.button.delete_preset"), GetControllerButtonStyle("loadout.preset_list.delete", _buttonStyle)))
+            if (DrawLoadoutButton(deletePresetButtonRect, GuiText.Get("gui.loadout_editor.button.delete_preset"), "loadout.preset_list.delete", _buttonStyle))
             {
                 ExecuteLoadoutEditorDeletePreset(logger);
             }
 
-            if (GUI.Button(fillCurrentPresetButtonRect, GuiText.Get("gui.loadout_editor.button.fill_current_preset"), GetControllerButtonStyle("loadout.preset_list.fill", _buttonStyle)))
+            if (DrawLoadoutButton(fillCurrentPresetButtonRect, GuiText.Get("gui.loadout_editor.button.fill_current_preset"), "loadout.preset_list.fill", _buttonStyle))
             {
                 ExecuteLoadoutEditorFillCurrentPreset(player, logger);
             }
 
-            if (GUI.Button(
+            if (DrawLoadoutButton(
                 randomPresetButtonRect,
                 GetLoadoutPresetRandomButtonLabel(),
-                GetControllerButtonStyle("loadout.preset_list.random", IsLoadoutPresetRandomEnabled() ? _enabledButtonStyle : _disabledToggleButtonStyle)))
+                "loadout.preset_list.random",
+                IsLoadoutPresetRandomEnabled() ? _enabledButtonStyle : _disabledToggleButtonStyle))
             {
                 ExecuteToggleLoadoutPresetRandom(logger);
             }
@@ -123,10 +129,11 @@ namespace EtgGameplayDashboard
             Rect iconToggleRowRect = new Rect(panelRect.x + 14f, panelRect.y + 102f, panelRect.width - 28f, 28f);
             const float iconToggleButtonWidth = 180f;
             bool areIconsEnabled = IsStartItemsPresetIconsEnabled();
-            if (GUI.Button(
+            if (DrawLoadoutButton(
                 new Rect(iconToggleRowRect.xMax - iconToggleButtonWidth, iconToggleRowRect.y, iconToggleButtonWidth, iconToggleRowRect.height),
                 GetStartItemsPresetIconsButtonLabel(areIconsEnabled),
-                GetControllerButtonStyle("loadout.preset_list.icons", areIconsEnabled ? _enabledButtonStyle : _disabledToggleButtonStyle)))
+                "loadout.preset_list.icons",
+                areIconsEnabled ? _enabledButtonStyle : _disabledToggleButtonStyle))
             {
                 ExecuteToggleStartItemsPresetIcons(logger);
             }
@@ -137,7 +144,7 @@ namespace EtgGameplayDashboard
             Rect renameFieldRect = new Rect(renameLabelRect.xMax + ButtonGap, renameLabelRect.y, renameButtonRect.x - renameLabelRect.xMax - (ButtonGap * 2f), 28f);
             GUI.Label(renameLabelRect, GuiText.Get("gui.loadout_editor.rename_label"), _hintStyle);
             _loadoutPresetRenameText = GUI.TextField(renameFieldRect, _loadoutPresetRenameText, 64, _textFieldStyle);
-            if (GUI.Button(renameButtonRect, GuiText.Get("gui.loadout_editor.button.rename_preset"), GetControllerButtonStyle("loadout.preset_list.rename", _buttonStyle)))
+            if (DrawLoadoutButton(renameButtonRect, GuiText.Get("gui.loadout_editor.button.rename_preset"), "loadout.preset_list.rename", _buttonStyle))
             {
                 ExecuteLoadoutEditorRenamePreset(logger);
             }
@@ -188,7 +195,7 @@ namespace EtgGameplayDashboard
             Rect addRandomPoolButtonRect = new Rect(addItemButtonRect.xMax + ButtonGap, addItemButtonRect.y, addRandomPoolButtonWidth, 28f);
             Rect addPresetPickupsButtonRect = new Rect(addRandomPoolButtonRect.xMax + ButtonGap, addItemButtonRect.y, addPresetPickupsButtonWidth, 28f);
             Rect fillCurrentPresetButtonRect = new Rect(addPresetPickupsButtonRect.xMax + ButtonGap, addItemButtonRect.y, fillCurrentPresetButtonWidth, 28f);
-            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("loadout.back", _buttonStyle)))
+            if (DrawLoadoutButton(backButtonRect, GuiText.Get("gui.common.back"), "loadout.back", _buttonStyle))
             {
                 _loadoutEditorMode = LoadoutEditorMode.PresetList;
                 _loadoutEditorFocusedControlId = "loadout.preset_list.reload";
@@ -196,28 +203,28 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            if (GUI.Button(addItemButtonRect, GuiText.Get("gui.loadout_editor.button.add_item"), GetControllerButtonStyle("loadout.preset_detail.add_item", _buttonStyle)))
+            if (DrawLoadoutButton(addItemButtonRect, GuiText.Get("gui.loadout_editor.button.add_item"), "loadout.preset_detail.add_item", _buttonStyle))
             {
                 OpenPickupAddToStartItemsPage(logger);
                 return;
             }
 
-            if (GUI.Button(addRandomPoolButtonRect, GuiText.Get("gui.loadout_editor.button.add_random_pool"), GetControllerButtonStyle("loadout.preset_detail.add_random_pool", _buttonStyle)))
+            if (DrawLoadoutButton(addRandomPoolButtonRect, GuiText.Get("gui.loadout_editor.button.add_random_pool"), "loadout.preset_detail.add_random_pool", _buttonStyle))
             {
                 ExecuteLoadoutEditorCreateRandomPool(logger);
             }
 
-            if (GUI.Button(addPresetPickupsButtonRect, GuiText.Get("gui.loadout_editor.button.pickups"), GetControllerButtonStyle("loadout.preset_detail.pickups", _buttonStyle)))
+            if (DrawLoadoutButton(addPresetPickupsButtonRect, GuiText.Get("gui.loadout_editor.button.pickups"), "loadout.preset_detail.pickups", _buttonStyle))
             {
                 OpenLoadoutPresetPickupsDetail();
             }
 
-            if (GUI.Button(fillCurrentPresetButtonRect, GuiText.Get("gui.loadout_editor.button.fill_current_preset"), GetControllerButtonStyle("loadout.preset_detail.fill", _buttonStyle)))
+            if (DrawLoadoutButton(fillCurrentPresetButtonRect, GuiText.Get("gui.loadout_editor.button.fill_current_preset"), "loadout.preset_detail.fill", _buttonStyle))
             {
                 ExecuteLoadoutEditorFillCurrentPreset(player, logger);
             }
 
-            if (GUI.Button(reloadButtonRect, GuiText.Get("gui.loadout_editor.button.reload"), GetControllerButtonStyle("loadout.preset_detail.reload", _buttonStyle)))
+            if (DrawLoadoutButton(reloadButtonRect, GuiText.Get("gui.loadout_editor.button.reload"), "loadout.preset_detail.reload", _buttonStyle))
             {
                 ExecuteLoadoutEditorReload(logger);
             }
@@ -243,7 +250,7 @@ namespace EtgGameplayDashboard
             Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             const float addItemButtonWidth = 112f;
             Rect addItemButtonRect = new Rect(backButtonRect.x - ButtonGap - addItemButtonWidth, backButtonRect.y, addItemButtonWidth, 30f);
-            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("loadout.back", _buttonStyle)))
+            if (DrawLoadoutButton(backButtonRect, GuiText.Get("gui.common.back"), "loadout.back", _buttonStyle))
             {
                 _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
                 _loadoutEditorFocusedControlId = "loadout.preset_detail.add_item";
@@ -251,7 +258,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            if (GUI.Button(addItemButtonRect, GuiText.Get("gui.loadout_editor.button.add_item"), GetControllerButtonStyle("loadout.random_pool.add_item", _buttonStyle)))
+            if (DrawLoadoutButton(addItemButtonRect, GuiText.Get("gui.loadout_editor.button.add_item"), "loadout.random_pool.add_item", _buttonStyle))
             {
                 OpenPickupAddToRandomPoolPage(logger);
                 return;
@@ -271,7 +278,7 @@ namespace EtgGameplayDashboard
             Rect renameFieldRect = new Rect(renameLabelRect.xMax + ButtonGap, renameLabelRect.y, renameButtonRect.x - renameLabelRect.xMax - (ButtonGap * 2f), 28f);
             GUI.Label(renameLabelRect, GuiText.Get("gui.loadout_editor.rename_label"), _hintStyle);
             _loadoutRandomPoolRenameText = GUI.TextField(renameFieldRect, _loadoutRandomPoolRenameText, 64, _textFieldStyle);
-            if (GUI.Button(renameButtonRect, GuiText.Get("gui.loadout_editor.button.rename_random_pool"), GetControllerButtonStyle("loadout.random_pool.rename", _buttonStyle)))
+            if (DrawLoadoutButton(renameButtonRect, GuiText.Get("gui.loadout_editor.button.rename_random_pool"), "loadout.random_pool.rename", _buttonStyle))
             {
                 ExecuteLoadoutEditorRenameRandomPool(logger);
             }
@@ -402,7 +409,7 @@ namespace EtgGameplayDashboard
             GUIStyle selectButtonStyle = IsLoadoutPresetRandomEnabled()
                 ? _pickupFilterDisabledButtonStyle
                 : isActive ? _enabledButtonStyle : _buttonStyle;
-            if (GUI.Button(selectButtonRect, GuiText.Get("gui.loadout_editor.button.select_preset"), GetControllerButtonStyle(GetLoadoutPresetSelectControlId(entry), selectButtonStyle)) &&
+            if (DrawLoadoutButton(selectButtonRect, GuiText.Get("gui.loadout_editor.button.select_preset"), GetLoadoutPresetSelectControlId(entry), selectButtonStyle) &&
                 !IsLoadoutPresetRandomEnabled())
             {
                 if (entry != null)
@@ -411,7 +418,7 @@ namespace EtgGameplayDashboard
                 }
             }
 
-            if (GUI.Button(openButtonRect, GuiText.Get("gui.loadout_editor.button.open_preset"), GetControllerButtonStyle(GetLoadoutPresetOpenControlId(entry), _buttonStyle)))
+            if (DrawLoadoutButton(openButtonRect, GuiText.Get("gui.loadout_editor.button.open_preset"), GetLoadoutPresetOpenControlId(entry), _buttonStyle))
             {
                 OpenLoadoutPresetDetail(entry, logger);
             }
@@ -599,17 +606,18 @@ namespace EtgGameplayDashboard
             GUI.Label(new Rect(textLeft, rowRect.y + 32f, textWidth, 20f), entry.SecondaryText, _pickupSecondaryTextStyle);
 
             if (hasToggleButton &&
-                GUI.Button(
+                DrawLoadoutButton(
                     toggleButtonRect,
                     entry.IsEnabled ? GuiText.Get("gui.settings.button.enable") : GuiText.Get("gui.settings.button.disable"),
-                    GetControllerButtonStyle(GetLoadoutRuleToggleControlId(entry), entry.IsEnabled ? _enabledButtonStyle : _buttonStyle)))
+                    GetLoadoutRuleToggleControlId(entry),
+                    entry.IsEnabled ? _enabledButtonStyle : _buttonStyle))
             {
                 ExecuteLoadoutEditorToggleRule(entry.Index, logger);
             }
 
             if (entry != null &&
                 entry.IsRandomPool &&
-                GUI.Button(editButtonRect, GuiText.Get("gui.loadout_editor.button.edit"), GetControllerButtonStyle(GetLoadoutRuleEditControlId(entry), _buttonStyle)))
+                DrawLoadoutButton(editButtonRect, GuiText.Get("gui.loadout_editor.button.edit"), GetLoadoutRuleEditControlId(entry), _buttonStyle))
             {
                 OpenLoadoutRandomPoolDetail(entry.Index);
             }
@@ -617,12 +625,12 @@ namespace EtgGameplayDashboard
             if (entry != null &&
                 !entry.IsRandomPool &&
                 (entry.IsPresetPickupCollection || !string.IsNullOrEmpty(entry.PickupType)) &&
-                GUI.Button(editButtonRect, GuiText.Get("gui.loadout_editor.button.edit"), GetControllerButtonStyle(GetLoadoutRuleEditControlId(entry), _buttonStyle)))
+                DrawLoadoutButton(editButtonRect, GuiText.Get("gui.loadout_editor.button.edit"), GetLoadoutRuleEditControlId(entry), _buttonStyle))
             {
                 OpenLoadoutPresetPickupsDetail();
             }
 
-            if (GUI.Button(removeButtonRect, GuiText.Get("gui.loadout_editor.button.remove"), GetControllerButtonStyle(GetLoadoutRuleRemoveControlId(entry), _buttonStyle)))
+            if (DrawLoadoutButton(removeButtonRect, GuiText.Get("gui.loadout_editor.button.remove"), GetLoadoutRuleRemoveControlId(entry), _buttonStyle))
             {
                 if (entry != null && entry.IsPresetPickupCollection)
                 {
@@ -688,7 +696,7 @@ namespace EtgGameplayDashboard
             GUI.Label(new Rect(textLeft, rowRect.y + 5f, textWidth, 20f), entry != null ? entry.PrimaryText : string.Empty, _pickupPrimaryTextStyle);
             GUI.Label(new Rect(textLeft, rowRect.y + 24f, textWidth, 18f), entry != null ? entry.SecondaryText : string.Empty, _pickupSecondaryTextStyle);
 
-            if (GUI.Button(removeButtonRect, GuiText.Get("gui.loadout_editor.button.remove"), GetControllerButtonStyle(GetLoadoutRandomPoolRemoveControlId(entry), _buttonStyle)))
+            if (DrawLoadoutButton(removeButtonRect, GuiText.Get("gui.loadout_editor.button.remove"), GetLoadoutRandomPoolRemoveControlId(entry), _buttonStyle))
             {
                 ExecuteLoadoutEditorRemoveFromRandomPool(entry != null ? entry.PoolIndex : -1, logger);
             }
@@ -1106,315 +1114,6 @@ namespace EtgGameplayDashboard
             }
         }
 
-        private ControllerFocusEntry[] GetLoadoutEditorFocusEntries()
-        {
-            if (_loadoutEditorMode == LoadoutEditorMode.PresetDetail)
-            {
-                int dynamicCount = 0;
-                for (int index = 0; index < _cachedLoadoutRuleEntries.Length; index++)
-                {
-                    dynamicCount++;
-                    if (_cachedLoadoutRuleEntries[index] != null && !_cachedLoadoutRuleEntries[index].IsPresetPickupCollection)
-                    {
-                        dynamicCount++;
-                    }
-                    if (DoesLoadoutRuleEntryHaveEditAction(_cachedLoadoutRuleEntries[index]))
-                    {
-                        dynamicCount++;
-                    }
-                }
-
-                ControllerFocusEntry[] entries = new ControllerFocusEntry[6 + dynamicCount];
-                entries[0] = new ControllerFocusEntry("loadout.back", 0, 1);
-                entries[1] = new ControllerFocusEntry("loadout.preset_detail.reload", 0, 0);
-                entries[2] = new ControllerFocusEntry("loadout.preset_detail.add_item", 1, 0);
-                entries[3] = new ControllerFocusEntry("loadout.preset_detail.add_random_pool", 1, 1);
-                entries[4] = new ControllerFocusEntry("loadout.preset_detail.pickups", 1, 2);
-                entries[5] = new ControllerFocusEntry("loadout.preset_detail.fill", 1, 3);
-                int writeIndex = 6;
-                for (int index = 0; index < _cachedLoadoutRuleEntries.Length; index++)
-                {
-                    LoadoutRuleEditorEntry entry = _cachedLoadoutRuleEntries[index];
-                    int row = 2 + index;
-                    if (entry != null && !entry.IsPresetPickupCollection)
-                    {
-                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutRuleToggleControlId(entry), row, 0);
-                    }
-
-                    if (DoesLoadoutRuleEntryHaveEditAction(entry))
-                    {
-                        int editColumn = entry != null && !entry.IsPresetPickupCollection ? 1 : 0;
-                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutRuleEditControlId(entry), row, editColumn);
-                    }
-
-                    int removeColumn = entry != null && !entry.IsPresetPickupCollection ? 2 : 1;
-                    entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutRuleRemoveControlId(entry), row, removeColumn);
-                }
-
-                return entries;
-            }
-
-            if (_loadoutEditorMode == LoadoutEditorMode.RandomPoolDetail)
-            {
-                ControllerFocusEntry[] entries = new ControllerFocusEntry[3 + _cachedLoadoutRandomPoolEntries.Length];
-                entries[0] = new ControllerFocusEntry("loadout.random_pool.add_item", 0, 0);
-                entries[1] = new ControllerFocusEntry("loadout.back", 0, 1);
-                entries[2] = new ControllerFocusEntry("loadout.random_pool.rename", 1, 0);
-                for (int index = 0; index < _cachedLoadoutRandomPoolEntries.Length; index++)
-                {
-                    entries[index + 3] = new ControllerFocusEntry(GetLoadoutRandomPoolRemoveControlId(_cachedLoadoutRandomPoolEntries[index]), 2 + index, 0);
-                }
-
-                return entries;
-            }
-
-            if (_loadoutEditorMode == LoadoutEditorMode.PresetPickupsDetail)
-            {
-                int dynamicCount = 0;
-                for (int index = 0; index < _cachedLoadoutPickupEntries.Length; index++)
-                {
-                    dynamicCount += 4;
-                    if (_cachedLoadoutPickupEntries[index] != null && _cachedLoadoutPickupEntries[index].Index == _loadoutPickupCountEditIndex)
-                    {
-                        dynamicCount++;
-                    }
-                }
-
-                ControllerFocusEntry[] entries = new ControllerFocusEntry[7 + dynamicCount];
-                entries[0] = new ControllerFocusEntry("loadout.back", 0, 0);
-                entries[1] = new ControllerFocusEntry("loadout.pickups.add_max_health", 1, 0);
-                entries[2] = new ControllerFocusEntry("loadout.pickups.add_armor", 2, 0);
-                entries[3] = new ControllerFocusEntry("loadout.pickups.add_key", 3, 0);
-                entries[4] = new ControllerFocusEntry("loadout.pickups.add_rat_key", 4, 0);
-                entries[5] = new ControllerFocusEntry("loadout.pickups.add_blank", 5, 0);
-                entries[6] = new ControllerFocusEntry("loadout.pickups.add_casings", 6, 0);
-                int writeIndex = 7;
-                for (int index = 0; index < _cachedLoadoutPickupEntries.Length; index++)
-                {
-                    LoadoutRuleEditorEntry entry = _cachedLoadoutPickupEntries[index];
-                    int row = 7 + index;
-                    entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupMinusControlId(entry), row, 0);
-                    entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupCountControlId(entry), row, 1);
-                    if (entry != null && entry.Index == _loadoutPickupCountEditIndex)
-                    {
-                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupConfirmControlId(entry), row, 2);
-                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupPlusControlId(entry), row, 3);
-                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupRemoveControlId(entry), row, 4);
-                    }
-                    else
-                    {
-                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupPlusControlId(entry), row, 2);
-                        entries[writeIndex++] = new ControllerFocusEntry(GetLoadoutPickupRemoveControlId(entry), row, 3);
-                    }
-                }
-
-                return entries;
-            }
-
-            int presetCount = _cachedLoadoutPresetEntries != null ? _cachedLoadoutPresetEntries.Length : 0;
-            bool manualPresetSelectionEnabled = !IsLoadoutPresetRandomEnabled();
-            ControllerFocusEntry[] presetListEntries = new ControllerFocusEntry[9 + (presetCount * (manualPresetSelectionEnabled ? 2 : 1))];
-            presetListEntries[0] = new ControllerFocusEntry("loadout.back", 0, 1);
-            presetListEntries[1] = new ControllerFocusEntry("loadout.preset_list.reload", 0, 0);
-            presetListEntries[2] = new ControllerFocusEntry("loadout.preset_list.new", 1, 0);
-            presetListEntries[3] = new ControllerFocusEntry("loadout.preset_list.duplicate", 1, 1);
-            presetListEntries[4] = new ControllerFocusEntry("loadout.preset_list.delete", 1, 2);
-            presetListEntries[5] = new ControllerFocusEntry("loadout.preset_list.fill", 1, 3);
-            presetListEntries[6] = new ControllerFocusEntry("loadout.preset_list.random", 1, 4);
-            presetListEntries[7] = new ControllerFocusEntry("loadout.preset_list.rename", 2, 0);
-            presetListEntries[8] = new ControllerFocusEntry("loadout.preset_list.icons", 2, 1);
-            for (int index = 0; index < presetCount; index++)
-            {
-                int baseIndex = 9 + (index * (manualPresetSelectionEnabled ? 2 : 1));
-                int presetColumn = index % LoadoutPresetColumnCount;
-                int presetRow = 3 + (index / LoadoutPresetColumnCount);
-                int focusColumn = presetColumn * 2;
-                if (manualPresetSelectionEnabled)
-                {
-                    presetListEntries[baseIndex++] = new ControllerFocusEntry(GetLoadoutPresetSelectControlId(_cachedLoadoutPresetEntries[index]), presetRow, focusColumn);
-                }
-
-                presetListEntries[baseIndex] = new ControllerFocusEntry(GetLoadoutPresetOpenControlId(_cachedLoadoutPresetEntries[index]), presetRow, focusColumn + 1);
-            }
-
-            return presetListEntries;
-        }
-
-        private void ExecuteLoadoutEditorFocusedControl(PlayerController player, ManualLogSource logger)
-        {
-            switch (_loadoutEditorFocusedControlId)
-            {
-                case "loadout.back":
-                    HandleLoadoutEditorBackNavigation();
-                    return;
-                case "loadout.preset_list.reload":
-                case "loadout.preset_detail.reload":
-                    ExecuteLoadoutEditorReload(logger);
-                    return;
-                case "loadout.preset_list.new":
-                    ExecuteLoadoutEditorCreatePreset(logger);
-                    return;
-                case "loadout.preset_list.duplicate":
-                    ExecuteLoadoutEditorDuplicatePreset(logger);
-                    return;
-                case "loadout.preset_list.delete":
-                    ExecuteLoadoutEditorDeletePreset(logger);
-                    return;
-                case "loadout.preset_list.fill":
-                case "loadout.preset_detail.fill":
-                    ExecuteLoadoutEditorFillCurrentPreset(player, logger);
-                    return;
-                case "loadout.preset_list.random":
-                    ExecuteToggleLoadoutPresetRandom(logger);
-                    return;
-                case "loadout.preset_list.rename":
-                    ExecuteLoadoutEditorRenamePreset(logger);
-                    return;
-                case "loadout.preset_list.icons":
-                    ExecuteToggleStartItemsPresetIcons(logger);
-                    return;
-                case "loadout.preset_detail.add_item":
-                    OpenPickupAddToStartItemsPage(logger);
-                    return;
-                case "loadout.preset_detail.add_random_pool":
-                    ExecuteLoadoutEditorCreateRandomPool(logger);
-                    return;
-                case "loadout.preset_detail.pickups":
-                    OpenLoadoutPresetPickupsDetail();
-                    return;
-                case "loadout.random_pool.add_item":
-                    OpenPickupAddToRandomPoolPage(logger);
-                    return;
-                case "loadout.random_pool.rename":
-                    ExecuteLoadoutEditorRenameRandomPool(logger);
-                    return;
-                case "loadout.pickups.add_key":
-                    ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.KeyType, logger);
-                    return;
-                case "loadout.pickups.add_rat_key":
-                    ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.RatKeyType, logger);
-                    return;
-                case "loadout.pickups.add_max_health":
-                    ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.MaxHealthType, logger);
-                    return;
-                case "loadout.pickups.add_armor":
-                    ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.ArmorType, logger);
-                    return;
-                case "loadout.pickups.add_blank":
-                    ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.BlankType, logger);
-                    return;
-                case "loadout.pickups.add_casings":
-                    ExecuteLoadoutEditorAddPresetPickup(StartItemPickupCatalog.CasingsType, logger);
-                    return;
-            }
-
-            for (int index = 0; index < _cachedLoadoutRuleEntries.Length; index++)
-            {
-                LoadoutRuleEditorEntry entry = _cachedLoadoutRuleEntries[index];
-                if (entry != null &&
-                    !entry.IsPresetPickupCollection &&
-                    string.Equals(_loadoutEditorFocusedControlId, GetLoadoutRuleToggleControlId(entry), System.StringComparison.Ordinal))
-                {
-                    ExecuteLoadoutEditorToggleRule(entry.Index, logger);
-                    return;
-                }
-
-                if (DoesLoadoutRuleEntryHaveEditAction(entry) &&
-                    string.Equals(_loadoutEditorFocusedControlId, GetLoadoutRuleEditControlId(entry), System.StringComparison.Ordinal))
-                {
-                    if (entry != null && entry.IsRandomPool)
-                    {
-                        OpenLoadoutRandomPoolDetail(entry.Index);
-                    }
-                    else
-                    {
-                        OpenLoadoutPresetPickupsDetail();
-                    }
-
-                    return;
-                }
-
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutRuleRemoveControlId(entry), System.StringComparison.Ordinal))
-                {
-                    if (entry != null && entry.IsPresetPickupCollection)
-                    {
-                        ExecuteLoadoutEditorClearPresetPickups(logger);
-                    }
-                    else if (entry != null && !string.IsNullOrEmpty(entry.PickupType))
-                    {
-                        ExecuteLoadoutEditorRemovePresetPickup(entry.Index, logger);
-                    }
-                    else
-                    {
-                        ExecuteLoadoutEditorRemove(entry != null ? entry.Index : -1, logger);
-                    }
-
-                    return;
-                }
-            }
-
-            for (int index = 0; index < _cachedLoadoutRandomPoolEntries.Length; index++)
-            {
-                LoadoutRandomPoolEditorEntry entry = _cachedLoadoutRandomPoolEntries[index];
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutRandomPoolRemoveControlId(entry), System.StringComparison.Ordinal))
-                {
-                    ExecuteLoadoutEditorRemoveFromRandomPool(entry != null ? entry.PoolIndex : -1, logger);
-                    return;
-                }
-            }
-
-            for (int index = 0; index < _cachedLoadoutPickupEntries.Length; index++)
-            {
-                LoadoutRuleEditorEntry entry = _cachedLoadoutPickupEntries[index];
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutPickupMinusControlId(entry), System.StringComparison.Ordinal))
-                {
-                    ExecuteLoadoutEditorChangePresetPickupCount(entry != null ? entry.Index : -1, -1, logger);
-                    return;
-                }
-
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutPickupCountControlId(entry), System.StringComparison.Ordinal))
-                {
-                    _loadoutPickupCountEditIndex = entry != null ? entry.Index : -1;
-                    _loadoutPickupCountEditText = entry != null ? entry.Count.ToString() : "1";
-                    _loadoutEditorFocusedControlId = GetLoadoutPickupConfirmControlId(entry);
-                    return;
-                }
-
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutPickupConfirmControlId(entry), System.StringComparison.Ordinal))
-                {
-                    ExecuteLoadoutEditorSetPresetPickupCount(entry != null ? entry.Index : -1, _loadoutPickupCountEditText, logger);
-                    return;
-                }
-
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutPickupPlusControlId(entry), System.StringComparison.Ordinal))
-                {
-                    ExecuteLoadoutEditorChangePresetPickupCount(entry != null ? entry.Index : -1, 1, logger);
-                    return;
-                }
-
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutPickupRemoveControlId(entry), System.StringComparison.Ordinal))
-                {
-                    ExecuteLoadoutEditorRemovePresetPickup(entry != null ? entry.Index : -1, logger);
-                    return;
-                }
-            }
-
-            for (int index = 0; index < _cachedLoadoutPresetEntries.Length; index++)
-            {
-                LoadoutPresetEditorEntry entry = _cachedLoadoutPresetEntries[index];
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutPresetSelectControlId(entry), System.StringComparison.Ordinal))
-                {
-                    ExecuteLoadoutEditorSelectPreset(entry.Id, logger);
-                    return;
-                }
-
-                if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutPresetOpenControlId(entry), System.StringComparison.Ordinal))
-                {
-                    OpenLoadoutPresetDetail(entry, logger);
-                    return;
-                }
-            }
-        }
 
         private void HandleLoadoutEditorBackNavigation()
         {

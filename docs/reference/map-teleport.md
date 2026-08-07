@@ -23,7 +23,7 @@ Start here:
   Button execution and status messaging.
 - `src/EtgGameplayDashboard/Commands/RoomDebugCommandService.cs`
   Runtime map reveal, teleporter promotion, and command logging.
-- `src/EtgGameplayDashboard/Commands/InGameCommandController.cs`
+- `src/EtgGameplayDashboard/Commands/InGameCommandController.MapDiagnostics.cs`
   Runtime sampling logs and room-transition observation while teleporter promotion is active.
 
 ## Implementation Summary

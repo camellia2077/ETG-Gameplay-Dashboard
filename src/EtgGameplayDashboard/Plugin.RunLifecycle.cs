@@ -23,12 +23,33 @@ namespace EtgGameplayDashboard
                 player = gameManager.PrimaryPlayer;
             }
 
-            if (_commandController != null)
+            UpdateCommandController();
+            UpdateRuntimeServices(player);
+
+            RecordPerformanceFrame();
+
+            if (_sceneWatcher == null || !_sceneWatcher.IsPollDue(Time.unscaledTime))
             {
-                _commandController.Update();
-                CommandPanelCursorRenderHooks.UpdateCursorOverride(_commandController.IsVisibleForDiagnostics);
+                return;
             }
 
+            _sceneWatcher.MarkPolled(Time.unscaledTime);
+            TryHandleCurrentScene("poll");
+        }
+
+        private void UpdateCommandController()
+        {
+            if (_commandController == null)
+            {
+                return;
+            }
+
+            _commandController.Update();
+            CommandPanelCursorRenderHooks.UpdateCursorOverride(_commandController.IsVisibleForDiagnostics);
+        }
+
+        private void UpdateRuntimeServices(PlayerController player)
+        {
             if (_nearbyPickupTipService != null)
             {
                 long startedAtTimestamp = BeginPerformanceSample();
@@ -132,16 +153,6 @@ namespace EtgGameplayDashboard
                 _playerActiveItemCapacityOverrideService.Update(player);
                 LogPerformanceStep("PlayerActiveItemCapacityOverrideService.Update", startedAtTimestamp);
             }
-
-            RecordPerformanceFrame();
-
-            if (_sceneWatcher == null || !_sceneWatcher.IsPollDue(Time.unscaledTime))
-            {
-                return;
-            }
-
-            _sceneWatcher.MarkPolled(Time.unscaledTime);
-            TryHandleCurrentScene("poll");
         }
         private void OnNewLevelFullyLoaded()
         {
@@ -251,6 +262,15 @@ namespace EtgGameplayDashboard
                 return;
             }
 
+            HandleGrantableSceneLifecycle(lifecycle, gameManager, player, startedAtTimestamp);
+        }
+
+        private void HandleGrantableSceneLifecycle(
+            RunLifecycleObservation lifecycle,
+            GameManager gameManager,
+            PlayerController player,
+            long startedAtTimestamp)
+        {
             if (TryProcessPendingTeleport(lifecycle, gameManager, player))
             {
                 LogPerformanceStep("TryHandleCurrentScene", startedAtTimestamp);
@@ -285,7 +305,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            if (!_enableEtgGameplayDashboardConfig.Value)
+            if (!_configuration.EnableEtgGameplayDashboardConfig.Value)
             {
                 if (lifecycle.SceneChanged)
                 {
@@ -378,72 +398,25 @@ namespace EtgGameplayDashboard
         private bool TryProcessPendingTeleport(RunLifecycleObservation lifecycle, GameManager gameManager, PlayerController player)
         {
             long startedAtTimestamp = BeginPerformanceSample();
-            if (_pendingTeleportFloor == null)
-            {
-                return false;
-            }
-
-            if (gameManager.IsFoyer)
+            if (_pendingTeleportFloor == null || gameManager.IsFoyer)
             {
                 return false;
             }
 
             if (string.IsNullOrEmpty(_pendingTeleportReadySceneName))
             {
-                if (!lifecycle.SceneChanged)
-                {
-                    return true;
-                }
-
-                _pendingTeleportReadySceneName = lifecycle.SceneName;
-                _pendingTeleportReadyFrames = 0;
-                MarkPerformanceEvent("Deferred teleport armed in " + lifecycle.SceneName);
-                LogFloorTeleportRunInfo(
-                    "Deferred teleport armed after entering bootstrap floor. Scene=" +
-                    lifecycle.SceneName +
-                    ", TargetToken=" +
-                    _pendingTeleportFloor.CommandToken +
-                    ", TargetLoadScene=" +
-                    _pendingTeleportFloor.LoadSceneName +
-                    ".");
-                return true;
+                return ArmPendingTeleport(lifecycle);
             }
 
             if (!string.Equals(_pendingTeleportReadySceneName, lifecycle.SceneName, StringComparison.Ordinal))
             {
-                LogFloorTeleportRunInfo(
-                    "Deferred teleport re-armed on new scene. PreviousScene=" +
-                    _pendingTeleportReadySceneName +
-                    ", Scene=" +
-                    lifecycle.SceneName +
-                    ", TargetToken=" +
-                    _pendingTeleportFloor.CommandToken +
-                    ".");
-                _pendingTeleportReadySceneName = lifecycle.SceneName;
-                MarkPerformanceEvent("Deferred teleport re-armed in " + lifecycle.SceneName);
-                return true;
+                return RearmPendingTeleport(lifecycle);
             }
 
             string readinessSummary;
             if (!IsDeferredTeleportReady(gameManager, player, out readinessSummary))
             {
-                if (_pendingTeleportReadyFrames != 0)
-                {
-                    LogFloorTeleportRunInfo(
-                        "Deferred teleport readiness reset. Scene=" +
-                        lifecycle.SceneName +
-                        ", ReadyFrames=" +
-                        _pendingTeleportReadyFrames +
-                        "/" +
-                        DeferredTeleportRequiredReadyFrames +
-                        ", Reason=" +
-                        readinessSummary +
-                        ".");
-                }
-
-                _pendingTeleportReadyFrames = 0;
-                LogPerformanceStep("TryProcessPendingTeleport", startedAtTimestamp);
-                return true;
+                return ResetPendingTeleportReadiness(lifecycle.SceneName, readinessSummary, startedAtTimestamp);
             }
 
             _pendingTeleportReadyFrames++;
@@ -470,6 +443,71 @@ namespace EtgGameplayDashboard
                 return true;
             }
 
+            return ExecutePendingTeleport(lifecycle, gameManager, startedAtTimestamp);
+        }
+
+        private bool ArmPendingTeleport(RunLifecycleObservation lifecycle)
+        {
+            if (!lifecycle.SceneChanged)
+            {
+                return true;
+            }
+
+            _pendingTeleportReadySceneName = lifecycle.SceneName;
+            _pendingTeleportReadyFrames = 0;
+            MarkPerformanceEvent("Deferred teleport armed in " + lifecycle.SceneName);
+            LogFloorTeleportRunInfo(
+                "Deferred teleport armed after entering bootstrap floor. Scene=" +
+                lifecycle.SceneName +
+                ", TargetToken=" +
+                _pendingTeleportFloor.CommandToken +
+                ", TargetLoadScene=" +
+                _pendingTeleportFloor.LoadSceneName +
+                ".");
+            return true;
+        }
+
+        private bool RearmPendingTeleport(RunLifecycleObservation lifecycle)
+        {
+            LogFloorTeleportRunInfo(
+                "Deferred teleport re-armed on new scene. PreviousScene=" +
+                _pendingTeleportReadySceneName +
+                ", Scene=" +
+                lifecycle.SceneName +
+                ", TargetToken=" +
+                _pendingTeleportFloor.CommandToken +
+                ".");
+            _pendingTeleportReadySceneName = lifecycle.SceneName;
+            MarkPerformanceEvent("Deferred teleport re-armed in " + lifecycle.SceneName);
+            return true;
+        }
+
+        private bool ResetPendingTeleportReadiness(string sceneName, string readinessSummary, long startedAtTimestamp)
+        {
+            if (_pendingTeleportReadyFrames != 0)
+            {
+                LogFloorTeleportRunInfo(
+                    "Deferred teleport readiness reset. Scene=" +
+                    sceneName +
+                    ", ReadyFrames=" +
+                    _pendingTeleportReadyFrames +
+                    "/" +
+                    DeferredTeleportRequiredReadyFrames +
+                    ", Reason=" +
+                    readinessSummary +
+                    ".");
+            }
+
+            _pendingTeleportReadyFrames = 0;
+            LogPerformanceStep("TryProcessPendingTeleport", startedAtTimestamp);
+            return true;
+        }
+
+        private bool ExecutePendingTeleport(
+            RunLifecycleObservation lifecycle,
+            GameManager gameManager,
+            long startedAtTimestamp)
+        {
             EtgFloorDefinition pendingFloor = _pendingTeleportFloor;
             string pendingLabelKey = _pendingTeleportLabelKey;
             string pendingCommandText = _pendingTeleportCommandText;
@@ -513,6 +551,8 @@ namespace EtgGameplayDashboard
 
             return true;
         }
+
+
 
         private void ClearPendingTeleport()
         {
@@ -662,8 +702,28 @@ namespace EtgGameplayDashboard
                     ownedPickupIds.Count +
                     ", SelectedPickupCount=" +
                     selectionResult.Selections.Length +
-                    "."));
+                     "."));
 
+            GrantSelectedPickups(player, selectionResult);
+
+            GrantConfiguredPresetPickups(player);
+            if (_loadoutPresetRandomService != null && _loadoutPresetRandomService.IsEnabled)
+            {
+                // Random mode displays the preset that will be used next, not the
+                // preset that just finished granting. Advance only after all current
+                // pickups are done, and keep this draw pending for the next run so
+                // the UI and the next actual grant remain in sync.
+                _loadoutPresetRandomService.SelectNextPreset(Logger);
+                Logger.LogInfo(EtgGameplayDashboardLog.Grant(_loadoutPresetRandomService.GetDiagnostics()));
+            }
+            LogPerformanceOperation(
+                "GrantConfiguredLoadout",
+                operationStartedAt,
+                "Scene=" + sceneName + ", SelectedPickupCount=" + selectionResult.Selections.Length + ", PresetPickupCount=" + (_activePresetPickups != null ? _activePresetPickups.Length : 0));
+        }
+
+        private void GrantSelectedPickups(PlayerController player, LoadoutSelectionResult selectionResult)
+        {
             LogSelectionWarnings(selectionResult.Warnings);
 
             for (int i = 0; i < selectionResult.Selections.Length; i++)
@@ -709,21 +769,6 @@ namespace EtgGameplayDashboard
             {
                 Logger.LogInfo(EtgGameplayDashboardLog.Grant("No pickups were selected for this run."));
             }
-
-            GrantConfiguredPresetPickups(player);
-            if (_loadoutPresetRandomService != null && _loadoutPresetRandomService.IsEnabled)
-            {
-                // Random mode displays the preset that will be used next, not the
-                // preset that just finished granting. Advance only after all current
-                // pickups are done, and keep this draw pending for the next run so
-                // the UI and the next actual grant remain in sync.
-                _loadoutPresetRandomService.SelectNextPreset(Logger);
-                Logger.LogInfo(EtgGameplayDashboardLog.Grant(_loadoutPresetRandomService.GetDiagnostics()));
-            }
-            LogPerformanceOperation(
-                "GrantConfiguredLoadout",
-                operationStartedAt,
-                "Scene=" + sceneName + ", SelectedPickupCount=" + selectionResult.Selections.Length + ", PresetPickupCount=" + (_activePresetPickups != null ? _activePresetPickups.Length : 0));
         }
 
         private void RefreshActivePresetPickupsForGrant()

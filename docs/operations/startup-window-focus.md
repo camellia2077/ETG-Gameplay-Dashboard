@@ -38,7 +38,8 @@ In practice, this means the fix is durable, and the diagnostic logs stay availab
 The startup focus logic is implemented in:
 
 - `src/EtgGameplayDashboard/Runtime/GameWindowFocusService.cs`
-- `src/EtgGameplayDashboard/Plugin.Bootstrap.cs`
+- `src/EtgGameplayDashboard/Plugin.Bootstrap.Setup.cs`
+- `src/EtgGameplayDashboard/Plugin.Lifecycle.cs`
 - `src/EtgGameplayDashboard/Plugin.RunLifecycle.cs`
 
 The final behavior is:

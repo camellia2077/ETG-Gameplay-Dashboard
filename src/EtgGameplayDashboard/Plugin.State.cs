@@ -1,7 +1,6 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
-using BepInEx.Configuration;
 using EtgGameplayDashboard.Core;
 
 namespace EtgGameplayDashboard
@@ -22,69 +21,9 @@ namespace EtgGameplayDashboard
         private readonly EtgOwnedPickupReader _ownedPickupReader = new EtgOwnedPickupReader();
         private readonly LoadoutSelectionService _selectionService = new LoadoutSelectionService();
         private readonly ISeedProvider _seedProvider = new UtcTickSeedProvider();
+        private PluginConfigurationFacade _configuration;
 
-        private ConfigEntry<bool> _enableEtgGameplayDashboardConfig;
-        private ConfigEntry<string> _uiLanguageConfig;
-        private ConfigEntry<string> _commandPanelKeyConfig;
-        private ConfigEntry<string> _roomEnemyRewindKeyConfig;
-        private ConfigEntry<string> _pickupShortcutsConfig;
-        private ConfigEntry<bool> _roomEnemyRefreshRecordingEnabledConfig;
-        private ConfigEntry<string> _roomEnemyRefreshMethodConfig;
-        private ConfigEntry<bool> _playerRewindEnabledConfig;
         private bool _roomReplayFloorTransitionObserved;
-        private ConfigEntry<bool> _roomRewindCleanupEnabledConfig;
-        private ConfigEntry<string> _commandPanelControllerShortcutConfig;
-        private ConfigEntry<bool> _disableCommandPanelControllerShortcutConfig;
-        private ConfigEntry<string> _uiScalePresetConfig;
-        private ConfigEntry<string> _themePresetConfig;
-        private ConfigEntry<bool> _showStartItemsPresetIconsConfig;
-        private ConfigEntry<bool> _showPlayerStatsPanelConfig;
-        private ConfigEntry<bool> _showCommandPanelCloseButtonConfig;
-        private ConfigEntry<bool> _revealMapEveryFloorConfig;
-        private ConfigEntry<bool> _showPickupInfoOverlayConfig;
-        private ConfigEntry<bool> _showPickupInfoQualityConfig;
-        private ConfigEntry<bool> _showPickupInfoTypeConfig;
-        private ConfigEntry<bool> _showPickupInfoEffectsConfig;
-        private ConfigEntry<bool> _showPickupInfoSynergiesConfig;
-        private ConfigEntry<bool> _showPickupInfoSummaryConfig;
-        private ConfigEntry<bool> _showPickupInfoNotesConfig;
-        private ConfigEntry<bool> _experimentalModeConfig;
-        private ConfigEntry<bool> _ammonomiconFastOpenEnabledConfig;
-        private ConfigEntry<bool> _mapTeleportVerboseLogsConfig;
-        private ConfigEntry<bool> _muncherVerboseLogsConfig;
-        private ConfigEntry<bool> _roomEnemyReplayVerboseLogsConfig;
-        private ConfigEntry<bool> _bossIntroSkipVerboseLogsConfig;
-        private ConfigEntry<bool> _floorTeleportVerboseLogsConfig;
-        private ConfigEntry<bool> _bossRushVerboseLogsConfig;
-        private ConfigEntry<bool> _commandPanelHealthVerboseLogsConfig;
-        private ConfigEntry<bool> _commandPanelCursorVerboseLogsConfig;
-        private ConfigEntry<bool> _commandPanelGameplayInputVerboseLogsConfig;
-        private ConfigEntry<bool> _commandPanelControllerGameplayInputVerboseLogsConfig;
-        private ConfigEntry<bool> _commandPanelShortcutVerboseLogsConfig;
-        private ConfigEntry<bool> _commandPanelCursorRenderVerboseLogsConfig;
-        private ConfigEntry<bool> _controllerAimVerboseLogsConfig;
-        private ConfigEntry<bool> _commandPanelCursorRenderProbeConfig;
-        private ConfigEntry<bool> _enableCommandPanelCursorAbovePanelConfig;
-        private ConfigEntry<bool> _activeItemGrantVerboseLogsConfig;
-        private ConfigEntry<bool> _nearbyPickupVerboseLogsConfig;
-        private ConfigEntry<bool> _startupWindowFocusVerboseLogsConfig;
-        private ConfigEntry<bool> _performanceVerboseLogsConfig;
-        private ConfigEntry<bool> _characterSwitchVerboseLogsConfig;
-        private ConfigEntry<bool> _damageDiagnosticsVerboseLogsConfig;
-        private ConfigEntry<string> _activeStartItemsPresetConfig;
-        private ConfigEntry<bool> _combatCursorColorEnabledConfig;
-        private ConfigEntry<string> _combatCursorColorPresetConfig;
-        private ConfigEntry<bool> _enemyHealthBarsEnabledConfig;
-        private ConfigEntry<bool> _controllerAimLockEnabledConfig;
-        private ConfigEntry<bool> _keyboardAimAssistEnabledConfig;
-        private ConfigEntry<string> _keyboardAimAssistLevelConfig;
-        private ConfigEntry<string> _keyboardAimAssistModeConfig;
-        private ConfigEntry<float> _keyboardAimAssistMultiplierConfig;
-        private ConfigEntry<bool> _rapidFireEnabledConfig;
-        private ConfigEntry<string> _autoReloadModeConfig;
-        private ConfigEntry<string> _ammoModeConfig;
-        private ConfigEntry<bool> _activeItemNoCooldownEnabledConfig;
-        private PickupShortcutRegistry _pickupShortcutRegistry;
         private LoadoutRuleDefinition[] _ruleDefinitions;
         private LoadoutConfig _resolvedLoadoutConfig;
         private LoadoutRuleFilePickupModel[] _activePresetPickups;
