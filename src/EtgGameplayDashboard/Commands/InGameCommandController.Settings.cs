@@ -487,7 +487,7 @@ namespace EtgGameplayDashboard
             return CommandPanelKeyOptions[0];
         }
 
-        private ControllerFocusEntry[] GetSettingsPageFocusEntries()
+        private static ControllerFocusEntry[] GetSettingsPageFocusEntries()
         {
             return SettingsPageFocusEntries;
         }

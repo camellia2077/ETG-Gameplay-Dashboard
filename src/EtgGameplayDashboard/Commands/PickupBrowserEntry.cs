@@ -26,7 +26,7 @@ namespace EtgGameplayDashboard
                 ? Aliases[0]
                 : (!string.IsNullOrEmpty(catalogEntry.InternalName)
                     ? catalogEntry.InternalName.ToLowerInvariant()
-                    : catalogEntry.PickupId.ToString());
+                    : catalogEntry.PickupId.ToString(System.Globalization.CultureInfo.InvariantCulture));
             CommandText = BuildCommandText(catalogEntry.Category, PreferredInput);
             MetadataLine = BuildMetadataLine(catalogEntry, Aliases, PreferredInput);
             SearchText = BuildSearchText(catalogEntry, Aliases, PreferredInput);

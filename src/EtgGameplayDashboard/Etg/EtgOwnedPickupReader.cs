@@ -10,7 +10,7 @@ namespace EtgGameplayDashboard
 {
     internal sealed class EtgOwnedPickupReader
     {
-        public HashSet<int> CollectOwnedPickupIds(PlayerController player)
+        public static HashSet<int> CollectOwnedPickupIds(PlayerController player)
         {
             HashSet<int> ownedIds = new HashSet<int>();
 

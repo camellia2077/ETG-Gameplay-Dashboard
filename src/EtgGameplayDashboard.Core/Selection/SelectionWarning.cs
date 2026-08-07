@@ -11,12 +11,12 @@ namespace EtgGameplayDashboard.Core
         {
             if (string.IsNullOrEmpty(code))
             {
-                throw new ArgumentException("A warning code is required.", "code");
+                throw new ArgumentException("A warning code is required.", nameof(code));
             }
 
             if (string.IsNullOrEmpty(message))
             {
-                throw new ArgumentException("A warning message is required.", "message");
+                throw new ArgumentException("A warning message is required.", nameof(message));
             }
 
             Category = category;

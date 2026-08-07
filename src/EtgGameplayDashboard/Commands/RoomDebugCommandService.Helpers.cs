@@ -1,10 +1,9 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
+using System.Collections.Generic;
 using BepInEx.Logging;
 using Dungeonator;
-using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -196,7 +195,7 @@ namespace EtgGameplayDashboard
             string layerName = LayerMask.LayerToName(gameObject.layer);
             if (string.IsNullOrEmpty(layerName))
             {
-                layerName = gameObject.layer.ToString();
+                layerName = gameObject.layer.ToString(System.Globalization.CultureInfo.InvariantCulture);
             }
 
             tk2dBaseSprite sprite = gameObject.GetComponentInChildren<tk2dBaseSprite>(true);
@@ -604,9 +603,9 @@ namespace EtgGameplayDashboard
                     "Boss selection options performance window. " +
                     "Calls=" + _bossSelectionOptionsCallCount +
                     ", SlowCalls(>=2ms)=" + _bossSelectionOptionsSlowCallCount +
-                    ", TotalMs=" + totalMilliseconds.ToString("0.##") +
-                    ", AverageMs=" + averageMilliseconds.ToString("0.##") +
-                    ", LastMs=" + elapsedMilliseconds.ToString("0.##") +
+                    ", TotalMs=" + totalMilliseconds.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
+                    ", AverageMs=" + averageMilliseconds.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
+                    ", LastMs=" + elapsedMilliseconds.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) +
                     ", OptionCount=" + optionCount +
                     ", TargetDungeon=" + (targetDungeon != null ? targetDungeon.name : "<null>") +
                     ", CatalogLoaded=" + (_bossNameCatalog != null) +
@@ -634,9 +633,9 @@ namespace EtgGameplayDashboard
                  string.Equals(runtimeSceneName, "foyer", System.StringComparison.OrdinalIgnoreCase));
             string message =
                 "Boss selection options " + phase +
-                ". CurrentFloor=" + ((object)gameManager != null ? gameManager.CurrentFloor.ToString() : "<null>") +
+                ". CurrentFloor=" + ((object)gameManager != null ? gameManager.CurrentFloor.ToString(System.Globalization.CultureInfo.InvariantCulture) : "<null>") +
                 ", ReflectedNextLevelIndex=" + DescribeNextLevelIndex(gameManager) +
-                ", DungeonFloorCount=" + ((object)gameManager != null && gameManager.dungeonFloors != null ? gameManager.dungeonFloors.Count.ToString() : "<null>") +
+                ", DungeonFloorCount=" + ((object)gameManager != null && gameManager.dungeonFloors != null ? gameManager.dungeonFloors.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) : "<null>") +
                 ", IsFoyer=" + isFoyer +
                 ", IsLoadingLevel=" + ((object)gameManager != null && gameManager.IsLoadingLevel) +
                 ", Scene=" + currentSceneName +
@@ -657,7 +656,7 @@ namespace EtgGameplayDashboard
             }
 
             object value = GameManagerNextLevelIndexField.GetValue(gameManager);
-            return value is int ? ((int)value).ToString() : "<null>";
+            return value is int ? ((int)value).ToString(System.Globalization.CultureInfo.InvariantCulture) : "<null>";
         }
 
         private static string DescribeBossOptions(List<RoomBossOption> options)
@@ -707,4 +706,3 @@ namespace EtgGameplayDashboard
         }
     }
 }
-

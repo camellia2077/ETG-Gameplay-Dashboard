@@ -8,7 +8,7 @@ namespace EtgGameplayDashboard
 {
     internal sealed class KeyboardAimAssistTargetSelector
     {
-        public bool TrySelectTarget(
+        public static bool TrySelectTarget(
             PlayerController player,
             Vector3 rawAimPoint,
             float assistDegrees,

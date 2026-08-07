@@ -46,7 +46,7 @@ namespace EtgGameplayDashboard
                 Logger.LogWarning(EtgGameplayDashboardLog.Init(ruleFileLoadResult.Warnings[i]));
             }
 
-            LoadoutConfigResolutionResult resolutionResult = _configResolver.Resolve(_ruleDefinitions, _aliasRegistry);
+            LoadoutConfigResolutionResult resolutionResult = EtgLoadoutConfigResolver.Resolve(_ruleDefinitions, _aliasRegistry);
             _resolvedLoadoutConfig = resolutionResult.Config;
             _hasResolvedLoadoutConfig = true;
             int resolvedRuleCount = _resolvedLoadoutConfig != null && _resolvedLoadoutConfig.Rules != null
@@ -391,7 +391,7 @@ namespace EtgGameplayDashboard
 
         private bool IsBossSelectionVerboseLoggingEnabled()
         {
-            return _configuration.IsBossSelectionVerboseLoggingEnabled();
+            return PluginConfigurationFacade.IsBossSelectionVerboseLoggingEnabled();
         }
 
         private bool IsCommandPanelHealthVerboseLoggingEnabled()
@@ -589,7 +589,7 @@ namespace EtgGameplayDashboard
 
         private bool IsSupportedGrantablePickupId(int pickupId)
         {
-            return _pickupResolver.ResolveAny(pickupId).Succeeded;
+            return EtgPickupResolver.ResolveAny(pickupId).Succeeded;
         }
     }
 }

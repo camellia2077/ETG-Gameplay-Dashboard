@@ -2,7 +2,6 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using BepInEx.Logging;
-using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
@@ -277,7 +276,7 @@ namespace EtgGameplayDashboard
                 if (string.Equals(_loadoutEditorFocusedControlId, GetLoadoutPickupCountControlId(entry), System.StringComparison.Ordinal))
                 {
                     _loadoutPickupCountEditIndex = entry != null ? entry.Index : -1;
-                    _loadoutPickupCountEditText = entry != null ? entry.Count.ToString() : "1";
+                    _loadoutPickupCountEditText = entry != null ? entry.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) : "1";
                     _loadoutEditorFocusedControlId = GetLoadoutPickupConfirmControlId(entry);
                     return;
                 }

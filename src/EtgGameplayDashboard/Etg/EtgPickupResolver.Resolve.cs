@@ -10,27 +10,27 @@ namespace EtgGameplayDashboard
 {
     internal sealed partial class EtgPickupResolver
     {
-        public EtgPickupResolveResult Resolve(PickupCategory category, string pickupName)
+        public static EtgPickupResolveResult Resolve(PickupCategory category, string pickupName)
         {
             return ResolveInternal(category, pickupName, false);
         }
 
-        public EtgPickupResolveResult Resolve(PickupCategory category, int pickupId)
+        public static EtgPickupResolveResult Resolve(PickupCategory category, int pickupId)
         {
             return ResolveByIdInternal(category, pickupId, false);
         }
 
-        public EtgPickupResolveResult ResolveAny(string pickupName)
+        public static EtgPickupResolveResult ResolveAny(string pickupName)
         {
             return ResolveInternal(null, pickupName, true);
         }
 
-        public EtgPickupResolveResult ResolveAny(int pickupId)
+        public static EtgPickupResolveResult ResolveAny(int pickupId)
         {
             return ResolveByIdInternal(null, pickupId, true);
         }
 
-        public EtgPickupResolveResult ResolveRandomGrantable(int seed)
+        public static EtgPickupResolveResult ResolveRandomGrantable(int seed)
         {
             List<PickupObject> candidates = new List<PickupObject>();
             foreach (PickupObject pickup in EnumeratePickups())
@@ -125,12 +125,12 @@ namespace EtgGameplayDashboard
 
             if (matches.Count == 0)
             {
-                return Failure(category, notFoundCode, string.Format(notFoundMessageFormat, pickupName));
+                return Failure(category, notFoundCode, string.Format(System.Globalization.CultureInfo.InvariantCulture, notFoundMessageFormat, pickupName));
             }
 
             if (matches.Count > 1)
             {
-                return Failure(category, ambiguousCode, string.Format(ambiguousMessageFormat, pickupName));
+                return Failure(category, ambiguousCode, string.Format(System.Globalization.CultureInfo.InvariantCulture, ambiguousMessageFormat, pickupName));
             }
 
             PickupObject match = matches[0];

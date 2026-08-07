@@ -141,7 +141,7 @@ namespace EtgGameplayDashboard
                 ", D=" +
                 isDPressed +
                 ", PlayerId=" +
-                ((object)player != null ? player.GetInstanceID().ToString() : "<none>") +
+                ((object)player != null ? player.GetInstanceID().ToString(System.Globalization.CultureInfo.InvariantCulture) : "<none>") +
                 ", IsInputOverridden=" +
                 isInputOverridden +
                 ", CurrentInputState=" +
@@ -214,19 +214,19 @@ namespace EtgGameplayDashboard
                 ", Device=" +
                 device +
                 ", DPad=" +
-                dpadX.ToString("F2") +
+                dpadX.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) +
                 "," +
-                dpadY.ToString("F2") +
+                dpadY.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) +
                 ", LeftStick=" +
-                leftStickX.ToString("F2") +
+                leftStickX.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) +
                 "," +
-                leftStickY.ToString("F2") +
+                leftStickY.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) +
                 ", RightStick=" +
-                rightStickX.ToString("F2") +
+                rightStickX.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) +
                 "," +
-                rightStickY.ToString("F2") +
+                rightStickY.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) +
                 ", PlayerId=" +
-                ((object)player != null ? player.GetInstanceID().ToString() : "<none>") +
+                ((object)player != null ? player.GetInstanceID().ToString(System.Globalization.CultureInfo.InvariantCulture) : "<none>") +
                 ", IsInputOverridden=" +
                 isInputOverridden +
                 ", CurrentInputState=" +

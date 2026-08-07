@@ -18,7 +18,7 @@ namespace EtgGameplayDashboard.Core
         {
             if (config == null)
             {
-                throw new ArgumentNullException("config");
+                throw new ArgumentNullException(nameof(config));
             }
 
             Seed = seed;

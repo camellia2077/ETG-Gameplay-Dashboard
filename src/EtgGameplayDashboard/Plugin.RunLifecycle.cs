@@ -1,9 +1,9 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
+using System;
 using EtgGameplayDashboard.Core;
 using UnityEngine;
-using System;
 
 namespace EtgGameplayDashboard
 {
@@ -212,7 +212,7 @@ namespace EtgGameplayDashboard
             }
 
             string sceneName;
-            if (!_sceneWatcher.TryGetCurrentSceneName(gameManager, out sceneName))
+            if (!RunSceneWatcher.TryGetCurrentSceneName(gameManager, out sceneName))
             {
                 return;
             }
@@ -679,8 +679,8 @@ namespace EtgGameplayDashboard
             int seed = _seedProvider.CreateSeed();
             string activePresetName = GetActiveStartItemsPreset();
             RandomPoolSelectionState[] randomPoolStates = LoadRandomPoolSelectionStates(activePresetName);
-            System.Collections.Generic.HashSet<int> ownedPickupIds = _ownedPickupReader.CollectOwnedPickupIds(player);
-            LoadoutSelectionResult selectionResult = _selectionService.SelectLoadout(
+            System.Collections.Generic.HashSet<int> ownedPickupIds = EtgOwnedPickupReader.CollectOwnedPickupIds(player);
+            LoadoutSelectionResult selectionResult = LoadoutSelectionService.SelectLoadout(
                 new LoadoutSelectionRequest(seed, _resolvedLoadoutConfig, ownedPickupIds, randomPoolStates));
             SaveRandomPoolSelectionStates(activePresetName, selectionResult.RandomPoolStates);
 

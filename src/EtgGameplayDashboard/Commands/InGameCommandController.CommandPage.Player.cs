@@ -171,7 +171,7 @@ namespace EtgGameplayDashboard
         {
             if (DrawControllerButton(new Rect(contentRect.x, contentRect.y, buttonWidth, controlHeight), "cmd.player.clear_curse", GuiText.Get("gui.command.button.clear_curse"), _buttonStyle))
             {
-                ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearCurse(targetPlayer, logger); });
+                ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteClearCurse(targetPlayer, logger); });
             }
 
         }
@@ -188,7 +188,7 @@ namespace EtgGameplayDashboard
                 GetLocalizedFallback("gui.player.stats.damage_multiplier", "Damage", "伤害") + " x" + GetDamageMultiplierLabel(),
                 _buttonStyle))
             {
-                ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteCycleDamageMultiplier(targetPlayer, logger); });
+                ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteCycleDamageMultiplier(targetPlayer, logger); });
             }
 
             if (DrawControllerButton(
@@ -197,18 +197,18 @@ namespace EtgGameplayDashboard
                 GetLocalizedFallback("gui.player.stats.move_multiplier", "Move Speed", "移速") + " x" + GetMovementMultiplierLabel(),
                 _buttonStyle))
             {
-                ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteCycleMovementMultiplier(targetPlayer, logger); });
+                ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteCycleMovementMultiplier(targetPlayer, logger); });
             }
         }
 
         private string GetDamageMultiplierLabel()
         {
-            return _playerStatMultiplierService != null ? _playerStatMultiplierService.DamageMultiplier.ToString("0.##") : "1";
+            return _playerStatMultiplierService != null ? _playerStatMultiplierService.DamageMultiplier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "1";
         }
 
         private string GetMovementMultiplierLabel()
         {
-            return _playerStatMultiplierService != null ? _playerStatMultiplierService.MovementMultiplier.ToString("0.##") : "1";
+            return _playerStatMultiplierService != null ? _playerStatMultiplierService.MovementMultiplier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) : "1";
         }
 
         private void ExecuteCycleDamageMultiplier(PlayerController player, ManualLogSource logger)
@@ -220,10 +220,10 @@ namespace EtgGameplayDashboard
             }
 
             float multiplier = _playerStatMultiplierService.CycleDamageMultiplier(player);
-            ShowStatus(GuiText.Get("result.player.stats.damage_multiplier", multiplier.ToString("0.##")), false);
+            ShowStatus(GuiText.Get("result.player.stats.damage_multiplier", multiplier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)), false);
             if (logger != null)
             {
-                logger.LogInfo(EtgGameplayDashboardLog.Command("Player damage multiplier set to x" + multiplier.ToString("0.##") + "."));
+                logger.LogInfo(EtgGameplayDashboardLog.Command("Player damage multiplier set to x" + multiplier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "."));
             }
         }
 
@@ -236,10 +236,10 @@ namespace EtgGameplayDashboard
             }
 
             float multiplier = _playerStatMultiplierService.CycleMovementMultiplier(player);
-            ShowStatus(GuiText.Get("result.player.stats.move_multiplier", multiplier.ToString("0.##")), false);
+            ShowStatus(GuiText.Get("result.player.stats.move_multiplier", multiplier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)), false);
             if (logger != null)
             {
-                logger.LogInfo(EtgGameplayDashboardLog.Command("Player movement multiplier set to x" + multiplier.ToString("0.##") + "."));
+                logger.LogInfo(EtgGameplayDashboardLog.Command("Player movement multiplier set to x" + multiplier.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture) + "."));
             }
         }
 

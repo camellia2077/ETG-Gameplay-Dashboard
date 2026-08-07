@@ -1,7 +1,6 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
-using System;
 using System.IO;
 
 namespace EtgGameplayDashboard.Core.Tests
@@ -17,7 +16,7 @@ namespace EtgGameplayDashboard.Core.Tests
                     new AliasEntryModel { Alias = "casey_bat", Id = 541 },
                 },
                 warnings,
-                delegate(int candidatePickupId) { return candidatePickupId == 541; });
+                delegate (int candidatePickupId) { return candidatePickupId == 541; });
 
             int pickupId;
             AssertEx.True(registry.TryResolve("CASEY_BAT", out pickupId), "The alias registry should resolve aliases case-insensitively.");
@@ -67,7 +66,7 @@ namespace EtgGameplayDashboard.Core.Tests
                     new AliasEntryModel { Alias = "bad_alias", Id = 9999 },
                 },
                 warnings,
-                delegate(int candidatePickupId) { return candidatePickupId == 541; });
+                delegate (int candidatePickupId) { return candidatePickupId == 541; });
 
             int pickupId;
             AssertEx.True(!registry.TryResolve("bad_alias", out pickupId), "Aliases with unsupported pickup IDs should be rejected.");

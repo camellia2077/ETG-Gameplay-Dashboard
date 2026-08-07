@@ -14,12 +14,14 @@ namespace EtgGameplayDashboard
             IsFastOpenEnabled = false;
         }
 
+#pragma warning disable CA1822 // Keep the instance command surface used by the injected controller service.
         public GrantCommandExecutionResult Toggle()
         {
             return SetIsFastOpenEnabled(!IsFastOpenEnabled);
         }
+#pragma warning restore CA1822
 
-        public GrantCommandExecutionResult SetIsFastOpenEnabled(bool isEnabled)
+        public static GrantCommandExecutionResult SetIsFastOpenEnabled(bool isEnabled)
         {
             IsFastOpenEnabled = isEnabled;
             if (IsFastOpenEnabled)

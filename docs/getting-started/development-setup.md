@@ -39,6 +39,18 @@ Run naming check:
 python .\tools\devtools\check_naming.py --verbose
 ```
 
+Run C# analyzer diagnostics without modifying files:
+
+```powershell
+dotnet format .\EtgGameplayDashboard.sln analyzers --severity info --verify-no-changes --no-restore
+```
+
+Apply C# whitespace formatting:
+
+```powershell
+dotnet format .\EtgGameplayDashboard.sln whitespace --no-restore
+```
+
 Deploy release to game:
 
 ```powershell

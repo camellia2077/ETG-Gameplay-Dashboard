@@ -8,7 +8,7 @@ namespace EtgGameplayDashboard.Core.Tests
         public static void ParsesGunCommand()
         {
             GrantCommandParser parser = new GrantCommandParser();
-            GrantCommandParseResult result = parser.Parse("gun AK-47");
+            GrantCommandParseResult result = GrantCommandParser.Parse("gun AK-47");
 
             AssertEx.True(result.Succeeded, "The parser should accept gun commands.");
             AssertEx.Equal(GrantCommandTarget.Gun, result.Request.Target, "The parser should detect the gun target.");
@@ -18,7 +18,7 @@ namespace EtgGameplayDashboard.Core.Tests
         public static void ParsesAnyCommandAlias()
         {
             GrantCommandParser parser = new GrantCommandParser();
-            GrantCommandParseResult result = parser.Parse("item Scope");
+            GrantCommandParseResult result = GrantCommandParser.Parse("item Scope");
 
             AssertEx.True(result.Succeeded, "The parser should accept item commands.");
             AssertEx.Equal(GrantCommandTarget.Any, result.Request.Target, "The parser should map item to the any target.");
@@ -28,7 +28,7 @@ namespace EtgGameplayDashboard.Core.Tests
         public static void PreservesPastedPickupCatalogLine()
         {
             GrantCommandParser parser = new GrantCommandParser();
-            GrantCommandParseResult result = parser.Parse("gun 541 Casey Baseball_Bat_Gun");
+            GrantCommandParseResult result = GrantCommandParser.Parse("gun 541 Casey Baseball_Bat_Gun");
 
             AssertEx.True(result.Succeeded, "The parser should accept a command that starts with a pickup ID.");
             AssertEx.Equal(GrantCommandTarget.Gun, result.Request.Target, "The parser should detect the gun target.");
@@ -38,7 +38,7 @@ namespace EtgGameplayDashboard.Core.Tests
         public static void ParsesUnknownPrefixAsAny()
         {
             GrantCommandParser parser = new GrantCommandParser();
-            GrantCommandParseResult result = parser.Parse("wep AK-47");
+            GrantCommandParseResult result = GrantCommandParser.Parse("wep AK-47");
 
             AssertEx.True(result.Succeeded, "The parser should treat unknown prefixes as item/any input.");
             AssertEx.Equal(GrantCommandTarget.Any, result.Request.Target, "The parser should fall back to the any target for unknown prefixes.");
@@ -48,7 +48,7 @@ namespace EtgGameplayDashboard.Core.Tests
         public static void ParsesBareInputAsAny()
         {
             GrantCommandParser parser = new GrantCommandParser();
-            GrantCommandParseResult result = parser.Parse("PlatinumBullets");
+            GrantCommandParseResult result = GrantCommandParser.Parse("PlatinumBullets");
 
             AssertEx.True(result.Succeeded, "The parser should accept bare pickup input.");
             AssertEx.Equal(GrantCommandTarget.Any, result.Request.Target, "Bare pickup input should default to the any target.");
@@ -58,7 +58,7 @@ namespace EtgGameplayDashboard.Core.Tests
         public static void RejectsMissingPickupName()
         {
             GrantCommandParser parser = new GrantCommandParser();
-            GrantCommandParseResult result = parser.Parse("gun");
+            GrantCommandParseResult result = GrantCommandParser.Parse("gun");
 
             AssertEx.True(!result.Succeeded, "The parser should reject commands without a pickup name.");
         }

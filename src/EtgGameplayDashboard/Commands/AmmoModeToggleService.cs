@@ -155,7 +155,7 @@ namespace EtgGameplayDashboard
             behaviour.SetLockedState(_trackedAmmo, _trackedClipShotsRemaining);
         }
 
-        private void RemoveLockedAmmoBehaviour(Gun gun)
+        private static void RemoveLockedAmmoBehaviour(Gun gun)
         {
             if (!IsGunUsable(gun))
             {

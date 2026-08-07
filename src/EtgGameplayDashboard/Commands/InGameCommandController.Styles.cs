@@ -1,10 +1,6 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
-using System;
-using System.Collections.Generic;
-using BepInEx.Logging;
-using EtgGameplayDashboard.Core;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -436,7 +432,7 @@ namespace EtgGameplayDashboard
 
         }
 
-        private Vector2 BeginCommandScrollView(Rect position, Vector2 scrollPosition, Rect viewRect)
+        private static Vector2 BeginCommandScrollView(Rect position, Vector2 scrollPosition, Rect viewRect)
         {
             return SharedScrollViewStyles.Begin(position, scrollPosition, viewRect);
         }

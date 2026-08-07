@@ -8,6 +8,12 @@ namespace EtgGameplayDashboard.Core.Tests
 {
     internal static class RuleFileProviderTests
     {
+        private static readonly int[] Expected541 = { 541 };
+        private static readonly string[] ExpectedCaseyBat = { "casey_bat" };
+        private static readonly string[] ExpectedCasey = { "Casey" };
+        private static readonly int[] Expected541616 = { 541, 616 };
+        private static readonly int[] Expected120 = { 120 };
+
         public static void ParsesSpecificAliasRule()
         {
             string presetDirectory = Path.Combine(Path.GetTempPath(), "EtgGameplayDashboard.presets.tests." + Guid.NewGuid().ToString("N"));
@@ -78,9 +84,9 @@ namespace EtgGameplayDashboard.Core.Tests
                 LoadoutRuleFileLoadResult result = provider.Load();
 
                 AssertEx.Equal(1, result.Definitions.Length, "The random rule should be preserved.");
-                AssertEx.SequenceEqual(new[] { 541 }, result.Definitions[0].PoolIds, "The random rule should preserve pickup IDs.");
-                AssertEx.SequenceEqual(new[] { "casey_bat" }, result.Definitions[0].PoolAliases, "The random rule should preserve pool aliases.");
-                AssertEx.SequenceEqual(new[] { "Casey" }, result.Definitions[0].PoolNames, "The random rule should preserve pool names.");
+                AssertEx.SequenceEqual(Expected541, result.Definitions[0].PoolIds, "The random rule should preserve pickup IDs.");
+                AssertEx.SequenceEqual(ExpectedCaseyBat, result.Definitions[0].PoolAliases, "The random rule should preserve pool aliases.");
+                AssertEx.SequenceEqual(ExpectedCasey, result.Definitions[0].PoolNames, "The random rule should preserve pool names.");
             }
             finally
             {
@@ -263,7 +269,7 @@ namespace EtgGameplayDashboard.Core.Tests
 
                 AssertEx.Equal(2, result.Definitions.Length, "The preset directory should provide both rules when the anchor file is missing.");
                 AssertEx.Equal(GrantMode.Random, result.Definitions[0].Mode, "The preset rule should preserve random mode.");
-                AssertEx.SequenceEqual(new[] { 541, 616 }, result.Definitions[0].PoolIds, "The preset rule should preserve the pool IDs.");
+                AssertEx.SequenceEqual(Expected541616, result.Definitions[0].PoolIds, "The preset rule should preserve the pool IDs.");
                 AssertEx.True(result.Messages.Length > 0, "Loading a preset should produce an informational message.");
             }
             finally
@@ -304,7 +310,7 @@ namespace EtgGameplayDashboard.Core.Tests
 
                 AssertEx.Equal(1, result.Definitions.Length, "The preset directory should provide a rule when the anchor file is invalid.");
                 AssertEx.Equal(PickupCategory.Active, result.Definitions[0].Category, "The preset rule category should be preserved.");
-                AssertEx.SequenceEqual(new[] { 120 }, result.Definitions[0].PoolIds, "The preset rule pool IDs should be preserved.");
+                AssertEx.SequenceEqual(Expected120, result.Definitions[0].PoolIds, "The preset rule pool IDs should be preserved.");
                 AssertEx.True(result.Messages.Length > 0, "Loading a preset should produce an informational message.");
             }
             finally

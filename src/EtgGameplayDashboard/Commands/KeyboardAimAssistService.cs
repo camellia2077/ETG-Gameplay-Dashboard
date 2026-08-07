@@ -117,7 +117,7 @@ namespace EtgGameplayDashboard
             }
 
             Vector2 selectedAimPoint;
-            if (_targetSelector.TrySelectTarget(player, aimPoint, GetAimAssistDegrees(), out selectedAimPoint))
+            if (KeyboardAimAssistTargetSelector.TrySelectTarget(player, aimPoint, GetAimAssistDegrees(), out selectedAimPoint))
             {
                 aimPoint = new Vector3(selectedAimPoint.x, selectedAimPoint.y, aimPoint.z);
             }

@@ -1,9 +1,9 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
+using System.Collections.Generic;
 using BepInEx.Logging;
 using Dungeonator;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -115,7 +115,7 @@ namespace EtgGameplayDashboard
                 LogRoomRefreshInfo(
                     logger,
                     "Boss room refresh method override. Requested=RespawnEnemies, Effective=Rewind, Room=" +
-                    (currentRoom != null ? currentRoom.GetRoomName() : "<null>" ) + ".");
+                    (currentRoom != null ? currentRoom.GetRoomName() : "<null>") + ".");
                 return RefreshCurrentRoomEnemies(player, logger);
             }
 

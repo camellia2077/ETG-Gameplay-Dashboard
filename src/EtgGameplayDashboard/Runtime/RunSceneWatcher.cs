@@ -24,12 +24,12 @@ namespace EtgGameplayDashboard
         {
             if ((object)gameManager == null)
             {
-                throw new ArgumentNullException("gameManager");
+                throw new ArgumentNullException(nameof(gameManager));
             }
 
             if (onNewLevelLoaded == null)
             {
-                throw new ArgumentNullException("onNewLevelLoaded");
+                throw new ArgumentNullException(nameof(onNewLevelLoaded));
             }
 
             if (_isSubscribed)
@@ -68,7 +68,7 @@ namespace EtgGameplayDashboard
             _nextScenePollTime = unscaledTime + PollIntervalSeconds;
         }
 
-        public bool TryGetCurrentSceneName(GameManager gameManager, out string sceneName)
+        public static bool TryGetCurrentSceneName(GameManager gameManager, out string sceneName)
         {
             sceneName = string.Empty;
 

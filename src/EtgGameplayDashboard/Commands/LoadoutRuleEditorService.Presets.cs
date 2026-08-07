@@ -108,7 +108,7 @@ namespace EtgGameplayDashboard
             LoadoutRuleFileModel model = LoadEditableModel();
             bool isLegacyDefaultPreset = (model.Presets == null || model.Presets.Length == 0) &&
                 string.Equals(presetId, StartItemsPresetNames.DefaultPresetId, StringComparison.OrdinalIgnoreCase);
-            LoadoutRuleFilePresetModel preset = _ruleFileProvider.GetPreset(model, presetId);
+            LoadoutRuleFilePresetModel preset = JsonLoadoutRuleFileProvider.GetPreset(model, presetId);
             if (!isLegacyDefaultPreset && preset == null)
             {
                 return new GrantCommandExecutionResult(
@@ -451,7 +451,7 @@ namespace EtgGameplayDashboard
 
         private LoadoutRuleFilePresetModel GetPresetById(LoadoutRuleFileModel model, string presetId)
         {
-            return _ruleFileProvider != null ? _ruleFileProvider.GetPreset(model, presetId) : null;
+            return _ruleFileProvider != null ? JsonLoadoutRuleFileProvider.GetPreset(model, presetId) : null;
         }
 
         private static LoadoutRuleFileRuleModel[] CloneRules(LoadoutRuleFileRuleModel[] rules)

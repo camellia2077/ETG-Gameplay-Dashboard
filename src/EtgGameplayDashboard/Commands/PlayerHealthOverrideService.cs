@@ -1,7 +1,6 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
-using System.Collections.Generic;
 using System.Reflection;
 using UnityEngine;
 
@@ -63,7 +62,7 @@ namespace EtgGameplayDashboard
             amountOfHealthToGain = null;
             LogVerbose(
                 "Preserved tracked max health during gun change. PlayerId=" +
-                (trackedOverride.Player != null ? trackedOverride.Player.GetInstanceID().ToString() : "<null>") +
+                (trackedOverride.Player != null ? trackedOverride.Player.GetInstanceID().ToString(System.Globalization.CultureInfo.InvariantCulture) : "<null>") +
                 ", PreservedMaxHealth=" +
                 trackedOverride.DesiredMaxHealth +
                 ".");
@@ -104,7 +103,7 @@ namespace EtgGameplayDashboard
             trackedOverride.HealthHaver = healthHaver;
             if (trackedOverride.GunChangedHandler == null)
             {
-                trackedOverride.GunChangedHandler = delegate(Gun oldGun, Gun newGun, bool arg3)
+                trackedOverride.GunChangedHandler = delegate (Gun oldGun, Gun newGun, bool arg3)
                 {
                     TryRestoreTrackedState(trackedOverride, "gun_changed");
                 };
@@ -112,11 +111,11 @@ namespace EtgGameplayDashboard
 
             if (trackedOverride.HealthChangedHandler == null)
             {
-                trackedOverride.HealthChangedHandler = delegate(float resultValue, float maxValue)
+                trackedOverride.HealthChangedHandler = delegate (float resultValue, float maxValue)
                 {
                     LogVerbose(
                         "Observed tracked health changed callback. PlayerId=" +
-                        (trackedOverride.Player != null ? trackedOverride.Player.GetInstanceID().ToString() : "<null>") +
+                        (trackedOverride.Player != null ? trackedOverride.Player.GetInstanceID().ToString(System.Globalization.CultureInfo.InvariantCulture) : "<null>") +
                         ", ResultValue=" +
                         resultValue +
                         ", MaxValue=" +

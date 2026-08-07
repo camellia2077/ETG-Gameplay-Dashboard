@@ -137,10 +137,10 @@ namespace EtgGameplayDashboard
                         ", Collection=" + (collection != null ? collection.name : "<null>") +
                         ", CollectionAsset=" + (collection != null ? collection.assetName : "<null>") +
                         ", CollectionName=" + (collection != null ? collection.spriteCollectionName : "<null>") +
-                        ", CollectionDefinitions=" + (collection != null && collection.spriteDefinitions != null ? collection.spriteDefinitions.Length.ToString() : "-1") +
-                        ", CollectionMaterials=" + (collection != null && collection.materials != null ? collection.materials.Length.ToString() : "-1") +
-                        ", CollectionMaterialInsts=" + (collection != null && collection.materialInsts != null ? collection.materialInsts.Length.ToString() : "-1") +
-                        ", CollectionTextures=" + (collection != null && collection.textures != null ? collection.textures.Length.ToString() : "-1") +
+                        ", CollectionDefinitions=" + (collection != null && collection.spriteDefinitions != null ? collection.spriteDefinitions.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1") +
+                        ", CollectionMaterials=" + (collection != null && collection.materials != null ? collection.materials.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1") +
+                        ", CollectionMaterialInsts=" + (collection != null && collection.materialInsts != null ? collection.materialInsts.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1") +
+                        ", CollectionTextures=" + (collection != null && collection.textures != null ? collection.textures.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) : "-1") +
                         ", SharedMaterial=" + (sharedMaterial != null ? sharedMaterial.name : "<null>") +
                         ", Shader=" + shaderName +
                         ", MainTexture=" + (mainTexture != null ? mainTexture.name : "<null>") +
@@ -216,7 +216,7 @@ namespace EtgGameplayDashboard
                 ", IsVulnerable=" + (boss.healthHaver != null && boss.healthHaver.IsVulnerable) + ".");
         }
 
-        private int CountDisabledSprites(tk2dSprite[] sprites)
+        private static int CountDisabledSprites(tk2dSprite[] sprites)
         {
             if (sprites == null)
             {

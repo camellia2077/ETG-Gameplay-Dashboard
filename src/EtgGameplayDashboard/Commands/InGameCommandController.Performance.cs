@@ -112,7 +112,7 @@ namespace EtgGameplayDashboard
                     ". TraceId=" +
                     _commandPanelPerformanceTraceId +
                     ", ElapsedMs=" +
-                    elapsedMs.ToString("0.00") +
+                    elapsedMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                     ", Frame=" +
                     Time.frameCount +
                     ", Event=" +
@@ -144,14 +144,14 @@ namespace EtgGameplayDashboard
             double totalMs = GetCommandPanelPerformanceElapsedMilliseconds(_commandPanelPerformanceTraceStartedAt);
             string stageDuration = stageStartedAtTimestamp == 0L
                 ? string.Empty
-                : ", StageMs=" + GetCommandPanelPerformanceElapsedMilliseconds(stageStartedAtTimestamp).ToString("0.00");
+                : ", StageMs=" + GetCommandPanelPerformanceElapsedMilliseconds(stageStartedAtTimestamp).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
             LogCommandPanelPerformanceMessage(
                 "OpenTrace: Stage=" +
                 (stageName ?? string.Empty) +
                 ", TraceId=" +
                 _commandPanelPerformanceTraceId +
                 ", TotalMs=" +
-                totalMs.ToString("0.00") +
+                totalMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 stageDuration +
                 ", Page=" +
                 _currentPage +
@@ -225,14 +225,14 @@ namespace EtgGameplayDashboard
 
             string stageDuration = stageStartedAtTimestamp == 0L
                 ? string.Empty
-                : ", StageMs=" + GetCommandPanelPerformanceElapsedMilliseconds(stageStartedAtTimestamp).ToString("0.00");
+                : ", StageMs=" + GetCommandPanelPerformanceElapsedMilliseconds(stageStartedAtTimestamp).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
             LogCommandPanelPerformanceMessage(
                 "BossPage: Stage=" +
                 (stageName ?? string.Empty) +
                 ", TraceId=" +
                 _bossSelectionPagePerformanceTraceId +
                 ", TotalMs=" +
-                GetCommandPanelPerformanceElapsedMilliseconds(_bossSelectionPagePerformanceTraceStartedAt).ToString("0.00") +
+                GetCommandPanelPerformanceElapsedMilliseconds(_bossSelectionPagePerformanceTraceStartedAt).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 stageDuration +
                 ", OptionCount=" +
                 optionCount +
@@ -274,7 +274,7 @@ namespace EtgGameplayDashboard
                 "BossPage: Operation=" +
                 (operationName ?? string.Empty) +
                 ", DurationMs=" +
-                GetCommandPanelPerformanceElapsedMilliseconds(startedAtTimestamp).ToString("0.00") +
+                GetCommandPanelPerformanceElapsedMilliseconds(startedAtTimestamp).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", Succeeded=" +
                 (result != null && result.Succeeded) +
                 ".");
@@ -308,14 +308,14 @@ namespace EtgGameplayDashboard
 
             string stageDuration = stageStartedAtTimestamp == 0L
                 ? string.Empty
-                : ", StageMs=" + GetCommandPanelPerformanceElapsedMilliseconds(stageStartedAtTimestamp).ToString("0.00");
+                : ", StageMs=" + GetCommandPanelPerformanceElapsedMilliseconds(stageStartedAtTimestamp).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
             LogCommandPanelPerformanceMessage(
                 "LoadoutPage: Stage=" +
                 (stageName ?? string.Empty) +
                 ", TraceId=" +
                 _loadoutPagePerformanceTraceId +
                 ", TotalMs=" +
-                GetCommandPanelPerformanceElapsedMilliseconds(_loadoutPagePerformanceTraceStartedAt).ToString("0.00") +
+                GetCommandPanelPerformanceElapsedMilliseconds(_loadoutPagePerformanceTraceStartedAt).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 stageDuration +
                 ", Mode=" +
                 _loadoutPagePerformanceTraceMode +

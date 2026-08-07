@@ -102,7 +102,7 @@ namespace EtgGameplayDashboard
 
         private static void CleanupExtraPlayers(PlayerController selectedPlayer, PlayerController coopPlayer, PlayerController oldPrimaryPlayer)
         {
-            PlayerController[] players = UnityEngine.Object.FindObjectsOfType(typeof(PlayerController)) as PlayerController[];
+            PlayerController[] players = UnityEngine.Object.FindObjectsOfType<PlayerController>() as PlayerController[];
             if (players == null)
             {
                 return;
@@ -285,42 +285,42 @@ namespace EtgGameplayDashboard
 
             string value = rawValue.Replace("(Clone)", string.Empty).Trim();
             string lower = value.ToLowerInvariant();
-            if (lower.IndexOf("marine") >= 0 || lower.IndexOf("soldier") >= 0)
+            if (lower.IndexOf("marine", StringComparison.Ordinal) >= 0 || lower.IndexOf("soldier", StringComparison.Ordinal) >= 0)
             {
                 return "Marine";
             }
 
-            if (lower.IndexOf("hunter") >= 0 || lower.IndexOf("guide") >= 0)
+            if (lower.IndexOf("hunter", StringComparison.Ordinal) >= 0 || lower.IndexOf("guide", StringComparison.Ordinal) >= 0)
             {
                 return "Hunter";
             }
 
-            if (lower.IndexOf("pilot") >= 0 || lower.IndexOf("rogue") >= 0)
+            if (lower.IndexOf("pilot", StringComparison.Ordinal) >= 0 || lower.IndexOf("rogue", StringComparison.Ordinal) >= 0)
             {
                 return "Pilot";
             }
 
-            if (lower.IndexOf("convict") >= 0 || lower.IndexOf("ninja") >= 0)
+            if (lower.IndexOf("convict", StringComparison.Ordinal) >= 0 || lower.IndexOf("ninja", StringComparison.Ordinal) >= 0)
             {
                 return "Convict";
             }
 
-            if (lower.IndexOf("robot") >= 0)
+            if (lower.IndexOf("robot", StringComparison.Ordinal) >= 0)
             {
                 return "Robot";
             }
 
-            if (lower.IndexOf("bullet") >= 0)
+            if (lower.IndexOf("bullet", StringComparison.Ordinal) >= 0)
             {
                 return "Bullet";
             }
 
-            if (lower.IndexOf("eevee") >= 0 || lower.IndexOf("paradox") >= 0)
+            if (lower.IndexOf("eevee", StringComparison.Ordinal) >= 0 || lower.IndexOf("paradox", StringComparison.Ordinal) >= 0)
             {
                 return "Paradox";
             }
 
-            if (lower.IndexOf("gunslinger") >= 0)
+            if (lower.IndexOf("gunslinger", StringComparison.Ordinal) >= 0)
             {
                 return "Gunslinger";
             }

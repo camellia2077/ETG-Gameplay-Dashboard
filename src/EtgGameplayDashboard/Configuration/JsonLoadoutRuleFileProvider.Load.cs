@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Newtonsoft.Json.Linq;
-using EtgGameplayDashboard.Core;
 
 namespace EtgGameplayDashboard
 {
@@ -170,7 +169,7 @@ namespace EtgGameplayDashboard
             return presets.ToArray();
         }
 
-        private LoadoutRuleFilePresetModel ParsePresetFile(string rawJson, string presetPath, int fallbackIndex)
+        private static LoadoutRuleFilePresetModel ParsePresetFile(string rawJson, string presetPath, int fallbackIndex)
         {
             if (string.IsNullOrEmpty(rawJson) || string.IsNullOrEmpty(rawJson.Trim()))
             {
@@ -239,7 +238,7 @@ namespace EtgGameplayDashboard
                 }
                 else
                 {
-                    builder.Append("u");
+                    builder.Append('u');
                     builder.Append(((int)current).ToString("x4", System.Globalization.CultureInfo.InvariantCulture));
                 }
             }

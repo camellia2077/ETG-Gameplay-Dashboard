@@ -80,7 +80,7 @@ namespace EtgGameplayDashboard
             if (_hasResolvedGameUiAtlas) return atlas != null;
 
             _hasResolvedGameUiAtlas = true;
-            UnityEngine.Object[] atlases = Resources.FindObjectsOfTypeAll(typeof(dfAtlas));
+            UnityEngine.Object[] atlases = Resources.FindObjectsOfTypeAll<dfAtlas>();
             if (atlases == null) return false;
             for (int index = 0; index < atlases.Length; index++)
             {

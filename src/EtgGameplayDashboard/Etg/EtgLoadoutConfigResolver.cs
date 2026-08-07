@@ -6,16 +6,9 @@ using EtgGameplayDashboard.Core;
 
 namespace EtgGameplayDashboard
 {
-    internal sealed class EtgLoadoutConfigResolver
+    internal static class EtgLoadoutConfigResolver
     {
-        private readonly EtgPickupResolver _pickupResolver;
-
-        public EtgLoadoutConfigResolver(EtgPickupResolver pickupResolver)
-        {
-            _pickupResolver = pickupResolver;
-        }
-
-        public LoadoutConfigResolutionResult Resolve(LoadoutRuleDefinition[] definitions, PickupAliasRegistry aliasRegistry)
+        public static LoadoutConfigResolutionResult Resolve(LoadoutRuleDefinition[] definitions, PickupAliasRegistry aliasRegistry)
         {
             PickupAliasRegistry effectiveAliasRegistry = aliasRegistry ?? PickupAliasRegistry.Empty;
             List<LoadoutRuleConfig> rules = new List<LoadoutRuleConfig>();
@@ -45,7 +38,7 @@ namespace EtgGameplayDashboard
                         for (int poolIdIndex = 0; poolIdIndex < definition.PoolIds.Length; poolIdIndex++)
                         {
                             AddResolvedRandomPoolEntry(
-                                _pickupResolver.ResolveAny(definition.PoolIds[poolIdIndex]),
+                                EtgPickupResolver.ResolveAny(definition.PoolIds[poolIdIndex]),
                                 resolvedPoolEntries,
                                 seenPoolIds,
                                 warnings);
@@ -66,7 +59,7 @@ namespace EtgGameplayDashboard
                             }
 
                             AddResolvedRandomPoolEntry(
-                                _pickupResolver.ResolveAny(resolvedAliasPickupId),
+                                EtgPickupResolver.ResolveAny(resolvedAliasPickupId),
                                 resolvedPoolEntries,
                                 seenPoolIds,
                                 warnings,
@@ -79,7 +72,7 @@ namespace EtgGameplayDashboard
                             // String pools now follow give-style resolution: internal name first,
                             // display name as a compatibility fallback.
                             AddResolvedRandomPoolEntry(
-                                _pickupResolver.ResolveAny(pickupName),
+                                EtgPickupResolver.ResolveAny(pickupName),
                                 resolvedPoolEntries,
                                 seenPoolIds,
                                 warnings);
@@ -157,11 +150,11 @@ namespace EtgGameplayDashboard
                     warningPrefix + resolveResult.Warning.Message));
         }
 
-        private EtgPickupResolveResult ResolveSpecificDefinition(LoadoutRuleDefinition definition, PickupAliasRegistry aliasRegistry)
+        private static EtgPickupResolveResult ResolveSpecificDefinition(LoadoutRuleDefinition definition, PickupAliasRegistry aliasRegistry)
         {
             if (definition.SpecificPickupId.HasValue)
             {
-                return _pickupResolver.Resolve(definition.Category, definition.SpecificPickupId.Value);
+                return EtgPickupResolver.Resolve(definition.Category, definition.SpecificPickupId.Value);
             }
 
             if (!string.IsNullOrEmpty(definition.SpecificAlias))
@@ -180,7 +173,7 @@ namespace EtgGameplayDashboard
                             "No pickup alias matched '" + definition.SpecificAlias + "'."));
                 }
 
-                EtgPickupResolveResult aliasResolveResult = _pickupResolver.Resolve(definition.Category, resolvedAliasPickupId);
+                EtgPickupResolveResult aliasResolveResult = EtgPickupResolver.Resolve(definition.Category, resolvedAliasPickupId);
                 if (!aliasResolveResult.Succeeded && aliasResolveResult.Warning != null)
                 {
                     return new EtgPickupResolveResult(
@@ -198,7 +191,7 @@ namespace EtgGameplayDashboard
                 return aliasResolveResult;
             }
 
-            return _pickupResolver.Resolve(definition.Category, definition.SpecificName);
+            return EtgPickupResolver.Resolve(definition.Category, definition.SpecificName);
         }
     }
 }

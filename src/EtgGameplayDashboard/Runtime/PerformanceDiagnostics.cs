@@ -74,9 +74,9 @@ namespace EtgGameplayDashboard
                 _summaryLongFrameCount++;
                 LogWarning(
                     "Long frame captured. FrameMs=" +
-                    frameMs.ToString("0.00") +
+                    frameMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                     ", ThresholdMs=" +
-                    LongFrameThresholdMs.ToString("0.00") +
+                    LongFrameThresholdMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                     ", LastEvent=" +
                     _lastEvent +
                     FormatDetail(detail) +
@@ -92,13 +92,13 @@ namespace EtgGameplayDashboard
             double averageFps = averageFrameMs > 0d ? 1000d / averageFrameMs : 0d;
             LogInfo(
                 "FPS summary. WindowSeconds=" +
-                (realtimeSinceStartup - _summaryWindowStartedAt).ToString("0.00") +
+                (realtimeSinceStartup - _summaryWindowStartedAt).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", AverageFps=" +
-                averageFps.ToString("0.0") +
+                averageFps.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) +
                 ", AverageFrameMs=" +
-                averageFrameMs.ToString("0.00") +
+                averageFrameMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", WorstFrameMs=" +
-                _summaryWorstFrameMs.ToString("0.00") +
+                _summaryWorstFrameMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", LongFrameCount=" +
                 _summaryLongFrameCount +
                 ", SlowStepCount=" +
@@ -138,9 +138,9 @@ namespace EtgGameplayDashboard
                 "Slow Update step. Step=" +
                 (stepName ?? string.Empty) +
                 ", StepMs=" +
-                elapsedMs.ToString("0.00") +
+                elapsedMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", ThresholdMs=" +
-                SlowStepThresholdMs.ToString("0.00") +
+                SlowStepThresholdMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", LastEvent=" +
                 _lastEvent +
                 FormatDetail(detail) +
@@ -158,7 +158,7 @@ namespace EtgGameplayDashboard
                 "Operation timing. Operation=" +
                 (operationName ?? string.Empty) +
                 ", DurationMs=" +
-                GetElapsedMilliseconds(startedAtTimestamp).ToString("0.00") +
+                GetElapsedMilliseconds(startedAtTimestamp).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", LastEvent=" +
                 _lastEvent +
                 FormatDetail(detail) +
@@ -174,7 +174,7 @@ namespace EtgGameplayDashboard
 
             return _summarySlowestStepName +
                    "@" +
-                   _summarySlowestStepMs.ToString("0.00") +
+                   _summarySlowestStepMs.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                    "ms" +
                    FormatDetail(_summarySlowestStepDetail);
         }

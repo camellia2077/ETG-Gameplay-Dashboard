@@ -3,8 +3,8 @@
 
 using System;
 using BepInEx.Logging;
-using UnityEngine;
 using Dungeonator;
+using UnityEngine;
 
 namespace EtgGameplayDashboard
 {

@@ -31,7 +31,7 @@ namespace EtgGameplayDashboard
             _playerHealthOverrideService = playerHealthOverrideService;
         }
 
-        public GrantCommandExecutionResult FullHeal(PlayerController player)
+        public static GrantCommandExecutionResult FullHeal(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -48,7 +48,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.full_heal.success");
         }
 
-        public GrantCommandExecutionResult HealHalfHeart(PlayerController player)
+        public static GrantCommandExecutionResult HealHalfHeart(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -79,7 +79,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.heal_half.success", healAmount);
         }
 
-        public GrantCommandExecutionResult AddArmor(PlayerController player)
+        public static GrantCommandExecutionResult AddArmor(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -129,7 +129,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_max_health.success");
         }
 
-        public GrantCommandExecutionResult ClearCurse(PlayerController player)
+        public static GrantCommandExecutionResult ClearCurse(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -161,7 +161,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.clear_curse.success");
         }
 
-        public GrantCommandExecutionResult AddBlank(PlayerController player)
+        public static GrantCommandExecutionResult AddBlank(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -172,7 +172,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_blank.success");
         }
 
-        public GrantCommandExecutionResult SpawnBlankNearPlayer(PlayerController player)
+        public static GrantCommandExecutionResult SpawnBlankNearPlayer(PlayerController player)
         {
             return SpawnPickupNearPlayer(
                 player,
@@ -182,7 +182,7 @@ namespace EtgGameplayDashboard
                 "result.debug.spawn_blank.success");
         }
 
-        public GrantCommandExecutionResult SpawnFullHeartNearPlayer(PlayerController player)
+        public static GrantCommandExecutionResult SpawnFullHeartNearPlayer(PlayerController player)
         {
             return SpawnPickupNearPlayer(
                 player,
@@ -192,7 +192,7 @@ namespace EtgGameplayDashboard
                 "result.debug.spawn_full_heart.success");
         }
 
-        public GrantCommandExecutionResult SpawnArmorNearPlayer(PlayerController player)
+        public static GrantCommandExecutionResult SpawnArmorNearPlayer(PlayerController player)
         {
             return SpawnPickupNearPlayer(
                 player,
@@ -202,7 +202,7 @@ namespace EtgGameplayDashboard
                 "result.debug.spawn_armor.success");
         }
 
-        public GrantCommandExecutionResult SpawnKeyNearPlayer(PlayerController player)
+        public static GrantCommandExecutionResult SpawnKeyNearPlayer(PlayerController player)
         {
             return SpawnPickupNearPlayer(
                 player,
@@ -212,7 +212,7 @@ namespace EtgGameplayDashboard
                 "result.debug.spawn_key.success");
         }
 
-        public GrantCommandExecutionResult SpawnRatKeyNearPlayer(PlayerController player)
+        public static GrantCommandExecutionResult SpawnRatKeyNearPlayer(PlayerController player)
         {
             return SpawnPickupNearPlayer(
                 player,
@@ -222,7 +222,7 @@ namespace EtgGameplayDashboard
                 "result.debug.spawn_rat_key.success");
         }
 
-        public GrantCommandExecutionResult SpawnCurrencyNearPlayer(PlayerController player)
+        public static GrantCommandExecutionResult SpawnCurrencyNearPlayer(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -288,7 +288,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, successResultKey);
         }
 
-        public GrantCommandExecutionResult RefillCurrentGunAmmo(PlayerController player)
+        public static GrantCommandExecutionResult RefillCurrentGunAmmo(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -330,7 +330,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.refill_ammo.success", gunLabel);
         }
 
-        public GrantCommandExecutionResult AddKey(PlayerController player)
+        public static GrantCommandExecutionResult AddKey(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -347,7 +347,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_key.success");
         }
 
-        public GrantCommandExecutionResult AddRatKey(PlayerController player)
+        public static GrantCommandExecutionResult AddRatKey(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -364,7 +364,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_rat_key.success");
         }
 
-        public GrantCommandExecutionResult AddCurrency(PlayerController player)
+        public static GrantCommandExecutionResult AddCurrency(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -381,7 +381,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_currency.success");
         }
 
-        public GrantCommandExecutionResult AddLargeCurrency(PlayerController player)
+        public static GrantCommandExecutionResult AddLargeCurrency(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -398,7 +398,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_currency.success");
         }
 
-        public GrantCommandExecutionResult ClearCurrency(PlayerController player)
+        public static GrantCommandExecutionResult ClearCurrency(PlayerController player)
         {
             if ((object)player == null)
             {
@@ -416,7 +416,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.clear_currency.success", clearedAmount);
         }
 
-        public GrantCommandExecutionResult AddMetaCurrency(PlayerController player)
+        public static GrantCommandExecutionResult AddMetaCurrency(PlayerController player)
         {
             GameStatsManager stats = GameStatsManager.Instance;
             if ((object)stats == null)
@@ -431,7 +431,7 @@ namespace EtgGameplayDashboard
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_meta_currency.success");
         }
 
-        public GrantCommandExecutionResult ClearMetaCurrency(PlayerController player)
+        public static GrantCommandExecutionResult ClearMetaCurrency(PlayerController player)
         {
             GameStatsManager stats = GameStatsManager.Instance;
             if ((object)stats == null)

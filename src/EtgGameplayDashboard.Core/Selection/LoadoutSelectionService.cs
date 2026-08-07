@@ -8,11 +8,11 @@ namespace EtgGameplayDashboard.Core
 {
     public sealed class LoadoutSelectionService
     {
-        public LoadoutSelectionResult SelectLoadout(LoadoutSelectionRequest request)
+        public static LoadoutSelectionResult SelectLoadout(LoadoutSelectionRequest request)
         {
             if (request == null)
             {
-                throw new ArgumentNullException("request");
+                throw new ArgumentNullException(nameof(request));
             }
 
             List<SelectedPickup> selections = new List<SelectedPickup>();
@@ -196,8 +196,8 @@ namespace EtgGameplayDashboard.Core
                 LoadoutPoolEntryConfig pickup = rule.PoolEntries[i];
                 if (pickup == null)
                 {
-                continue;
-            }
+                    continue;
+                }
 
                 int pickupId = pickup.PickupId;
                 if (!seenIds.Add(pickupId))

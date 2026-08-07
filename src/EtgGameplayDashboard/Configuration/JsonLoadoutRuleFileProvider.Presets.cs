@@ -52,7 +52,7 @@ namespace EtgGameplayDashboard
             return fileModel.Presets[0];
         }
 
-        internal LoadoutRuleFilePresetModel GetPreset(LoadoutRuleFileModel fileModel, string presetName)
+        internal static LoadoutRuleFilePresetModel GetPreset(LoadoutRuleFileModel fileModel, string presetName)
         {
             if (fileModel == null || fileModel.Presets == null)
             {

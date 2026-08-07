@@ -73,7 +73,7 @@ namespace EtgGameplayDashboard
                     Logger.LogInfo(
                         EtgGameplayDashboardLog.Init(
                             "Scheduling startup window focus attempt after " +
-                            delaySeconds.ToString("0.00") +
+                            delaySeconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                             " seconds. Reason=" +
                             reason +
                             "."));

@@ -64,7 +64,7 @@ namespace EtgGameplayDashboard
             using (StreamWriter writer = new StreamWriter(_textOutputPath, false, new UTF8Encoding(false)))
             {
                 writer.WriteLine("# EtgGameplayDashboard grantable pickup catalog");
-                writer.WriteLine("# Generated (UTC): " + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"));
+                writer.WriteLine("# Generated (UTC): " + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture));
                 writer.WriteLine(
                     "# Format: Category<TAB>ID<TAB>DisplayName<TAB>EnglishDisplayName<TAB>GameDisplayName<TAB>InternalName<TAB>EncounterGuid<TAB>Quality<TAB>PurchasePrice<TAB>CanBeDropped<TAB>CanBeSold<TAB>SuppressInInventory<TAB>PrimaryDisplayName<TAB>ShortDescription<TAB>LongDescription<TAB>ContentSource<TAB>ForcedPositionInAmmonomicon<TAB>GunClass<TAB>Ammo<TAB>CanGainAmmo<TAB>InfiniteAmmo<TAB>ReloadTime<TAB>ActiveNumberOfUses<TAB>ActiveTimeCooldown<TAB>ActiveDamageCooldown<TAB>ActiveRoomCooldown");
 
@@ -72,14 +72,14 @@ namespace EtgGameplayDashboard
                 {
                     EtgPickupCatalogEntry entry = entries[i];
                     WriteField(writer, entry.Category.ToString());
-                    WriteField(writer, entry.PickupId.ToString());
+                    WriteField(writer, entry.PickupId.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     WriteField(writer, entry.DisplayName);
                     WriteField(writer, entry.EnglishDisplayName);
                     WriteField(writer, entry.GameDisplayName);
                     WriteField(writer, entry.InternalName);
                     WriteField(writer, entry.EncounterGuid);
                     WriteField(writer, entry.Quality);
-                    WriteField(writer, entry.PurchasePrice.ToString());
+                    WriteField(writer, entry.PurchasePrice.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     WriteField(writer, entry.CanBeDropped.ToString());
                     WriteField(writer, entry.CanBeSold.ToString());
                     WriteField(writer, entry.SuppressInInventory.ToString());
@@ -87,16 +87,16 @@ namespace EtgGameplayDashboard
                     WriteField(writer, entry.ShortDescription);
                     WriteField(writer, entry.LongDescription);
                     WriteField(writer, entry.ContentSource);
-                    WriteField(writer, entry.ForcedPositionInAmmonomicon.ToString());
+                    WriteField(writer, entry.ForcedPositionInAmmonomicon.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     WriteField(writer, entry.GunClass);
-                    WriteField(writer, entry.Ammo.ToString());
+                    WriteField(writer, entry.Ammo.ToString(System.Globalization.CultureInfo.InvariantCulture));
                     WriteField(writer, entry.CanGainAmmo.ToString());
                     WriteField(writer, entry.InfiniteAmmo.ToString());
-                    WriteField(writer, entry.ReloadTime.ToString("0.###"));
-                    WriteField(writer, entry.ActiveNumberOfUses.ToString());
-                    WriteField(writer, entry.ActiveTimeCooldown.ToString("0.###"));
-                    WriteField(writer, entry.ActiveDamageCooldown.ToString("0.###"));
-                    writer.WriteLine(Sanitize(entry.ActiveRoomCooldown.ToString()));
+                    WriteField(writer, entry.ReloadTime.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+                    WriteField(writer, entry.ActiveNumberOfUses.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                    WriteField(writer, entry.ActiveTimeCooldown.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+                    WriteField(writer, entry.ActiveDamageCooldown.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+                    writer.WriteLine(Sanitize(entry.ActiveRoomCooldown.ToString(System.Globalization.CultureInfo.InvariantCulture)));
                 }
             }
         }
@@ -106,7 +106,7 @@ namespace EtgGameplayDashboard
             using (StreamWriter writer = new StreamWriter(_jsonOutputPath, false, new UTF8Encoding(false)))
             {
                 writer.WriteLine("{");
-                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) + "\",");
+                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)) + "\",");
                 writer.WriteLine("  \"gameLanguageCode\": \"" + EscapeJson(GuiText.GameLanguageCode) + "\",");
                 writer.WriteLine("  \"entryCount\": " + entries.Length + ",");
                 writer.WriteLine("  \"pickups\": [");
@@ -155,7 +155,7 @@ namespace EtgGameplayDashboard
             using (StreamWriter writer = new StreamWriter(_groupedJsonOutputPath, false, new UTF8Encoding(false)))
             {
                 writer.WriteLine("{");
-                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) + "\",");
+                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)) + "\",");
                 writer.WriteLine("  \"gameLanguageCode\": \"" + EscapeJson(GuiText.GameLanguageCode) + "\",");
                 writer.WriteLine("  \"entryCount\": " + entries.Length + ",");
                 writer.WriteLine("  \"categories\": {");
@@ -172,7 +172,7 @@ namespace EtgGameplayDashboard
             using (StreamWriter writer = new StreamWriter(_namesJsonOutputPath, false, new UTF8Encoding(false)))
             {
                 writer.WriteLine("{");
-                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) + "\",");
+                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)) + "\",");
                 writer.WriteLine("  \"gameLanguageCode\": \"" + EscapeJson(GuiText.GameLanguageCode) + "\",");
                 writer.WriteLine("  \"entryCount\": " + entries.Length + ",");
                 writer.WriteLine("  \"pickups\": [");
@@ -205,7 +205,7 @@ namespace EtgGameplayDashboard
             using (StreamWriter writer = new StreamWriter(_rulePoolOutputPath, false, new UTF8Encoding(false)))
             {
                 writer.WriteLine("{");
-                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")) + "\",");
+                writer.WriteLine("  \"generatedUtc\": \"" + EscapeJson(DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)) + "\",");
                 writer.WriteLine("  \"description\": \"Auto-generated full pickup rule pool. Copy the rules you want into EtgGameplayDashboard.rules.json5 or a preset file in presets/ if you want to activate them.\",");
                 writer.WriteLine("  \"entryCount\": " + entries.Length + ",");
                 writer.WriteLine("  \"categoryCounts\": {");

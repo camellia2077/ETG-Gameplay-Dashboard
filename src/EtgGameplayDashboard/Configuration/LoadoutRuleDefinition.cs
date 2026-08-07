@@ -54,7 +54,7 @@ namespace EtgGameplayDashboard
         {
             if (poolIds == null)
             {
-                throw new ArgumentNullException("poolIds");
+                throw new ArgumentNullException(nameof(poolIds));
             }
 
             return new LoadoutRuleDefinition(category, GrantMode.Random, count, poolIds, null, null, string.Empty, string.Empty, null);
@@ -64,17 +64,17 @@ namespace EtgGameplayDashboard
         {
             if (poolIds == null)
             {
-                throw new ArgumentNullException("poolIds");
+                throw new ArgumentNullException(nameof(poolIds));
             }
 
             if (poolAliases == null)
             {
-                throw new ArgumentNullException("poolAliases");
+                throw new ArgumentNullException(nameof(poolAliases));
             }
 
             if (poolNames == null)
             {
-                throw new ArgumentNullException("poolNames");
+                throw new ArgumentNullException(nameof(poolNames));
             }
 
             return new LoadoutRuleDefinition(category, GrantMode.Random, count, poolIds, poolAliases, poolNames, string.Empty, string.Empty, null);
@@ -84,7 +84,7 @@ namespace EtgGameplayDashboard
         {
             if (poolAliases == null)
             {
-                throw new ArgumentNullException("poolAliases");
+                throw new ArgumentNullException(nameof(poolAliases));
             }
 
             return new LoadoutRuleDefinition(category, GrantMode.Random, count, null, poolAliases, null, string.Empty, string.Empty, null);
@@ -94,7 +94,7 @@ namespace EtgGameplayDashboard
         {
             if (poolNames == null)
             {
-                throw new ArgumentNullException("poolNames");
+                throw new ArgumentNullException(nameof(poolNames));
             }
 
             return new LoadoutRuleDefinition(category, GrantMode.Random, count, null, null, poolNames, string.Empty, string.Empty, null);
@@ -104,7 +104,7 @@ namespace EtgGameplayDashboard
         {
             if (specificAlias == null)
             {
-                throw new ArgumentNullException("specificAlias");
+                throw new ArgumentNullException(nameof(specificAlias));
             }
 
             return new LoadoutRuleDefinition(category, GrantMode.Specific, 1, null, null, null, specificAlias, string.Empty, null);
@@ -114,7 +114,7 @@ namespace EtgGameplayDashboard
         {
             if (specificName == null)
             {
-                throw new ArgumentNullException("specificName");
+                throw new ArgumentNullException(nameof(specificName));
             }
 
             return new LoadoutRuleDefinition(category, GrantMode.Specific, 1, null, null, null, string.Empty, specificName, null);

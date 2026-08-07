@@ -55,7 +55,7 @@ namespace EtgGameplayDashboard
             {
                 string roomName = bossOption != null && bossOption.BossRoomPrototype != null
                     ? bossOption.BossRoomPrototype.name
-                    : duplicateNumber.ToString();
+                    : duplicateNumber.ToString(System.Globalization.CultureInfo.InvariantCulture);
                 return bossName + " - " + roomName;
             }
 

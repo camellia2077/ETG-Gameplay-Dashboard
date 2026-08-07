@@ -32,7 +32,7 @@ namespace EtgGameplayDashboard.Core.Cursor
 
     public sealed class CursorRenderOwnershipService
     {
-        public CursorRenderDecision Evaluate(
+        public static CursorRenderDecision Evaluate(
             bool panelVisible,
             bool primaryHasMouse,
             bool secondaryHasMouse,

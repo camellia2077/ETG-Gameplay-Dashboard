@@ -4,8 +4,8 @@
 using System;
 using System.Reflection;
 using BepInEx.Logging;
-using HarmonyLib;
 using EtgGameplayDashboard.Core.Cursor;
+using HarmonyLib;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -326,7 +326,7 @@ namespace EtgGameplayDashboard
                 ", ConfiguredColor=" + DescribeColor(configuredColor) +
                 ", CursorOverrideApplied=" + s_cursorOverrideApplied +
                 ", CursorOverrideAvailable=" + (GameCursorController.CursorOverride != null) +
-                ", CursorIndex=" + (GameManager.HasInstance && GameManager.Options != null ? GameManager.Options.CurrentCursorIndex.ToString() : "<null>") +
+                ", CursorIndex=" + (GameManager.HasInstance && GameManager.Options != null ? GameManager.Options.CurrentCursorIndex.ToString(System.Globalization.CultureInfo.InvariantCulture) : "<null>") +
                 ", UnityCursorVisible=" + Cursor.visible +
                 ", UnityCursorLockMode=" + Cursor.lockState;
             if (string.Equals(state, s_lastPanelCursorStateDescription, StringComparison.Ordinal))
@@ -457,16 +457,16 @@ namespace EtgGameplayDashboard
             }
 
             bool usingUnityMousePositionFallback = cursorInput == null;
-        Vector2 mousePosition;
-        if (usingUnityMousePositionFallback)
-        {
-            Vector3 unityMousePosition = Input.mousePosition;
-            mousePosition = new Vector2(unityMousePosition.x, unityMousePosition.y);
-        }
-        else
-        {
-            mousePosition = cursorInput.MousePosition;
-        }
+            Vector2 mousePosition;
+            if (usingUnityMousePositionFallback)
+            {
+                Vector3 unityMousePosition = Input.mousePosition;
+                mousePosition = new Vector2(unityMousePosition.x, unityMousePosition.y);
+            }
+            else
+            {
+                mousePosition = cursorInput.MousePosition;
+            }
             mousePosition.y = Screen.height - mousePosition.y;
             Color cursorColor = s_cursorColorProvider != null ? s_cursorColorProvider() : Color.white;
             string colorDescription = DescribeColor(cursorColor);
@@ -517,7 +517,7 @@ namespace EtgGameplayDashboard
         {
             if (!GameManager.HasInstance)
             {
-                return s_cursorRenderOwnershipService.Evaluate(
+                return CursorRenderOwnershipService.Evaluate(
                     panelVisible,
                     false,
                     false,
@@ -527,7 +527,7 @@ namespace EtgGameplayDashboard
 
             BraveInput playerOneInput = GetInputForPlayerIfAvailable(0);
             BraveInput playerTwoInput = GetInputForPlayerIfAvailable(1);
-            return s_cursorRenderOwnershipService.Evaluate(
+            return CursorRenderOwnershipService.Evaluate(
                 panelVisible,
                 playerOneInput != null && playerOneInput.HasMouse(),
                 playerTwoInput != null && playerTwoInput.HasMouse(),
@@ -657,11 +657,11 @@ namespace EtgGameplayDashboard
                     Mathf.Abs(optionColor.a - color.a) < 0.002f)
                 {
                     return options[index].Id + " " + options[index].Hex +
-                        " RGB(" + color.r.ToString("F3") + "," + color.g.ToString("F3") + "," + color.b.ToString("F3") + ")";
+                        " RGB(" + color.r.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + color.g.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + color.b.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + ")";
                 }
             }
 
-            return "unknown RGB(" + color.r.ToString("F3") + "," + color.g.ToString("F3") + "," + color.b.ToString("F3") + ")";
+            return "unknown RGB(" + color.r.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + color.g.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + color.b.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + ")";
         }
 
         private static bool GameCursorControllerOnGUIPrefix(GameCursorController __instance)
@@ -719,13 +719,13 @@ namespace EtgGameplayDashboard
 
         private static string FormatVector(Vector3 value)
         {
-            return "(" + value.x.ToString("0.0") + "," + value.y.ToString("0.0") + "," + value.z.ToString("0.0") + ")";
+            return "(" + value.x.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "," + value.y.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "," + value.z.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + ")";
         }
 
         private static string FormatRect(Rect value)
         {
-            return "(" + value.x.ToString("0.0") + "," + value.y.ToString("0.0") + "," +
-                value.width.ToString("0.0") + "x" + value.height.ToString("0.0") + ")";
+            return "(" + value.x.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "," + value.y.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "," +
+                value.width.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "x" + value.height.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + ")";
         }
 
         private static void Log(string message)

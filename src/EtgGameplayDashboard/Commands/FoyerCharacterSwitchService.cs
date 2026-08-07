@@ -2,13 +2,10 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Reflection;
 using BepInEx.Logging;
 using EtgGameplayDashboard.Core.Input;
-using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
@@ -224,7 +221,7 @@ namespace EtgGameplayDashboard
                     "Character switch timing. Label=" +
                     option.Label +
                     ", Succeeded=true, DurationMs=" +
-                    GetElapsedMilliseconds(startedAtTimestamp).ToString("0.00") +
+                    GetElapsedMilliseconds(startedAtTimestamp).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                     ".");
                 return CreateCharacterResult(true, "result.characters.switch_success", option.Label);
             }
@@ -233,7 +230,7 @@ namespace EtgGameplayDashboard
                 "Character switch timing. Label=" +
                 option.Label +
                 ", Succeeded=false, DurationMs=" +
-                GetElapsedMilliseconds(startedAtTimestamp).ToString("0.00") +
+                GetElapsedMilliseconds(startedAtTimestamp).ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", Detail=" +
                 (!string.IsNullOrEmpty(forceSwitchFailureMessage) ? forceSwitchFailureMessage : "force switch failed") +
                 ".");

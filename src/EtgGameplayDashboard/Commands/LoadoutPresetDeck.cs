@@ -3,7 +3,6 @@
 
 using System;
 using System.Text;
-using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
@@ -64,16 +63,16 @@ namespace EtgGameplayDashboard
             {
                 if (index > 0)
                 {
-                    builder.Append(",");
+                    builder.Append(',');
                 }
 
                 int presetIndex = _shuffledIndices[index];
                 builder.Append(presetIndex);
-                builder.Append(":");
+                builder.Append(':');
                 builder.Append(presetIndex >= 0 && presetIndex < _presetIds.Length ? _presetIds[presetIndex] : "<null>");
             }
 
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 

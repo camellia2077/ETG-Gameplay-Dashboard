@@ -2,10 +2,8 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using BepInEx.Logging;
-using EtgGameplayDashboard.Core;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -423,7 +421,7 @@ namespace EtgGameplayDashboard
                 rowRect.y + 8f,
                 PickupShortcutButtonWidth,
                 rowRect.height - 16f);
-            GUIStyle shortcutButtonStyle = string.Equals(_pickupShortcutCaptureTargetId, entry.CatalogEntry.PickupId.ToString(), StringComparison.Ordinal)
+            GUIStyle shortcutButtonStyle = string.Equals(_pickupShortcutCaptureTargetId, entry.CatalogEntry.PickupId.ToString(System.Globalization.CultureInfo.InvariantCulture), StringComparison.Ordinal)
                 ? _enabledButtonStyle
                 : _buttonStyle;
             if (_isPickupShortcutConfigurationMode && GUI.Button(shortcutButtonRect, GetPickupShortcutButtonLabel(entry), shortcutButtonStyle))
@@ -750,7 +748,7 @@ namespace EtgGameplayDashboard
                 return _filteredPickupEntriesCache;
             }
 
-            _filteredPickupEntriesCache = _pickupBrowserQueryService.Filter(
+            _filteredPickupEntriesCache = PickupBrowserQueryService.Filter(
                 _cachedPickupEntries,
                 _pickupSearchText,
                 _pickupBrowserFilter,

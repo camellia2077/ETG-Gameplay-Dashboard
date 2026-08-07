@@ -10,6 +10,8 @@ namespace EtgGameplayDashboard
     internal sealed class PickupShortcutRegistry
     {
         private readonly Dictionary<string, KeyCode> _keysByTargetId;
+        internal static readonly char[] separator = new[] { ',' };
+        internal static readonly char[] separatorArray = new[] { '=' };
 
         private PickupShortcutRegistry(Dictionary<string, KeyCode> keysByTargetId)
         {
@@ -24,10 +26,10 @@ namespace EtgGameplayDashboard
                 return new PickupShortcutRegistry(keysByTargetId);
             }
 
-            string[] bindings = serialized.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+            string[] bindings = serialized.Split(separator, StringSplitOptions.RemoveEmptyEntries);
             for (int index = 0; index < bindings.Length; index++)
             {
-                string[] parts = bindings[index].Split(new[] { '=' }, StringSplitOptions.RemoveEmptyEntries);
+                string[] parts = bindings[index].Split(separatorArray, StringSplitOptions.RemoveEmptyEntries);
                 if (parts.Length != 2)
                 {
                     continue;

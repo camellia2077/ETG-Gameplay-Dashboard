@@ -160,7 +160,7 @@ namespace EtgGameplayDashboard
             return _startItemsPresetIconsEnabledProvider != null && _startItemsPresetIconsEnabledProvider();
         }
 
-        private string GetStartItemsPresetIconsButtonLabel(bool isEnabled)
+        private static string GetStartItemsPresetIconsButtonLabel(bool isEnabled)
         {
             return isEnabled
                 ? GuiText.Get("gui.loadout_editor.button.item_icons_on")

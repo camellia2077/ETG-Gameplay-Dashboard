@@ -94,7 +94,7 @@ namespace EtgGameplayDashboard
             {
                 LogAlways(
                     "Room map teleport eligibility. Phase=" + (phase ?? "<unknown>") +
-                    ", Room=<null>, CanTeleportFromRoom=<unknown>." );
+                    ", Room=<null>, CanTeleportFromRoom=<unknown>.");
                 return;
             }
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import shutil
 import subprocess
 import sys
 from typing import Callable
@@ -9,7 +10,6 @@ from pathlib import Path
 
 PROJECT_NAME = "EtgGameplayDashboard"
 CONFIGURATION_CHOICES = ("Debug", "Release")
-MSBUILD_PATH = Path(r"C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe")
 DEFAULT_CONFIG_DIRECTORY = Path("defaults") / "config"
 DEFAULT_CATALOG_DIRECTORY = Path("defaults") / "catalog"
 DEFAULT_PRESET_DIRECTORY = Path("defaults") / "presets"
@@ -126,10 +126,11 @@ def add_configuration_argument(parser: argparse.ArgumentParser, help_text: str) 
     )
 
 
-def resolve_msbuild() -> Path:
-    if not MSBUILD_PATH.is_file():
-        raise FileNotFoundError("MSBuild not found at '{0}'.".format(MSBUILD_PATH))
-    return MSBUILD_PATH
+def resolve_dotnet() -> Path:
+    dotnet_path = shutil.which("dotnet")
+    if not dotnet_path:
+        raise FileNotFoundError("dotnet SDK was not found on PATH.")
+    return Path(dotnet_path)
 
 
 def ensure_required_build_dlls(repo_root: Path) -> None:

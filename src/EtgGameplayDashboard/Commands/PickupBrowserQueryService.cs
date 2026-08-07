@@ -55,7 +55,7 @@ namespace EtgGameplayDashboard
             return browserEntries.ToArray();
         }
 
-        public PickupBrowserEntry[] Filter(
+        public static PickupBrowserEntry[] Filter(
             PickupBrowserEntry[] entries,
             string searchText,
             PickupBrowserFilter categoryFilter,

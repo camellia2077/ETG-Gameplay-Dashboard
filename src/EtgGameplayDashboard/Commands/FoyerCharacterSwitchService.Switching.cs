@@ -4,7 +4,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Reflection;
 using Dungeonator;
 using EtgGameplayDashboard.Core.Input;
 using UnityEngine;
@@ -368,7 +367,7 @@ namespace EtgGameplayDashboard
         private static HashSet<int> CaptureCurrentPlayerInstanceIds()
         {
             HashSet<int> instanceIds = new HashSet<int>();
-            PlayerController[] players = UnityEngine.Object.FindObjectsOfType(typeof(PlayerController)) as PlayerController[];
+            PlayerController[] players = UnityEngine.Object.FindObjectsOfType<PlayerController>();
             if (players == null)
             {
                 return instanceIds;
@@ -388,7 +387,7 @@ namespace EtgGameplayDashboard
 
         private static PlayerController FindNewestPlayer(HashSet<int> existingPlayerIds)
         {
-            PlayerController[] players = UnityEngine.Object.FindObjectsOfType(typeof(PlayerController)) as PlayerController[];
+            PlayerController[] players = UnityEngine.Object.FindObjectsOfType<PlayerController>();
             if (players == null || players.Length == 0)
             {
                 return null;
@@ -449,7 +448,7 @@ namespace EtgGameplayDashboard
 
         private static void CleanupExtraPlayers(PlayerController selectedPlayer, PlayerController coopPlayer)
         {
-            PlayerController[] players = UnityEngine.Object.FindObjectsOfType(typeof(PlayerController)) as PlayerController[];
+            PlayerController[] players = UnityEngine.Object.FindObjectsOfType<PlayerController>();
             if (players == null)
             {
                 return;

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Dungeonator;
 
 namespace EtgGameplayDashboard
 {
@@ -21,7 +20,7 @@ namespace EtgGameplayDashboard
             _logWarning = logWarning;
         }
 
-        public PlayerRoomSnapshot Capture(PlayerController player)
+        public static PlayerRoomSnapshot Capture(PlayerController player)
         {
             if ((object)player == null || (object)player.healthHaver == null || player.stats == null)
             {
@@ -67,7 +66,7 @@ namespace EtgGameplayDashboard
 
             if (player.activeItems != null)
             {
-                        snapshot.SelectedActiveIndex = PrivateFieldAccessor.GetPrivateInt(player, "m_selectedItemIndex");
+                snapshot.SelectedActiveIndex = PrivateFieldAccessor.GetPrivateInt(player, "m_selectedItemIndex");
                 for (int index = 0; index < player.activeItems.Count; index++)
                 {
                     PlayerItem item = player.activeItems[index];
@@ -135,11 +134,11 @@ namespace EtgGameplayDashboard
             {
                 player.ChangeToGunSlot(snapshot.SelectedGunIndex, true);
             }
-                PrivateFieldAccessor.SetPrivateInt(player, "m_selectedItemIndex", snapshot.SelectedActiveIndex);
+            PrivateFieldAccessor.SetPrivateInt(player, "m_selectedItemIndex", snapshot.SelectedActiveIndex);
             Log("Restored room-entry player state. InPlaceInventory=" + restoredInventoryInPlace + ", After=" + DescribeLive(player) + ".");
         }
 
-        public string Describe(PlayerRoomSnapshot snapshot)
+        public static string Describe(PlayerRoomSnapshot snapshot)
         {
             return snapshot == null
                 ? "PlayerSnapshot=<none>"
@@ -275,7 +274,7 @@ namespace EtgGameplayDashboard
             return true;
         }
 
-        private string DescribeLive(PlayerController player)
+        private static string DescribeLive(PlayerController player)
         {
             return (object)player == null || (object)player.healthHaver == null
                 ? "Player=<none>"

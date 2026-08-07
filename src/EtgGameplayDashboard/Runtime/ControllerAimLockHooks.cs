@@ -148,7 +148,7 @@ namespace EtgGameplayDashboard
                 ", Center=" + FormatVector(center) +
                 ", RawAimPoint=" + FormatVector(rawAimPoint) +
                 ", RawAimOffset=" + FormatVector(rawOffset) +
-                ", RawAimDistance=" + rawOffset.magnitude.ToString("F3") +
+                ", RawAimDistance=" + rawOffset.magnitude.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) +
                 ", AimVector=" + FormatVector(aimVector) +
                 ", UnadjustedAimPoint=" + FormatVector(player.unadjustedAimPoint) +
                 ", Locked=" + (s_service != null && s_service.IsEnabled(player)) +
@@ -193,7 +193,7 @@ namespace EtgGameplayDashboard
                 ", AimVector=" + FormatVector(aimVector) +
                 ", PreventAimLookBefore=" + preventAimLookBefore +
                 ", PreventAimLookAfter=" + preventAimLookAfter +
-                ", Camera=" + (camera != null ? camera.GetInstanceID().ToString() : "<null>") +
+                ", Camera=" + (camera != null ? camera.GetInstanceID().ToString(System.Globalization.CultureInfo.InvariantCulture) : "<null>") +
                 "."));
         }
 
@@ -204,12 +204,12 @@ namespace EtgGameplayDashboard
 
         private static string FormatVector(Vector2 value)
         {
-            return "(" + value.x.ToString("F3") + "," + value.y.ToString("F3") + ")";
+            return "(" + value.x.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + value.y.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + ")";
         }
 
         private static string FormatVector(Vector3 value)
         {
-            return "(" + value.x.ToString("F3") + "," + value.y.ToString("F3") + "," + value.z.ToString("F3") + ")";
+            return "(" + value.x.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + value.y.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," + value.z.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + ")";
         }
     }
 }

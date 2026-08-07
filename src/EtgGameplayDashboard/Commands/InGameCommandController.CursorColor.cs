@@ -108,7 +108,7 @@ namespace EtgGameplayDashboard
                 ExecuteCursorColorPageFocusedControl();
             }
         }
-    
+
         private void ExecuteCursorColorPageFocusedControl()
         {
             if (string.Equals(_cursorColorPageFocusedControlId, "cursor_color.back", System.StringComparison.Ordinal))

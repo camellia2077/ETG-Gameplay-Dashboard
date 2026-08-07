@@ -10,7 +10,7 @@ namespace EtgGameplayDashboard
     {
         private void CreateRuntimeHookRegistry()
         {
-            _runtimeHookRegistry = new RuntimeHookRegistry(GUID, Logger);
+            _runtimeHookRegistry = new RuntimeHookRegistry(PluginGuid, Logger);
             _runtimeHookRegistry.Register(".bossrush", InstallBossRushRuntimeHooks, null);
             _runtimeHookRegistry.Register(".boss_selection", InstallBossSelectionRuntimeHooks, null);
             _runtimeHookRegistry.Register(".room_enemy_replay", InstallRoomEnemyReplayRuntimeHooks, ClearRoomEnemyReplayRuntimeHookConfiguration);

@@ -293,7 +293,7 @@ namespace EtgGameplayDashboard
             return GUI.Button(rect, "\u00D7", style);
         }
 
-        private Rect GetSecondaryPageBackButtonRect(Rect panelRect)
+        private static Rect GetSecondaryPageBackButtonRect(Rect panelRect)
         {
             return new Rect(
                 panelRect.x + panelRect.width - ButtonWidth - 14f - ButtonGap - 30f,

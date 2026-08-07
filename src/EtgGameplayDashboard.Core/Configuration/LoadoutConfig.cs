@@ -13,7 +13,7 @@ namespace EtgGameplayDashboard.Core
         {
             if (rules == null)
             {
-                throw new ArgumentNullException("rules");
+                throw new ArgumentNullException(nameof(rules));
             }
 
             Rules = rules.ToArray();

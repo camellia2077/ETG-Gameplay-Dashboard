@@ -36,9 +36,9 @@ namespace EtgGameplayDashboard
             float startedAt = Time.realtimeSinceStartup;
             LogVerbose(
                 "Startup window focus helper is waiting for the ETG window. " +
-                "TimeoutSeconds=" + timeoutSeconds.ToString("0.00") +
-                ", PollIntervalSeconds=" + pollIntervalSeconds.ToString("0.00") +
-                ", SettleDelaySeconds=" + settleDelaySeconds.ToString("0.00") + ".");
+                "TimeoutSeconds=" + timeoutSeconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", PollIntervalSeconds=" + pollIntervalSeconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", SettleDelaySeconds=" + settleDelaySeconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) + ".");
 
             CurrentProcessWindows windowSelection = null;
             while (Time.realtimeSinceStartup - startedAt <= timeoutSeconds)
@@ -102,8 +102,8 @@ namespace EtgGameplayDashboard
             float startedAt = Time.realtimeSinceStartup;
             LogVerbose(
                 "Foreground window monitor started. " +
-                "DurationSeconds=" + durationSeconds.ToString("0.00") +
-                ", PollIntervalSeconds=" + pollIntervalSeconds.ToString("0.00") +
+                "DurationSeconds=" + durationSeconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", PollIntervalSeconds=" + pollIntervalSeconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", Reason=" + reason +
                 ".");
 
@@ -121,7 +121,7 @@ namespace EtgGameplayDashboard
             int currentProcessId = Process.GetCurrentProcess().Id;
             List<WindowCandidate> candidates = new List<WindowCandidate>();
             EnumWindows(
-                delegate(IntPtr windowHandle, IntPtr parameter)
+                delegate (IntPtr windowHandle, IntPtr parameter)
                 {
                     if (!IsWindowVisible(windowHandle))
                     {
@@ -129,8 +129,8 @@ namespace EtgGameplayDashboard
                     }
 
                     int processId;
-                    GetWindowThreadProcessId(windowHandle, out processId);
-                    if (processId != currentProcessId)
+                    int threadId = GetWindowThreadProcessId(windowHandle, out processId);
+                    if (threadId == 0 || processId != currentProcessId)
                     {
                         return true;
                     }
@@ -321,7 +321,7 @@ namespace EtgGameplayDashboard
             }
         }
 
-        private static string GetWindowTitle(IntPtr windowHandle)
+        private static unsafe string GetWindowTitle(IntPtr windowHandle)
         {
             int length = GetWindowTextLength(windowHandle);
             if (length <= 0)
@@ -329,9 +329,15 @@ namespace EtgGameplayDashboard
                 return string.Empty;
             }
 
-            StringBuilder builder = new StringBuilder(length + 1);
-            GetWindowText(windowHandle, builder, builder.Capacity);
-            return builder.ToString();
+            int capacity = Math.Min(length + 1, 32768);
+            char* buffer = stackalloc char[capacity];
+            int copiedLength = GetWindowText(windowHandle, buffer, capacity);
+            if (copiedLength <= 0)
+            {
+                return string.Empty;
+            }
+
+            return new string(buffer, 0, copiedLength);
         }
 
         private static string DescribeWindow(WindowCandidate candidate)
@@ -358,7 +364,7 @@ namespace EtgGameplayDashboard
                     builder.Append(" | ");
                 }
 
-                builder.Append("#");
+                builder.Append('#');
                 builder.Append(i);
                 builder.Append(": ");
                 builder.Append(DescribeWindow(candidates[i]));
@@ -425,7 +431,12 @@ namespace EtgGameplayDashboard
             }
 
             int processId;
-            GetWindowThreadProcessId(windowHandle, out processId);
+            int threadId = GetWindowThreadProcessId(windowHandle, out processId);
+            if (threadId == 0)
+            {
+                return null;
+            }
+
             return new WindowCandidate(windowHandle, processId, GetWindowTitle(windowHandle));
         }
 
@@ -521,7 +532,7 @@ namespace EtgGameplayDashboard
         private static extern bool IsWindowVisible(IntPtr windowHandle);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        private static extern int GetWindowText(IntPtr windowHandle, StringBuilder text, int maxCount);
+        private static extern unsafe int GetWindowText(IntPtr windowHandle, char* text, int maxCount);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         private static extern int GetWindowTextLength(IntPtr windowHandle);

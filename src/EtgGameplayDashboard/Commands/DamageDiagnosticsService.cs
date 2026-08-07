@@ -35,7 +35,7 @@ namespace EtgGameplayDashboard
             }
 
             PlayerController capturedPlayer = player;
-            Action<float, bool, HealthHaver> handler = delegate(float damageAmount, bool fatal, HealthHaver target)
+            Action<float, bool, HealthHaver> handler = delegate (float damageAmount, bool fatal, HealthHaver target)
             {
                 LogDamage(capturedPlayer, damageAmount, fatal, target);
             };

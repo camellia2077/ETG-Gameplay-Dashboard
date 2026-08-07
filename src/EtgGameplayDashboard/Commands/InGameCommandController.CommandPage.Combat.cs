@@ -103,7 +103,7 @@ namespace EtgGameplayDashboard
             stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             if (DrawControllerButton(new Rect(secondSettingColumnX + settingLabelWidth, fourthRowY, settingButtonWidth, controlHeight), "cmd.combat.full_ammo", GuiText.Get("gui.command.button.full_ammo"), _buttonStyle))
             {
-                ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteRefillCurrentGunAmmo(targetPlayer, logger); });
+                ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteRefillCurrentGunAmmo(targetPlayer, logger); });
             }
             LogCommandPanelPerformanceStage("CommandPage.Player.Combat.FullAmmo", stageStartedAtTimestamp);
 
@@ -202,7 +202,7 @@ namespace EtgGameplayDashboard
                 GetLocalizedFallback("gui.command.setting.rapid", "Hold Rapid", "\u6309\u4f4f\u8fde\u53d1"),
                 GetOnOffStatusLabel(isEnabled),
                 isEnabled,
-                delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController selectedPlayer) { ExecuteToggleRapidFire(selectedPlayer, logger); }); });
+                delegate { ExecuteForSelectedPickupTargets(player, delegate (PlayerController selectedPlayer) { ExecuteToggleRapidFire(selectedPlayer, logger); }); });
         }
 
         private CombatSettingRow CreateAutoReloadCombatSetting(Rect rect, ManualLogSource logger)

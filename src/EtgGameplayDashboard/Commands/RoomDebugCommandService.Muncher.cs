@@ -1,9 +1,9 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
+using System.Collections;
 using BepInEx.Logging;
 using Dungeonator;
-using System.Collections;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -248,7 +248,7 @@ namespace EtgGameplayDashboard
                 ".");
         }
 
-        private GrantCommandExecutionResult SpawnGunberMuncherNow(PlayerController player, ManualLogSource logger)
+        private static GrantCommandExecutionResult SpawnGunberMuncherNow(PlayerController player, ManualLogSource logger)
         {
             if ((object)player == null)
             {
@@ -402,7 +402,7 @@ namespace EtgGameplayDashboard
             return CreateSpawnGunberMuncherResult(true, "result.room.spawn_gunber_muncher.success");
         }
 
-        private GrantCommandExecutionResult SpawnEvilMuncherNow(PlayerController player, ManualLogSource logger)
+        private static GrantCommandExecutionResult SpawnEvilMuncherNow(PlayerController player, ManualLogSource logger)
         {
             if ((object)player == null)
             {

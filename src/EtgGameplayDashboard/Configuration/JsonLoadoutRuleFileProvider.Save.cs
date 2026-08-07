@@ -82,7 +82,7 @@ namespace EtgGameplayDashboard
             }
 
             StringBuilder builder = new StringBuilder();
-            builder.Append("[");
+            builder.Append('[');
             for (int i = 0; i < values.Length; i++)
             {
                 if (i > 0)
@@ -93,7 +93,7 @@ namespace EtgGameplayDashboard
                 builder.Append(values[i].ToString(CultureInfo.InvariantCulture));
             }
 
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 
@@ -105,7 +105,7 @@ namespace EtgGameplayDashboard
             }
 
             StringBuilder builder = new StringBuilder();
-            builder.Append("[");
+            builder.Append('[');
             for (int i = 0; i < values.Length; i++)
             {
                 if (i > 0)
@@ -113,12 +113,12 @@ namespace EtgGameplayDashboard
                     builder.Append(", ");
                 }
 
-                builder.Append("\"");
+                builder.Append('"');
                 builder.Append(EscapeJsonString(values[i]));
-                builder.Append("\"");
+                builder.Append('"');
             }
 
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 
@@ -131,7 +131,7 @@ namespace EtgGameplayDashboard
             }
 
             StringBuilder builder = new StringBuilder();
-            builder.Append("[");
+            builder.Append('[');
             bool hasWrittenValue = false;
             for (int i = 0; i < mergedPickups.Length; i++)
             {
@@ -154,7 +154,7 @@ namespace EtgGameplayDashboard
                 hasWrittenValue = true;
             }
 
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 

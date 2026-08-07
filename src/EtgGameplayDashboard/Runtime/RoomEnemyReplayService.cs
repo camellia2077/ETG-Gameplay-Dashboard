@@ -2,7 +2,6 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -95,7 +94,7 @@ namespace EtgGameplayDashboard
             if (!_recordingEnabled)
             {
                 int snapshotCount = _snapshots.Count;
-                _bossRoomDecorationRestorer.DestroyTemplates(_snapshots.Values);
+                BossRoomDecorationRestorer.DestroyTemplates(_snapshots.Values);
                 _snapshots.Clear();
                 _replayingRooms.Clear();
                 _bossDeathRewindBlockedUntil.Clear();
@@ -151,14 +150,14 @@ namespace EtgGameplayDashboard
                     snapshotPlayer = GameManager.Instance.PrimaryPlayer;
                 }
 
-                snapshot.Player = _roomPlayerStateRestorer.Capture(snapshotPlayer);
+                snapshot.Player = RoomPlayerStateRestorer.Capture(snapshotPlayer);
                 if (snapshot.Player == null)
                 {
                     LogWarning("Room-entry player capture returned null. Room=" + GetRoomLabel(room) + ", RoomId=" + GetRoomInstanceId(room) + ".");
                 }
                 else
                 {
-                    Log("Recorded room-entry player state. Room=" + GetRoomLabel(room) + ", " + _roomPlayerStateRestorer.Describe(snapshot.Player) + ".");
+                    Log("Recorded room-entry player state. Room=" + GetRoomLabel(room) + ", " + RoomPlayerStateRestorer.Describe(snapshot.Player) + ".");
                 }
             }
             _snapshots.Add(room, snapshot);
@@ -330,7 +329,7 @@ namespace EtgGameplayDashboard
             {
                 LogAlways(
                     "Rejected rewind during Boss death cooldown. Room=" + GetRoomLabel(room) +
-                    ", RemainingSeconds=" + Mathf.Max(0f, bossDeathBlockedUntil - Time.unscaledTime).ToString("F2") +
+                    ", RemainingSeconds=" + Mathf.Max(0f, bossDeathBlockedUntil - Time.unscaledTime).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) +
                     ", CurrentFloor=" + GetCurrentFloor() + ".");
                 failure = GrantCommandExecutionResult.Localized(false, "result.room.rewind.boss_death_animation_pending");
                 return false;
@@ -409,12 +408,12 @@ namespace EtgGameplayDashboard
 
             Log(
                 "Boss rewind timing. Room=" + GetRoomLabel(room) +
-                ", CleanupMs=" + cleanupMilliseconds.ToString("0.00") +
-                ", DecorationRestoreMs=" + decorationRestoreMilliseconds.ToString("0.00") +
-                ", SpawnWaveMs=" + spawnMilliseconds.ToString("0.00") +
-                ", PlayerRestoreMs=" + playerRestoreMilliseconds.ToString("0.00") +
-                ", BossIntroMs=" + bossIntroMilliseconds.ToString("0.00") +
-                ", TotalMs=" + totalMilliseconds.ToString("0.00") +
+                ", CleanupMs=" + cleanupMilliseconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", DecorationRestoreMs=" + decorationRestoreMilliseconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", SpawnWaveMs=" + spawnMilliseconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", PlayerRestoreMs=" + playerRestoreMilliseconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", BossIntroMs=" + bossIntroMilliseconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
+                ", TotalMs=" + totalMilliseconds.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                 ", SpawnedEnemies=" + spawnedEnemies +
                 ", DecorationCount=" + decorationCount + ".");
         }
@@ -502,7 +501,7 @@ namespace EtgGameplayDashboard
             if (!pluginDestroying)
             {
                 LogFloorMapTeleportState("BeforeReplaySnapshotClear");
-                _bossRoomDecorationRestorer.DestroyTemplates(_snapshots.Values);
+                BossRoomDecorationRestorer.DestroyTemplates(_snapshots.Values);
             }
 
             _snapshots.Clear();
@@ -597,7 +596,7 @@ namespace EtgGameplayDashboard
                 "Minimap teleport attempt. Result=" + result +
                 ", CurrentFloor=" + GetCurrentFloor() +
                 ", TargetRoom=" + (targetRoom != null ? GetRoomLabel(targetRoom) : "<null>") +
-                ", TargetRoomId=" + (targetRoom != null ? GetRoomInstanceId(targetRoom).ToString() : "<null>") +
+                ", TargetRoomId=" + (targetRoom != null ? GetRoomInstanceId(targetRoom).ToString(System.Globalization.CultureInfo.InvariantCulture) : "<null>") +
                 ", TargetCanTeleportTo=" + (targetRoom != null ? canTeleportTo.ToString() : "<null>") +
                 ", TargetTeleportersActive=" + (targetRoom != null ? targetRoom.TeleportersActive.ToString() : "<null>") +
                 ", TargetIsSealed=" + (targetRoom != null ? targetRoom.IsSealed.ToString() : "<null>") +
@@ -832,7 +831,7 @@ namespace EtgGameplayDashboard
             return entries;
         }
 
-        private string Describe(RoomHandler room, RoomEnemyReplaySnapshot snapshot)
+        private static string Describe(RoomHandler room, RoomEnemyReplaySnapshot snapshot)
         {
             int waveCount = snapshot != null ? snapshot.Waves.Count : 0;
             int nextWave = snapshot != null ? snapshot.NextWaveIndex : -1;

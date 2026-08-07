@@ -1,9 +1,7 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
-using System;
 using BepInEx.Logging;
-using EtgGameplayDashboard.Core;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -95,7 +93,7 @@ namespace EtgGameplayDashboard
             _focusInputField = true;
         }
 
-        private ControllerFocusEntry[] GetCurrencyPageFocusEntries()
+        private static ControllerFocusEntry[] GetCurrencyPageFocusEntries()
         {
             return CurrencyPageFocusEntries;
         }
@@ -116,31 +114,31 @@ namespace EtgGameplayDashboard
                     ToggleCharacterSwitchTarget(logger);
                     return;
                 case "currency.max_health":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMaxHealth(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddMaxHealth(targetPlayer, logger); });
                     return;
                 case "currency.armor":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddArmor(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddArmor(targetPlayer, logger); });
                     return;
                 case "currency.blank":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, logger); });
                     return;
                 case "currency.key":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, logger); });
                     return;
                 case "currency.rat_key":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, logger); });
                     return;
                 case "currency.casings":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddCurrency(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddCurrency(targetPlayer, logger); });
                     return;
                 case "currency.clear_casings":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearCurrency(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteClearCurrency(targetPlayer, logger); });
                     return;
                 case "currency.hegemony":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, logger); });
                     return;
                 case "currency.clear_hegemony":
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearMetaCurrency(targetPlayer, logger); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteClearMetaCurrency(targetPlayer, logger); });
                     return;
                 default:
                     return;

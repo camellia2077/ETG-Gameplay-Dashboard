@@ -7,7 +7,9 @@ namespace EtgGameplayDashboard.Core
 {
     public sealed class GrantCommandParser
     {
-        public GrantCommandParseResult Parse(string input)
+        private static readonly char[] separator = new[] { ' ' };
+
+        public static GrantCommandParseResult Parse(string input)
         {
             if (string.IsNullOrEmpty(input))
             {
@@ -20,7 +22,7 @@ namespace EtgGameplayDashboard.Core
                 return GrantCommandParseResult.Failure("InputRequired", "Enter a pickup like 'platinumbullets' or a command like 'gun ak-47'.");
             }
 
-            string[] parts = trimmedInput.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = trimmedInput.Split(separator, 2, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0)
             {
                 return GrantCommandParseResult.Failure("InputRequired", "Enter a pickup like 'platinumbullets' or a command like 'gun ak-47'.");

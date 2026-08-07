@@ -11,7 +11,7 @@ namespace EtgGameplayDashboard.Core
         {
             if (pickupId <= 0)
             {
-                throw new ArgumentOutOfRangeException("pickupId");
+                throw new ArgumentOutOfRangeException(nameof(pickupId));
             }
 
             Category = category;

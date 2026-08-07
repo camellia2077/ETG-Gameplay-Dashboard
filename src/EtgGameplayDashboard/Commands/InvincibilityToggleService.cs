@@ -131,7 +131,7 @@ namespace EtgGameplayDashboard
             _playerStates.Clear();
         }
 
-        private void RestorePlayer(PlayerController player, PlayerInvincibilityState state)
+        private static void RestorePlayer(PlayerController player, PlayerInvincibilityState state)
         {
             // ETG scene transitions can leave tracked player references pointing at destroyed or
             // partially torn-down Unity objects. Restoring best-effort state is safer than letting

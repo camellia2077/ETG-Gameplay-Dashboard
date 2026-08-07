@@ -20,7 +20,7 @@ namespace EtgGameplayDashboard
         private readonly EtgPickupResolver _pickupResolver = new EtgPickupResolver();
         private readonly EtgOwnedPickupReader _ownedPickupReader = new EtgOwnedPickupReader();
         private readonly LoadoutSelectionService _selectionService = new LoadoutSelectionService();
-        private readonly ISeedProvider _seedProvider = new UtcTickSeedProvider();
+        private readonly UtcTickSeedProvider _seedProvider = new UtcTickSeedProvider();
         private PluginConfigurationFacade _configuration;
 
         private bool _roomReplayFloorTransitionObserved;
@@ -33,7 +33,6 @@ namespace EtgGameplayDashboard
         private JsonPickupAliasFileProvider _aliasFileProvider;
         private JsonPickupGameplayProvider _pickupGameplayProvider;
         private RandomPoolSelectionStateProvider _randomPoolSelectionStateProvider;
-        private EtgLoadoutConfigResolver _configResolver;
         private EtgPickupCatalogExporter _pickupCatalogExporter;
         private JsonLoadoutRuleFileProvider _ruleFileProvider;
         private LoadoutPresetRandomService _loadoutPresetRandomService;

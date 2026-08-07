@@ -13,7 +13,7 @@ from tool_common import (
     ensure_required_build_dlls,
     get_plugin_project_path,
     get_repo_root,
-    resolve_msbuild,
+    resolve_dotnet,
     run_cli,
     run_process,
     sync_generated_version_files,
@@ -44,10 +44,10 @@ def main() -> int:
 
     ensure_required_build_dlls(repo_root)
     sync_generated_version_files(repo_root)
-    msbuild_path = resolve_msbuild()
+    dotnet_path = resolve_dotnet()
 
     return run_process(
-        [str(msbuild_path), str(project_path), "/p:Configuration={0}".format(args.configuration)],
+        [str(dotnet_path), "build", str(project_path), "--configuration", args.configuration],
         repo_root,
     )
 

@@ -2,10 +2,8 @@
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
 using System;
-using BepInEx;
 using BepInEx.Configuration;
 using BepInEx.Logging;
-using EtgGameplayDashboard.Core;
 using EtgGameplayDashboard.Core.Input;
 using UnityEngine;
 
@@ -149,11 +147,11 @@ namespace EtgGameplayDashboard
             Action<string> themeChanged,
             Action<bool> ammonomiconFastOpenChanged)
         {
-            _configFile=configFile;
-            _logger=logger;
-            _activeStartItemsPresetChanged=activeStartItemsPresetChanged;
-            _themeChanged=themeChanged;
-            _ammonomiconFastOpenChanged=ammonomiconFastOpenChanged;
+            _configFile = configFile;
+            _logger = logger;
+            _activeStartItemsPresetChanged = activeStartItemsPresetChanged;
+            _themeChanged = themeChanged;
+            _ammonomiconFastOpenChanged = ammonomiconFastOpenChanged;
         }
 
         private void SaveConfig()
@@ -176,7 +174,7 @@ namespace EtgGameplayDashboard
             return true;
         }
 
-        private bool ReadBool(ConfigEntry<bool> config, bool defaultValue)
+        private static bool ReadBool(ConfigEntry<bool> config, bool defaultValue)
         {
             return config == null ? defaultValue : config.Value;
         }
@@ -903,7 +901,7 @@ namespace EtgGameplayDashboard
             return ReadBool(_bossRushVerboseLogsConfig, false);
         }
 
-        internal bool IsBossSelectionVerboseLoggingEnabled()
+        internal static bool IsBossSelectionVerboseLoggingEnabled()
         {
             // Keep diagnostics code-only so BepInEx does not recreate the old
             // [Debug] config entry and its comments in generated config files.
@@ -1225,9 +1223,9 @@ namespace EtgGameplayDashboard
 
             _logger.LogInfo(EtgGameplayDashboardLog.Command(
                 "Combat cursor color changed to " + normalized + " " + selectedOption.Hex +
-                " RGB(" + selectedOption.Color.r.ToString("F3") + "," +
-                selectedOption.Color.g.ToString("F3") + "," +
-                selectedOption.Color.b.ToString("F3") + ")."));
+                " RGB(" + selectedOption.Color.r.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," +
+                selectedOption.Color.g.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + "," +
+                selectedOption.Color.b.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) + ")."));
         }
 
     }

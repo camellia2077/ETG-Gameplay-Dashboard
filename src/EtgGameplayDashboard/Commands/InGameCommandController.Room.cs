@@ -1,9 +1,8 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
-using BepInEx.Logging;
-using Dungeonator;
 using System.Collections.Generic;
+using BepInEx.Logging;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -271,95 +270,95 @@ namespace EtgGameplayDashboard
                 List<RoomBossOption> bossOptions = GetBossSelectionBossOptions();
                 bossOptionCount = bossOptions.Count;
                 LogBossSelectionPagePerformanceStage("Options", optionsStartedAtTimestamp, bossOptionCount);
-            string currentBossNames = _roomDebugCommandService != null
-                ? _roomDebugCommandService.GetSelectedBossName()
-                : "Random";
-            string currentFloorBossName = _roomDebugCommandService != null
-                ? _roomDebugCommandService.GetCurrentFloorBossName()
-                : "None";
-            GUI.Label(
-                new Rect(contentRect.x, contentRect.y, contentRect.width, 20f),
-                GetLocalizedFallback("gui.room.boss.current_floor_prefix", "Current floor Boss: ", "本层 Boss：") + currentFloorBossName,
-                _hintStyle);
-            GUI.Label(
-                new Rect(contentRect.x, contentRect.y + 24f, contentRect.width, 20f),
-                GetLocalizedFallback("gui.room.boss.next_floor_prefix", "Next floor Boss: ", "下一层 Boss：") + currentBossNames,
-                _hintStyle);
-            GUI.Label(
-                new Rect(contentRect.x, contentRect.y + 48f, contentRect.width, 20f),
-                GetLocalizedFallback(
-                    "gui.room.boss.hint",
-                    "Select a Boss before the next floor is generated; no selection uses the first Boss.",
-                    "在下一层生成前选择 Boss；不选择时使用第一个 Boss。"),
-                _hintStyle);
-
-            if (bossOptions.Count == 0)
-            {
+                string currentBossNames = _roomDebugCommandService != null
+                    ? _roomDebugCommandService.GetSelectedBossName()
+                    : "Random";
+                string currentFloorBossName = _roomDebugCommandService != null
+                    ? _roomDebugCommandService.GetCurrentFloorBossName()
+                    : "None";
                 GUI.Label(
-                    new Rect(contentRect.x, contentRect.y + 76f, contentRect.width, 20f),
-                    GetLocalizedFallback("gui.room.boss.empty", "No Boss options are available for the next floor.", "下一层没有可选择的 Boss。"),
+                    new Rect(contentRect.x, contentRect.y, contentRect.width, 20f),
+                    GetLocalizedFallback("gui.room.boss.current_floor_prefix", "Current floor Boss: ", "本层 Boss：") + currentFloorBossName,
                     _hintStyle);
-                return;
-            }
+                GUI.Label(
+                    new Rect(contentRect.x, contentRect.y + 24f, contentRect.width, 20f),
+                    GetLocalizedFallback("gui.room.boss.next_floor_prefix", "Next floor Boss: ", "下一层 Boss：") + currentBossNames,
+                    _hintStyle);
+                GUI.Label(
+                    new Rect(contentRect.x, contentRect.y + 48f, contentRect.width, 20f),
+                    GetLocalizedFallback(
+                        "gui.room.boss.hint",
+                        "Select a Boss before the next floor is generated; no selection uses the first Boss.",
+                        "在下一层生成前选择 Boss；不选择时使用第一个 Boss。"),
+                    _hintStyle);
 
-            const int bossOptionsPerRow = 4;
-            float optionsTop = contentRect.y + 76f;
-            for (int index = 0; index < bossOptions.Count; index++)
-            {
-                int row = index / bossOptionsPerRow;
-                int column = index % bossOptionsPerRow;
-                Rect buttonRect = new Rect(
-                    contentRect.x + (column * (buttonWidth + ButtonGap)),
-                    optionsTop + (row * (controlHeight + ButtonGap)),
-                    buttonWidth,
-                    controlHeight);
-                RoomBossOption bossOption = bossOptions[index];
-                GUIStyle style = (object)player != null && string.Equals(bossOption.BossName, currentBossNames, System.StringComparison.Ordinal)
-                    ? _enabledButtonStyle
-                    : _buttonStyle;
-                if (DrawControllerButton(buttonRect, GetBossRoomControlId(index), GetBossOptionLabel(bossOption, index, bossOptions), style))
+                if (bossOptions.Count == 0)
                 {
-                    ExecuteSwitchBoss(player, bossOption, logger);
+                    GUI.Label(
+                        new Rect(contentRect.x, contentRect.y + 76f, contentRect.width, 20f),
+                        GetLocalizedFallback("gui.room.boss.empty", "No Boss options are available for the next floor.", "下一层没有可选择的 Boss。"),
+                        _hintStyle);
+                    return;
                 }
-            }
 
-            string selectedBossName = currentBossNames;
-            List<RoomBossOption> roomOptions = !string.Equals(selectedBossName, "Random", System.StringComparison.Ordinal)
-                ? GetBossRoomOptions(selectedBossName)
-                : new List<RoomBossOption>();
-            if (roomOptions.Count <= 1)
-            {
-                return;
-            }
-
-            int bossRowCount = (bossOptions.Count + bossOptionsPerRow - 1) / bossOptionsPerRow;
-            float roomTitleY = optionsTop + (bossRowCount * (controlHeight + ButtonGap)) + 4f;
-            GUI.Label(
-                new Rect(contentRect.x, roomTitleY, contentRect.width, 20f),
-                GetLocalizedFallback("gui.room.boss.room_title", "Room layout", "房间布局"),
-                _hintStyle);
-            float roomOptionsTop = roomTitleY + 24f;
-            for (int index = 0; index < roomOptions.Count; index++)
-            {
-                int row = index / bossOptionsPerRow;
-                int column = index % bossOptionsPerRow;
-                Rect buttonRect = new Rect(
-                    contentRect.x + (column * (buttonWidth + ButtonGap)),
-                    roomOptionsTop + (row * (controlHeight + ButtonGap)),
-                    buttonWidth,
-                    controlHeight);
-                RoomBossOption roomOption = roomOptions[index];
-                GUIStyle style = BossManager.PriorFloorSelectedBossRoom == roomOption.BossRoomPrototype
-                    ? _enabledButtonStyle
-                    : _buttonStyle;
-                string roomLabel = _roomDebugCommandService != null
-                    ? _roomDebugCommandService.GetBossRoomDisplayName(roomOption)
-                    : "Unknown Room";
-                if (DrawControllerButton(buttonRect, GetBossRoomVariantControlId(index), roomLabel, style))
+                const int bossOptionsPerRow = 4;
+                float optionsTop = contentRect.y + 76f;
+                for (int index = 0; index < bossOptions.Count; index++)
                 {
-                    ExecuteSwitchBoss(player, roomOption, logger);
+                    int row = index / bossOptionsPerRow;
+                    int column = index % bossOptionsPerRow;
+                    Rect buttonRect = new Rect(
+                        contentRect.x + (column * (buttonWidth + ButtonGap)),
+                        optionsTop + (row * (controlHeight + ButtonGap)),
+                        buttonWidth,
+                        controlHeight);
+                    RoomBossOption bossOption = bossOptions[index];
+                    GUIStyle style = (object)player != null && string.Equals(bossOption.BossName, currentBossNames, System.StringComparison.Ordinal)
+                        ? _enabledButtonStyle
+                        : _buttonStyle;
+                    if (DrawControllerButton(buttonRect, GetBossRoomControlId(index), GetBossOptionLabel(bossOption, index, bossOptions), style))
+                    {
+                        ExecuteSwitchBoss(player, bossOption, logger);
+                    }
                 }
-            }
+
+                string selectedBossName = currentBossNames;
+                List<RoomBossOption> roomOptions = !string.Equals(selectedBossName, "Random", System.StringComparison.Ordinal)
+                    ? GetBossRoomOptions(selectedBossName)
+                    : new List<RoomBossOption>();
+                if (roomOptions.Count <= 1)
+                {
+                    return;
+                }
+
+                int bossRowCount = (bossOptions.Count + bossOptionsPerRow - 1) / bossOptionsPerRow;
+                float roomTitleY = optionsTop + (bossRowCount * (controlHeight + ButtonGap)) + 4f;
+                GUI.Label(
+                    new Rect(contentRect.x, roomTitleY, contentRect.width, 20f),
+                    GetLocalizedFallback("gui.room.boss.room_title", "Room layout", "房间布局"),
+                    _hintStyle);
+                float roomOptionsTop = roomTitleY + 24f;
+                for (int index = 0; index < roomOptions.Count; index++)
+                {
+                    int row = index / bossOptionsPerRow;
+                    int column = index % bossOptionsPerRow;
+                    Rect buttonRect = new Rect(
+                        contentRect.x + (column * (buttonWidth + ButtonGap)),
+                        roomOptionsTop + (row * (controlHeight + ButtonGap)),
+                        buttonWidth,
+                        controlHeight);
+                    RoomBossOption roomOption = roomOptions[index];
+                    GUIStyle style = BossManager.PriorFloorSelectedBossRoom == roomOption.BossRoomPrototype
+                        ? _enabledButtonStyle
+                        : _buttonStyle;
+                    string roomLabel = _roomDebugCommandService != null
+                        ? _roomDebugCommandService.GetBossRoomDisplayName(roomOption)
+                        : "Unknown Room";
+                    if (DrawControllerButton(buttonRect, GetBossRoomVariantControlId(index), roomLabel, style))
+                    {
+                        ExecuteSwitchBoss(player, roomOption, logger);
+                    }
+                }
             }
             finally
             {
@@ -509,7 +508,7 @@ namespace EtgGameplayDashboard
             }
         }
 
-        private string GetRoomChestTierLabel(RoomChestTier chestTier)
+        private static string GetRoomChestTierLabel(RoomChestTier chestTier)
         {
             switch (chestTier)
             {
@@ -540,7 +539,7 @@ namespace EtgGameplayDashboard
         private void ExecuteSpawnChest(PlayerController player, ManualLogSource logger, RoomChestTier chestTier)
         {
             _selectedRoomChestTier = chestTier;
-            ShowRoomActionResult(_roomDebugCommandService.SpawnChest(player, chestTier), logger);
+            ShowRoomActionResult(RoomDebugCommandService.SpawnChest(player, chestTier), logger);
         }
 
         private void ExecuteRefreshRoomEnemies(PlayerController player, ManualLogSource logger)

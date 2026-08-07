@@ -17,12 +17,12 @@ namespace EtgGameplayDashboard
         private const string CurrencyShortcutCasingsId = "currency.casings";
         private const string CurrencyShortcutHegemonyId = "currency.hegemony";
 
-        private string GetPickupShortcutConfigurationButtonLabel()
+        private static string GetPickupShortcutConfigurationButtonLabel()
         {
             return GetLocalizedFallback("gui.pickups.button.configure_shortcuts", "Set Shortcuts", "设置快捷键");
         }
 
-        private string GetPickupShortcutExitConfigurationButtonLabel()
+        private static string GetPickupShortcutExitConfigurationButtonLabel()
         {
             return GetLocalizedFallback("gui.pickups.button.exit_shortcuts", "Exit Editing", "退出编辑");
         }
@@ -173,7 +173,7 @@ namespace EtgGameplayDashboard
 
         private void BeginPickupShortcutCapture(int pickupId)
         {
-            BeginPickupShortcutCapture(pickupId.ToString());
+            BeginPickupShortcutCapture(pickupId.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         private void BeginPickupShortcutCapture(string targetId)
@@ -203,7 +203,7 @@ namespace EtgGameplayDashboard
 
         private void ClearPickupShortcut(int pickupId)
         {
-            ClearPickupShortcut(pickupId.ToString());
+            ClearPickupShortcut(pickupId.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         private void ClearPickupShortcut(string targetId)
@@ -226,7 +226,7 @@ namespace EtgGameplayDashboard
 
         private string GetPickupShortcutButtonLabel(int pickupId)
         {
-            return GetPickupShortcutButtonLabel(pickupId.ToString());
+            return GetPickupShortcutButtonLabel(pickupId.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         private string GetPickupShortcutButtonLabel(string targetId)
@@ -264,7 +264,7 @@ namespace EtgGameplayDashboard
             return localizedNone;
         }
 
-        private string GetPickupShortcutDisplayName(KeyCode keyCode)
+        private static string GetPickupShortcutDisplayName(KeyCode keyCode)
         {
             switch (keyCode)
             {
@@ -413,25 +413,25 @@ namespace EtgGameplayDashboard
             switch (actionId)
             {
                 case CurrencyShortcutMaxHealthId:
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMaxHealth(targetPlayer, null); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddMaxHealth(targetPlayer, null); });
                     return;
                 case CurrencyShortcutArmorId:
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddArmor(targetPlayer, null); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddArmor(targetPlayer, null); });
                     return;
                 case CurrencyShortcutBlankId:
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, null); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, null); });
                     return;
                 case CurrencyShortcutKeyId:
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, null); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, null); });
                     return;
                 case CurrencyShortcutRatKeyId:
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, null); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, null); });
                     return;
                 case CurrencyShortcutCasingsId:
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddCurrency(targetPlayer, null); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddCurrency(targetPlayer, null); });
                     return;
                 case CurrencyShortcutHegemonyId:
-                    ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, null); });
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, null); });
                     return;
                 default:
                     return;

@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Text;
-using Newtonsoft.Json.Linq;
 using EtgGameplayDashboard.Core;
+using Newtonsoft.Json.Linq;
 
 namespace EtgGameplayDashboard
 {
@@ -251,7 +251,7 @@ namespace EtgGameplayDashboard
             }
 
             StringBuilder builder = new StringBuilder();
-            builder.Append("[");
+            builder.Append('[');
             for (int i = 0; i < values.Length; i++)
             {
                 if (i > 0)
@@ -262,7 +262,7 @@ namespace EtgGameplayDashboard
                 builder.Append(values[i].ToString(CultureInfo.InvariantCulture));
             }
 
-            builder.Append("]");
+            builder.Append(']');
             return builder.ToString();
         }
 

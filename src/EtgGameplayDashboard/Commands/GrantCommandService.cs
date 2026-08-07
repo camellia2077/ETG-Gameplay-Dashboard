@@ -53,7 +53,7 @@ namespace EtgGameplayDashboard
                 return CreatePlayerNotReadyResult();
             }
 
-            EtgPickupResolveResult resolveResult = _pickupResolver.ResolveRandomGrantable(_random.Next());
+            EtgPickupResolveResult resolveResult = EtgPickupResolver.ResolveRandomGrantable(_random.Next());
             if (!resolveResult.Succeeded)
             {
                 return CreateResolveFailureResult(null, resolveResult, "result.error.random_resolve_failed", "Failed to resolve a random pickup.");

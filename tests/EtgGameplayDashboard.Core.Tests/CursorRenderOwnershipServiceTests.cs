@@ -53,7 +53,7 @@ namespace EtgGameplayDashboard.Core.Tests
         private static CursorRenderDecision Evaluate(bool panelVisible, bool primaryHasMouse, bool secondaryHasMouse, bool customColorEnabled)
         {
             CursorRenderOwnershipService service = new CursorRenderOwnershipService();
-            return service.Evaluate(panelVisible, primaryHasMouse, secondaryHasMouse, customColorEnabled, true);
+            return CursorRenderOwnershipService.Evaluate(panelVisible, primaryHasMouse, secondaryHasMouse, customColorEnabled, true);
         }
     }
 }

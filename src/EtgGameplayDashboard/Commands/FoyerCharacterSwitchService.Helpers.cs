@@ -13,7 +13,7 @@ namespace EtgGameplayDashboard
     {
         private static Foyer GetActiveFoyer()
         {
-            return UnityEngine.Object.FindObjectOfType(typeof(Foyer)) as Foyer;
+            return UnityEngine.Object.FindObjectOfType<Foyer>();
         }
 
         private static FoyerCharacterSelectFlag[] GetCharacterFlagsForFoyer(Foyer foyer)
@@ -24,7 +24,7 @@ namespace EtgGameplayDashboard
                 return callbackFlags;
             }
 
-            FoyerCharacterSelectFlag[] flags = Resources.FindObjectsOfTypeAll(typeof(FoyerCharacterSelectFlag)) as FoyerCharacterSelectFlag[];
+            FoyerCharacterSelectFlag[] flags = Resources.FindObjectsOfTypeAll<FoyerCharacterSelectFlag>();
             if (flags == null || flags.Length == 0)
             {
                 return new FoyerCharacterSelectFlag[0];
@@ -160,42 +160,42 @@ namespace EtgGameplayDashboard
 
             string path = flag.CharacterPrefabPath ?? string.Empty;
             string lowerPath = path.ToLowerInvariant();
-            if (lowerPath.IndexOf("marine") >= 0 || lowerPath.IndexOf("soldier") >= 0)
+            if (lowerPath.IndexOf("marine", StringComparison.Ordinal) >= 0 || lowerPath.IndexOf("soldier", StringComparison.Ordinal) >= 0)
             {
                 return "Marine";
             }
 
-            if (lowerPath.IndexOf("hunter") >= 0 || lowerPath.IndexOf("guide") >= 0)
+            if (lowerPath.IndexOf("hunter", StringComparison.Ordinal) >= 0 || lowerPath.IndexOf("guide", StringComparison.Ordinal) >= 0)
             {
                 return "Hunter";
             }
 
-            if (lowerPath.IndexOf("pilot") >= 0)
+            if (lowerPath.IndexOf("pilot", StringComparison.Ordinal) >= 0)
             {
                 return "Pilot";
             }
 
-            if (lowerPath.IndexOf("rogue") >= 0)
+            if (lowerPath.IndexOf("rogue", StringComparison.Ordinal) >= 0)
             {
                 return "Pilot";
             }
 
-            if (lowerPath.IndexOf("convict") >= 0 || lowerPath.IndexOf("ninja") >= 0)
+            if (lowerPath.IndexOf("convict", StringComparison.Ordinal) >= 0 || lowerPath.IndexOf("ninja", StringComparison.Ordinal) >= 0)
             {
                 return "Convict";
             }
 
-            if (lowerPath.IndexOf("robot") >= 0)
+            if (lowerPath.IndexOf("robot", StringComparison.Ordinal) >= 0)
             {
                 return "Robot";
             }
 
-            if (lowerPath.IndexOf("bullet") >= 0)
+            if (lowerPath.IndexOf("bullet", StringComparison.Ordinal) >= 0)
             {
                 return "Bullet";
             }
 
-            if (lowerPath.IndexOf("cultist") >= 0)
+            if (lowerPath.IndexOf("cultist", StringComparison.Ordinal) >= 0)
             {
                 return "Cultist";
             }

@@ -1,19 +1,15 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
-using System;
-using System.Collections.Generic;
-using System.Reflection;
 using BepInEx.Logging;
 using EtgGameplayDashboard.Core;
 using EtgGameplayDashboard.Core.Input;
-using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
     internal sealed partial class InGameCommandController
     {
-        private void LogCommandExecutionResult(ManualLogSource logger, GrantCommandExecutionResult executionResult)
+        private static void LogCommandExecutionResult(ManualLogSource logger, GrantCommandExecutionResult executionResult)
         {
             if (logger == null)
             {
@@ -31,7 +27,7 @@ namespace EtgGameplayDashboard
 
         private void Submit(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandParseResult parseResult = _parser.Parse(_inputText);
+            GrantCommandParseResult parseResult = GrantCommandParser.Parse(_inputText);
             if (!parseResult.Succeeded)
             {
                 ShowStatus(GetParseErrorMessage(parseResult), true);
@@ -72,7 +68,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteHealHalfHeart(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.HealHalfHeart(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.HealHalfHeart(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -89,7 +85,7 @@ namespace EtgGameplayDashboard
         private void ExecuteAddArmor(PlayerController player, ManualLogSource logger)
         {
             LogCommandPanelHealthDiagnostic("Executing add armor command. Before=" + DescribePlayerVitals(player) + ".");
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddArmor(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.AddArmor(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
             LogCommandPanelHealthDiagnostic("Finished add armor command. Result=" + executionResult.Succeeded + ", After=" + DescribePlayerVitals(player) + ".");
 
@@ -164,7 +160,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteFullHeal(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.FullHeal(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.FullHeal(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -180,7 +176,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteClearCurse(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.ClearCurse(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.ClearCurse(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -236,7 +232,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteAddBlank(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddBlank(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.AddBlank(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -252,37 +248,37 @@ namespace EtgGameplayDashboard
 
         private void ExecuteSpawnBlankNearPlayer(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnBlankNearPlayer(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.SpawnBlankNearPlayer(player);
             ShowPlayerDebugActionResult(executionResult, logger);
         }
 
         private void ExecuteSpawnFullHeartNearPlayer(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnFullHeartNearPlayer(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.SpawnFullHeartNearPlayer(player);
             ShowPlayerDebugActionResult(executionResult, logger);
         }
 
         private void ExecuteSpawnArmorNearPlayer(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnArmorNearPlayer(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.SpawnArmorNearPlayer(player);
             ShowPlayerDebugActionResult(executionResult, logger);
         }
 
         private void ExecuteSpawnKeyNearPlayer(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnKeyNearPlayer(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.SpawnKeyNearPlayer(player);
             ShowPlayerDebugActionResult(executionResult, logger);
         }
 
         private void ExecuteSpawnRatKeyNearPlayer(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnRatKeyNearPlayer(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.SpawnRatKeyNearPlayer(player);
             ShowPlayerDebugActionResult(executionResult, logger);
         }
 
         private void ExecuteSpawnCurrencyNearPlayer(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.SpawnCurrencyNearPlayer(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.SpawnCurrencyNearPlayer(player);
             ShowPlayerDebugActionResult(executionResult, logger);
         }
 
@@ -298,7 +294,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteRefillCurrentGunAmmo(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.RefillCurrentGunAmmo(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.RefillCurrentGunAmmo(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -314,7 +310,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteAddKey(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddKey(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.AddKey(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -370,7 +366,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteAddRatKey(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddRatKey(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.AddRatKey(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -386,7 +382,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteAddCurrency(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddCurrency(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.AddCurrency(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -402,7 +398,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteAddLargeCurrency(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddLargeCurrency(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.AddLargeCurrency(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -418,7 +414,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteClearCurrency(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.ClearCurrency(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.ClearCurrency(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
             LogCommandExecutionResult(logger, executionResult);
             if (executionResult.Succeeded)
@@ -469,7 +465,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteAddMetaCurrency(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.AddMetaCurrency(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.AddMetaCurrency(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
 
             if (executionResult.Succeeded)
@@ -485,7 +481,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteClearMetaCurrency(PlayerController player, ManualLogSource logger)
         {
-            GrantCommandExecutionResult executionResult = _playerDebugCommandService.ClearMetaCurrency(player);
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.ClearMetaCurrency(player);
             ShowStatus(executionResult.Message, !executionResult.Succeeded);
             LogCommandExecutionResult(logger, executionResult);
             if (executionResult.Succeeded)

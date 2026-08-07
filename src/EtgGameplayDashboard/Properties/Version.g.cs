@@ -3,14 +3,14 @@
 
 using System.Reflection;
 
-[assembly: AssemblyVersion("0.4.3")]
-[assembly: AssemblyFileVersion("0.4.3")]
-[assembly: AssemblyInformationalVersion("0.4.3")]
+[assembly: AssemblyVersion("0.4.5")]
+[assembly: AssemblyFileVersion("0.4.5")]
+[assembly: AssemblyInformationalVersion("0.4.5")]
 
 namespace EtgGameplayDashboard
 {
     internal static class BuildVersionInfo
     {
-        public const string Version = "0.4.3";
+        public const string Version = "0.4.5";
     }
 }

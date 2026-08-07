@@ -19,7 +19,7 @@ namespace EtgGameplayDashboard.Core
         {
             if (count < 0)
             {
-                throw new ArgumentOutOfRangeException("count");
+                throw new ArgumentOutOfRangeException(nameof(count));
             }
 
             Category = category;
@@ -46,7 +46,7 @@ namespace EtgGameplayDashboard.Core
         {
             if (poolIds == null)
             {
-                throw new ArgumentNullException("poolIds");
+                throw new ArgumentNullException(nameof(poolIds));
             }
 
             return new LoadoutRuleConfig(category, GrantMode.Random, count, poolIds, null, 0);
@@ -56,7 +56,7 @@ namespace EtgGameplayDashboard.Core
         {
             if (poolEntries == null)
             {
-                throw new ArgumentNullException("poolEntries");
+                throw new ArgumentNullException(nameof(poolEntries));
             }
 
             return new LoadoutRuleConfig(category, GrantMode.Random, count, null, poolEntries, 0);

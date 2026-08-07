@@ -69,8 +69,8 @@ namespace EtgGameplayDashboard
                 "Phase=" + phase +
                 ", Frame=" + currentFrame +
                 ", RelativeFloorFrame=" + relativeFrame +
-                ", Time=" + Time.time.ToString("F3") +
-                ", Realtime=" + Time.realtimeSinceStartup.ToString("F3") +
+                ", Time=" + Time.time.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) +
+                ", Realtime=" + Time.realtimeSinceStartup.ToString("F3", System.Globalization.CultureInfo.InvariantCulture) +
                 ", UnityScene=" + GetLoadedUnitySceneName() +
                 ", LastLoadedDungeonScene=" + GetLastLoadedDungeonSceneName(gameManager) +
                 ", ActivationKey=" + currentSceneName +
@@ -94,7 +94,7 @@ namespace EtgGameplayDashboard
                 ".");
         }
 
-        private string DescribeElevatorTransitionObjects()
+        private static string DescribeElevatorTransitionObjects()
         {
             try
             {
@@ -148,7 +148,7 @@ namespace EtgGameplayDashboard
             }
         }
 
-        private string DescribeFsmState(Component component)
+        private static string DescribeFsmState(Component component)
         {
             if ((object)component == null)
             {

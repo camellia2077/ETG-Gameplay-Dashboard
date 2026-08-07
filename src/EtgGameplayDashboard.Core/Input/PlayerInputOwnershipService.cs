@@ -30,7 +30,7 @@ namespace EtgGameplayDashboard.Core.Input
         {
             if (replacedPlayer != PlayerSlot.Primary && replacedPlayer != PlayerSlot.Secondary)
             {
-                throw new ArgumentOutOfRangeException("replacedPlayer");
+                throw new ArgumentOutOfRangeException(nameof(replacedPlayer));
             }
 
             _reassignmentCount++;

@@ -5,10 +5,10 @@ using BepInEx;
 
 namespace EtgGameplayDashboard
 {
-    [BepInPlugin(GUID, NAME, VERSION)]
+    [BepInPlugin(PluginGuid, NAME, VERSION)]
     public sealed partial class Plugin : BaseUnityPlugin
     {
-        public const string GUID = "etg-gameplay-dashboard";
+        public const string PluginGuid = "etg-gameplay-dashboard";
         public const string NAME = "EtgGameplayDashboard";
         public const string VERSION = BuildVersionInfo.Version;
     }

@@ -623,7 +623,7 @@ namespace EtgGameplayDashboard
 
 
 
-        public void DestroyTemplates(IEnumerable<RoomEnemyReplaySnapshot> snapshots)
+        public static void DestroyTemplates(IEnumerable<RoomEnemyReplaySnapshot> snapshots)
         {
             if (snapshots == null)
             {

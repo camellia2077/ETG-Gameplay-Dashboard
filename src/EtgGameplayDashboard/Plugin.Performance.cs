@@ -109,7 +109,7 @@ namespace EtgGameplayDashboard
             }
 
             string sceneName = string.Empty;
-            if (_sceneWatcher == null || !_sceneWatcher.TryGetCurrentSceneName(gameManager, out sceneName))
+            if (_sceneWatcher == null || !RunSceneWatcher.TryGetCurrentSceneName(gameManager, out sceneName))
             {
                 return false;
             }
@@ -136,7 +136,7 @@ namespace EtgGameplayDashboard
             string sceneName = string.Empty;
             if (_sceneWatcher != null && (object)gameManager != null)
             {
-                _sceneWatcher.TryGetCurrentSceneName(gameManager, out sceneName);
+                RunSceneWatcher.TryGetCurrentSceneName(gameManager, out sceneName);
             }
 
             PlayerController player = (object)gameManager != null ? gameManager.PrimaryPlayer : null;
@@ -147,7 +147,7 @@ namespace EtgGameplayDashboard
                    ", FocusWindow=" +
                    IsGameplayPerformanceFocusWindowActive() +
                    ", GameplaySeconds=" +
-                   GetGameplayPerformanceElapsedSeconds().ToString("0.00") +
+                   GetGameplayPerformanceElapsedSeconds().ToString("0.00", System.Globalization.CultureInfo.InvariantCulture) +
                    ", PendingTeleport=" +
                    (_pendingTeleportFloor != null) +
                    ", HasGrantedThisRun=" +

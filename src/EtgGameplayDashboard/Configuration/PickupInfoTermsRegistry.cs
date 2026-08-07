@@ -35,7 +35,7 @@ namespace EtgGameplayDashboard
                 languageCode,
                 key,
                 fallback,
-                delegate(PickupInfoTermsTable table, string termKey, string defaultValue)
+                delegate (PickupInfoTermsTable table, string termKey, string defaultValue)
                 {
                     return table.GetSection(termKey, defaultValue);
                 });
@@ -47,7 +47,7 @@ namespace EtgGameplayDashboard
                 languageCode,
                 key,
                 fallback,
-                delegate(PickupInfoTermsTable table, string termKey, string defaultValue)
+                delegate (PickupInfoTermsTable table, string termKey, string defaultValue)
                 {
                     return table.GetStat(termKey, defaultValue);
                 });
@@ -59,7 +59,7 @@ namespace EtgGameplayDashboard
                 languageCode,
                 rawValue,
                 fallback,
-                delegate(PickupInfoTermsTable table, string termKey, string defaultValue)
+                delegate (PickupInfoTermsTable table, string termKey, string defaultValue)
                 {
                     return table.GetDisplayValue(termKey, defaultValue);
                 });
@@ -153,7 +153,7 @@ namespace EtgGameplayDashboard
                 }
             }
 
-            candidates.Sort(delegate(KeyValuePair<string, string> left, KeyValuePair<string, string> right)
+            candidates.Sort(delegate (KeyValuePair<string, string> left, KeyValuePair<string, string> right)
             {
                 return right.Key.Length.CompareTo(left.Key.Length);
             });

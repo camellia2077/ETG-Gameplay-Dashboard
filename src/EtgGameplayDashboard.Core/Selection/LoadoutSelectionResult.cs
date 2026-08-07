@@ -18,12 +18,12 @@ namespace EtgGameplayDashboard.Core
         {
             if (selections == null)
             {
-                throw new ArgumentNullException("selections");
+                throw new ArgumentNullException(nameof(selections));
             }
 
             if (warnings == null)
             {
-                throw new ArgumentNullException("warnings");
+                throw new ArgumentNullException(nameof(warnings));
             }
 
             Seed = seed;

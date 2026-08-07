@@ -1,11 +1,10 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
-using BepInEx.Logging;
-using Dungeonator;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using BepInEx.Logging;
+using Dungeonator;
 using UnityEngine;
 
 namespace EtgGameplayDashboard
@@ -130,7 +129,7 @@ namespace EtgGameplayDashboard
             _logger = logger;
         }
 
-        public GrantCommandExecutionResult SpawnChest(PlayerController player, RoomChestTier chestTier)
+        public static GrantCommandExecutionResult SpawnChest(PlayerController player, RoomChestTier chestTier)
         {
             if ((object)player == null)
             {

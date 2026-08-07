@@ -14,7 +14,7 @@ from tool_common import (
     get_repo_root,
     get_test_output_path,
     get_test_project_path,
-    resolve_msbuild,
+    resolve_dotnet,
     run_cli,
     run_process,
     sync_generated_version_files,
@@ -45,10 +45,10 @@ def main() -> int:
         return localization_check_result
 
     sync_generated_version_files(repo_root)
-    msbuild_path = resolve_msbuild()
+    dotnet_path = resolve_dotnet()
 
     build_result = run_process(
-        [str(msbuild_path), str(project_path), "/p:Configuration={0}".format(args.configuration)],
+        [str(dotnet_path), "build", str(project_path), "--configuration", args.configuration],
         repo_root,
     )
     if build_result != 0:

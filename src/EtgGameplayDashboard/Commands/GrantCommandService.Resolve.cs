@@ -7,6 +7,8 @@ namespace EtgGameplayDashboard
 {
     internal sealed partial class GrantCommandService
     {
+        private static readonly char[] LeadingPickupSeparators = { ' ', '\t' };
+
         private EtgPickupResolveResult ResolvePickup(GrantCommandRequest request)
         {
             int pickupId;
@@ -25,16 +27,16 @@ namespace EtgGameplayDashboard
             switch (request.Target)
             {
                 case GrantCommandTarget.Gun:
-                    resolveResult = _pickupResolver.Resolve(PickupCategory.Gun, request.PickupName);
+                    resolveResult = EtgPickupResolver.Resolve(PickupCategory.Gun, request.PickupName);
                     break;
                 case GrantCommandTarget.Passive:
-                    resolveResult = _pickupResolver.Resolve(PickupCategory.Passive, request.PickupName);
+                    resolveResult = EtgPickupResolver.Resolve(PickupCategory.Passive, request.PickupName);
                     break;
                 case GrantCommandTarget.Active:
-                    resolveResult = _pickupResolver.Resolve(PickupCategory.Active, request.PickupName);
+                    resolveResult = EtgPickupResolver.Resolve(PickupCategory.Active, request.PickupName);
                     break;
                 case GrantCommandTarget.Any:
-                    resolveResult = _pickupResolver.ResolveAny(request.PickupName);
+                    resolveResult = EtgPickupResolver.ResolveAny(request.PickupName);
                     break;
                 default:
                     return new EtgPickupResolveResult(false, null, 0, string.Empty, new SelectionWarning(null, "CommandTargetUnsupported", GuiText.GetEnglish("result.error.command_target_unsupported")));
@@ -43,18 +45,18 @@ namespace EtgGameplayDashboard
             return resolveResult;
         }
 
-        private EtgPickupResolveResult ResolvePickupById(GrantCommandTarget target, int pickupId)
+        private static EtgPickupResolveResult ResolvePickupById(GrantCommandTarget target, int pickupId)
         {
             switch (target)
             {
                 case GrantCommandTarget.Gun:
-                    return _pickupResolver.Resolve(PickupCategory.Gun, pickupId);
+                    return EtgPickupResolver.Resolve(PickupCategory.Gun, pickupId);
                 case GrantCommandTarget.Passive:
-                    return _pickupResolver.Resolve(PickupCategory.Passive, pickupId);
+                    return EtgPickupResolver.Resolve(PickupCategory.Passive, pickupId);
                 case GrantCommandTarget.Active:
-                    return _pickupResolver.Resolve(PickupCategory.Active, pickupId);
+                    return EtgPickupResolver.Resolve(PickupCategory.Active, pickupId);
                 case GrantCommandTarget.Any:
-                    return _pickupResolver.ResolveAny(pickupId);
+                    return EtgPickupResolver.ResolveAny(pickupId);
                 default:
                     return new EtgPickupResolveResult(false, null, 0, string.Empty, new SelectionWarning(null, "CommandTargetUnsupported", GuiText.GetEnglish("result.error.command_target_unsupported")));
             }
@@ -74,7 +76,7 @@ namespace EtgGameplayDashboard
                 return false;
             }
 
-            string[] parts = trimmed.Split(new[] { ' ', '\t' }, System.StringSplitOptions.RemoveEmptyEntries);
+            string[] parts = trimmed.Split(LeadingPickupSeparators, System.StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0)
             {
                 return false;

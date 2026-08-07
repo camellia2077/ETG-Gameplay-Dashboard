@@ -41,7 +41,7 @@ namespace EtgGameplayDashboard
                 return null;
             }
 
-            LoadoutRuleFilePresetModel preset = _ruleFileProvider.GetPreset(model, _editorPresetId);
+            LoadoutRuleFilePresetModel preset = JsonLoadoutRuleFileProvider.GetPreset(model, _editorPresetId);
             return preset ?? _ruleFileProvider.EnsureActivePreset(model);
         }
 
@@ -51,7 +51,7 @@ namespace EtgGameplayDashboard
             LoadoutRuleFileModel model = LoadEditableModel();
             bool isLegacyDefaultPreset = (model.Presets == null || model.Presets.Length == 0) &&
                 string.Equals(normalizedId, StartItemsPresetNames.DefaultPresetId, StringComparison.OrdinalIgnoreCase);
-            if (!isLegacyDefaultPreset && _ruleFileProvider.GetPreset(model, normalizedId) == null)
+            if (!isLegacyDefaultPreset && JsonLoadoutRuleFileProvider.GetPreset(model, normalizedId) == null)
             {
                 return false;
             }
@@ -295,7 +295,7 @@ namespace EtgGameplayDashboard
             }
 
             HashSet<int> ownedPickupIds = _ownedPickupReader != null
-                ? _ownedPickupReader.CollectOwnedPickupIds(player)
+                ? EtgOwnedPickupReader.CollectOwnedPickupIds(player)
                 : new HashSet<int>();
             if (ownedPickupIds.Count == 0)
             {

@@ -4,9 +4,7 @@
 using System;
 using System.IO;
 using BepInEx;
-using EtgGameplayDashboard.Core;
 using EtgGameplayDashboard.Core.Input;
-using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
@@ -40,7 +38,7 @@ namespace EtgGameplayDashboard
                     if (_ammonomiconFastOpenToggleService != null &&
                         AmmonomiconFastOpenToggleService.IsFastOpenEnabled != isEnabled)
                     {
-                        _ammonomiconFastOpenToggleService.SetIsFastOpenEnabled(isEnabled);
+                        AmmonomiconFastOpenToggleService.SetIsFastOpenEnabled(isEnabled);
                     }
                 });
             _configuration.BindConfiguration();
@@ -48,7 +46,6 @@ namespace EtgGameplayDashboard
         private void InitializeResolversAndProviders()
         {
             _aliasRegistry = PickupAliasRegistry.Empty;
-            _configResolver = new EtgLoadoutConfigResolver(_pickupResolver);
             _pickupCatalogExporter = new EtgPickupCatalogExporter(
                 Path.Combine(Paths.ConfigPath, PickupCatalogTextFileName),
                 Path.Combine(Paths.ConfigPath, PickupCatalogJsonFileName),
@@ -138,7 +135,7 @@ namespace EtgGameplayDashboard
                 _configuration.ActiveItemNoCooldownEnabledConfig.Value,
                 PersistActiveItemNoCooldownEnabled);
             _ammonomiconFastOpenToggleService = new AmmonomiconFastOpenToggleService();
-            _ammonomiconFastOpenToggleService.SetIsFastOpenEnabled(_configuration.AmmonomiconFastOpenEnabledConfig.Value);
+            AmmonomiconFastOpenToggleService.SetIsFastOpenEnabled(_configuration.AmmonomiconFastOpenEnabledConfig.Value);
             _playerHealthOverrideService = new PlayerHealthOverrideService(Logger, IsCommandPanelHealthVerboseLoggingEnabled);
             _playerActiveItemCapacityOverrideService = new PlayerActiveItemCapacityOverrideService(Logger, IsActiveItemGrantVerboseLoggingEnabled);
             _playerDebugCommandService = new PlayerDebugCommandService(_playerHealthOverrideService);
@@ -369,7 +366,7 @@ namespace EtgGameplayDashboard
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Character switch verbose logs are " + (IsCharacterSwitchVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Damage diagnostics verbose logs are " + (IsDamageDiagnosticsVerboseLoggingEnabled() ? "enabled" : "disabled") + "."));
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Active start-items preset is " + GetActiveStartItemsPreset() + "."));
-            Logger.LogInfo(EtgGameplayDashboardLog.Init("Nearby pickup gameplay info loaded: " + (_pickupGameplayRegistry != null ? _pickupGameplayRegistry.Count.ToString() : "0") + "."));
+            Logger.LogInfo(EtgGameplayDashboardLog.Init("Nearby pickup gameplay info loaded: " + (_pickupGameplayRegistry != null ? _pickupGameplayRegistry.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) : "0") + "."));
             Logger.LogInfo(EtgGameplayDashboardLog.Init("Boss Rush service initialized. Startup self-check is running."));
         }
 

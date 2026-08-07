@@ -138,10 +138,10 @@ namespace EtgGameplayDashboard
             }
             else
             {
-                if (GUI.Button(countLabelRect, entry != null ? entry.Count.ToString() : "1", GetControllerButtonStyle(GetLoadoutPickupCountControlId(entry), _buttonStyle)))
+                if (GUI.Button(countLabelRect, entry != null ? entry.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) : "1", GetControllerButtonStyle(GetLoadoutPickupCountControlId(entry), _buttonStyle)))
                 {
                     _loadoutPickupCountEditIndex = entry != null ? entry.Index : -1;
-                    _loadoutPickupCountEditText = entry != null ? entry.Count.ToString() : "1";
+                    _loadoutPickupCountEditText = entry != null ? entry.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) : "1";
                 }
             }
 
