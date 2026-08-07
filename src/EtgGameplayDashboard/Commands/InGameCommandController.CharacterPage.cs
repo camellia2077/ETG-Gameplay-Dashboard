@@ -13,7 +13,7 @@ namespace EtgGameplayDashboard
     {
         private void DrawCharacterPage(Rect panelRect, FoyerCharacterOption[] characterOptions, string availabilityMessage, ManualLogSource logger)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             Rect modeButtonRect = new Rect(backButtonRect.x - ButtonGap - CharacterModeButtonWidth, panelRect.y + 12f, CharacterModeButtonWidth, 30f);
             Rect targetButtonRect = new Rect(modeButtonRect.x - ButtonGap - ButtonWidth, panelRect.y + 12f, ButtonWidth, 30f);
             GUIStyle targetButtonStyle = _characterSwitchTarget == CharacterSwitchTarget.SecondaryPlayer

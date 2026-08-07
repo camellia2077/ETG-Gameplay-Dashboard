@@ -38,7 +38,7 @@ For Boss rooms, replay does not start the Boss's native `GenericIntroDoer` a sec
 
 The selected room refresh mode is persisted as `RoomEnemyRefreshMethod` (`rewind` or `respawn`). The selected mode applies to standard combat rooms only; Boss rooms always use rewind. The rewind shortcut key remains separately configurable as `RoomEnemyRewindKey`; the in-panel execute button does not persist a pressed state.
 
-`Player Rewind` is a separate persistent toggle in the Room panel and defaults to off (`PlayerRewindEnabled`). When enabled before entering a tracked room, the room-entry snapshot records the player's health, armor, blanks, stats, guns/ammo, passives, actives, selected slots, and charge state. Rewinding the room restores that player snapshot.
+`Player Rewind` is a separate persistent toggle in the Room panel and defaults to on (`PlayerRewindEnabled`). When enabled before entering a tracked room, the room-entry snapshot records the player's health, armor, blanks, stats, guns/ammo, passives, actives, selected slots, and charge state. Rewinding the room restores that player snapshot.
 
 `Room Rewind Cleanup` is a separate persistent toggle in the Room panel and defaults to on. It controls removal of room-local decals, scene drops, currency, Boss reward pedestals, corpse visuals, and standalone death/floor VFX immediately before either rewind mode respawns enemies. See [Boss Room Rewind](../architecture/boss-room-rewind.md) for the object-source and player-VFX ownership rules.
 

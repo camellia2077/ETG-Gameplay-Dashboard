@@ -79,6 +79,8 @@ def test_build_base_payload_contains_workspace_root(tmp_path: Path) -> None:
     payload = LocCliApplication._build_base_payload(args=args, workspace_root=tmp_path)
     assert payload["lang"] == "py"
     assert payload["workspace_root"] == str(tmp_path)
+    assert "refactoring_action" not in payload
+    assert "responsibility_assessment" not in payload
 
 
 def test_write_json_log_creates_gitignore_for_log_dir(tmp_path: Path) -> None:

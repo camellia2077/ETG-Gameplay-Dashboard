@@ -70,6 +70,12 @@ I am changing build, deploy, or tools:
 - [Deploy](./operations/deploy.md)
 - [Tools README](../tools/README.md)
 
+I am planning a maintainability refactoring:
+
+- [Refactoring Guidelines](./architecture/refactoring-guidelines.md)
+- [System Overview](./architecture/system-overview.md)
+- [Code Index](./reference/code-index.md)
+
 ## Structure
 
 - `getting-started/`
@@ -92,6 +98,7 @@ I am changing build, deploy, or tools:
 - [Start Here](./getting-started/start-here.md)
 - [Development Setup](./getting-started/development-setup.md)
 - [System Overview](./architecture/system-overview.md)
+- [Refactoring Guidelines](./architecture/refactoring-guidelines.md)
 - [Runtime Hotspots](./architecture/runtime-hotspots.md)
 - [Research Entry](./architecture/research-entry.md)
 - [Project Scope](./architecture/research/project-scope.md)

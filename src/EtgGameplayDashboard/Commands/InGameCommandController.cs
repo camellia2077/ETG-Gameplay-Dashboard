@@ -110,10 +110,15 @@ namespace EtgGameplayDashboard
             _activeItemNoCooldownToggleService = activeItemNoCooldownToggleService;
             _ammonomiconFastOpenToggleService = ammonomiconFastOpenToggleService;
             _loadoutRuleEditorService = loadoutRuleEditorService;
+            _loadoutEditorDataCoordinator = new LoadoutEditorDataCoordinator(_loadoutRuleEditorService);
             _loadoutPresetRandomService = loadoutPresetRandomService;
             _pickupCatalogProvider = pickupCatalogProvider;
             _pickupGameplayNameProvider = pickupGameplayNameProvider;
             _aliasRegistryProvider = aliasRegistryProvider;
+            _pickupBrowserQueryService = new PickupBrowserQueryService(
+                _pickupCatalogProvider,
+                _aliasRegistryProvider,
+                _pickupGameplayNameProvider);
             _pickupShortcutRegistry = pickupShortcutRegistryProvider != null
                 ? pickupShortcutRegistryProvider()
                 : PickupShortcutRegistry.Parse(string.Empty);
@@ -172,6 +177,21 @@ namespace EtgGameplayDashboard
             _performanceVerboseLoggingEnabledProvider = performanceVerboseLoggingEnabledProvider;
             _performanceLogger = performanceLogger;
             _deferredTeleportRequestHandler = deferredTeleportRequestHandler;
+            _mapFeatureRuntimeCoordinator = new MapFeatureRuntimeCoordinator(
+                _roomDebugCommandService,
+                _performanceLogger,
+                _mapTeleportVerboseLoggingEnabledProvider,
+                GetCurrentMapFeatureActivationKey,
+                GetMapDirectTeleportRoomKey,
+                LogMapRevealTransitionDiagnostics,
+                LogGamepadShortcutState,
+                ResetMapDirectTeleportDiagnostics);
+            _commandPanelLifecycleCoordinator = new CommandPanelLifecycleCoordinator(
+                () => _isVisible,
+                GetCurrentPlayer,
+                () => _currentPage.ToString(),
+                LogCommandPanelHealthDiagnostic,
+                LogGamepadShortcutState);
             string persistedRoomEnemyRefreshMethod = _roomEnemyRefreshMethodProvider != null ? _roomEnemyRefreshMethodProvider() : "rewind";
             _roomEnemyRefreshMethod = string.Equals(persistedRoomEnemyRefreshMethod, "respawn", System.StringComparison.OrdinalIgnoreCase)
                 ? RoomEnemyRefreshMethod.RespawnEnemies
@@ -201,9 +221,8 @@ namespace EtgGameplayDashboard
             LogControllerStickStateChanges();
             LogHealthDiagnosticStateChanges();
             LogCursorVisibilityStateChanges();
-            UpdateMapFeatureActivationState();
+            _mapFeatureRuntimeCoordinator.Update();
             LogMapRevealTransitionDiagnostics("update_before_auto_reveal");
-            UpdateAutomaticRevealMap();
             LogMapDirectTeleportRoomTransitionIfNeeded();
             LogMapDirectTeleportRuntimeStateIfNeeded();
 
@@ -712,7 +731,7 @@ namespace EtgGameplayDashboard
                     ", Focus=" +
                     _pickupPageFocusedControlId +
                     ".");
-                ClosePickupPage();
+                ReturnFromPickupPage();
                 return;
             }
 
@@ -1061,91 +1080,7 @@ namespace EtgGameplayDashboard
 
         private static string MoveControllerFocus(ControllerFocusEntry[] entries, string currentControlId, ControllerNavDirection direction)
         {
-            if (entries == null || entries.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            int currentIndex = FindControllerFocusEntryIndex(entries, currentControlId);
-            if (currentIndex < 0)
-            {
-                return entries[0].ControlId;
-            }
-
-            ControllerFocusEntry currentEntry = entries[currentIndex];
-            int bestIndex = currentIndex;
-            int bestScore = int.MaxValue;
-            for (int i = 0; i < entries.Length; i++)
-            {
-                if (i == currentIndex)
-                {
-                    continue;
-                }
-
-                ControllerFocusEntry candidate = entries[i];
-                int rowDelta = candidate.Row - currentEntry.Row;
-                int columnDelta = candidate.Column - currentEntry.Column;
-                int score = GetControllerFocusScore(direction, rowDelta, columnDelta);
-                if (score >= bestScore)
-                {
-                    continue;
-                }
-
-                bestScore = score;
-                bestIndex = i;
-            }
-
-            return entries[bestIndex].ControlId;
-        }
-
-        private static int FindControllerFocusEntryIndex(ControllerFocusEntry[] entries, string controlId)
-        {
-            for (int i = 0; i < entries.Length; i++)
-            {
-                if (string.Equals(entries[i].ControlId, controlId, System.StringComparison.Ordinal))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
-        }
-
-        private static int GetControllerFocusScore(ControllerNavDirection direction, int rowDelta, int columnDelta)
-        {
-            switch (direction)
-            {
-                case ControllerNavDirection.Left:
-                    if (columnDelta >= 0)
-                    {
-                        return int.MaxValue;
-                    }
-
-                    return (Mathf.Abs(columnDelta) * 10) + Mathf.Abs(rowDelta);
-                case ControllerNavDirection.Right:
-                    if (columnDelta <= 0)
-                    {
-                        return int.MaxValue;
-                    }
-
-                    return (columnDelta * 10) + Mathf.Abs(rowDelta);
-                case ControllerNavDirection.Up:
-                    if (rowDelta >= 0)
-                    {
-                        return int.MaxValue;
-                    }
-
-                    return (Mathf.Abs(rowDelta) * 10) + Mathf.Abs(columnDelta);
-                case ControllerNavDirection.Down:
-                    if (rowDelta <= 0)
-                    {
-                        return int.MaxValue;
-                    }
-
-                    return (rowDelta * 10) + Mathf.Abs(columnDelta);
-                default:
-                    return int.MaxValue;
-            }
+            return ControllerFocusNavigator.Move(entries, currentControlId, direction);
         }
 
         private bool IsPanelConfirmPressed()
@@ -1750,45 +1685,12 @@ namespace EtgGameplayDashboard
 
         private void SyncPanelInputOverride()
         {
-            PlayerController currentPlayer = GetCurrentPlayer();
-            if (!_isVisible)
-            {
-                ClearPanelInputOverride();
-                return;
-            }
-
-            if ((object)_panelInputOverridePlayer != null && !ReferenceEquals(_panelInputOverridePlayer, currentPlayer))
-            {
-                _panelInputOverridePlayer.ClearInputOverride(PanelInputOverrideReason);
-                LogCommandPanelHealthDiagnostic(
-                    "Cleared command panel input override from stale player instance. PreviousPlayerId=" +
-                    _panelInputOverridePlayer.GetInstanceID() +
-                    ".");
-                _panelInputOverridePlayer = null;
-            }
-
-            // Panel navigation reads D-pad input directly. Do not put the player into NoInput here:
-            // ETG's input override also blocks the controller left stick used for gameplay movement.
-            ClearPanelInputOverride();
+            _commandPanelLifecycleCoordinator.SyncInputOverride();
         }
 
         private void ClearPanelInputOverride()
         {
-            if ((object)_panelInputOverridePlayer == null)
-            {
-                return;
-            }
-
-            _panelInputOverridePlayer.ClearInputOverride(PanelInputOverrideReason);
-            LogCommandPanelHealthDiagnostic(
-                "Cleared command panel input override. PlayerId=" +
-                _panelInputOverridePlayer.GetInstanceID() +
-                ", CurrentInputState=" +
-                _panelInputOverridePlayer.CurrentInputState +
-                ", IsInputOverridden=" +
-                _panelInputOverridePlayer.IsInputOverridden +
-                ".");
-            _panelInputOverridePlayer = null;
+            _commandPanelLifecycleCoordinator.ClearInputOverride();
         }
 
         private bool IsCommandPanelHealthVerboseLoggingEnabled()
@@ -1953,133 +1855,7 @@ namespace EtgGameplayDashboard
 
         private void RequestGuiFocusRelease()
         {
-            LogGamepadShortcutState(
-                "Queued GUI focus release. Visible=" +
-                _isVisible +
-                ", Page=" +
-                _currentPage +
-                ", KeyboardControl=" +
-                GUIUtility.keyboardControl +
-                ", HotControl=" +
-                GUIUtility.hotControl +
-                ".");
-            _releaseGuiFocusPending = true;
-        }
-
-        private void UpdateMapFeatureActivationState()
-        {
-            if (string.IsNullOrEmpty(_revealMapActivatedSceneName) && string.IsNullOrEmpty(_mapDirectTeleportActivatedSceneName))
-            {
-                return;
-            }
-
-            string currentSceneName = GetCurrentMapFeatureActivationKey();
-            bool isRevealMapStillActive =
-                !string.IsNullOrEmpty(_revealMapActivatedSceneName) &&
-                string.Equals(_revealMapActivatedSceneName, currentSceneName, System.StringComparison.Ordinal);
-            bool isMapDirectTeleportStillActive =
-                !string.IsNullOrEmpty(_mapDirectTeleportActivatedSceneName) &&
-                string.Equals(_mapDirectTeleportActivatedSceneName, currentSceneName, System.StringComparison.Ordinal);
-            if (isRevealMapStillActive || isMapDirectTeleportStillActive)
-            {
-                return;
-            }
-
-            if (ShouldLogMapTeleportVerbose())
-            {
-                LogMapRevealTransitionDiagnostics("floor_scene_changed_before_reset");
-                LogGamepadShortcutState(
-                    "Map feature activation reset. " +
-                    "PreviousRevealMapScene=" +
-                    _revealMapActivatedSceneName +
-                    ", PreviousMapDirectTeleportScene=" +
-                    _mapDirectTeleportActivatedSceneName +
-                    ", CurrentScene=" +
-                    currentSceneName +
-                    ".");
-            }
-            _revealMapActivatedSceneName = string.Empty;
-            _mapDirectTeleportActivatedSceneName = string.Empty;
-            if (!_revealMapEveryFloor)
-            {
-                _revealMapEnabled = false;
-            }
-            _lastMapDirectTeleportRoomKey = string.Empty;
-        }
-
-        private void UpdateAutomaticRevealMap()
-        {
-            if (!_revealMapEveryFloor || !_revealMapEnabled)
-            {
-                _autoRevealMapSceneName = string.Empty;
-                _autoRevealMapReadyRoomKey = string.Empty;
-                _autoRevealMapReadyRoomFrames = 0;
-                return;
-            }
-
-            string currentSceneName = GetCurrentMapFeatureActivationKey();
-            if (string.IsNullOrEmpty(currentSceneName) ||
-                string.Equals(currentSceneName, "foyer", System.StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(currentSceneName, _autoRevealMapSceneName, System.StringComparison.Ordinal) ||
-                Time.time < _nextAutoRevealMapAttemptAt)
-            {
-                return;
-            }
-
-            GameManager gameManager = GameManager.Instance;
-            PlayerController player = gameManager != null ? gameManager.PrimaryPlayer : null;
-            RoomHandler currentRoom = player != null ? player.CurrentRoom : null;
-            if ((object)player == null || (object)currentRoom == null || gameManager == null || gameManager.Dungeon == null || gameManager.Dungeon.data == null || !Minimap.HasInstance)
-            {
-                _autoRevealMapReadyRoomKey = string.Empty;
-                _autoRevealMapReadyRoomFrames = 0;
-                _nextAutoRevealMapAttemptAt = Time.time + 0.5f;
-                return;
-            }
-
-            // CurrentRoom becomes valid before the vanilla elevator arrival sequence has
-            // released player control. RevealAllRooms and DeferredMarkVisibleRoomsActive
-            // can otherwise run while the player is still in NoInput, which prevents the
-            // arrival flow from completing and leaves the player inside the elevator.
-            if (player.IsInputOverridden || player.CurrentInputState != PlayerInputState.AllInput)
-            {
-                _autoRevealMapReadyRoomKey = string.Empty;
-                _autoRevealMapReadyRoomFrames = 0;
-                _nextAutoRevealMapAttemptAt = Time.time + 0.25f;
-                return;
-            }
-
-            string currentRoomKey = GetMapDirectTeleportRoomKey(currentRoom);
-            if (!string.Equals(_autoRevealMapReadyRoomKey, currentRoomKey, System.StringComparison.Ordinal))
-            {
-                _autoRevealMapReadyRoomKey = currentRoomKey;
-                _autoRevealMapReadyRoomFrames = 0;
-            }
-
-            _autoRevealMapReadyRoomFrames++;
-            if (_autoRevealMapReadyRoomFrames < 10)
-            {
-                return;
-            }
-
-            LogMapRevealTransitionDiagnostics("auto_reveal_before_request");
-            GrantCommandExecutionResult executionResult = _roomDebugCommandService.RevealCurrentFloorMap(player, _performanceLogger);
-            if (!executionResult.Succeeded)
-            {
-                LogMapRevealTransitionDiagnostics("auto_reveal_failed");
-                _nextAutoRevealMapAttemptAt = Time.time + 0.5f;
-                return;
-            }
-
-            _autoRevealMapSceneName = currentSceneName;
-            _nextAutoRevealMapAttemptAt = 0f;
-            MarkRevealMapActivatedForCurrentScene();
-            MarkMapDirectTeleportActivatedForCurrentScene();
-            LogMapRevealTransitionDiagnostics("auto_reveal_completed");
-            if (_performanceLogger != null)
-            {
-                _performanceLogger.LogInfo(EtgGameplayDashboardLog.Command("Automatic Reveal Map completed for floor " + currentSceneName + "."));
-            }
+            _commandPanelLifecycleCoordinator.RequestGuiFocusRelease();
         }
 
         private void LogMapRevealTransitionDiagnostics(string phase)
@@ -2150,7 +1926,7 @@ namespace EtgGameplayDashboard
                 ", ActivationKey=" + currentSceneName +
                 ", RevealMapEnabled=" + _revealMapEnabled +
                 ", RevealMapEveryFloor=" + _revealMapEveryFloor +
-                ", AutoRevealScene=" + _autoRevealMapSceneName +
+                ", AutoRevealScene=" + _mapFeatureRuntimeCoordinator.AutomaticRevealMapSceneName +
                 ", PlayerReady=" + ((object)player != null) +
                 ", PlayerActive=" + (player != null ? player.gameObject.activeInHierarchy.ToString() : "<unknown>") +
                 ", PlayerInputOverridden=" + (player != null ? player.IsInputOverridden.ToString() : "<unknown>") +
@@ -2271,19 +2047,19 @@ namespace EtgGameplayDashboard
 
         private void ClearMapFeatureActivationState()
         {
-            _revealMapActivatedSceneName = string.Empty;
-            _mapDirectTeleportActivatedSceneName = string.Empty;
-            _autoRevealMapSceneName = string.Empty;
-            _autoRevealMapReadyRoomKey = string.Empty;
-            _autoRevealMapReadyRoomFrames = 0;
+            _mapFeatureRuntimeCoordinator.ClearActivationState();
+            ResetMapDirectTeleportDiagnostics();
+        }
+
+        private void ResetMapDirectTeleportDiagnostics()
+        {
             _lastMapDirectTeleportRoomKey = string.Empty;
+            _nextMapDirectTeleportDebugLogAt = 0f;
         }
 
         private bool IsRevealMapActive()
         {
-            return
-                !string.IsNullOrEmpty(_revealMapActivatedSceneName) &&
-                string.Equals(_revealMapActivatedSceneName, GetCurrentMapFeatureActivationKey(), System.StringComparison.Ordinal);
+            return _mapFeatureRuntimeCoordinator.IsRevealMapActive();
         }
 
         private bool IsRevealMapEnabled()
@@ -2293,21 +2069,18 @@ namespace EtgGameplayDashboard
 
         private void MarkRevealMapActivatedForCurrentScene()
         {
-            _revealMapActivatedSceneName = GetCurrentMapFeatureActivationKey();
+            _mapFeatureRuntimeCoordinator.MarkRevealMapActivatedForCurrentScene();
         }
 
         private bool IsMapDirectTeleportActive()
         {
-            return
-                !string.IsNullOrEmpty(_mapDirectTeleportActivatedSceneName) &&
-                string.Equals(_mapDirectTeleportActivatedSceneName, GetCurrentMapFeatureActivationKey(), System.StringComparison.Ordinal);
+            return _mapFeatureRuntimeCoordinator.IsMapDirectTeleportActive();
         }
 
         private void MarkMapDirectTeleportActivatedForCurrentScene()
         {
-            _mapDirectTeleportActivatedSceneName = GetCurrentMapFeatureActivationKey();
-            _nextMapDirectTeleportDebugLogAt = 0f;
-            _lastMapDirectTeleportRoomKey = string.Empty;
+            _mapFeatureRuntimeCoordinator.MarkMapDirectTeleportActivatedForCurrentScene();
+            ResetMapDirectTeleportDiagnostics();
         }
 
         private static string GetCurrentMapFeatureActivationKey()
@@ -2394,7 +2167,7 @@ namespace EtgGameplayDashboard
                 ", LastLoadedDungeonScene=" +
                 lastLoadedDungeonScene +
                 ", ActiveSceneBinding=" +
-                _mapDirectTeleportActivatedSceneName +
+                _mapFeatureRuntimeCoordinator.GetMapDirectTeleportActivationSceneName() +
                 ", MinimapHasInstance=" +
                 Minimap.HasInstance +
                 ", MinimapTeleportEntries=" +
@@ -2509,30 +2282,7 @@ namespace EtgGameplayDashboard
 
         private void ReleaseGuiFocusIfPending()
         {
-            if (!_releaseGuiFocusPending)
-            {
-                return;
-            }
-
-            _releaseGuiFocusPending = false;
-            LogGamepadShortcutState(
-                "Releasing GUI focus. Visible=" +
-                _isVisible +
-                ", Page=" +
-                _currentPage +
-                ", KeyboardControlBefore=" +
-                GUIUtility.keyboardControl +
-                ", HotControlBefore=" +
-                GUIUtility.hotControl +
-                ".");
-            ReleaseGuiFocus();
-        }
-
-        private static void ReleaseGuiFocus()
-        {
-            GUI.FocusControl(null);
-            GUIUtility.keyboardControl = 0;
-            GUIUtility.hotControl = 0;
+            _commandPanelLifecycleCoordinator.ReleaseGuiFocusIfPending();
         }
 
         private void LogCursorVisibilityStateChanges()

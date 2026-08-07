@@ -45,68 +45,11 @@ namespace EtgGameplayDashboard
             BothPlayers,
         }
 
-        private enum PickupBrowserFilter
-        {
-            All,
-            Gun,
-            Passive,
-            Active,
-        }
-
-        private enum PickupQualityFilter
-        {
-            All,
-            D,
-            C,
-            B,
-            A,
-            S,
-            Special,
-            Excluded,
-        }
-
-        private enum PickupGunClassFilter
-        {
-            All,
-            Pistol,
-            FullAuto,
-            Shotgun,
-            Rifle,
-            Beam,
-            Charge,
-            Explosive,
-            Elemental,
-            Special,
-        }
-
-        private enum PickupPassiveSubcategoryFilter
-        {
-            All,
-            Bullet,
-        }
-
-        private enum PickupActiveCooldownFilter
-        {
-            All,
-            Uses,
-            Damage,
-            Time,
-            Room,
-        }
-
         private enum PickupBrowserMode
         {
             Grant,
             AddToStartItems,
             AddToRandomPool,
-        }
-
-        private enum LoadoutEditorMode
-        {
-            PresetList,
-            PresetDetail,
-            RandomPoolDetail,
-            PresetPickupsDetail,
         }
 
         private enum CommandMenuCategory
@@ -152,17 +95,8 @@ namespace EtgGameplayDashboard
             Information,
         }
 
-        private enum ControllerNavDirection
-        {
-            Left,
-            Right,
-            Up,
-            Down,
-        }
-
         private const string InputControlName = "EtgGameplayDashboardCommandInput";
         private const string PickupSearchControlName = "EtgGameplayDashboardPickupSearch";
-        private const string PanelInputOverrideReason = "etg_gameplay_dashboard_command_panel";
         private const KeyCode RoomEnemyRewindShortcutKey = KeyCode.C;
         private const float StatusDurationSeconds = 4f;
         private const float KeyboardNavigationRepeatDelaySeconds = 0.35f;
@@ -365,10 +299,63 @@ namespace EtgGameplayDashboard
         private readonly PlayerStatMultiplierService _playerStatMultiplierService;
         private readonly AmmoModeToggleService _ammoModeToggleService;
         private readonly LoadoutRuleEditorService _loadoutRuleEditorService;
+        private readonly LoadoutEditorDataCoordinator _loadoutEditorDataCoordinator;
+        private readonly MapFeatureRuntimeCoordinator _mapFeatureRuntimeCoordinator;
+        private readonly CommandPanelLifecycleCoordinator _commandPanelLifecycleCoordinator;
+        private readonly LoadoutEditorState _loadoutEditorState = new LoadoutEditorState();
+
+        private LoadoutEditorMode _loadoutEditorMode
+        {
+            get { return _loadoutEditorState.Mode; }
+            set { _loadoutEditorState.Mode = value; }
+        }
+
+        private string _loadoutPresetRenameText
+        {
+            get { return _loadoutEditorState.PresetRenameText; }
+            set { _loadoutEditorState.PresetRenameText = value; }
+        }
+
+        private string _loadoutRandomPoolRenameText
+        {
+            get { return _loadoutEditorState.RandomPoolRenameText; }
+            set { _loadoutEditorState.RandomPoolRenameText = value; }
+        }
+
+        private string _loadoutPickupCountEditText
+        {
+            get { return _loadoutEditorState.PickupCountEditText; }
+            set { _loadoutEditorState.PickupCountEditText = value; }
+        }
+
+        private int _loadoutRandomPoolRuleIndex
+        {
+            get { return _loadoutEditorState.RandomPoolRuleIndex; }
+            set { _loadoutEditorState.RandomPoolRuleIndex = value; }
+        }
+
+        private int _loadoutPickupCountEditIndex
+        {
+            get { return _loadoutEditorState.PickupCountEditIndex; }
+            set { _loadoutEditorState.PickupCountEditIndex = value; }
+        }
+
+        private Vector2 _loadoutEditorScrollPosition
+        {
+            get { return _loadoutEditorState.EditorScrollPosition; }
+            set { _loadoutEditorState.EditorScrollPosition = value; }
+        }
+
+        private Vector2 _loadoutPresetScrollPosition
+        {
+            get { return _loadoutEditorState.PresetScrollPosition; }
+            set { _loadoutEditorState.PresetScrollPosition = value; }
+        }
         private readonly LoadoutPresetRandomService _loadoutPresetRandomService;
         private readonly Func<EtgPickupCatalogEntry[]> _pickupCatalogProvider;
         private readonly Func<int, string> _pickupGameplayNameProvider;
         private readonly Func<PickupAliasRegistry> _aliasRegistryProvider;
+        private readonly PickupBrowserQueryService _pickupBrowserQueryService;
         private PickupShortcutRegistry _pickupShortcutRegistry;
         private readonly Action<string> _pickupShortcutConfigSetter;
         private readonly Func<string> _languageProvider;
@@ -482,8 +469,16 @@ namespace EtgGameplayDashboard
         private bool _showTeleportPanel;
         private bool _showPlayerStatsPanel;
         private bool _showCommandPanelCloseButton;
-        private bool _revealMapEveryFloor;
-        private bool _revealMapEnabled;
+        private bool _revealMapEveryFloor
+        {
+            get { return _mapFeatureRuntimeCoordinator != null && _mapFeatureRuntimeCoordinator.RevealMapEveryFloor; }
+            set { if (_mapFeatureRuntimeCoordinator != null) _mapFeatureRuntimeCoordinator.RevealMapEveryFloor = value; }
+        }
+        private bool _revealMapEnabled
+        {
+            get { return _mapFeatureRuntimeCoordinator != null && _mapFeatureRuntimeCoordinator.RevealMapEnabled; }
+            set { if (_mapFeatureRuntimeCoordinator != null) _mapFeatureRuntimeCoordinator.RevealMapEnabled = value; }
+        }
         private bool _showPickupInfoOverlay;
         private bool _showPickupInfoQuality;
         private bool _showPickupInfoType;
@@ -497,7 +492,6 @@ namespace EtgGameplayDashboard
         private bool _isCapturingPickupShortcut;
         private bool _isPickupShortcutConfigurationMode;
         private string _pickupShortcutCaptureTargetId = string.Empty;
-        private bool _releaseGuiFocusPending;
         private PanelPage _currentPage;
         private string _commandPageFocusedControlId = "cmd.settings";
         private string _settingsPageFocusedControlId = "settings.toggle_key";
@@ -511,14 +505,8 @@ namespace EtgGameplayDashboard
         private ControllerNavDirection? _heldKeyboardNavigationDirection;
         private string _lastGuiLanguageCode = string.Empty;
         private bool _commandPageTitleTextRenderingWarmedUp;
-        private string _revealMapActivatedSceneName = string.Empty;
-        private string _autoRevealMapSceneName = string.Empty;
-        private float _nextAutoRevealMapAttemptAt;
-        private string _autoRevealMapReadyRoomKey = string.Empty;
-        private int _autoRevealMapReadyRoomFrames;
         private string _mapRevealDiagnosticSceneName = string.Empty;
         private int _mapRevealDiagnosticSceneStartFrame = -1;
-        private string _mapDirectTeleportActivatedSceneName = string.Empty;
         private float _nextMapDirectTeleportDebugLogAt;
         private string _lastMapDirectTeleportRoomKey = string.Empty;
         private string _inputText = string.Empty;
@@ -542,13 +530,7 @@ namespace EtgGameplayDashboard
         private LoadoutPresetEditorEntry[] _cachedLoadoutPresetEntries = EmptyLoadoutPresetEditorEntries;
         private LoadoutRandomPoolEditorEntry[] _cachedLoadoutRandomPoolEntries = EmptyLoadoutRandomPoolEditorEntries;
         private LoadoutRuleEditorEntry[] _cachedLoadoutPickupEntries = EmptyLoadoutPickupEditorEntries;
-        private LoadoutEditorMode _loadoutEditorMode = LoadoutEditorMode.PresetList;
         private CommandMenuCategory _commandMenuCategory = CommandMenuCategory.General;
-        private string _loadoutPresetRenameText = string.Empty;
-        private string _loadoutRandomPoolRenameText = string.Empty;
-        private string _loadoutPickupCountEditText = string.Empty;
-        private int _loadoutRandomPoolRuleIndex = -1;
-        private int _loadoutPickupCountEditIndex = -1;
         private PickupBrowserFilter _pickupBrowserFilter = PickupBrowserFilter.All;
         private PickupBrowserMode _pickupBrowserMode = PickupBrowserMode.Grant;
         private PickupQualityFilter _pickupQualityFilter = PickupQualityFilter.All;
@@ -564,8 +546,6 @@ namespace EtgGameplayDashboard
         private PickupPassiveSubcategoryFilter _filteredPickupEntriesCachePassiveFilter;
         private PickupActiveCooldownFilter _filteredPickupEntriesCacheActiveCooldownFilter;
         private Vector2 _pickupScrollPosition = Vector2.zero;
-        private Vector2 _loadoutEditorScrollPosition = Vector2.zero;
-        private Vector2 _loadoutPresetScrollPosition = Vector2.zero;
         private int _teleportSelectedIndex;
         private float _lastLoggedControllerHorizontalAxis = float.NaN;
         private float _lastLoggedControllerVerticalAxis = float.NaN;
@@ -606,7 +586,6 @@ namespace EtgGameplayDashboard
         private bool _lastLoggedCommandPanelKeyboardDown;
         private bool _lastLoggedCommandPanelControllerDetected;
         private bool _lastLoggedCommandPanelVisible;
-        private PlayerController _panelInputOverridePlayer;
         private PlayerController _lastHealthDiagnosticPlayer;
         private float _lastHealthDiagnosticCurrentHealth = float.NaN;
         private float _lastHealthDiagnosticMaxHealth = float.NaN;
@@ -649,20 +628,5 @@ namespace EtgGameplayDashboard
             public string CommandText { get; private set; }
         }
 
-        private struct ControllerFocusEntry
-        {
-            public ControllerFocusEntry(string controlId, int row, int column)
-            {
-                ControlId = controlId ?? string.Empty;
-                Row = row;
-                Column = column;
-            }
-
-            public string ControlId;
-
-            public int Row;
-
-            public int Column;
-        }
     }
 }

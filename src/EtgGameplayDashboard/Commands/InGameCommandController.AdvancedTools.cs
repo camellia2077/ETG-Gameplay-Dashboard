@@ -19,7 +19,7 @@ namespace EtgGameplayDashboard
         private void DrawAdvancedToolsPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
             const float controlHeight = 34f;
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
             {
                 OpenSettingsPage();

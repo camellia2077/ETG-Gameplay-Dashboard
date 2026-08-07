@@ -57,7 +57,7 @@ namespace EtgGameplayDashboard
             long startedAtTimestamp = StartPickupBrowserPerformanceTimer();
             const float pickupSearchClearButtonWidth = 72f;
 
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             Rect targetButtonRect = new Rect(backButtonRect.x - ButtonGap - ButtonWidth, panelRect.y + 12f, ButtonWidth, 30f);
             Rect shortcutConfigurationButtonRect = new Rect(
                 targetButtonRect.x - ButtonGap - 146f,
@@ -84,7 +84,7 @@ namespace EtgGameplayDashboard
 
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("pickups.back", _buttonStyle)))
             {
-                ClosePickupPage();
+                ReturnFromPickupPage();
                 return;
             }
 
@@ -534,47 +534,22 @@ namespace EtgGameplayDashboard
 
         private void RefreshPickupBrowserData()
         {
-            if (_cachedPickupEntries.Length > 0 || _pickupCatalogProvider == null)
+            if (_cachedPickupEntries.Length > 0 || _pickupBrowserQueryService == null)
             {
                 return;
             }
 
             long startedAtTimestamp = StartPickupBrowserPerformanceTimer();
             _pickupNameDiagnosticsLogged.Clear();
-            EtgPickupCatalogEntry[] catalogEntries = _pickupCatalogProvider() ?? new EtgPickupCatalogEntry[0];
-            double catalogDurationMs = FormatPickupBrowserMilliseconds(startedAtTimestamp);
-            PickupAliasRegistry aliasRegistry = _aliasRegistryProvider != null ? _aliasRegistryProvider() : PickupAliasRegistry.Empty;
-            long aliasStartedAtTimestamp = StartPickupBrowserPerformanceTimer();
-            Dictionary<int, List<string>> aliasesByPickupId = BuildAliasesByPickupId(aliasRegistry);
-            double aliasDurationMs = FormatPickupBrowserMilliseconds(aliasStartedAtTimestamp);
-            List<PickupBrowserEntry> browserEntries = new List<PickupBrowserEntry>(catalogEntries.Length);
-            for (int index = 0; index < catalogEntries.Length; index++)
-            {
-                EtgPickupCatalogEntry entry = catalogEntries[index];
-                if (entry == null)
-                {
-                    continue;
-                }
-
-                List<string> aliases;
-                aliasesByPickupId.TryGetValue(entry.PickupId, out aliases);
-                browserEntries.Add(new PickupBrowserEntry(entry, aliases, _pickupGameplayNameProvider));
-            }
-
-            browserEntries.Sort(ComparePickupBrowserEntries);
-            _cachedPickupEntries = browserEntries.ToArray();
+            _cachedPickupEntries = _pickupBrowserQueryService.BuildEntries();
             _filteredPickupEntriesCache = null;
             LogPickupBrowserPerformance(
-                "Pickup browser data refreshed. CatalogEntries=" + catalogEntries.Length +
-                ", AliasEntries=" + aliasesByPickupId.Count +
-                ", CachedEntries=" + _cachedPickupEntries.Length +
-                ", CatalogProviderMs=" + catalogDurationMs +
-                ", AliasBuildMs=" + aliasDurationMs +
+                "Pickup browser data refreshed. CachedEntries=" + _cachedPickupEntries.Length +
                 ", TotalMs=" + FormatPickupBrowserMilliseconds(startedAtTimestamp) + ".");
             LogPickupBrowserPerformance(
                 "Pickup browser language context. CurrentLanguage=" + GuiText.CurrentLanguageCode
                 + ", GameLanguage=" + GuiText.GameLanguageCode
-                + ", EntryCount=" + catalogEntries.Length + ".");
+                + ", EntryCount=" + _cachedPickupEntries.Length + ".");
         }
 
         private void LogPickupNameDiagnostic(PickupBrowserEntry entry)
@@ -699,38 +674,6 @@ namespace EtgGameplayDashboard
                 "result.grant.success.both_players");
         }
 
-        private static int ComparePickupBrowserEntries(PickupBrowserEntry left, PickupBrowserEntry right)
-        {
-            if (left == null && right == null)
-            {
-                return 0;
-            }
-
-            if (left == null)
-            {
-                return 1;
-            }
-
-            if (right == null)
-            {
-                return -1;
-            }
-
-            int categoryComparison = left.CatalogEntry.Category.CompareTo(right.CatalogEntry.Category);
-            if (categoryComparison != 0)
-            {
-                return categoryComparison;
-            }
-
-            int displayNameComparison = string.Compare(left.DisplayName, right.DisplayName, StringComparison.OrdinalIgnoreCase);
-            if (displayNameComparison != 0)
-            {
-                return displayNameComparison;
-            }
-
-            return left.CatalogEntry.PickupId.CompareTo(right.CatalogEntry.PickupId);
-        }
-
         private void ResetPickupBrowserState()
         {
             CancelPickupShortcutCapture();
@@ -757,7 +700,7 @@ namespace EtgGameplayDashboard
             _pickupScrollPosition = Vector2.zero;
         }
 
-        private void ClosePickupPage()
+        private void ReturnFromPickupPage()
         {
             if (_pickupBrowserMode == PickupBrowserMode.AddToStartItems)
             {
@@ -776,6 +719,9 @@ namespace EtgGameplayDashboard
             }
             else
             {
+                // The Grant Items page is a child page of the command panel. Returning from
+                // it must keep the panel visible and route back to the control panel root.
+                _isVisible = true;
                 _currentPage = PanelPage.Command;
                 _focusInputField = true;
             }
@@ -862,7 +808,7 @@ namespace EtgGameplayDashboard
         {
             if (string.Equals(_pickupPageFocusedControlId, "pickups.back", StringComparison.Ordinal))
             {
-                ClosePickupPage();
+                ReturnFromPickupPage();
                 return;
             }
 
@@ -1374,33 +1320,8 @@ namespace EtgGameplayDashboard
             return new PickupIconData(texture, Rect.MinMaxRect(minX, minY, maxX, maxY));
         }
 
-        private static string NormalizeLookupValue(string rawValue)
-        {
-            if (string.IsNullOrEmpty(rawValue))
-            {
-                return string.Empty;
-            }
-
-            System.Text.StringBuilder builder = new System.Text.StringBuilder(rawValue.Length);
-            for (int index = 0; index < rawValue.Length; index++)
-            {
-                char current = rawValue[index];
-                if (char.IsLetterOrDigit(current))
-                {
-                    builder.Append(char.ToLowerInvariant(current));
-                }
-            }
-
-            return builder.ToString();
-        }
-
         private PickupBrowserEntry[] GetFilteredPickupEntries()
         {
-            if (_cachedPickupEntries.Length == 0)
-            {
-                return EmptyPickupBrowserEntries;
-            }
-
             if (_filteredPickupEntriesCache != null &&
                 string.Equals(_filteredPickupEntriesCacheSearch, _pickupSearchText, StringComparison.Ordinal) &&
                 _filteredPickupEntriesCacheFilter == _pickupBrowserFilter &&
@@ -1412,46 +1333,14 @@ namespace EtgGameplayDashboard
                 return _filteredPickupEntriesCache;
             }
 
-            string normalizedSearch = NormalizeLookupValue(_pickupSearchText);
-            List<PickupBrowserEntry> matches = new List<PickupBrowserEntry>();
-            for (int index = 0; index < _cachedPickupEntries.Length; index++)
-            {
-                PickupBrowserEntry entry = _cachedPickupEntries[index];
-                if (!MatchesPickupFilter(entry.CatalogEntry.Category))
-                {
-                    continue;
-                }
-
-                if (!MatchesPickupQualityFilter(entry.CatalogEntry.Quality))
-                {
-                    continue;
-                }
-
-                if (!MatchesPickupGunClassFilter(entry.CatalogEntry))
-                {
-                    continue;
-                }
-
-                if (!MatchesPickupPassiveSubcategoryFilter(entry.CatalogEntry))
-                {
-                    continue;
-                }
-
-                if (!MatchesPickupActiveCooldownFilter(entry.CatalogEntry))
-                {
-                    continue;
-                }
-
-                if (!string.IsNullOrEmpty(normalizedSearch) &&
-                    entry.SearchText.IndexOf(normalizedSearch, StringComparison.OrdinalIgnoreCase) < 0)
-                {
-                    continue;
-                }
-
-                matches.Add(entry);
-            }
-
-            _filteredPickupEntriesCache = matches.ToArray();
+            _filteredPickupEntriesCache = _pickupBrowserQueryService.Filter(
+                _cachedPickupEntries,
+                _pickupSearchText,
+                _pickupBrowserFilter,
+                _pickupQualityFilter,
+                _pickupGunClassFilter,
+                _pickupPassiveSubcategoryFilter,
+                _pickupActiveCooldownFilter);
             _filteredPickupEntriesCacheSearch = _pickupSearchText;
             _filteredPickupEntriesCacheFilter = _pickupBrowserFilter;
             _filteredPickupEntriesCacheQualityFilter = _pickupQualityFilter;
@@ -1461,183 +1350,5 @@ namespace EtgGameplayDashboard
             return _filteredPickupEntriesCache;
         }
 
-        private bool MatchesPickupFilter(PickupCategory category)
-        {
-            switch (_pickupBrowserFilter)
-            {
-                case PickupBrowserFilter.All:
-                    return true;
-                case PickupBrowserFilter.Gun:
-                    return category == PickupCategory.Gun;
-                case PickupBrowserFilter.Passive:
-                    return category == PickupCategory.Passive;
-                case PickupBrowserFilter.Active:
-                    return category == PickupCategory.Active;
-                default:
-                    return true;
-            }
-        }
-
-        private bool MatchesPickupQualityFilter(string quality)
-        {
-            if (_pickupQualityFilter == PickupQualityFilter.All)
-            {
-                return true;
-            }
-
-            string normalizedQuality = (quality ?? string.Empty).Trim();
-            switch (_pickupQualityFilter)
-            {
-                case PickupQualityFilter.D:
-                    return string.Equals(normalizedQuality, "D", StringComparison.OrdinalIgnoreCase);
-                case PickupQualityFilter.C:
-                    return string.Equals(normalizedQuality, "C", StringComparison.OrdinalIgnoreCase);
-                case PickupQualityFilter.B:
-                    return string.Equals(normalizedQuality, "B", StringComparison.OrdinalIgnoreCase);
-                case PickupQualityFilter.A:
-                    return string.Equals(normalizedQuality, "A", StringComparison.OrdinalIgnoreCase);
-                case PickupQualityFilter.S:
-                    return string.Equals(normalizedQuality, "S", StringComparison.OrdinalIgnoreCase);
-                case PickupQualityFilter.Special:
-                    return string.Equals(normalizedQuality, "SPECIAL", StringComparison.OrdinalIgnoreCase);
-                case PickupQualityFilter.Excluded:
-                    return string.Equals(normalizedQuality, "EXCLUDED", StringComparison.OrdinalIgnoreCase);
-                default:
-                    return true;
-            }
-        }
-
-        private bool MatchesPickupGunClassFilter(EtgPickupCatalogEntry entry)
-        {
-            if (_pickupGunClassFilter == PickupGunClassFilter.All)
-            {
-                return true;
-            }
-
-            if (entry == null || entry.Category != PickupCategory.Gun)
-            {
-                return false;
-            }
-
-            string gunClass = (entry.GunClass ?? string.Empty).Trim();
-            switch (_pickupGunClassFilter)
-            {
-                case PickupGunClassFilter.Pistol:
-                    return string.Equals(gunClass, "PISTOL", StringComparison.OrdinalIgnoreCase);
-                case PickupGunClassFilter.FullAuto:
-                    return string.Equals(gunClass, "FULLAUTO", StringComparison.OrdinalIgnoreCase);
-                case PickupGunClassFilter.Shotgun:
-                    return string.Equals(gunClass, "SHOTGUN", StringComparison.OrdinalIgnoreCase);
-                case PickupGunClassFilter.Rifle:
-                    return string.Equals(gunClass, "RIFLE", StringComparison.OrdinalIgnoreCase);
-                case PickupGunClassFilter.Beam:
-                    return string.Equals(gunClass, "BEAM", StringComparison.OrdinalIgnoreCase);
-                case PickupGunClassFilter.Charge:
-                    return string.Equals(gunClass, "CHARGE", StringComparison.OrdinalIgnoreCase);
-                case PickupGunClassFilter.Explosive:
-                    return string.Equals(gunClass, "EXPLOSIVE", StringComparison.OrdinalIgnoreCase);
-                case PickupGunClassFilter.Elemental:
-                    return string.Equals(gunClass, "FIRE", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(gunClass, "ICE", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(gunClass, "POISON", StringComparison.OrdinalIgnoreCase);
-                case PickupGunClassFilter.Special:
-                    return string.Equals(gunClass, "SILLY", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(gunClass, "SHITTY", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(gunClass, "CHARM", StringComparison.OrdinalIgnoreCase) ||
-                           string.Equals(gunClass, "NONE", StringComparison.OrdinalIgnoreCase);
-                default:
-                    return true;
-            }
-        }
-
-        private bool MatchesPickupPassiveSubcategoryFilter(EtgPickupCatalogEntry entry)
-        {
-            if (_pickupPassiveSubcategoryFilter == PickupPassiveSubcategoryFilter.All)
-            {
-                return true;
-            }
-
-            if (entry == null || entry.Category != PickupCategory.Passive)
-            {
-                return false;
-            }
-
-            switch (_pickupPassiveSubcategoryFilter)
-            {
-                case PickupPassiveSubcategoryFilter.Bullet:
-                    return IsBulletPassive(entry);
-                default:
-                    return true;
-            }
-        }
-
-        private static bool IsBulletPassive(EtgPickupCatalogEntry entry)
-        {
-            return ContainsBulletPassiveToken(entry.DisplayName) ||
-                   ContainsBulletPassiveToken(entry.InternalName) ||
-                   ContainsBulletPassiveToken(entry.PrimaryDisplayName) ||
-                   ContainsBulletPassiveToken(entry.ShortDescription) ||
-                   ContainsBulletPassiveToken(entry.LongDescription);
-        }
-
-        private static bool ContainsBulletPassiveToken(string value)
-        {
-            if (string.IsNullOrEmpty(value))
-            {
-                return false;
-            }
-
-            string lowerValue = value.ToLowerInvariant();
-            return lowerValue.IndexOf("bullet", StringComparison.Ordinal) >= 0 ||
-                   lowerValue.IndexOf("round", StringComparison.Ordinal) >= 0 ||
-                   lowerValue.IndexOf("lead", StringComparison.Ordinal) >= 0;
-        }
-
-        private bool MatchesPickupActiveCooldownFilter(EtgPickupCatalogEntry entry)
-        {
-            if (_pickupActiveCooldownFilter == PickupActiveCooldownFilter.All)
-            {
-                return true;
-            }
-
-            if (entry == null || entry.Category != PickupCategory.Active)
-            {
-                return false;
-            }
-
-            switch (_pickupActiveCooldownFilter)
-            {
-                case PickupActiveCooldownFilter.Uses:
-                    return entry.ActiveNumberOfUses > 0;
-                case PickupActiveCooldownFilter.Damage:
-                    return entry.ActiveDamageCooldown > 0f;
-                case PickupActiveCooldownFilter.Time:
-                    return entry.ActiveTimeCooldown > 0f;
-                case PickupActiveCooldownFilter.Room:
-                    return entry.ActiveRoomCooldown > 0;
-                default:
-                    return true;
-            }
-        }
-
-        private static Dictionary<int, List<string>> BuildAliasesByPickupId(PickupAliasRegistry aliasRegistry)
-        {
-            Dictionary<int, List<string>> aliasesByPickupId = new Dictionary<int, List<string>>();
-            PickupAliasRegistry effectiveRegistry = aliasRegistry ?? PickupAliasRegistry.Empty;
-            for (int index = 0; index < effectiveRegistry.Entries.Length; index++)
-            {
-                PickupAliasEntry entry = effectiveRegistry.Entries[index];
-                List<string> aliases;
-                if (!aliasesByPickupId.TryGetValue(entry.PickupId, out aliases))
-                {
-                    aliases = new List<string>();
-                    aliasesByPickupId.Add(entry.PickupId, aliases);
-                }
-
-                aliases.Add(entry.Alias);
-            }
-
-            return aliasesByPickupId;
-        }
     }
 }

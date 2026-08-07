@@ -715,9 +715,8 @@ namespace EtgGameplayDashboard
 
         private void ExecuteCycleKeyboardAimAssistMultiplier(PlayerController player, ManualLogSource logger)
         {
-            if (_keyboardAimAssistService == null)
+            if (_keyboardAimAssistService == null || !_keyboardAimAssistService.IsEnabled(player))
             {
-                ShowStatus(GuiText.Get("result.keyboard_aim_assist.unavailable"), true);
                 return;
             }
 
@@ -872,8 +871,7 @@ namespace EtgGameplayDashboard
                 MarkMapDirectTeleportActivatedForCurrentScene();
                 if (_revealMapEveryFloor)
                 {
-                    _autoRevealMapSceneName = GetCurrentMapFeatureActivationKey();
-                    _nextAutoRevealMapAttemptAt = 0f;
+                    _mapFeatureRuntimeCoordinator.AutomaticRevealMapSceneName = GetCurrentMapFeatureActivationKey();
                 }
                 if (logger != null)
                 {

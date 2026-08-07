@@ -18,7 +18,7 @@ namespace EtgGameplayDashboard
 
         private void DrawSettingsPage(Rect panelRect, ManualLogSource logger)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("settings.back", _buttonStyle)))
             {
                 _currentPage = PanelPage.Command;
@@ -268,8 +268,7 @@ namespace EtgGameplayDashboard
 
             if (_revealMapEveryFloor)
             {
-                _autoRevealMapSceneName = string.Empty;
-                _nextAutoRevealMapAttemptAt = 0f;
+                _mapFeatureRuntimeCoordinator.AutomaticRevealMapSceneName = string.Empty;
             }
         }
 

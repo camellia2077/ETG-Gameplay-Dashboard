@@ -4,7 +4,15 @@ This document describes the current Boss-room rewind contract for future runtime
 
 ## Entry points
 
-The main implementation is `src/EtgGameplayDashboard/Runtime/RoomEnemyReplayService.cs`.
+The replay flow is coordinated by `src/EtgGameplayDashboard/Runtime/RoomEnemyReplayService.cs` and uses focused runtime collaborators:
+
+- `RoomRewindCleanupService` removes room-local replay artifacts.
+- `BossRoomDecorationRestorer` captures and restores Boss-room destructibles.
+- `RoomPlayerStateRestorer` captures and restores player runtime state.
+- `RoomReplayStateModels` contains the shared replay snapshot models.
+- `RoomEnemyWaveSpawner` instantiates recorded waves and restores replayed Boss visibility.
+
+The coordinator remains responsible for hook-facing lifecycle state, replay validation, wave sequencing, and Boss reward re-arming.
 
 - `RoomEnemyReplayHooks.OnEnteredPrefix` records the first active enemy wave. The real vanilla parameter name is `p`; Harmony binds ordinary patch arguments by name, so this must not be renamed to `player`.
 - `TriggerReinforcementLayerPrefix/Postfix` records later vanilla reinforcement waves.
@@ -21,13 +29,13 @@ The persistent settings are stored by BepInEx in `BepInEx/config/etg-gameplay-da
 RoomEnemyRewindKey = C
 RoomEnemyRefreshRecordingEnabled = false
 RoomEnemyRefreshMethod = rewind
-PlayerRewindEnabled = false
+PlayerRewindEnabled = true
 RoomRewindCleanupEnabled = true
 ```
 
 Recording is intentionally off by default. When it is enabled, only rooms entered after activation are recorded; this avoids work and startup/room-entry cost before the user opts in. The execute button itself has no persistent pressed state.
 
-`PlayerRewindEnabled` restores the player snapshot for every tracked standard or Boss room. `RoomRewindCleanupEnabled` controls the visual/drop cleanup for both standard and Boss rooms.
+`PlayerRewindEnabled` restores the player snapshot for every tracked standard or Boss room and defaults to on. It remains a persistent user-controlled toggle. `RoomRewindCleanupEnabled` controls the visual/drop cleanup for both standard and Boss rooms.
 
 ### Design rationale: Keybinding selection (`C` Key)
 

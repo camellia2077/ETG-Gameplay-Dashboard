@@ -16,7 +16,7 @@ namespace EtgGameplayDashboard
 
         private void DrawAboutPage(Rect panelRect)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
             {
                 _currentPage = PanelPage.Settings;

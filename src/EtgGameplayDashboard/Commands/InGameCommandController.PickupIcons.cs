@@ -1,6 +1,8 @@
 // Copyright (C) 2026 camellia2077
 // This program is free software: you can redistribute it and/or modify it under the terms of the GNU GPLv3 or later.
 
+using UnityEngine;
+
 namespace EtgGameplayDashboard
 {
     internal sealed partial class InGameCommandController
@@ -39,6 +41,73 @@ namespace EtgGameplayDashboard
                     return GameUiAtlasSpriteBlankPickup;
                 default:
                     return string.Empty;
+            }
+        }
+
+        private bool TryGetLoadoutEntryIcon(LoadoutRuleEditorEntry entry, out PickupIconData iconData)
+        {
+            iconData = PickupIconData.Empty;
+            if (entry == null) return false;
+            if (entry.PickupId.HasValue && TryGetPickupIcon(entry.PickupId.Value, out iconData)) return true;
+            return TryGetStartItemPickupIcon(entry.PickupType, out iconData);
+        }
+
+        private bool TryGetStartItemPickupIcon(string pickupType, out PickupIconData iconData)
+        {
+            iconData = PickupIconData.Empty;
+            string spriteName = GetStartItemPickupSpriteName(pickupType);
+            return !string.IsNullOrEmpty(spriteName) && TryGetGameUiAtlasIcon(spriteName, out iconData);
+        }
+
+        private bool TryGetGameUiAtlasIcon(string spriteName, out PickupIconData iconData)
+        {
+            iconData = PickupIconData.Empty;
+            dfAtlas atlas;
+            if (string.IsNullOrEmpty(spriteName) || !TryGetGameUiAtlas(out atlas) || atlas == null) return false;
+
+            dfAtlas.ItemInfo item = atlas[spriteName];
+            Texture texture = atlas.Texture;
+            if (item == null || texture == null) return false;
+            Rect region = item.region;
+            iconData = new PickupIconData(texture, Rect.MinMaxRect(region.xMin, region.yMin, region.xMax, region.yMax));
+            return true;
+        }
+
+        private bool TryGetGameUiAtlas(out dfAtlas atlas)
+        {
+            atlas = _gameUiAtlas;
+            if (_hasResolvedGameUiAtlas) return atlas != null;
+
+            _hasResolvedGameUiAtlas = true;
+            UnityEngine.Object[] atlases = Resources.FindObjectsOfTypeAll(typeof(dfAtlas));
+            if (atlases == null) return false;
+            for (int index = 0; index < atlases.Length; index++)
+            {
+                dfAtlas candidate = atlases[index] as dfAtlas;
+                if (candidate == null || candidate.Texture == null) continue;
+                if (string.Equals(candidate.Texture.name, "GameUIAtlas", System.StringComparison.Ordinal) ||
+                    string.Equals(candidate.gameObject.name, "GameUIAtlas", System.StringComparison.Ordinal))
+                {
+                    _gameUiAtlas = candidate;
+                    atlas = candidate;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string GetStartItemPickupFallbackLabel(string pickupType)
+        {
+            switch (StartItemPickupCatalog.NormalizeType(pickupType))
+            {
+                case StartItemPickupCatalog.KeyType: return "K";
+                case StartItemPickupCatalog.RatKeyType: return "R";
+                case StartItemPickupCatalog.MaxHealthType: return "H";
+                case StartItemPickupCatalog.ArmorType: return "A";
+                case StartItemPickupCatalog.CasingsType: return "C";
+                case StartItemPickupCatalog.BlankType: return "B";
+                default: return "?";
             }
         }
     }

@@ -160,7 +160,7 @@ namespace EtgGameplayDashboard
                 new Rect(secondColumnX, firstButtonY, rewindButtonWidth, controlHeight),
                 "cmd.room.enemy_refresh_method",
                 GetRoomEnemyRefreshMethodLabel(),
-                _buttonStyle))
+                recordingEnabled ? _buttonStyle : _pickupFilterDisabledButtonStyle) && recordingEnabled)
             {
                 ExecuteCycleRoomEnemyRefreshMethod(logger);
             }
@@ -172,7 +172,9 @@ namespace EtgGameplayDashboard
                     playerRewindEnabled ? "gui.room.player_rewind.on" : "gui.room.player_rewind.off",
                     playerRewindEnabled ? "Player Rewind: ON" : "Player Rewind: OFF",
                     playerRewindEnabled ? "玩家回溯：开启" : "玩家回溯：关闭"),
-                playerRewindEnabled ? _cursorColorSelectedButtonStyle : _buttonStyle))
+                !recordingEnabled
+                    ? _pickupFilterDisabledButtonStyle
+                    : (playerRewindEnabled ? _cursorColorSelectedButtonStyle : _buttonStyle)) && recordingEnabled)
             {
                 ExecuteTogglePlayerRewind(logger);
             }
@@ -184,7 +186,9 @@ namespace EtgGameplayDashboard
                     rewindCleanupEnabled ? "gui.room.rewind_cleanup.on" : "gui.room.rewind_cleanup.off",
                     rewindCleanupEnabled ? "Rewind Cleanup: ON" : "Rewind Cleanup: OFF",
                     rewindCleanupEnabled ? "回溯清理：开启" : "回溯清理：关闭"),
-                rewindCleanupEnabled ? _cursorColorSelectedButtonStyle : _buttonStyle))
+                !recordingEnabled
+                    ? _pickupFilterDisabledButtonStyle
+                    : (rewindCleanupEnabled ? _cursorColorSelectedButtonStyle : _buttonStyle)) && recordingEnabled)
             {
                 ExecuteToggleRoomRewindCleanup(logger);
             }
@@ -193,7 +197,7 @@ namespace EtgGameplayDashboard
                 new Rect(contentRect.x, thirdButtonY, rewindButtonWidth * 2f + ButtonGap, controlHeight),
                 "cmd.room.enemy_refresh_execute",
                 GetLocalizedFallback("gui.room.rewind.execute", "Spawn", "生成"),
-                _buttonStyle))
+                recordingEnabled ? _buttonStyle : _pickupFilterDisabledButtonStyle) && recordingEnabled)
             {
                 ExecuteSelectedRoomEnemyRefresh(player, logger);
             }
@@ -713,20 +717,20 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            if (_roomEnemyRefreshMethod == RoomEnemyRefreshMethod.RespawnEnemies)
-            {
-                ExecuteRefreshTemplateRoomEnemies(player, logger);
-                return;
-            }
-
             if (_roomDebugCommandService == null || !_roomDebugCommandService.IsRoomEnemyRefreshRecordingEnabled)
             {
                 ShowStatus(
                     GetLocalizedFallback(
                         "result.room.rewind.recording_required",
-                        "Enable Rewind before using C to rewind the room.",
-                        "请先开启回溯功能，再使用 C 回溯房间。"),
+                        "Enable Rewind before spawning or rewinding the room.",
+                        "请先开启回溯功能，再生成或回溯房间。"),
                     true);
+                return;
+            }
+
+            if (_roomEnemyRefreshMethod == RoomEnemyRefreshMethod.RespawnEnemies)
+            {
+                ExecuteRefreshTemplateRoomEnemies(player, logger);
                 return;
             }
 
@@ -743,6 +747,17 @@ namespace EtgGameplayDashboard
 
         private void ExecuteTogglePlayerRewind(ManualLogSource logger)
         {
+            if (_roomDebugCommandService == null || !_roomDebugCommandService.IsRoomEnemyRefreshRecordingEnabled)
+            {
+                ShowStatus(
+                    GetLocalizedFallback(
+                        "result.room.rewind.recording_required",
+                        "Enable Rewind before changing player rewind.",
+                        "请先开启回溯功能，再修改玩家回溯设置。"),
+                    true);
+                return;
+            }
+
             GrantCommandExecutionResult result = _roomDebugCommandService != null
                 ? _roomDebugCommandService.TogglePlayerRewind()
                 : GrantCommandExecutionResult.Localized(false, "result.room.player_rewind.unavailable");
@@ -751,6 +766,17 @@ namespace EtgGameplayDashboard
 
         private void ExecuteToggleRoomRewindCleanup(ManualLogSource logger)
         {
+            if (_roomDebugCommandService == null || !_roomDebugCommandService.IsRoomEnemyRefreshRecordingEnabled)
+            {
+                ShowStatus(
+                    GetLocalizedFallback(
+                        "result.room.rewind.recording_required",
+                        "Enable Rewind before changing rewind cleanup.",
+                        "请先开启回溯功能，再修改回溯清理设置。"),
+                    true);
+                return;
+            }
+
             GrantCommandExecutionResult result = _roomDebugCommandService != null
                 ? _roomDebugCommandService.ToggleRoomRewindCleanup()
                 : GrantCommandExecutionResult.Localized(false, "result.room.rewind_cleanup.unavailable");
@@ -764,6 +790,17 @@ namespace EtgGameplayDashboard
 
         private void ExecuteCycleRoomEnemyRefreshMethod(ManualLogSource logger)
         {
+            if (_roomDebugCommandService == null || !_roomDebugCommandService.IsRoomEnemyRefreshRecordingEnabled)
+            {
+                ShowStatus(
+                    GetLocalizedFallback(
+                        "result.room.rewind.recording_required",
+                        "Enable Rewind before selecting the room refresh mode.",
+                        "请先开启回溯功能，再选择房间刷新模式。"),
+                    true);
+                return;
+            }
+
             if (_roomDebugCommandService != null)
             {
                 _roomDebugCommandService.EnsureRoomEnemyRefreshRecordingEnabled();

@@ -10,7 +10,7 @@ namespace EtgGameplayDashboard
     {
         private void DrawLoadoutPresetPickupsDetailPage(Rect panelRect, ManualLogSource logger)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("loadout.back", _buttonStyle)))
             {
                 _loadoutEditorMode = LoadoutEditorMode.PresetDetail;
@@ -211,9 +211,11 @@ namespace EtgGameplayDashboard
 
         private void RefreshLoadoutPickupEntries()
         {
-            _cachedLoadoutPickupEntries = _loadoutRuleEditorService != null
-                ? _loadoutRuleEditorService.GetPresetPickupEntries()
-                : EmptyLoadoutPickupEditorEntries;
+            _loadoutEditorDataCoordinator.RefreshAll(_loadoutRandomPoolRuleIndex);
+            _cachedLoadoutPickupEntries = _loadoutEditorDataCoordinator.PickupEntries;
+            _cachedLoadoutRuleEntries = _loadoutEditorDataCoordinator.RuleEntries;
+            _cachedLoadoutPresetEntries = _loadoutEditorDataCoordinator.PresetEntries;
+            _cachedLoadoutRandomPoolEntries = _loadoutEditorDataCoordinator.RandomPoolEntries;
         }
 
         private void OpenLoadoutPresetPickupsDetail()

@@ -316,7 +316,7 @@ namespace EtgGameplayDashboard
                 new Rect(multiplierX, rect.y, multiplierButtonWidth, controlHeight),
                 KeyboardAimAssistUiDefinition.MultiplierControlId,
                 multiplierStatus,
-                isEnabled ? _enabledButtonStyle : _buttonStyle))
+                isEnabled ? _enabledButtonStyle : _pickupFilterDisabledButtonStyle))
             {
                 ExecuteCycleKeyboardAimAssistMultiplier(targetPlayer, logger);
             }

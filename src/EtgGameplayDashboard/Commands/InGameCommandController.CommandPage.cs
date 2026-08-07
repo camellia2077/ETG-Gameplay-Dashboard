@@ -293,6 +293,31 @@ namespace EtgGameplayDashboard
             return GUI.Button(rect, "\u00D7", style);
         }
 
+        private Rect GetSecondaryPageBackButtonRect(Rect panelRect)
+        {
+            return new Rect(
+                panelRect.x + panelRect.width - ButtonWidth - 14f - ButtonGap - 30f,
+                panelRect.y + 12f,
+                ButtonWidth,
+                30f);
+        }
+
+        private bool DrawSecondaryPageBackButton(Rect panelRect, string controlId, System.Action onBack)
+        {
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
+            if (!GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle(controlId, _buttonStyle)))
+            {
+                return false;
+            }
+
+            if (onBack != null)
+            {
+                onBack();
+            }
+
+            return true;
+        }
+
         private bool IsControllerFocusActive(string pagePrefix, string controlId)
         {
             if (_currentPage == PanelPage.Command && string.Equals(pagePrefix, "cmd", System.StringComparison.Ordinal))

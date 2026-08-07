@@ -26,7 +26,7 @@ namespace EtgGameplayDashboard
 
         private void DrawCurrencyPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             Rect targetButtonRect = new Rect(backButtonRect.x - ButtonGap - ButtonWidth, panelRect.y + 12f, ButtonWidth, 30f);
             Rect shortcutConfigurationButtonRect = new Rect(
                 targetButtonRect.x - ButtonGap - 148f,

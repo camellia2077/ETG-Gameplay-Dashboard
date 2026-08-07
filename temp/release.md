@@ -1,57 +1,83 @@
-# ETG-Gameplay-Dashboard v0.4.1
+**v0.4.3 控制面板关闭按键、拾取物快捷键与地图范围优化 / Close Button, Pickup Shortcuts & Map Scope Improvements**
 
 [English description below / 英文说明见下]
 
 ## 版本摘要 (Highlights)
-* 本版本带来了显著的控制面板开启与界面加载性能提升，大幅降低了按 `F7` 呼出面板时的等待延迟，并在 Boss Rush 模式(Boss Rush)激活期间暂时禁用房间回溯(Rewind)。此外，彻底解耦并移除了对 ModTheGungeonAPI (`etgmodding.etg.mtgapi`) 的运行与代码依赖。
 
-## 性能与体验优化 (Optimizations)
-* **面板开启响应提速**：优化了控制面板(control panel)标题文字的渲染机制，将按 `F7` 首次呼出控制面板的响应延迟降低了约 77%（从约 694 ms 缩短至约 158 ms），使面板呼出更加流畅快速。
-* **初始物品界面滑动优化**：重构了初始物品(Start Items)预设界面的图标加载机制，改为分帧队列增量加载图标，消除了打开与滑动预设卡片列表时的掉帧与卡顿。
+本版本为控制面板(Control Panel)新增关闭按键，新增 Reveal Map 的楼层全开范围选择，并为拾取物(Pickups)提供可自定义的键盘快捷键。
 
-## 机制与行为调整 (Changes)
-* **Boss Rush 房间回溯拦截**：在 Boss Rush 模式(Boss Rush)激活期间暂时禁用房间回溯(Rewind)。通过拦截面板中的 Rewind 按钮及 `C` 快捷键(hotkey)触发并给出提示，避免在 Boss Rush 下使用回溯导致无法进入下一层且无法使用 Esc 菜单(Esc menu)的问题。
-* **移除 ModTheGungeonAPI 强依赖**：移除了插件主程序对 ModTheGungeonAPI (`etgmodding.etg.mtgapi`) 的 `BepInDependency` 显式依赖声明，并将内部协程调度与弹药锁定逻辑替换为原生 Unity 组件（移除 `ETGMod` 与 `GunBehaviour` 依赖）。
+## 新增功能 (Added)
+
+* **控制面板关闭按钮**：主页面和子页面均可使用关闭按钮(`×`)退出控制面板(Control Panel)，并可在设置(settings)的显示(Display)分类中控制是否显示。
+* **Reveal Map 楼层全开范围设置**：在设置(settings)的游戏(Game)分类中选择仅当前楼层全开(`Current Floor`)，或进入任意楼层都自动全开(`Every Floor`)。
+* **拾取物键盘快捷键**：
+  * 在 General → 拾取物(Pickups)中配置血量上限(Max HP)、护甲(Armor)、空响弹(Blank)、钥匙(Key)、老鼠钥匙(Rat Key)、弹壳(Casings)和霸权币(Hegemony Credit)的快捷键。
+  * 在 Player → Characters → 拾取物(Pickups)中编辑适用于角色的快捷键，并与 General 页面共享配置。
+  * 编辑快捷键时直接切换当前页面内容，顶部按钮显示“退出编辑”(Exit Editing)，退出后恢复原有操作内容。
+  * 关闭控制面板(Control Panel)后，按下快捷键即可执行对应拾取物操作。
+  * 仅支持键盘按键，不支持手柄绑定；控制面板占用的按键不可绑定。
+  * 支持左右 Shift、Ctrl、Alt 以及常用标点按键的本地化显示。
+
+## 修复问题 (Fixed)
+
+* **修复楼层切换异常**：修复启用 `Every Floor` 后通过楼梯或电梯进入下一层时，电梯动画未完成或玩家被卡在入口位置的问题。
 
 ## 游戏内按键与操作 (Controls)
+
 * **键盘控制**：
-  * 按 `F7`（默认，可在 `设置(settings)` 中修改）：打开/关闭 `控制面板(control panel)`。
-  * 如果不想使用鼠标完成选择、切换等操作，也可以使用键盘，详见 `设置(settings)` 中的 `键盘说明(keyboard help)`。
+  * 按 `F7`（默认，可在设置(settings)中修改）：打开或关闭控制面板(Control Panel)。
+  * 在 General → 拾取物(Pickups)或 Player → Characters → 拾取物(Pickups)中点击“设置快捷键”，再按下要绑定的键盘按键；点击“退出编辑”(Exit Editing)返回普通操作内容。
+  * 如果不想使用鼠标完成选择、切换等操作，也可以使用键盘，详见设置(settings)中的键盘说明(Keyboard Help)。
 * **手柄控制**：
-  * 按手柄 `LB+R3` 组合键（默认，可在 `设置(settings)` 中修改或关闭手柄呼出开关）：打开/关闭 `控制面板(control panel)`。
-  * 详细手柄操作与菜单导航详见 `设置(settings)` 中的 `手柄说明(controller help)`。
+  * 按手柄 `LB+R3` 组合键（默认，可在设置(settings)中修改或关闭手柄呼出开关）：打开或关闭控制面板(Control Panel)。
+  * 详细手柄操作与菜单导航详见设置(settings)中的手柄说明(Controller Help)。
 
 ## 安装指南 (Installation)
-1. 关闭《挺进地牢》(Enter the Gungeon) 游戏。
-2. 下载本 Release 下方的 `ETG-Gameplay-Dashboard-v0.4.1-ETG.zip`。
+
+1. 关闭《挺进地牢》(Enter the Gungeon)游戏。
+2. 下载本 Release 下方的 `ETG-Gameplay-Dashboard-v0.4.3-ETG.zip`。
 3. 将压缩包内的所有内容直接解压到游戏安装根目录（即含有 `EtG.exe` 的目录），若提示同名文件请允许覆盖。
-4. 启动游戏即可享受新版功能！
+4. 发布包已集成所需的 `BepInEx` 和 `ModTheGungeonAPI` 依赖文件。
+5. 启动游戏即可使用新版功能。
 
 ---
 
-# ETG-Gameplay-Dashboard v0.4.1
+# ETG-Gameplay-Dashboard v0.4.3
 
 ## Highlights
-* This release introduces significant performance optimizations for opening the panel and browsing loadout presets, while temporarily disabling room Rewind during Boss Rush mode and fully decoupling the runtime from ModTheGungeonAPI.
 
-## Optimizations
-* **Faster Panel Opening**: Optimized the panel title rendering mechanism to reduce the initial `F7` panel open latency by ~77% (from ~694 ms down to ~158 ms), making the dashboard feel much more responsive.
-* **Smoother Loadout Preset Browsing**: Refactored icon loading for `Start Items` presets to incrementally generate preview icons across frames, eliminating stutter and frame drops when opening or scrolling through preset cards.
+This release improves Gameplay Dashboard closing and navigation, adds floor-range control for Reveal Map, and introduces configurable keyboard shortcuts for pickups.
 
-## Changes & Protections
-* **Boss Rush Rewind Interception**: Temporarily disabled room Rewind during Boss Rush mode. Intercepts panel Rewind button presses and the `C` hotkey during Boss Rush to prevent issues where players cannot proceed to the next floor or use the Esc menu.
-* **Removed ModTheGungeonAPI Dependency**: Removed the explicit `BepInDependency` attribute for ModTheGungeonAPI (`etgmodding.etg.mtgapi`), and replaced internal coroutines and ammo locking handlers with native Unity MonoBehaviours (removing `ETGMod` and `GunBehaviour` dependencies).
+## Added
+
+* **Gameplay Dashboard close button**: Use the `×` close button on the main page and sub-pages, with visibility controlled from Display settings.
+* **Reveal Map floor scope**: Choose `Current Floor` to reveal the map only on the current floor, or `Every Floor` to reveal the map automatically on every floor under Game settings.
+* **Pickup keyboard shortcuts**:
+  * Configure shortcuts for Max HP, Armor, Blank, Key, Rat Key, Casings, and Hegemony Credit under General → Pickups.
+  * Edit applicable character pickup shortcuts under Player → Characters → Pickups using the same shared bindings as General.
+  * Shortcut editing changes the current page content in place; the top button becomes `Exit Editing` and restores the normal pickup actions.
+  * Close the Gameplay Dashboard panel, then press a configured key to execute the corresponding pickup action.
+  * Only keyboard keys are supported for bindings. Controller bindings are not supported, and keys reserved by the panel cannot be assigned.
+  * Left/right Shift, Ctrl, Alt, and common punctuation keys have localized display names.
+
+## Fixed
+
+* **Fixed floor transition issues**: Fixed elevator animation and player positioning problems when entering the next floor through stairs or elevators with `Every Floor` enabled.
 
 ## In-Game Controls
+
 * **Keyboard**:
   * Press `F7` (default, configurable under Settings): Toggle the Gameplay Dashboard panel.
-  * If you prefer not to use a mouse for selection and navigation, you can use the keyboard instead (see Keyboard Help in Settings for details).
+  * In General → Pickups or Player → Characters → Pickups, click `Set Shortcuts`, press the keyboard key to assign, and click `Exit Editing` to restore the normal pickup actions.
+  * If you prefer not to use a mouse for selection and navigation, see Keyboard Help in Settings.
 * **Controller**:
   * Press `LB+R3` (default combination, configurable or can be disabled in Settings): Toggle the Gameplay Dashboard panel.
   * For detailed button mappings, see Controller Help in Settings.
 
 ## Installation Guide
+
 1. Close `Enter the Gungeon`.
-2. Download the release package `ETG-Gameplay-Dashboard-v0.4.1-ETG.zip` below.
+2. Download `ETG-Gameplay-Dashboard-v0.4.3-ETG.zip` from this release.
 3. Extract all archive contents directly into the game installation root directory (the folder containing `EtG.exe`), allowing file overwrite if prompted.
-4. Launch the game and enjoy!
+4. The release package includes the required `BepInEx` and `ModTheGungeonAPI` dependency files.
+5. Launch the game and enjoy the new features.

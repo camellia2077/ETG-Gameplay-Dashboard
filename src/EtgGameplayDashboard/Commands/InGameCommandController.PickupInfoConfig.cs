@@ -22,7 +22,7 @@ namespace EtgGameplayDashboard
 
         private void DrawPickupInfoConfigPage(Rect panelRect)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             if (IsControllerFocusActive("pickup_info_config", "pickup_info_config.back"))
             {
                 GUI.Box(

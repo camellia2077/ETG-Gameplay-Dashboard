@@ -70,8 +70,9 @@ All in-game command-panel work starts in `src/EtgGameplayDashboard/Commands/`.
 | `InGameCommandController.CursorColor.cs` | combat cursor color page, enable/disable button, color selection, and controller navigation |
 | `InGameCommandController.Room.cs` | room tools such as chest spawning |
 | `InGameCommandController.PlayerStats.cs` | player stat panel |
-| `InGameCommandController.PickupBrowser.cs` | item browser, filters, item cards, add/select modes |
-| `InGameCommandController.LoadoutEditor.cs` | Start Items and preset editor UI |
+| `InGameCommandController.PickupBrowser.cs` | item-browser page rendering, filter controls, item cards, and add/select actions |
+| `InGameCommandController.LoadoutEditor.cs` | Start Items and preset editor page rendering and actions |
+| `InGameCommandController.PickupIcons.cs` | shared runtime pickup and GameUI atlas icon resolution for command pages and loadout views |
 | `InGameCommandController.About.cs` | About / Credits page |
 | `InGameCommandController.Settings.cs` | settings page layout, keyboard key config, and first-stage controller navigation routing |
 | `Ui/DashboardTheme.cs` | centralized theme palettes and command-panel, category-button, disabled-state, pickup-info, and scroll-bar colors |
@@ -82,10 +83,24 @@ Supporting services:
 | File | Look here for |
 | --- | --- |
 | `GrantCommandService*.cs` | command execution, pickup resolution, user-facing result messages |
+| `Commands/PickupBrowserQueryService.cs` | pickup catalog transformation, alias indexing, sorting, search, and browser filters |
+| `Commands/PickupBrowserEntry.cs` | browser-facing pickup row model and searchable display metadata |
+| `Commands/ControllerFocusNavigator.cs` | shared directional focus movement across command-panel pages |
+| `Commands/MapFeatureRuntimeCoordinator.cs` | floor-scoped map reveal/direct-teleport activation and automatic-reveal lifecycle |
+| `Commands/LoadoutEditorDataCoordinator.cs` | synchronized loadout editor read models after preset/rule edits |
+| `Commands/LoadoutEditorState.cs` | mutable Loadout editor workflow state, edit fields, selected rule, and scroll positions |
+| `Commands/CommandPanelLifecycleCoordinator.cs` | command-panel player-input cleanup and deferred GUI-focus release |
 | `CombatCursorColorCatalog.cs` | combat cursor color IDs, target HEX values, Unity colors, and normalization |
 | `Runtime/CommandPanelCursorRenderHooks.cs` | ETG cursor suppression, panel-layer redraw, and custom cursor color material rendering |
 | `Runtime/RoomEnemyReplayHooks.cs` | Harmony entry points for room entry, reinforcement capture, and replay-wave insertion |
-| `Runtime/RoomEnemyReplayService.cs` | exact enemy-wave replay, Boss player snapshot restore, Boss reward re-arming, and room visual/drop cleanup |
+| `Runtime/RoomEnemyReplayService.cs` | room-replay coordination, snapshot lifecycle, replay validation, Boss reward re-arming, and runtime hook-facing state |
+| `Runtime/RoomRewindCleanupService.cs` | room-scoped projectile, corpse, VFX, debris, pickup, and Boss reward-pedestal cleanup |
+| `Runtime/BossRoomDecorationRestorer.cs` | Boss-room decoration capture, prototype/template resolution, and destructible restoration |
+| `Runtime/RoomPlayerStateRestorer.cs` | player health, stats, inventory, gun, passive-item, and active-item snapshot restoration |
+| `Runtime/RoomReplayStateModels.cs` | replay snapshot, enemy-entry, and Boss-room decoration state models |
+| `Runtime/RoomEnemyWaveSpawner.cs` | recorded enemy-wave instantiation and replayed Boss visibility restoration |
+| `Runtime/RoomReplayWaveDiagnostics.cs` | replay-wave comparison, counting, and diagnostic formatting |
+| `Runtime/PrivateFieldAccessor.cs` | shared ETG private-field reads and writes used by state restoration |
 | `PlayerDebugCommandService.cs` | player debug operations |
 | `PlayerRuntimeOverrideServiceBase.cs` | shared skeleton for player runtime property override services |
 | `PlayerHealthOverrideService.cs` | runtime max-health override tracking and rollback restoration |

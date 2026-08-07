@@ -18,7 +18,7 @@ namespace EtgGameplayDashboard
 
         private void DrawCursorColorPage(Rect panelRect)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("cursor_color.back", _buttonStyle)))
             {
                 CloseCursorColorPage();

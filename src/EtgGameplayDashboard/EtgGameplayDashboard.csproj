@@ -173,6 +173,9 @@
     <Compile Include="Commands\FoyerCharacterSwitchService.Switching.cs" />
     <Compile Include="Commands\FoyerCharacterSwitchService.Unlocking.cs" />
     <Compile Include="Commands\InGameCommandController.cs" />
+    <Compile Include="Commands\ControllerFocusNavigator.cs" />
+    <Compile Include="Commands\CommandPanelLifecycleCoordinator.cs" />
+    <Compile Include="Commands\LoadoutEditorState.cs" />
     <Compile Include="Commands\InGameCommandController.Performance.cs" />
     <Compile Include="Commands\InGameCommandController.AdvancedTools.cs" />
     <Compile Include="Commands\InGameCommandController.About.cs" />
@@ -194,6 +197,10 @@
     <Compile Include="Commands\InGameCommandController.PickupIcons.cs" />
     <Compile Include="Commands\InGameCommandController.PickupInfoConfig.cs" />
     <Compile Include="Commands\InGameCommandController.PickupBrowser.cs" />
+    <Compile Include="Commands\PickupBrowserFilters.cs" />
+    <Compile Include="Commands\PickupBrowserEntry.cs" />
+    <Compile Include="Commands\PickupBrowserQueryService.cs" />
+    <Compile Include="Commands\PickupIconData.cs" />
     <Compile Include="Commands\InGameCommandController.PickupShortcuts.cs" />
     <Compile Include="Commands\InGameCommandController.PlayerStats.cs" />
     <Compile Include="Commands\InGameCommandController.Settings.cs" />
@@ -219,6 +226,8 @@
     <Compile Include="Commands\LoadoutPresetRandomService.cs" />
     <Compile Include="Commands\LoadoutRandomPoolEditorEntry.cs" />
     <Compile Include="Commands\LoadoutRuleEditorEntry.cs" />
+    <Compile Include="Commands\LoadoutEditorDataCoordinator.cs" />
+    <Compile Include="Commands\MapFeatureRuntimeCoordinator.cs" />
     <Compile Include="Commands\LoadoutRuleEditorService.cs" />
     <Compile Include="Commands\LoadoutRuleEditorService.Entries.cs" />
     <Compile Include="Commands\LoadoutRuleEditorService.Pickups.cs" />
@@ -288,7 +297,14 @@
     <Compile Include="Runtime\PlayerHealthOverrideHooks.cs" />
     <Compile Include="Runtime\PerformanceDiagnostics.cs" />
     <Compile Include="Runtime\RoomEnemyReplayHooks.cs" />
+    <Compile Include="Runtime\RoomRewindCleanupService.cs" />
+    <Compile Include="Runtime\RoomPlayerStateRestorer.cs" />
+    <Compile Include="Runtime\BossRoomDecorationRestorer.cs" />
+    <Compile Include="Runtime\RoomReplayStateModels.cs" />
+    <Compile Include="Runtime\RoomEnemyWaveSpawner.cs" />
     <Compile Include="Runtime\RoomEnemyReplayService.cs" />
+    <Compile Include="Runtime\RoomReplayWaveDiagnostics.cs" />
+    <Compile Include="Runtime\PrivateFieldAccessor.cs" />
     <Compile Include="Runtime\RuntimeHookRegistry.cs" />
     <Compile Include="Runtime\BossRushService.cs" />
     <Compile Include="Runtime\BossRushCoroutineHost.cs" />

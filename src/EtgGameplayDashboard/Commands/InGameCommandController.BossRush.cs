@@ -21,11 +21,12 @@ namespace EtgGameplayDashboard
 
         private void DrawBossRushPage(Rect panelRect, ManualLogSource logger)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
-            if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), _buttonStyle))
+            if (DrawSecondaryPageBackButton(panelRect, "boss_rush.back", delegate
             {
                 _currentPage = PanelPage.Command;
                 _focusInputField = true;
+            }))
+            {
                 return;
             }
 

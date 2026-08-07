@@ -6,6 +6,10 @@
 python -m tools.devtools.loc_scanner --lang <cs|kt|py|rs> [paths ...] [--over N | --under [N] | --dir-over-files [N]] [--dir-max-depth N] [--log-file <path>]
 ```
 
+`--over` requires an explicit threshold. If it is omitted, the language configuration's `default_over_threshold` is used.
+
+The scanner reports physical line counts and directory file counts only. It does not perform semantic analysis or prescribe refactoring actions. See [Refactoring Guidelines](../../../docs/architecture/refactoring-guidelines.md) for the Agent-led review workflow.
+
 ## 示例
 
 ```bash

@@ -59,7 +59,7 @@ namespace EtgGameplayDashboard
 
         private void DrawLoadoutPresetListPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             const float reloadConfigButtonWidth = 128f;
             Rect reloadButtonRect = new Rect(backButtonRect.x - ButtonGap - reloadConfigButtonWidth, backButtonRect.y, reloadConfigButtonWidth, 30f);
             long stageStartedAtTimestamp = BeginLoadoutPagePerformanceStage();
@@ -177,7 +177,7 @@ namespace EtgGameplayDashboard
 
         private void DrawLoadoutPresetDetailPage(Rect panelRect, PlayerController player, ManualLogSource logger)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             const float reloadConfigButtonWidth = 128f;
             Rect reloadButtonRect = new Rect(backButtonRect.x - ButtonGap - reloadConfigButtonWidth, backButtonRect.y, reloadConfigButtonWidth, 30f);
             const float addItemButtonWidth = 112f;
@@ -240,7 +240,7 @@ namespace EtgGameplayDashboard
 
         private void DrawLoadoutRandomPoolDetailPage(Rect panelRect, ManualLogSource logger)
         {
-            Rect backButtonRect = new Rect(panelRect.x + panelRect.width - ButtonWidth - 14f, panelRect.y + 12f, ButtonWidth, 30f);
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
             const float addItemButtonWidth = 112f;
             Rect addItemButtonRect = new Rect(backButtonRect.x - ButtonGap - addItemButtonWidth, backButtonRect.y, addItemButtonWidth, 30f);
             if (GUI.Button(backButtonRect, GuiText.Get("gui.common.back"), GetControllerButtonStyle("loadout.back", _buttonStyle)))
@@ -708,16 +708,20 @@ namespace EtgGameplayDashboard
 
         private void RefreshLoadoutEditorEntries()
         {
-            _cachedLoadoutRuleEntries = _loadoutRuleEditorService != null
-                ? _loadoutRuleEditorService.GetEntries()
-                : EmptyLoadoutRuleEditorEntries;
+            _loadoutEditorDataCoordinator.RefreshAll(_loadoutRandomPoolRuleIndex);
+            _cachedLoadoutRuleEntries = _loadoutEditorDataCoordinator.RuleEntries;
+            _cachedLoadoutPresetEntries = _loadoutEditorDataCoordinator.PresetEntries;
+            _cachedLoadoutRandomPoolEntries = _loadoutEditorDataCoordinator.RandomPoolEntries;
+            _cachedLoadoutPickupEntries = _loadoutEditorDataCoordinator.PickupEntries;
         }
 
         private void RefreshLoadoutPresetEntries()
         {
-            _cachedLoadoutPresetEntries = _loadoutRuleEditorService != null
-                ? _loadoutRuleEditorService.GetPresetEntries()
-                : EmptyLoadoutPresetEditorEntries;
+            _loadoutEditorDataCoordinator.RefreshAll(_loadoutRandomPoolRuleIndex);
+            _cachedLoadoutPresetEntries = _loadoutEditorDataCoordinator.PresetEntries;
+            _cachedLoadoutRuleEntries = _loadoutEditorDataCoordinator.RuleEntries;
+            _cachedLoadoutRandomPoolEntries = _loadoutEditorDataCoordinator.RandomPoolEntries;
+            _cachedLoadoutPickupEntries = _loadoutEditorDataCoordinator.PickupEntries;
         }
 
         private bool IsLoadoutPresetRandomEnabled()
@@ -754,9 +758,11 @@ namespace EtgGameplayDashboard
 
         private void RefreshLoadoutRandomPoolEntries()
         {
-            _cachedLoadoutRandomPoolEntries = _loadoutRuleEditorService != null && _loadoutRandomPoolRuleIndex >= 0
-                ? _loadoutRuleEditorService.GetRandomPoolEntries(_loadoutRandomPoolRuleIndex)
-                : EmptyLoadoutRandomPoolEditorEntries;
+            _loadoutEditorDataCoordinator.RefreshAll(_loadoutRandomPoolRuleIndex);
+            _cachedLoadoutRandomPoolEntries = _loadoutEditorDataCoordinator.RandomPoolEntries;
+            _cachedLoadoutRuleEntries = _loadoutEditorDataCoordinator.RuleEntries;
+            _cachedLoadoutPresetEntries = _loadoutEditorDataCoordinator.PresetEntries;
+            _cachedLoadoutPickupEntries = _loadoutEditorDataCoordinator.PickupEntries;
         }
 
         private void ExecuteLoadoutEditorReload(ManualLogSource logger)
@@ -1071,15 +1077,15 @@ namespace EtgGameplayDashboard
 
         private string GetLoadoutEditorActivePresetDisplayName()
         {
-            return _loadoutRuleEditorService != null
-                ? _loadoutRuleEditorService.GetActivePresetDisplayName()
+            return _loadoutEditorDataCoordinator != null && !string.IsNullOrEmpty(_loadoutEditorDataCoordinator.GetActivePresetDisplayName())
+                ? _loadoutEditorDataCoordinator.GetActivePresetDisplayName()
                 : StartItemsPresetNames.GetDisplayName(StartItemsPresetNames.DefaultPresetId, string.Empty, StartItemsPresetNames.DefaultPresetDisplayNameKey);
         }
 
         private string GetLoadoutEditorActiveRandomPoolDisplayName()
         {
-            return _loadoutRuleEditorService != null
-                ? _loadoutRuleEditorService.GetRandomPoolDisplayName(_loadoutRandomPoolRuleIndex)
+            return _loadoutEditorDataCoordinator != null && !string.IsNullOrEmpty(_loadoutEditorDataCoordinator.GetRandomPoolDisplayName(_loadoutRandomPoolRuleIndex))
+                ? _loadoutEditorDataCoordinator.GetRandomPoolDisplayName(_loadoutRandomPoolRuleIndex)
                 : GuiText.Get("gui.loadout_editor.rule.random_pool_title");
         }
 
@@ -1232,114 +1238,6 @@ namespace EtgGameplayDashboard
             }
 
             return presetListEntries;
-        }
-
-        private bool TryGetLoadoutEntryIcon(LoadoutRuleEditorEntry entry, out PickupIconData iconData)
-        {
-            iconData = PickupIconData.Empty;
-            if (entry == null)
-            {
-                return false;
-            }
-
-            if (entry.PickupId.HasValue && TryGetPickupIcon(entry.PickupId.Value, out iconData))
-            {
-                return true;
-            }
-
-            return TryGetStartItemPickupIcon(entry.PickupType, out iconData);
-        }
-
-        private bool TryGetStartItemPickupIcon(string pickupType, out PickupIconData iconData)
-        {
-            iconData = PickupIconData.Empty;
-            string spriteName = GetStartItemPickupSpriteName(pickupType);
-            if (string.IsNullOrEmpty(spriteName) ||
-                !TryGetGameUiAtlasIcon(spriteName, out iconData))
-            {
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool TryGetGameUiAtlasIcon(string spriteName, out PickupIconData iconData)
-        {
-            iconData = PickupIconData.Empty;
-            dfAtlas atlas;
-            if (string.IsNullOrEmpty(spriteName) || !TryGetGameUiAtlas(out atlas) || atlas == null)
-            {
-                return false;
-            }
-
-            dfAtlas.ItemInfo item = atlas[spriteName];
-            Texture texture = atlas.Texture;
-            if (item == null || texture == null)
-            {
-                return false;
-            }
-
-            // Use the atlas' own runtime region data so sprite-name changes do not get out of sync with hand-written UVs.
-            Rect region = item.region;
-            Rect textureCoords = Rect.MinMaxRect(region.xMin, region.yMin, region.xMax, region.yMax);
-            iconData = new PickupIconData(texture, textureCoords);
-            return true;
-        }
-
-        private bool TryGetGameUiAtlas(out dfAtlas atlas)
-        {
-            atlas = _gameUiAtlas;
-            if (_hasResolvedGameUiAtlas)
-            {
-                return atlas != null;
-            }
-
-            _hasResolvedGameUiAtlas = true;
-            UnityEngine.Object[] atlases = Resources.FindObjectsOfTypeAll(typeof(dfAtlas));
-            if (atlases == null)
-            {
-                return false;
-            }
-
-            for (int index = 0; index < atlases.Length; index++)
-            {
-                dfAtlas candidate = atlases[index] as dfAtlas;
-                if (candidate == null || candidate.Texture == null)
-                {
-                    continue;
-                }
-
-                if (string.Equals(candidate.Texture.name, "GameUIAtlas", System.StringComparison.Ordinal) ||
-                    string.Equals(candidate.gameObject.name, "GameUIAtlas", System.StringComparison.Ordinal))
-                {
-                    _gameUiAtlas = candidate;
-                    atlas = candidate;
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static string GetStartItemPickupFallbackLabel(string pickupType)
-        {
-            switch (StartItemPickupCatalog.NormalizeType(pickupType))
-            {
-                case StartItemPickupCatalog.KeyType:
-                    return "K";
-                case StartItemPickupCatalog.RatKeyType:
-                    return "R";
-                case StartItemPickupCatalog.MaxHealthType:
-                    return "H";
-                case StartItemPickupCatalog.ArmorType:
-                    return "A";
-                case StartItemPickupCatalog.CasingsType:
-                    return "C";
-                case StartItemPickupCatalog.BlankType:
-                    return "B";
-                default:
-                    return "?";
-            }
         }
 
         private void ExecuteLoadoutEditorFocusedControl(PlayerController player, ManualLogSource logger)

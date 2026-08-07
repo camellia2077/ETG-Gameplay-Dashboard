@@ -58,8 +58,8 @@ namespace EtgGameplayDashboard
             _playerRewindEnabledConfig = Config.Bind(
                 "UI",
                 "PlayerRewindEnabled",
-                false,
-                "Restore the player's recorded state when rewinding a room. Disabled by default.");
+                true,
+                "Restore the player's recorded state when rewinding a room. Enabled by default.");
             _roomRewindCleanupEnabledConfig = Config.Bind(
                 "UI",
                 "RoomRewindCleanupEnabled",
