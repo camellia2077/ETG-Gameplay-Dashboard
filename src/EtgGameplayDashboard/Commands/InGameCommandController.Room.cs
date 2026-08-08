@@ -16,16 +16,6 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry("cmd.room.section.enemies", 2, 2),
             new ControllerFocusEntry("cmd.room.section.rewind", 2, 3),
             new ControllerFocusEntry("cmd.room.section.boss", 2, 4),
-            new ControllerFocusEntry("cmd.room.section.state", 2, 5),
-        };
-
-        private static readonly ControllerFocusEntry[] RoomStandardSectionCommandPageFocusEntries =
-        {
-            new ControllerFocusEntry("cmd.room.section.chest", 2, 0),
-            new ControllerFocusEntry("cmd.room.section.neutral", 2, 1),
-            new ControllerFocusEntry("cmd.room.section.enemies", 2, 2),
-            new ControllerFocusEntry("cmd.room.section.rewind", 2, 3),
-            new ControllerFocusEntry("cmd.room.section.boss", 2, 4),
         };
 
         private static readonly ControllerFocusEntry[] RoomChestCommandPageFocusEntries =
@@ -49,8 +39,25 @@ namespace EtgGameplayDashboard
         {
             new ControllerFocusEntry("cmd.room.enemy_refresh_recording", 3, 0),
             new ControllerFocusEntry("cmd.room.enemy_refresh_method", 3, 1),
+            new ControllerFocusEntry("cmd.room.enemy_refresh_method.info", 3, 2),
+            new ControllerFocusEntry("cmd.room.rewind.shortcut", 4, 0),
+            new ControllerFocusEntry("cmd.room.rewind.shortcut.clear", 4, 1),
+            new ControllerFocusEntry("cmd.room.player_rewind", 5, 0),
+            new ControllerFocusEntry("cmd.room.player_rewind.info", 5, 1),
+            new ControllerFocusEntry("cmd.room.rewind_cleanup", 5, 2),
+            new ControllerFocusEntry("cmd.room.rewind_cleanup.info", 5, 3),
+            new ControllerFocusEntry("cmd.room.enemy_refresh_execute", 6, 0),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomRewindDisabledCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.enemy_refresh_recording", 3, 0),
+            new ControllerFocusEntry("cmd.room.enemy_refresh_method", 3, 1),
+            new ControllerFocusEntry("cmd.room.enemy_refresh_method.info", 3, 2),
             new ControllerFocusEntry("cmd.room.player_rewind", 4, 0),
-            new ControllerFocusEntry("cmd.room.rewind_cleanup", 4, 1),
+            new ControllerFocusEntry("cmd.room.player_rewind.info", 4, 1),
+            new ControllerFocusEntry("cmd.room.rewind_cleanup", 4, 2),
+            new ControllerFocusEntry("cmd.room.rewind_cleanup.info", 4, 3),
             new ControllerFocusEntry("cmd.room.enemy_refresh_execute", 5, 0),
         };
 
@@ -60,26 +67,18 @@ namespace EtgGameplayDashboard
         {
             const float sectionButtonWidth = 92f;
             const float sectionButtonHeight = 28f;
-            bool experimentalModeEnabled = IsExperimentalModeEnabled();
             Rect chestSectionRect = new Rect(contentRect.x, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect neutralSectionRect = new Rect(chestSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect enemiesSectionRect = new Rect(neutralSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect rewindSectionRect = new Rect(enemiesSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect bossSectionRect = new Rect(rewindSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
-            Rect stateSectionRect = new Rect(bossSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             DrawRoomSectionButton(chestSectionRect, "cmd.room.section.chest", RoomMenuSection.Chest, GetLocalizedFallback("gui.room.section.chest", "Chest", "宝箱"));
             DrawRoomSectionButton(neutralSectionRect, "cmd.room.section.neutral", RoomMenuSection.Neutral, GetLocalizedFallback("gui.room.section.neutral", "Neutral", "中立生物"));
             DrawRoomSectionButton(enemiesSectionRect, "cmd.room.section.enemies", RoomMenuSection.Enemies, GetLocalizedFallback("gui.room.section.enemies", "Enemies", "怪物"));
             DrawRoomSectionButton(rewindSectionRect, "cmd.room.section.rewind", RoomMenuSection.Rewind, GetLocalizedFallback("gui.room.section.rewind", "Rewind", "回溯"));
             DrawRoomSectionButton(bossSectionRect, "cmd.room.section.boss", RoomMenuSection.Boss, GetLocalizedFallback("gui.room.section.boss", "Boss", "Boss"));
-            DrawRoomSectionButton(stateSectionRect, "cmd.room.section.state", RoomMenuSection.State, GetLocalizedFallback("gui.room.section.state", "State", "状态"), experimentalModeEnabled);
 
             Rect sectionContentRect = new Rect(contentRect.x, contentRect.y + sectionButtonHeight + 12f, contentRect.width, contentRect.height - sectionButtonHeight - 12f);
-            if (!experimentalModeEnabled && _roomMenuSection == RoomMenuSection.State)
-            {
-                SetRoomMenuSection(RoomMenuSection.Chest);
-            }
-
             switch (_roomMenuSection)
             {
                 case RoomMenuSection.Neutral:
@@ -97,12 +96,6 @@ namespace EtgGameplayDashboard
                 case RoomMenuSection.Boss:
                     DrawRoomBossSection(sectionContentRect, buttonWidth, controlHeight, player, logger);
                     return;
-                case RoomMenuSection.State:
-                    DrawRoomPlaceholderSection(
-                        sectionContentRect,
-                        GetLocalizedFallback("gui.room.section.state", "State", "状态"),
-                        GetLocalizedFallback("gui.room.placeholder.state", "Room-state tools will go here next.", "后续会在这里加入房间状态相关功能。"));
-                    return;
                 case RoomMenuSection.Chest:
                 default:
                     DrawRoomChestSection(sectionContentRect, buttonWidth, controlHeight, player, logger);
@@ -113,32 +106,39 @@ namespace EtgGameplayDashboard
         private void DrawRoomRewindSection(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
         {
             float firstRowY = contentRect.y;
-            float firstButtonY = firstRowY + 78f;
+            float firstButtonY = firstRowY;
             float secondButtonY = firstButtonY + controlHeight + ButtonGap;
             float thirdButtonY = secondButtonY + controlHeight + ButtonGap;
+            float fourthButtonY = thirdButtonY + controlHeight + ButtonGap;
             float rewindButtonWidth = buttonWidth * 2f + ButtonGap;
+            const float infoButtonWidth = 32f;
+            float settingButtonWidth = rewindButtonWidth - infoButtonWidth - ButtonGap;
             float secondColumnX = contentRect.x + rewindButtonWidth + ButtonGap;
             bool recordingEnabled = _roomDebugCommandService != null && _roomDebugCommandService.IsRoomEnemyRefreshRecordingEnabled;
             bool playerRewindEnabled = _roomDebugCommandService != null && _roomDebugCommandService.IsPlayerRewindEnabled;
             bool rewindCleanupEnabled = _roomDebugCommandService == null || _roomDebugCommandService.IsRoomRewindCleanupEnabled;
 
-            GUI.Label(
-                new Rect(contentRect.x, firstRowY, contentRect.width, 20f),
-                GetLocalizedFallback("gui.room.rewind.title", "Rewind", "回溯"),
-                _hintStyle);
+            if (DrawControllerButton(
+                new Rect(contentRect.x, secondButtonY, rewindButtonWidth, controlHeight),
+                "cmd.room.rewind.shortcut",
+                GetLocalizedFormattedFallback(
+                    "gui.room.rewind.shortcut.configure",
+                    "Set Shortcut: {0}",
+                    "设置快捷键：{0}",
+                    GetRoomEnemyRewindShortcutButtonLabel()),
+                recordingEnabled ? _buttonStyle : _pickupFilterDisabledButtonStyle) && recordingEnabled)
+            {
+                BeginRoomEnemyRewindShortcutCapture();
+            }
 
-            GUI.Label(
-                new Rect(contentRect.x, firstRowY + 22f, contentRect.width, 20f),
-                GetLocalizedFallback(
-                    "gui.room.rewind.shortcut",
-                    "Shortcut: C",
-                    "快捷键：C"),
-                _hintStyle);
-
-            GUI.Label(
-                new Rect(contentRect.x, firstRowY + 44f, contentRect.width, 30f),
-                GetRoomEnemyRefreshMethodDescription(),
-                _wrappedHintStyle);
+            if (DrawControllerButton(
+                new Rect(secondColumnX, secondButtonY, buttonWidth, controlHeight),
+                "cmd.room.rewind.shortcut.clear",
+                GetLocalizedFallback("gui.pickups.button.shortcut_clear", "Clear", "清除"),
+                recordingEnabled ? _buttonStyle : _pickupFilterDisabledButtonStyle) && recordingEnabled)
+            {
+                ClearRoomEnemyRewindShortcut();
+            }
 
             if (DrawControllerButton(
                 new Rect(contentRect.x, firstButtonY, rewindButtonWidth, controlHeight),
@@ -156,7 +156,7 @@ namespace EtgGameplayDashboard
             }
 
             if (DrawControllerButton(
-                new Rect(secondColumnX, firstButtonY, rewindButtonWidth, controlHeight),
+                new Rect(secondColumnX, firstButtonY, settingButtonWidth, controlHeight),
                 "cmd.room.enemy_refresh_method",
                 GetRoomEnemyRefreshMethodLabel(),
                 recordingEnabled ? _buttonStyle : _pickupFilterDisabledButtonStyle) && recordingEnabled)
@@ -164,8 +164,15 @@ namespace EtgGameplayDashboard
                 ExecuteCycleRoomEnemyRefreshMethod(logger);
             }
 
+            if (DrawInfoButton(
+                new Rect(secondColumnX + settingButtonWidth + ButtonGap, firstButtonY, infoButtonWidth, controlHeight),
+                CommandInfoPage.RefreshMethod))
+            {
+                return;
+            }
+
             if (DrawControllerButton(
-                new Rect(contentRect.x, secondButtonY, rewindButtonWidth, controlHeight),
+                new Rect(contentRect.x, thirdButtonY, settingButtonWidth, controlHeight),
                 "cmd.room.player_rewind",
                 GetLocalizedFallback(
                     playerRewindEnabled ? "gui.room.player_rewind.on" : "gui.room.player_rewind.off",
@@ -178,13 +185,20 @@ namespace EtgGameplayDashboard
                 ExecuteTogglePlayerRewind(logger);
             }
 
+            if (DrawInfoButton(
+                new Rect(contentRect.x + settingButtonWidth + ButtonGap, thirdButtonY, infoButtonWidth, controlHeight),
+                CommandInfoPage.PlayerRewind))
+            {
+                return;
+            }
+
             if (DrawControllerButton(
-                new Rect(secondColumnX, secondButtonY, rewindButtonWidth, controlHeight),
+                new Rect(secondColumnX, thirdButtonY, settingButtonWidth, controlHeight),
                 "cmd.room.rewind_cleanup",
                 GetLocalizedFallback(
                     rewindCleanupEnabled ? "gui.room.rewind_cleanup.on" : "gui.room.rewind_cleanup.off",
-                    rewindCleanupEnabled ? "Rewind Cleanup: ON" : "Rewind Cleanup: OFF",
-                    rewindCleanupEnabled ? "回溯清理：开启" : "回溯清理：关闭"),
+                    rewindCleanupEnabled ? "Room Residual Cleanup: ON" : "Room Residual Cleanup: OFF",
+                    rewindCleanupEnabled ? "房间残留清理：开启" : "房间残留清理：关闭"),
                 !recordingEnabled
                     ? _pickupFilterDisabledButtonStyle
                     : (rewindCleanupEnabled ? _cursorColorSelectedButtonStyle : _buttonStyle)) && recordingEnabled)
@@ -192,14 +206,323 @@ namespace EtgGameplayDashboard
                 ExecuteToggleRoomRewindCleanup(logger);
             }
 
+            if (DrawInfoButton(
+                new Rect(secondColumnX + settingButtonWidth + ButtonGap, thirdButtonY, infoButtonWidth, controlHeight),
+                CommandInfoPage.Cleanup))
+            {
+                return;
+            }
+
             if (DrawControllerButton(
-                new Rect(contentRect.x, thirdButtonY, rewindButtonWidth * 2f + ButtonGap, controlHeight),
+                new Rect(contentRect.x, fourthButtonY, rewindButtonWidth * 2f + ButtonGap, controlHeight),
                 "cmd.room.enemy_refresh_execute",
                 GetLocalizedFallback("gui.room.rewind.execute", "Spawn", "生成"),
                 recordingEnabled ? _buttonStyle : _pickupFilterDisabledButtonStyle) && recordingEnabled)
             {
                 ExecuteSelectedRoomEnemyRefresh(player, logger);
             }
+        }
+
+        private bool DrawInfoButton(Rect rect, CommandInfoPage page)
+        {
+            if (!GUI.Button(rect, "?", _infoButtonStyle))
+            {
+                return false;
+            }
+
+            Event currentEvent = Event.current;
+            if (currentEvent != null)
+            {
+                currentEvent.Use();
+            }
+
+            GUIUtility.hotControl = 0;
+            GUIUtility.keyboardControl = 0;
+            OpenCommandInfoPage(page);
+            return true;
+        }
+
+        private void OpenCommandInfoPage(CommandInfoPage page)
+        {
+            _commandInfoPage = page;
+            _commandInfoPageFocusedControlId = "room_rewind_info.back";
+            _currentPage = PanelPage.CommandInfo;
+            _focusInputField = false;
+            _focusPickupSearchField = false;
+            RequestGuiFocusRelease();
+        }
+
+        private void CloseCommandInfoPage()
+        {
+            _currentPage = PanelPage.Command;
+            switch (_commandInfoPage)
+            {
+                case CommandInfoPage.Coolness:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Stats;
+                    _commandPageFocusedControlId = "cmd.player.coolness_apply";
+                    break;
+                case CommandInfoPage.Curse:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Stats;
+                    _commandPageFocusedControlId = "cmd.player.curse_apply";
+                    break;
+                case CommandInfoPage.Magnificence:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Stats;
+                    _commandPageFocusedControlId = "cmd.player.magnificence_apply";
+                    break;
+                case CommandInfoPage.DamageMultiplier:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Stats;
+                    _commandPageFocusedControlId = "cmd.player.damage_apply";
+                    break;
+                case CommandInfoPage.MovementMultiplier:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Stats;
+                    _commandPageFocusedControlId = "cmd.player.movement_apply";
+                    break;
+                case CommandInfoPage.BulletSize:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Projectiles;
+                    _commandPageFocusedControlId = "cmd.player.bullet_size_apply";
+                    break;
+                case CommandInfoPage.BulletSpeed:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Projectiles;
+                    _commandPageFocusedControlId = "cmd.player.bullet_speed_apply";
+                    break;
+                case CommandInfoPage.ReloadSpeed:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Projectiles;
+                    _commandPageFocusedControlId = "cmd.player.reload_speed_apply";
+                    break;
+                case CommandInfoPage.Accuracy:
+                    _commandMenuCategory = CommandMenuCategory.Player;
+                    _playerMenuSection = PlayerMenuSection.Character;
+                    _characterMenuSection = CharacterMenuSection.Projectiles;
+                    _commandPageFocusedControlId = "cmd.player.accuracy_apply";
+                    break;
+                case CommandInfoPage.RefreshMethod:
+                    _commandPageFocusedControlId = "cmd.room.enemy_refresh_method.info";
+                    break;
+                case CommandInfoPage.Cleanup:
+                    _commandPageFocusedControlId = "cmd.room.rewind_cleanup.info";
+                    break;
+                case CommandInfoPage.PlayerRewind:
+                default:
+                    _commandPageFocusedControlId = "cmd.room.player_rewind.info";
+                    break;
+            }
+            RequestGuiFocusRelease();
+        }
+
+        private void HandleCommandInfoPageControllerNavigation(bool isControllerBackPressed)
+        {
+            if (isControllerBackPressed || IsPanelConfirmPressed())
+            {
+                CloseCommandInfoPage();
+                return;
+            }
+
+            ResetControllerNavigationAxes();
+        }
+
+        private void DrawCommandInfoPage(Rect panelRect)
+        {
+            Rect backButtonRect = GetSecondaryPageBackButtonRect(panelRect);
+            if (DrawSecondaryPageBackButton(panelRect, "room_rewind_info.back", CloseCommandInfoPage))
+            {
+                return;
+            }
+
+            bool isPlayerRewind = _commandInfoPage == CommandInfoPage.PlayerRewind;
+            bool isCleanup = _commandInfoPage == CommandInfoPage.Cleanup;
+            bool isCoolness = _commandInfoPage == CommandInfoPage.Coolness;
+            bool isCurse = _commandInfoPage == CommandInfoPage.Curse;
+            bool isMagnificence = _commandInfoPage == CommandInfoPage.Magnificence;
+            bool isDamageMultiplier = _commandInfoPage == CommandInfoPage.DamageMultiplier;
+            bool isMovementMultiplier = _commandInfoPage == CommandInfoPage.MovementMultiplier;
+            bool isBulletSize = _commandInfoPage == CommandInfoPage.BulletSize;
+            bool isBulletSpeed = _commandInfoPage == CommandInfoPage.BulletSpeed;
+            bool isReloadSpeed = _commandInfoPage == CommandInfoPage.ReloadSpeed;
+            bool isAccuracy = _commandInfoPage == CommandInfoPage.Accuracy;
+            bool isRespawnMethod = _roomEnemyRefreshMethod == RoomEnemyRefreshMethod.RespawnEnemies;
+            string titleKey;
+            string titleEnglish;
+            string titleChinese;
+            string bodyKey;
+            string bodyEnglish;
+            string bodyChinese;
+            GetPlayerStatInfoText(
+                isCoolness,
+                isCurse,
+                isMagnificence,
+                isDamageMultiplier,
+                isMovementMultiplier,
+                isBulletSize,
+                isBulletSpeed,
+                isReloadSpeed,
+                isAccuracy,
+                isPlayerRewind,
+                isCleanup,
+                isRespawnMethod,
+                out titleKey,
+                out titleEnglish,
+                out titleChinese,
+                out bodyKey,
+                out bodyEnglish,
+                out bodyChinese);
+            GUI.Label(
+                new Rect(panelRect.x + 14f, panelRect.y + 12f, backButtonRect.x - panelRect.x - 28f, 24f),
+                GetLocalizedFallback(titleKey, titleEnglish, titleChinese),
+                _titleStyle);
+            GUI.Label(
+                new Rect(panelRect.x + 14f, panelRect.y + 52f, panelRect.width - 28f, 250f),
+                GetLocalizedFallback(bodyKey, bodyEnglish, bodyChinese),
+                _wrappedHintStyle);
+        }
+
+        private static void GetPlayerStatInfoText(
+            bool isCoolness,
+            bool isCurse,
+            bool isMagnificence,
+            bool isDamageMultiplier,
+            bool isMovementMultiplier,
+            bool isBulletSize,
+            bool isBulletSpeed,
+            bool isReloadSpeed,
+            bool isAccuracy,
+            bool isPlayerRewind,
+            bool isCleanup,
+            bool isRespawnMethod,
+            out string titleKey,
+            out string titleEnglish,
+            out string titleChinese,
+            out string bodyKey,
+            out string bodyEnglish,
+            out string bodyChinese)
+        {
+            if (isCoolness)
+            {
+                titleKey = "gui.player.stats.info.coolness.title";
+                titleEnglish = "Coolness";
+                titleChinese = "酷气值（Coolness）";
+                bodyKey = "gui.player.stats.info.coolness.body";
+                bodyEnglish = "Coolness is a hidden luck stat. Each point reduces active-item cooldown by 5%, up to a 50% reduction, and increases the chance of receiving a reward after clearing a combat room.";
+                bodyChinese = "酷气值（Coolness）是游戏中的隐藏属性。每点酷气值可使主动道具冷却时间减少 5%，最多减少 50%，并提高战斗房间清空后获得物品奖励的概率。";
+                return;
+            }
+
+            if (isCurse)
+            {
+                titleKey = "gui.player.stats.info.curse.title";
+                titleEnglish = "Curse";
+                titleChinese = "诅咒（Curse）";
+                bodyKey = "gui.player.stats.info.curse.body";
+                bodyEnglish = "Curse is a run-wide risk stat. Higher Curse increases Jammed-enemy and special-threat chances, can make chests more dangerous, and reduces the chance of a reward after clearing a combat room. It does not reduce active-item cooldown.";
+                bodyChinese = "Curse 是贯穿本局的风险属性。数值越高，出现 Jammed 敌人和特殊威胁的概率越高，宝箱也可能更危险，并会降低战斗房间清空后的奖励概率。Curse 不会降低主动道具冷却时间。";
+                return;
+            }
+
+            if (isMagnificence)
+            {
+                titleKey = "gui.player.stats.info.magnificence.title";
+                titleEnglish = "Magnificence";
+                titleChinese = "华丽值（Magnificence）";
+                bodyKey = "gui.player.stats.info.magnificence.body";
+                bodyEnglish = "Magnificence is a hidden run stat that limits how many high-quality guns and items can be obtained. Higher values make future high-quality chest rewards less likely.";
+                bodyChinese = "华丽值（Magnificence）是本局隐藏属性，用来限制高品质枪械和道具的获取数量。数值越高，之后从高品质宝箱中获得高品质奖励的概率越低。";
+                return;
+            }
+
+            if (isDamageMultiplier)
+            {
+                titleKey = "gui.player.stats.info.damage.title";
+                titleEnglish = "Damage multiplier";
+                titleChinese = "伤害倍率";
+                bodyKey = "gui.player.stats.info.damage.body";
+                bodyEnglish = "This value multiplies the player's Damage stat. 1 is the normal value; higher integers increase damage.";
+                bodyChinese = "这个数值会乘到玩家的伤害属性上。1 为正常值，更高的整数会提高伤害。";
+                return;
+            }
+
+            if (isMovementMultiplier)
+            {
+                titleKey = "gui.player.stats.info.movement.title";
+                titleEnglish = "Movement speed multiplier";
+                titleChinese = "移速倍率";
+                bodyKey = "gui.player.stats.info.movement.body";
+                bodyEnglish = "This value multiplies the player's Movement Speed stat. 1 is the normal value; higher integers increase movement speed.";
+                bodyChinese = "这个数值会乘到玩家的移速属性上。1 为正常值，更高的整数会提高移动速度。";
+                return;
+            }
+
+            if (isBulletSize || isBulletSpeed || isReloadSpeed || isAccuracy)
+            {
+                titleKey = isBulletSize ? "gui.player.projectiles.info.size.title" : isBulletSpeed ? "gui.player.projectiles.info.speed.title" : isReloadSpeed ? "gui.player.projectiles.info.reload_speed.title" : "gui.player.projectiles.info.accuracy.title";
+                titleEnglish = isBulletSize ? "Projectile size" : isBulletSpeed ? "Projectile speed" : isReloadSpeed ? "Reload speed" : "Spread";
+                titleChinese = isBulletSize ? "子弹大小" : isBulletSpeed ? "子弹射速" : isReloadSpeed ? "换弹速度" : "扩散程度";
+                bodyKey = isBulletSize ? "gui.player.projectiles.info.size.body" : isBulletSpeed ? "gui.player.projectiles.info.speed.body" : isReloadSpeed ? "gui.player.projectiles.info.reload_speed.body" : "gui.player.projectiles.info.accuracy.body";
+                bodyEnglish = isBulletSize
+                    ? "This integer multiplies the player's projectile scale. The accepted range is 1 to 30; 1 is the normal size and higher values make fired projectiles larger."
+                    : isBulletSpeed
+                        ? "This integer multiplies the player's projectile speed. The accepted range is 1 to 999; 1 is the normal speed and higher values make fired projectiles travel faster."
+                        : isReloadSpeed
+                            ? "This decimal multiplier controls reload speed. The accepted range is 0.25x to 4.0x; 1.0x is normal, higher values reload faster, and lower values reload slower."
+                            : "This value controls projectile spread. The accepted range is 0 to 999; higher values increase spread and 0 means no spread.";
+                bodyChinese = isBulletSize
+                    ? "这个整数会乘到玩家的子弹大小上。允许范围是 1 到 30；1 为正常大小，更高的数值会让发射的子弹变大。"
+                    : isBulletSpeed
+                        ? "这个整数会乘到玩家的子弹速度上。允许范围是 1 到 999；1 为正常速度，更高的数值会让发射的子弹飞得更快。"
+                        : isReloadSpeed
+                            ? "这个小数倍率控制换弹速度。允许范围是 0.25x 到 4.0x；1.0x 为正常速度，数值越大换弹越快，数值越小换弹越慢。"
+                            : "这个数值控制子弹扩散程度。允许范围是 0 到 999；数值越大，扩散越大；数值为 0 则不扩散。";
+                return;
+            }
+
+            titleKey = isPlayerRewind
+                ? "gui.room.rewind.info.player.title"
+                : isCleanup
+                    ? "gui.room.rewind.info.cleanup.title"
+                    : (isRespawnMethod ? "gui.room.rewind.info.mode.respawn.title" : "gui.room.rewind.info.mode.rewind.title");
+            titleEnglish = isPlayerRewind
+                ? "Player Rewind"
+                : isCleanup
+                    ? "Room Residual Cleanup"
+                    : (isRespawnMethod ? "Respawn Enemies" : "Rewind Room");
+            titleChinese = isPlayerRewind
+                ? "玩家回溯"
+                : isCleanup
+                    ? "房间残留清理"
+                    : (isRespawnMethod ? "重新生成怪物" : "回溯房间");
+            bodyKey = isPlayerRewind
+                ? "gui.room.rewind.info.player.body"
+                : isCleanup
+                    ? "gui.room.rewind.info.cleanup.body"
+                    : (isRespawnMethod ? "gui.room.rewind.info.mode.respawn.body" : "gui.room.rewind.info.mode.rewind.body");
+            bodyEnglish = isPlayerRewind
+                ? "When rewinding a room, restores the room-entry player snapshot: health, max health, armor, blanks, stats, guns and ammo, passive items, active items, selected slots, and active-item charge/cooldown state. The snapshot is captured only when Player Rewind is enabled before entering the room."
+                : isCleanup
+                    ? "Before rewinding a room, removes room-local projectiles, decals, drops, currency, corpses, death effects, and Boss reward pedestals. Player-, gun-, and pickup-owned effects, other rooms, and other floors are not affected."
+                    : (isRespawnMethod
+                        ? "Respawn Enemies uses the room template to generate enemies again. Enemy batches, variants, positions, and waves may differ from the original room."
+                        : "Rewind Room restores the recorded enemy batches, variants, positions, and reinforcement waves from the current room. It is intended to reproduce the room's recorded state rather than generate a new one.");
+            bodyChinese = isPlayerRewind
+                ? "回溯房间时恢复进入房间时记录的玩家状态：生命值、最大生命值、护甲、空响弹、属性、枪械和弹药、被动道具、主动道具、选择槽位，以及主动道具充能/冷却状态。只有在进入房间前开启玩家回溯，才会记录该房间的状态。"
+                : isCleanup
+                    ? "回溯房间前清理房间内的投射物、地面痕迹、掉落物、货币、尸体、死亡特效和 Boss 奖励台。不会影响玩家、枪械、道具拥有的特效，也不会影响其他房间或楼层。"
+                    : (isRespawnMethod
+                        ? "重新生成怪物会读取房间模板再次生成敌人，怪物批次、变体、站位和波次可能与原房间不同。"
+                        : "回溯房间会恢复当前房间记录的敌人批次、变体、站位和后续增援波次，用于复现房间已记录的状态，而不是重新生成一个新房间。");
         }
 
         private void DrawRoomChestSection(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
@@ -415,10 +738,7 @@ namespace EtgGameplayDashboard
 
         private ControllerFocusEntry[] GetRoomCommandPageFocusEntries()
         {
-            bool experimentalModeEnabled = IsExperimentalModeEnabled();
-            ControllerFocusEntry[] sectionFocusEntries = experimentalModeEnabled
-                ? RoomSectionCommandPageFocusEntries
-                : RoomStandardSectionCommandPageFocusEntries;
+            ControllerFocusEntry[] sectionFocusEntries = RoomSectionCommandPageFocusEntries;
             if (_roomMenuSection == RoomMenuSection.Neutral)
             {
                 return BuildCommandPageFocusEntries(
@@ -428,17 +748,22 @@ namespace EtgGameplayDashboard
 
             if (_roomMenuSection == RoomMenuSection.Rewind)
             {
-                return BuildCommandPageFocusEntries(sectionFocusEntries, RoomRewindCommandPageFocusEntries);
+                bool recordingEnabled = _roomDebugCommandService != null && _roomDebugCommandService.IsRoomEnemyRefreshRecordingEnabled;
+                if (!recordingEnabled &&
+                    (string.Equals(_commandPageFocusedControlId, "cmd.room.rewind.shortcut", System.StringComparison.Ordinal) ||
+                     string.Equals(_commandPageFocusedControlId, "cmd.room.rewind.shortcut.clear", System.StringComparison.Ordinal)))
+                {
+                    _commandPageFocusedControlId = "cmd.room.enemy_refresh_recording";
+                }
+
+                return BuildCommandPageFocusEntries(
+                    sectionFocusEntries,
+                    recordingEnabled ? RoomRewindCommandPageFocusEntries : RoomRewindDisabledCommandPageFocusEntries);
             }
 
             if (_roomMenuSection == RoomMenuSection.Boss)
             {
                 return BuildCommandPageFocusEntries(sectionFocusEntries, BuildRoomBossCommandPageFocusEntries());
-            }
-
-            if (_roomMenuSection == RoomMenuSection.State && experimentalModeEnabled)
-            {
-                return BuildCommandPageFocusEntries(RoomSectionCommandPageFocusEntries);
             }
 
             return BuildCommandPageFocusEntries(sectionFocusEntries, RoomChestCommandPageFocusEntries);
@@ -489,7 +814,12 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.room.chest_tier.rainbow", delegate { ExecuteSpawnChest(player, null, RoomChestTier.Rainbow); }),
                 new CommandPageActionBinding("cmd.room.enemy_refresh_recording", delegate { ExecuteToggleRoomEnemyRefreshRecording(null); }),
                 new CommandPageActionBinding("cmd.room.enemy_refresh_method", delegate { ExecuteCycleRoomEnemyRefreshMethod(null); }),
+                new CommandPageActionBinding("cmd.room.enemy_refresh_method.info", delegate { OpenCommandInfoPage(CommandInfoPage.RefreshMethod); }),
+                new CommandPageActionBinding("cmd.room.rewind.shortcut", delegate { BeginRoomEnemyRewindShortcutCapture(); }),
+                new CommandPageActionBinding("cmd.room.rewind.shortcut.clear", delegate { ClearRoomEnemyRewindShortcut(); }),
+                new CommandPageActionBinding("cmd.room.player_rewind.info", delegate { OpenCommandInfoPage(CommandInfoPage.PlayerRewind); }),
                 new CommandPageActionBinding("cmd.room.rewind_cleanup", delegate { ExecuteToggleRoomRewindCleanup(null); }),
+                new CommandPageActionBinding("cmd.room.rewind_cleanup.info", delegate { OpenCommandInfoPage(CommandInfoPage.Cleanup); }),
                 new CommandPageActionBinding("cmd.room.player_rewind", delegate { ExecuteTogglePlayerRewind(null); }),
                 new CommandPageActionBinding("cmd.room.enemy_refresh_execute", delegate { ExecuteSelectedRoomEnemyRefresh(player, null); }),
                 new CommandPageActionBinding("cmd.room.spawn_gunber_muncher", delegate { ExecuteSpawnGunberMuncher(player, null); }),
@@ -615,7 +945,7 @@ namespace EtgGameplayDashboard
                     GetLocalizedFallback(
                         "result.room.rewind.recording_required",
                         "Enable Rewind before changing rewind cleanup.",
-                        "请先开启回溯功能，再修改回溯清理设置。"),
+                        "请先开启回溯功能，再修改房间残留清理设置。"),
                     true);
                 return;
             }
@@ -667,19 +997,6 @@ namespace EtgGameplayDashboard
         private string GetRoomEnemyRefreshMethodLabel()
         {
             return GuiText.Get("gui.room.rewind.method", GetRoomEnemyRefreshMethodName());
-        }
-
-        private string GetRoomEnemyRefreshMethodDescription()
-        {
-            return _roomEnemyRefreshMethod == RoomEnemyRefreshMethod.RespawnEnemies
-                ? GetLocalizedFallback(
-                    "gui.room.rewind.mode.respawn",
-                    "Respawn: generates enemies in this room; batches, types, and positions may differ.",
-                    "重新生成：在当前房间重新生成敌人，批次、类型和站位可能不同。")
-                : GetLocalizedFallback(
-                    "gui.room.rewind.mode.rewind",
-                    "Rewind: restores the same enemy batches, types, and positions as recorded.",
-                    "回溯：恢复与记录时相同的敌人批次、类型和站位。");
         }
 
         private string GetRoomEnemyRefreshMethodName()

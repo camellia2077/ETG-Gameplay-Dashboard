@@ -30,6 +30,7 @@ namespace EtgGameplayDashboard
             ControllerHelp,
             KeyboardHelp,
             CursorColor,
+            CommandInfo,
         }
 
         private enum CharacterActionMode
@@ -66,13 +67,28 @@ namespace EtgGameplayDashboard
             Enemies,
             Rewind,
             Boss,
-            State,
         }
 
         private enum RoomEnemyRefreshMethod
         {
             Rewind,
             RespawnEnemies,
+        }
+
+        private enum CommandInfoPage
+        {
+            PlayerRewind,
+            Cleanup,
+            RefreshMethod,
+            Coolness,
+            Curse,
+            Magnificence,
+            DamageMultiplier,
+            MovementMultiplier,
+            BulletSize,
+            BulletSpeed,
+            ReloadSpeed,
+            Accuracy,
         }
 
         private enum PlayerMenuSection
@@ -85,6 +101,7 @@ namespace EtgGameplayDashboard
         {
             Pickups,
             Stats,
+            Projectiles,
         }
 
         private enum StatusSeverity
@@ -106,6 +123,7 @@ namespace EtgGameplayDashboard
         private const float MinimumUiScale = 0.70f;
         private const float MaximumUiScale = 1.50f;
         private const float PanelWidth = 612f;
+        private const float PlayerStatsCommandPanelWidth = 620f;
         private const float LoadoutEditorPanelWidth = 900f;
         private const float SettingsPanelWidth = 1100f;
         private const float BasePanelHeight = 284f;
@@ -124,6 +142,7 @@ namespace EtgGameplayDashboard
         private const float ControllerHelpPanelHeight = 356f;
         private const float KeyboardHelpPanelHeight = 356f;
         private const float CursorColorPanelHeight = 430f;
+        private const float CommandInfoPanelHeight = 390f;
         private const float CharacterPanelBaseHeaderHeight = 126f;
         private const float CharacterPanelFooterHeight = 26f;
         private const float CurrencyPanelHeight = 430f;
@@ -226,6 +245,8 @@ namespace EtgGameplayDashboard
         {
             new ControllerFocusEntry("settings.back", 0, 0),
             new ControllerFocusEntry("settings.toggle_key", 1, 0),
+            new ControllerFocusEntry("settings.toggle_key.configure", 1, 1),
+            new ControllerFocusEntry("settings.toggle_key.reset", 1, 2),
             new ControllerFocusEntry("settings.keyboard_help", 2, 0),
             new ControllerFocusEntry("settings.controller_shortcut", 3, 0),
             new ControllerFocusEntry("settings.controller_shortcut_enabled", 4, 0),
@@ -286,6 +307,7 @@ namespace EtgGameplayDashboard
         private readonly FoyerCharacterSwitchService _foyerCharacterSwitchService;
         private readonly BossRushService _bossRushService;
         private readonly RapidFireToggleService _rapidFireToggleService;
+        private readonly SkipChargeToggleService _skipChargeToggleService;
         private readonly AutoReloadToggleService _autoReloadToggleService;
         private readonly ArmorNoConsumeToggleService _armorNoConsumeToggleService;
         private readonly BlankNoConsumeToggleService _blankNoConsumeToggleService;
@@ -293,10 +315,12 @@ namespace EtgGameplayDashboard
         private readonly CurrencyNoConsumeToggleService _currencyNoConsumeToggleService;
         private readonly ActiveItemNoCooldownToggleService _activeItemNoCooldownToggleService;
         private readonly InvincibilityToggleService _invincibilityToggleService;
+        private readonly PlayerFlightToggleService _playerFlightToggleService;
         private readonly EnemyHealthBarToggleService _enemyHealthBarToggleService;
         private readonly ControllerAimLockService _controllerAimLockService;
         private readonly KeyboardAimAssistService _keyboardAimAssistService;
-        private readonly PlayerStatMultiplierService _playerStatMultiplierService;
+        private readonly PlayerRuntimeStatOverrideService _playerRuntimeStatOverrideService;
+        private readonly ProjectileModifierService _projectileModifierService;
         private readonly AmmoModeToggleService _ammoModeToggleService;
         private readonly LoadoutRuleEditorService _loadoutRuleEditorService;
         private readonly LoadoutEditorDataCoordinator _loadoutEditorDataCoordinator;
@@ -356,15 +380,14 @@ namespace EtgGameplayDashboard
         private readonly Func<int, string> _pickupGameplayNameProvider;
         private readonly Func<PickupAliasRegistry> _aliasRegistryProvider;
         private readonly PickupBrowserQueryService _pickupBrowserQueryService;
-        private PickupShortcutRegistry _pickupShortcutRegistry;
-        private readonly Action<string> _pickupShortcutConfigSetter;
+        private KeyboardShortcutRegistry _keyboardShortcutRegistry;
+        private readonly Action<string> _keyboardShortcutConfigSetter;
         private readonly Func<string> _languageProvider;
         private readonly Action<string> _languageSetter;
         private readonly Action<string> _inputLogHandler;
         private readonly Func<KeyCode> _toggleKeyProvider;
         private readonly Func<string> _toggleKeyNameProvider;
         private readonly Action<string> _toggleKeySetter;
-        private readonly Func<KeyCode> _roomEnemyRewindKeyProvider;
         private readonly Func<string> _roomEnemyRefreshMethodProvider;
         private readonly Action<string> _roomEnemyRefreshMethodSetter;
         private readonly Func<string> _controllerShortcutProvider;
@@ -423,6 +446,7 @@ namespace EtgGameplayDashboard
         private GUIStyle _wrappedHintStyle;
         private GUIStyle _textFieldStyle;
         private GUIStyle _buttonStyle;
+        private GUIStyle _infoButtonStyle;
         private GUIStyle _cursorColorSelectedButtonStyle;
         private GUIStyle _enabledButtonStyle;
         private GUIStyle _pickupGrantButtonStyle;
@@ -487,9 +511,12 @@ namespace EtgGameplayDashboard
         private bool _showPickupInfoSummary;
         private bool _showPickupInfoNotes;
         private bool _showExperimentalModeConfirmDialog;
+        private CommandInfoPage _commandInfoPage;
         private bool _focusInputField;
         private bool _focusPickupSearchField;
         private bool _isCapturingPickupShortcut;
+        private bool _isCapturingCommandPanelKey;
+        private bool _suppressCommandPanelToggleUntilKeyUp;
         private bool _isPickupShortcutConfigurationMode;
         private string _pickupShortcutCaptureTargetId = string.Empty;
         private PanelPage _currentPage;
@@ -501,6 +528,7 @@ namespace EtgGameplayDashboard
         private string _pickupPageFocusedControlId = "pickups.back";
         private string _currencyPageFocusedControlId = "currency.max_health";
         private string _cursorColorPageFocusedControlId = "cursor_color.back";
+        private string _commandInfoPageFocusedControlId = "room_rewind_info.back";
         private string _cursorColorCustomHexText = string.Empty;
         private ControllerNavDirection? _heldKeyboardNavigationDirection;
         private string _lastGuiLanguageCode = string.Empty;
@@ -510,6 +538,16 @@ namespace EtgGameplayDashboard
         private float _nextMapDirectTeleportDebugLogAt;
         private string _lastMapDirectTeleportRoomKey = string.Empty;
         private string _inputText = string.Empty;
+        private string _coolnessEditText = string.Empty;
+        private string _curseEditText = string.Empty;
+        private string _magnificenceEditText = string.Empty;
+        private string _damageEditText = string.Empty;
+        private string _movementEditText = string.Empty;
+        private string _bulletSizeEditText = string.Empty;
+        private string _bulletSpeedEditText = string.Empty;
+        private string _reloadSpeedEditText = string.Empty;
+        private string _accuracyEditText = string.Empty;
+        private PlayerController _playerStatsEditPlayer;
         private string _statusMessage = string.Empty;
         private StatusSeverity _statusSeverity;
         private float _statusExpiresAt;

@@ -20,8 +20,7 @@ namespace EtgGameplayDashboard
         private ConfigEntry<bool> _enableEtgGameplayDashboardConfig;
         private ConfigEntry<string> _uiLanguageConfig;
         private ConfigEntry<string> _commandPanelKeyConfig;
-        private ConfigEntry<string> _roomEnemyRewindKeyConfig;
-        private ConfigEntry<string> _pickupShortcutsConfig;
+        private ConfigEntry<string> _keyboardShortcutsConfig;
         private ConfigEntry<bool> _roomEnemyRefreshRecordingEnabledConfig;
         private ConfigEntry<string> _roomEnemyRefreshMethodConfig;
         private ConfigEntry<bool> _playerRewindEnabledConfig;
@@ -77,12 +76,11 @@ namespace EtgGameplayDashboard
         private ConfigEntry<string> _autoReloadModeConfig;
         private ConfigEntry<string> _ammoModeConfig;
         private ConfigEntry<bool> _activeItemNoCooldownEnabledConfig;
-        private PickupShortcutRegistry _pickupShortcutRegistry;
+        private KeyboardShortcutRegistry _keyboardShortcutRegistry;
         internal ConfigEntry<bool> EnableEtgGameplayDashboardConfig { get { return _enableEtgGameplayDashboardConfig; } }
         internal ConfigEntry<string> UiLanguageConfig { get { return _uiLanguageConfig; } }
         internal ConfigEntry<string> CommandPanelKeyConfig { get { return _commandPanelKeyConfig; } }
-        internal ConfigEntry<string> RoomEnemyRewindKeyConfig { get { return _roomEnemyRewindKeyConfig; } }
-        internal ConfigEntry<string> PickupShortcutsConfig { get { return _pickupShortcutsConfig; } }
+        internal ConfigEntry<string> KeyboardShortcutsConfig { get { return _keyboardShortcutsConfig; } }
         internal ConfigEntry<bool> RoomEnemyRefreshRecordingEnabledConfig { get { return _roomEnemyRefreshRecordingEnabledConfig; } }
         internal ConfigEntry<string> RoomEnemyRefreshMethodConfig { get { return _roomEnemyRefreshMethodConfig; } }
         internal ConfigEntry<bool> PlayerRewindEnabledConfig { get { return _playerRewindEnabledConfig; } }
@@ -138,7 +136,7 @@ namespace EtgGameplayDashboard
         internal ConfigEntry<string> AutoReloadModeConfig { get { return _autoReloadModeConfig; } }
         internal ConfigEntry<string> AmmoModeConfig { get { return _ammoModeConfig; } }
         internal ConfigEntry<bool> ActiveItemNoCooldownEnabledConfig { get { return _activeItemNoCooldownEnabledConfig; } }
-        internal PickupShortcutRegistry PickupShortcutRegistry { get { return _pickupShortcutRegistry; } }
+        internal KeyboardShortcutRegistry KeyboardShortcutRegistry { get { return _keyboardShortcutRegistry; } }
 
         internal PluginConfigurationFacade(
             ConfigFile configFile,
@@ -212,18 +210,12 @@ namespace EtgGameplayDashboard
                 "F7",
                 "Command panel keyboard toggle key. Use a Unity KeyCode name such as F7, F8, Insert, or BackQuote.");
             _commandPanelKeyConfig.Value = NormalizeCommandPanelKeyName(_commandPanelKeyConfig.Value);
-            _roomEnemyRewindKeyConfig = _configFile.Bind(
+            _keyboardShortcutsConfig = _configFile.Bind(
                 "UI",
-                "RoomEnemyRewindKey",
-                "C",
-                "Room enemy rewind keyboard shortcut. Use a Unity KeyCode name such as C, Z, X, or V.");
-            _roomEnemyRewindKeyConfig.Value = NormalizeRoomEnemyRewindKeyName(_roomEnemyRewindKeyConfig.Value);
-            _pickupShortcutsConfig = _configFile.Bind(
-                "UI",
-                "PickupShortcuts",
-                string.Empty,
-                "Keyboard pickup shortcuts as targetId=KeyCode pairs separated by commas. Catalog pickups use numeric IDs; currency actions use names such as currency.max_health. Control panel keys are not allowed.");
-            _pickupShortcutRegistry = PickupShortcutRegistry.Parse(_pickupShortcutsConfig.Value);
+                "KeyboardShortcuts",
+                "room.rewind=C",
+                "Keyboard shortcuts as targetId=KeyCode pairs separated by commas. Catalog pickups use numeric IDs; currency actions use names such as currency.max_health; room.rewind controls Room rewind. Control panel keys are not allowed.");
+            _keyboardShortcutRegistry = KeyboardShortcutRegistry.Parse(_keyboardShortcutsConfig.Value);
             _roomEnemyRefreshRecordingEnabledConfig = _configFile.Bind(
                 "UI",
                 "RoomEnemyRefreshRecordingEnabled",
@@ -560,13 +552,6 @@ namespace EtgGameplayDashboard
             _logger.LogInfo(EtgGameplayDashboardLog.Command("Command panel keyboard toggle key changed to " + normalized + "."));
         }
 
-        internal KeyCode GetRoomEnemyRewindKey()
-        {
-            string keyName = _roomEnemyRewindKeyConfig != null ? _roomEnemyRewindKeyConfig.Value : "C";
-            KeyCode keyCode = ParseCommandPanelKey(keyName);
-            return keyCode != KeyCode.None ? keyCode : KeyCode.C;
-        }
-
         internal string GetCommandPanelControllerShortcut()
         {
             return NormalizeCommandPanelControllerShortcut(_commandPanelControllerShortcutConfig != null ? _commandPanelControllerShortcutConfig.Value : "LB+R3");
@@ -642,24 +627,24 @@ namespace EtgGameplayDashboard
             return ReadBool(_showPlayerStatsPanelConfig, false);
         }
 
-        internal PickupShortcutRegistry GetPickupShortcutRegistry()
+        internal KeyboardShortcutRegistry GetKeyboardShortcutRegistry()
         {
-            if (_pickupShortcutRegistry == null)
+            if (_keyboardShortcutRegistry == null)
             {
-                _pickupShortcutRegistry = PickupShortcutRegistry.Parse(
-                    _pickupShortcutsConfig != null ? _pickupShortcutsConfig.Value : string.Empty);
+                _keyboardShortcutRegistry = KeyboardShortcutRegistry.Parse(
+                    _keyboardShortcutsConfig != null ? _keyboardShortcutsConfig.Value : string.Empty);
             }
 
-            return _pickupShortcutRegistry;
+            return _keyboardShortcutRegistry;
         }
 
-        internal void SetPickupShortcuts(string serialized)
+        internal void SetKeyboardShortcuts(string serialized)
         {
-            PickupShortcutRegistry normalizedRegistry = PickupShortcutRegistry.Parse(serialized);
-            _pickupShortcutRegistry = normalizedRegistry;
-            SetAndSave(_pickupShortcutsConfig, normalizedRegistry.Serialize());
+            KeyboardShortcutRegistry normalizedRegistry = KeyboardShortcutRegistry.Parse(serialized);
+            _keyboardShortcutRegistry = normalizedRegistry;
+            SetAndSave(_keyboardShortcutsConfig, normalizedRegistry.Serialize());
 
-            _logger.LogInfo(EtgGameplayDashboardLog.Command("Pickup keyboard shortcuts updated."));
+            _logger.LogInfo(EtgGameplayDashboardLog.Command("Keyboard shortcuts updated."));
         }
 
         internal bool IsCommandPanelCloseButtonShown()
@@ -1049,18 +1034,6 @@ namespace EtgGameplayDashboard
                 _activeStartItemsPresetChanged(normalized);
             }
             _logger.LogInfo(EtgGameplayDashboardLog.Command("Active start-items preset changed to " + normalized + "."));
-        }
-
-        internal string NormalizeRoomEnemyRewindKeyName(string keyName)
-        {
-            string normalized = string.IsNullOrEmpty(keyName) ? "C" : keyName.Trim();
-            if (ParseCommandPanelKey(normalized) != KeyCode.None)
-            {
-                return normalized;
-            }
-
-            _logger.LogWarning(EtgGameplayDashboardLog.Init("Invalid room enemy rewind keyboard key '" + normalized + "'. Falling back to C."));
-            return "C";
         }
 
         internal string GetCombatCursorColor()

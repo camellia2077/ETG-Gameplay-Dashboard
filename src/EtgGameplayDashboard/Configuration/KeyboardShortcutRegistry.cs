@@ -7,23 +7,23 @@ using UnityEngine;
 
 namespace EtgGameplayDashboard
 {
-    internal sealed class PickupShortcutRegistry
+    internal sealed class KeyboardShortcutRegistry
     {
         private readonly Dictionary<string, KeyCode> _keysByTargetId;
         internal static readonly char[] separator = new[] { ',' };
         internal static readonly char[] separatorArray = new[] { '=' };
 
-        private PickupShortcutRegistry(Dictionary<string, KeyCode> keysByTargetId)
+        private KeyboardShortcutRegistry(Dictionary<string, KeyCode> keysByTargetId)
         {
             _keysByTargetId = keysByTargetId ?? new Dictionary<string, KeyCode>(StringComparer.Ordinal);
         }
 
-        public static PickupShortcutRegistry Parse(string serialized)
+        public static KeyboardShortcutRegistry Parse(string serialized)
         {
             Dictionary<string, KeyCode> keysByTargetId = new Dictionary<string, KeyCode>(StringComparer.Ordinal);
             if (string.IsNullOrEmpty(serialized))
             {
-                return new PickupShortcutRegistry(keysByTargetId);
+                return new KeyboardShortcutRegistry(keysByTargetId);
             }
 
             string[] bindings = serialized.Split(separator, StringSplitOptions.RemoveEmptyEntries);
@@ -57,7 +57,7 @@ namespace EtgGameplayDashboard
                 keysByTargetId[targetId] = keyCode;
             }
 
-            return new PickupShortcutRegistry(keysByTargetId);
+            return new KeyboardShortcutRegistry(keysByTargetId);
         }
 
         public bool TryGetKey(string targetId, out KeyCode keyCode)

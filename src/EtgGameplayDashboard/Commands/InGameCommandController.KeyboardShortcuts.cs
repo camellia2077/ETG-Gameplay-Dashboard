@@ -9,6 +9,7 @@ namespace EtgGameplayDashboard
 {
     internal sealed partial class InGameCommandController
     {
+        private const string RoomEnemyRewindShortcutId = "room.rewind";
         private const string CurrencyShortcutMaxHealthId = "currency.max_health";
         private const string CurrencyShortcutArmorId = "currency.armor";
         private const string CurrencyShortcutBlankId = "currency.blank";
@@ -51,7 +52,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            if (IsReservedPickupShortcutKey(keyCode))
+            if (IsReservedPickupShortcutKey(keyCode, _pickupShortcutCaptureTargetId))
             {
                 ShowStatus(
                     GetLocalizedFallback("result.pickups.shortcut.reserved", "That key is reserved by the command panel.", "该按键由控制面板占用。"),
@@ -60,7 +61,7 @@ namespace EtgGameplayDashboard
             }
 
             string replacedTargetId;
-            if (!_pickupShortcutRegistry.Set(_pickupShortcutCaptureTargetId, keyCode, out replacedTargetId))
+            if (!_keyboardShortcutRegistry.Set(_pickupShortcutCaptureTargetId, keyCode, out replacedTargetId))
             {
                 ShowStatus(
                     GetLocalizedFallback("result.pickups.shortcut.invalid", "Only keyboard keys can be used for pickup shortcuts.", "物品快捷键只能使用键盘按键。"),
@@ -68,7 +69,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            PersistPickupShortcuts();
+            PersistKeyboardShortcuts();
             _isCapturingPickupShortcut = false;
             _pickupShortcutCaptureTargetId = string.Empty;
             string shortcutName = GetPickupShortcutDisplayName(keyCode);
@@ -85,16 +86,21 @@ namespace EtgGameplayDashboard
 
         private void TryHandlePickupShortcut()
         {
-            if (_isVisible || _pickupShortcutRegistry == null || _pickupCatalogProvider == null)
+            if (_isVisible || _keyboardShortcutRegistry == null || _pickupCatalogProvider == null)
             {
                 return;
             }
 
-            KeyValuePair<string, KeyCode>[] bindings = _pickupShortcutRegistry.GetBindings();
+            KeyValuePair<string, KeyCode>[] bindings = _keyboardShortcutRegistry.GetBindings();
             for (int index = 0; index < bindings.Length; index++)
             {
                 KeyValuePair<string, KeyCode> binding = bindings[index];
                 if (IsReservedPickupShortcutKey(binding.Value) || !Input.GetKeyDown(binding.Value))
+                {
+                    continue;
+                }
+
+                if (string.Equals(binding.Key, RoomEnemyRewindShortcutId, StringComparison.Ordinal))
                 {
                     continue;
                 }
@@ -185,6 +191,45 @@ namespace EtgGameplayDashboard
                 false);
         }
 
+        private void BeginRoomEnemyRewindShortcutCapture()
+        {
+            BeginPickupShortcutCapture(RoomEnemyRewindShortcutId);
+        }
+
+        private void ClearRoomEnemyRewindShortcut()
+        {
+            CancelPickupShortcutCapture();
+            KeyCode currentKey;
+            if (_keyboardShortcutRegistry.TryGetKey(RoomEnemyRewindShortcutId, out currentKey) &&
+                currentKey == RoomEnemyRewindShortcutKey)
+            {
+                return;
+            }
+
+            string replacedTargetId;
+            if (_keyboardShortcutRegistry.Set(RoomEnemyRewindShortcutId, RoomEnemyRewindShortcutKey, out replacedTargetId))
+            {
+                PersistKeyboardShortcuts();
+                ShowStatus(
+                    GetLocalizedFallback("result.room.rewind.shortcut.cleared", "Room rewind shortcut reset to C.", "房间回溯快捷键已重置为 C。"),
+                    false);
+            }
+        }
+
+        private string GetRoomEnemyRewindShortcutButtonLabel()
+        {
+            if (_isCapturingPickupShortcut &&
+                string.Equals(_pickupShortcutCaptureTargetId, RoomEnemyRewindShortcutId, StringComparison.Ordinal))
+            {
+                return GetLocalizedFallback("gui.pickups.button.shortcut_waiting", "Press key...", "请按键…");
+            }
+
+            KeyCode keyCode;
+            return _keyboardShortcutRegistry.TryGetKey(RoomEnemyRewindShortcutId, out keyCode)
+                ? GetPickupShortcutDisplayName(keyCode)
+                : GetPickupShortcutNoneDisplayName();
+        }
+
         private void CancelPickupShortcutCapture()
         {
             _isCapturingPickupShortcut = false;
@@ -209,9 +254,9 @@ namespace EtgGameplayDashboard
         private void ClearPickupShortcut(string targetId)
         {
             CancelPickupShortcutCapture();
-            if (_pickupShortcutRegistry.Clear(targetId))
+            if (_keyboardShortcutRegistry.Clear(targetId))
             {
-                PersistPickupShortcuts();
+                PersistKeyboardShortcuts();
                 ShowStatus(
                     GetLocalizedFallback("result.pickups.shortcut.cleared", "Pickup shortcut cleared.", "物品快捷键已清除。"),
                     false);
@@ -237,7 +282,7 @@ namespace EtgGameplayDashboard
             }
 
             KeyCode keyCode;
-            string keyName = _pickupShortcutRegistry.TryGetKey(targetId, out keyCode)
+            string keyName = _keyboardShortcutRegistry.TryGetKey(targetId, out keyCode)
                 ? GetPickupShortcutDisplayName(keyCode)
                 : GetPickupShortcutNoneDisplayName();
             return GetLocalizedFormattedFallback("gui.pickups.button.shortcut", "Key: {0}", "键：{0}", keyName);
@@ -303,9 +348,14 @@ namespace EtgGameplayDashboard
 
         private bool IsReservedPickupShortcutKey(KeyCode keyCode)
         {
+            return IsReservedPickupShortcutKey(keyCode, string.Empty);
+        }
+
+        private bool IsReservedPickupShortcutKey(KeyCode keyCode, string targetId)
+        {
             return keyCode == KeyCode.None ||
                 keyCode == GetToggleKey() ||
-                keyCode == GetRoomEnemyRewindKey() ||
+                (keyCode == GetRoomEnemyRewindKey() && !string.Equals(targetId, RoomEnemyRewindShortcutId, StringComparison.Ordinal)) ||
                 keyCode == KeyCode.LeftArrow ||
                 keyCode == KeyCode.RightArrow ||
                 keyCode == KeyCode.UpArrow ||
@@ -314,12 +364,13 @@ namespace EtgGameplayDashboard
                 keyCode == KeyCode.Delete;
         }
 
-        private void PersistPickupShortcuts()
+        private void PersistKeyboardShortcuts()
         {
-            if (_pickupShortcutConfigSetter != null)
+            if (_keyboardShortcutConfigSetter != null)
             {
-                _pickupShortcutConfigSetter(_pickupShortcutRegistry.Serialize());
+                _keyboardShortcutConfigSetter(_keyboardShortcutRegistry.Serialize());
             }
+
         }
 
         private PickupActionRowDefinition[] BuildCurrencyShortcutRows()
@@ -366,7 +417,7 @@ namespace EtgGameplayDashboard
             }
 
             KeyCode keyCode;
-            string keyName = _pickupShortcutRegistry.TryGetKey(actionId, out keyCode)
+            string keyName = _keyboardShortcutRegistry.TryGetKey(actionId, out keyCode)
                 ? GetPickupShortcutDisplayName(keyCode)
                 : GetPickupShortcutNoneDisplayName();
             return GetLocalizedFormattedFallback("gui.pickups.button.shortcut", "Key: {0}", "键：{0}", keyName);

@@ -80,7 +80,7 @@ Recommended input style:
   Opens the Boss Rush page.
 - `Pickups`
   Opens the in-game pickup browser with search, category filters, and runtime sprite icons.
-  In Grant mode, use the `Set Shortcuts` entry at the top of this page to enter shortcut setup. Each pickup row then has a keyboard shortcut button and a clear button. Click the shortcut button, press a keyboard key, and use the existing `Back` button to return to General; the assigned pickup is granted to the selected player when that key is pressed while the panel is closed. The command-panel key, arrow navigation keys, `Insert`, `Delete`, and the room-enemy rewind key cannot be assigned. Pickup shortcuts are keyboard-only and are persisted in `[UI] PickupShortcuts` as `targetId=KeyCode` pairs. Catalog pickups use numeric target IDs, while currency actions use names such as `currency.max_health`.
+  In Grant mode, use the `Set Shortcuts` entry at the top of this page to enter shortcut setup. Each pickup row then has a keyboard shortcut button and a clear button. Click the shortcut button, press a keyboard key, and use the existing `Back` button to return to General; the assigned pickup is granted to the selected player when that key is pressed while the panel is closed. The command-panel key, arrow navigation keys, `Insert`, `Delete`, and the configured `room.rewind` key cannot be assigned to pickups. Keyboard shortcuts are persisted in `[UI] KeyboardShortcuts` as `targetId=KeyCode` pairs. Catalog pickups use numeric target IDs, while currency actions use names such as `currency.max_health`.
 - `Start Items`
   Opens the start-items editor for the current rules file.
 - `Rapid OFF` / `Rapid ON`
@@ -203,11 +203,13 @@ In the `Currency` submenu:
 - `Hegemony -> Clear`
   Clears the entire saved Hegemony balance via the same global stat-clear path used by vanilla Breach-shop purchases. Casings are unaffected.
 - `Player -> Character -> Stats`
-  Contains the Clear Curse action.
+  Contains integer inputs for Coolness and Curse. Values from 0 to 999 are accepted; applying Curse 0 clears the curse.
 - `Player -> Character -> Pickups`
   Contains health, armor, blank, key, Rat Key, and casing actions. The `Target: P1/P2/Both` control applies to pickup grants and spawns.
+- `Player -> Character -> Projectiles`
+  Contains projectile size, projectile speed, reload speed, and spread controls. Reload speed accepts `0.25x` to `4.0x`; `1.0x` is normal and higher values reload faster. Spread values accept `0` to `999`; higher values increase projectile spread and `0` means no spread.
 - `Player -> Combat`
-  Contains Hold Rapid, Auto Reload, Ammo Mode, invincibility, plus cycling damage (`1x`, `2x`, `5x`, `10x`, `100x`) and movement-speed (`1x`, `1.5x`, `2x`, `3x`) multipliers. Hold Rapid, Auto Reload, and Ammo Mode are restored from the `[Combat]` configuration on the next game launch; other runtime toggles are removed when the plugin is unloaded.
+  Contains Hold Rapid, Skip Charge, Auto Reload, Ammo Mode, invincibility, plus cycling damage (`1x`, `2x`, `5x`, `10x`, `100x`) and movement-speed (`1x`, `1.5x`, `2x`, `3x`) multipliers. Skip Charge is off by default and causes charged guns to fire at full charge without waiting. Hold Rapid, Auto Reload, and Ammo Mode are restored from the `[Combat]` configuration on the next game launch; other runtime toggles are removed when the plugin is unloaded.
 - `Player -> Combat -> Controller Aim Lock`
   Toggles locking controller camera offset while maintaining right-stick aiming. Persisted under `[Combat] ControllerAimLockEnabled`.
 - `Player -> Combat -> Keyboard Aim Assist`
@@ -226,7 +228,7 @@ In the `Room` submenu:
 - `Rewind -> Rewind: ON/OFF`
   Controls whether standard and Boss rooms entered on the current floor are recorded for rewind. Turning it off immediately clears the current floor's saved room states and stops any active rewind.
 - `Rewind -> Rewind Method`
-  Cycles between `Rewind Room` (restores the same recorded enemy batches, types, and positions) and `Respawn Enemies` (generates enemies in the current room, but batches, types, and positions may differ). While the command panel is closed, press `C` during a run to activate the selected method. Rewind mode requires `Rewind: ON`; if it is disabled, the shortcut shows a warning instead of rewinding. Change `[UI] RoomEnemyRewindKey` in `etg-gameplay-dashboard.cfg` to another Unity `KeyCode` if needed. (`C` is chosen as the default key because it is unused by vanilla controls and allows keyboard+mouse players to trigger room rewind with their left thumb/index finger without lifting or moving either hand away from WASD or mouse controls during combat).
+  Cycles between `Rewind Room` (restores the same recorded enemy batches, types, and positions) and `Respawn Enemies` (generates enemies in the current room, but batches, types, and positions may differ). The Rewind section provides a keyboard shortcut editor with a clear button; while the command panel is closed, the configured key activates the selected method. Rewind mode requires `Rewind: ON`; if it is disabled, the shortcut shows a warning instead of rewinding. The shortcut is persisted as `room.rewind=KeyCode` in `[UI] KeyboardShortcuts`, with `C` as the default. Pickup and Rewind shortcuts cannot share a key.
 - `Rewind -> Spawn`
   Executes the currently selected `Rewind Method` directly from the command panel; it is equivalent to the configured `C` shortcut.
   Rewound enemies are immediately marked as engaged because the player is already inside the room when they are spawned.

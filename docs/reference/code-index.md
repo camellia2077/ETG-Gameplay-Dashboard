@@ -121,6 +121,8 @@ Supporting services:
 | `RoomDebugCommandService.Map.cs` | floor map reveal, minimap teleporter activation, direct-teleport room promotion, and map diagnostics |
 | `RoomDebugCommandService.Helpers.cs` | shared room/object descriptions, scene and prototype resolution, result localization, and debug logging helpers |
 | `RapidFireToggleService.cs` | rapid fire toggle |
+| `PlayerRuntimeStatOverrideService.cs` | persistent player Damage, Movement, Coolness, and Curse runtime overrides |
+| `ProjectileModifierService.cs` | persistent projectile size, speed, reload-speed, and accuracy overrides |
 | `AutoReloadToggleService.cs` | auto reload toggle |
 | `AmmoModeToggleService.cs` | ammo mode toggle and locked-ammo behavior |
 | `InvincibilityToggleService.cs` | invincibility toggle |

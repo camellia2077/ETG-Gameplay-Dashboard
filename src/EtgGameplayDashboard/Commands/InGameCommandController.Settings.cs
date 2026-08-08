@@ -46,21 +46,20 @@ namespace EtgGameplayDashboard
             float rowTop = panelRect.y + 78f;
 
             DrawSettingsSectionLabel(left, rowTop, columnWidth, GuiText.Get("gui.settings.section.keyboard"));
+            DrawCommandPanelKeySetting(
+                left,
+                rowTop,
+                columnWidth,
+                logger);
             DrawSettingsActionRow(
-                new Rect(left, rowTop + 28f, columnWidth, 34f),
-                "settings.toggle_key",
-                GuiText.Get("gui.settings.setting.toggle_key"),
-                GetConfiguredToggleKeyName(),
-                delegate { ExecuteCycleCommandPanelKey(logger); });
-            DrawSettingsActionRow(
-                new Rect(left, rowTop + 68f, columnWidth, 34f),
+                new Rect(left, rowTop + 108f, columnWidth, 34f),
                 "settings.keyboard_help",
                 GuiText.Get("gui.settings.setting.keyboard_help"),
                 GuiText.Get("gui.settings.value.keyboard_help"),
                 GuiText.Get("gui.settings.button.view_details"),
                 delegate { OpenKeyboardHelpPage(); });
 
-            rowTop += 122f;
+            rowTop += 162f;
             DrawSettingsSectionLabel(left, rowTop, columnWidth, GuiText.Get("gui.settings.section.controller"));
             DrawSettingsActionRow(
                 new Rect(left, rowTop + 28f, columnWidth, 34f),
@@ -366,6 +365,133 @@ namespace EtgGameplayDashboard
             }
         }
 
+        private void HandleCommandPanelKeyCapture()
+        {
+            if (!_isCapturingCommandPanelKey || Event.current == null || Event.current.type != EventType.KeyDown)
+            {
+                return;
+            }
+
+            KeyCode keyCode = Event.current.keyCode;
+            LogCommandPanelShortcutDiagnostic(
+                "Command panel key capture received Event.current KeyDown. Key=" + keyCode +
+                ", Visible=" + _isVisible +
+                ", Page=" + _currentPage + ".");
+            Event.current.Use();
+            if (keyCode == KeyCode.Escape)
+            {
+                CancelCommandPanelKeyCapture();
+                LogCommandPanelShortcutDiagnostic("Command panel key capture cancelled with Escape.");
+                return;
+            }
+
+            if (keyCode == KeyCode.None || _toggleKeySetter == null)
+            {
+                return;
+            }
+
+            string keyName = keyCode.ToString();
+            _toggleKeySetter(keyName);
+            _suppressCommandPanelToggleUntilKeyUp = true;
+            CancelCommandPanelKeyCapture();
+            LogCommandPanelShortcutDiagnostic(
+                "Command panel key capture saved key. Key=" + keyName +
+                ", Visible=" + _isVisible +
+                ", Page=" + _currentPage + ".");
+            ShowStatus(GuiText.Get("result.command_panel_key.changed", keyName), false);
+        }
+
+        private void DrawCommandPanelKeySetting(float left, float rowTop, float width, ManualLogSource logger)
+        {
+            const float actionGap = 6f;
+            const float actionWidth = 104f;
+            float actionTop = rowTop + 68f;
+            float actionsWidth = (actionWidth * 3f) + (actionGap * 2f);
+            float actionsLeft = left + width - actionsWidth;
+
+            GUI.Label(
+                new Rect(left, rowTop + 28f, width - 120f, 34f),
+                GuiText.Get("gui.settings.setting.toggle_key") + ": " + GetCommandPanelKeyDisplayName(),
+                _hintStyle);
+
+            if (GUI.Button(
+                new Rect(actionsLeft, actionTop, actionWidth, 34f),
+                GuiText.Get("gui.settings.button.cycle_preset"),
+                GetControllerButtonStyle("settings.toggle_key", _buttonStyle)))
+            {
+                ExecuteCycleCommandPanelKey(logger);
+            }
+
+            if (GUI.Button(
+                new Rect(actionsLeft + actionWidth + actionGap, actionTop, actionWidth, 34f),
+                GetCommandPanelKeyCaptureButtonLabel(),
+                GetControllerButtonStyle("settings.toggle_key.configure", _buttonStyle)))
+            {
+                BeginCommandPanelKeyCapture();
+            }
+
+            if (GUI.Button(
+                new Rect(actionsLeft + ((actionWidth + actionGap) * 2f), actionTop, actionWidth, 34f),
+                GuiText.Get("gui.settings.button.reset_default"),
+                GetControllerButtonStyle("settings.toggle_key.reset", _buttonStyle)))
+            {
+                ResetCommandPanelKey(logger);
+            }
+        }
+
+        private string GetCommandPanelKeyDisplayName()
+        {
+            return _isCapturingCommandPanelKey
+                ? GuiText.Get("gui.pickups.button.shortcut_waiting")
+                : GetConfiguredToggleKeyName();
+        }
+
+        private string GetCommandPanelKeyCaptureButtonLabel()
+        {
+            return _isCapturingCommandPanelKey
+                ? GuiText.Get("gui.pickups.button.shortcut_waiting")
+                : GuiText.Get("gui.settings.button.configure_key");
+        }
+
+        private void BeginCommandPanelKeyCapture()
+        {
+            _isCapturingCommandPanelKey = true;
+            LogCommandPanelShortcutDiagnostic(
+                "Command panel key capture started. CurrentKey=" + GetConfiguredToggleKeyName() +
+                ", Visible=" + _isVisible +
+                ", Page=" + _currentPage + ".");
+            ShowStatus(GuiText.Get("result.command_panel_key.waiting"), false);
+            RequestGuiFocusRelease();
+        }
+
+        private void CancelCommandPanelKeyCapture()
+        {
+            if (_isCapturingCommandPanelKey)
+            {
+                LogCommandPanelShortcutDiagnostic(
+                    "Command panel key capture ended. Visible=" + _isVisible +
+                    ", Page=" + _currentPage + ".");
+            }
+            _isCapturingCommandPanelKey = false;
+        }
+
+        private void ResetCommandPanelKey(ManualLogSource logger)
+        {
+            CancelCommandPanelKeyCapture();
+            _suppressCommandPanelToggleUntilKeyUp = false;
+            if (_toggleKeySetter == null)
+            {
+                return;
+            }
+
+            _toggleKeySetter("F7");
+            ShowStatus(GuiText.Get("result.command_panel_key.reset"), false);
+            if (logger != null)
+            {
+                logger.LogInfo(EtgGameplayDashboardLog.Command(GuiText.GetEnglish("result.command_panel_key.reset")));
+            }
+        }
+
         private string GetConfiguredToggleKeyName()
         {
             return _toggleKeyNameProvider != null ? _toggleKeyNameProvider() : "F7";
@@ -501,6 +627,12 @@ namespace EtgGameplayDashboard
                     return;
                 case "settings.toggle_key":
                     ExecuteCycleCommandPanelKey(null);
+                    return;
+                case "settings.toggle_key.configure":
+                    BeginCommandPanelKeyCapture();
+                    return;
+                case "settings.toggle_key.reset":
+                    ResetCommandPanelKey(null);
                     return;
                 case "settings.controller_shortcut":
                     ExecuteCycleControllerShortcut(null);

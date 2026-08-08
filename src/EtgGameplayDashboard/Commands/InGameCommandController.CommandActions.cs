@@ -523,6 +523,23 @@ namespace EtgGameplayDashboard
             }
         }
 
+        private void ExecuteToggleSkipCharge(PlayerController player, ManualLogSource logger)
+        {
+            if (_skipChargeToggleService == null || (object)player == null)
+            {
+                ShowStatus(GuiText.Get("result.common.player_not_ready"), true);
+                return;
+            }
+
+            bool enabled = _skipChargeToggleService.Toggle(player);
+            string status = GetOnOffStatusLabel(enabled);
+            ShowStatus(GuiText.Get("result.skip_charge.changed", status), false);
+            if (logger != null)
+            {
+                logger.LogInfo(EtgGameplayDashboardLog.Command(GuiText.GetEnglish("result.skip_charge.changed", status)));
+            }
+        }
+
         private void ExecuteToggleAutoReload(ManualLogSource logger)
         {
             PlayerController targetPlayer = GetSelectedCommandTargetPlayer();
@@ -630,6 +647,23 @@ namespace EtgGameplayDashboard
             else
             {
                 logger.LogWarning(EtgGameplayDashboardLog.Command(executionResult.LogMessage));
+            }
+        }
+
+        private void ExecuteToggleFlight(PlayerController player, ManualLogSource logger)
+        {
+            if (_playerFlightToggleService == null)
+            {
+                ShowStatus(GetLocalizedFallback("result.flight.unavailable", "Flight service is unavailable.", "飞行服务当前不可用。"), true);
+                return;
+            }
+
+            GrantCommandExecutionResult executionResult = _playerFlightToggleService.Toggle(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            LogCommandExecutionResult(logger, executionResult);
+            if (executionResult.Succeeded)
+            {
+                _focusInputField = true;
             }
         }
 

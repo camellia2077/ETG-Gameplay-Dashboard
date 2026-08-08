@@ -42,6 +42,7 @@ namespace EtgGameplayDashboard
         private BossNameCatalog _bossNameCatalog;
         private NearbyPickupTipService _nearbyPickupTipService;
         private RapidFireToggleService _rapidFireToggleService;
+        private SkipChargeToggleService _skipChargeToggleService;
         private AutoReloadToggleService _autoReloadToggleService;
         private ArmorNoConsumeToggleService _armorNoConsumeToggleService;
         private BlankNoConsumeToggleService _blankNoConsumeToggleService;
@@ -49,6 +50,7 @@ namespace EtgGameplayDashboard
         private CurrencyNoConsumeToggleService _currencyNoConsumeToggleService;
         private ActiveItemNoCooldownToggleService _activeItemNoCooldownToggleService;
         private InvincibilityToggleService _invincibilityToggleService;
+        private PlayerFlightToggleService _playerFlightToggleService;
         private EnemyHealthBarToggleService _enemyHealthBarToggleService;
         private ControllerAimLockService _controllerAimLockService;
         private KeyboardAimAssistService _keyboardAimAssistService;
@@ -57,7 +59,8 @@ namespace EtgGameplayDashboard
         private PlayerHealthOverrideService _playerHealthOverrideService;
         private PlayerActiveItemCapacityOverrideService _playerActiveItemCapacityOverrideService;
         private PlayerDebugCommandService _playerDebugCommandService;
-        private PlayerStatMultiplierService _playerStatMultiplierService;
+        private PlayerRuntimeStatOverrideService _playerRuntimeStatOverrideService;
+        private ProjectileModifierService _projectileModifierService;
         private DamageDiagnosticsService _damageDiagnosticsService;
         private EtgPickupGranter _pickupGranter;
         private BossRushService _bossRushService;

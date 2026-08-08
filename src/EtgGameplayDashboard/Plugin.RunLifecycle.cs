@@ -109,6 +109,13 @@ namespace EtgGameplayDashboard
                 LogPerformanceStep("InvincibilityToggleService.Update", startedAtTimestamp);
             }
 
+            if (_playerFlightToggleService != null)
+            {
+                long startedAtTimestamp = BeginPerformanceSample();
+                _playerFlightToggleService.Update(player);
+                LogPerformanceStep("PlayerFlightToggleService.Update", startedAtTimestamp);
+            }
+
             if (_enemyHealthBarToggleService != null)
             {
                 long startedAtTimestamp = BeginPerformanceSample();
@@ -116,9 +123,14 @@ namespace EtgGameplayDashboard
                 LogPerformanceStep("EnemyHealthBarToggleService.Update", startedAtTimestamp);
             }
 
-            if (_playerStatMultiplierService != null)
+            if (_playerRuntimeStatOverrideService != null)
             {
-                _playerStatMultiplierService.Update(player);
+                _playerRuntimeStatOverrideService.Update(player);
+            }
+
+            if (_projectileModifierService != null)
+            {
+                _projectileModifierService.Update(player);
             }
 
             if (_damageDiagnosticsService != null)

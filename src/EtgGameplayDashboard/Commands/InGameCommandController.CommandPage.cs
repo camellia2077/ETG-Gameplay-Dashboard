@@ -133,7 +133,7 @@ namespace EtgGameplayDashboard
                         return 9;
                     }
 
-                    return _characterMenuSection == CharacterMenuSection.Stats ? 4 : 10;
+                    return (_characterMenuSection == CharacterMenuSection.Stats || _characterMenuSection == CharacterMenuSection.Projectiles) ? 6 : 10;
                 case CommandMenuCategory.Room:
                     return GetRoomCommandPageRowCount();
                 case CommandMenuCategory.General:
@@ -360,6 +360,11 @@ namespace EtgGameplayDashboard
                 return string.Equals(_cursorColorPageFocusedControlId, controlId, System.StringComparison.Ordinal);
             }
 
+            if (_currentPage == PanelPage.CommandInfo && string.Equals(pagePrefix, "room_rewind_info", System.StringComparison.Ordinal))
+            {
+                return string.Equals(_commandInfoPageFocusedControlId, controlId, System.StringComparison.Ordinal);
+            }
+
             return false;
         }
 
@@ -489,6 +494,7 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.player.section.character", delegate { _playerMenuSection = PlayerMenuSection.Character; }),
                 new CommandPageActionBinding("cmd.player.section.combat", delegate { _playerMenuSection = PlayerMenuSection.Combat; }),
                 new CommandPageActionBinding("cmd.player.character.stats", delegate { _characterMenuSection = CharacterMenuSection.Stats; }),
+                new CommandPageActionBinding("cmd.player.character.projectiles", delegate { _characterMenuSection = CharacterMenuSection.Projectiles; }),
                 new CommandPageActionBinding("cmd.player.character.pickups", delegate { _characterMenuSection = CharacterMenuSection.Pickups; }),
                 new CommandPageActionBinding("cmd.player.target", delegate { ToggleCharacterSwitchTarget(null); }),
                 new CommandPageActionBinding("cmd.room.section.chest", delegate { SetRoomMenuSection(RoomMenuSection.Chest); }),
@@ -496,13 +502,6 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.room.section.enemies", delegate { SetRoomMenuSection(RoomMenuSection.Enemies); }),
                 new CommandPageActionBinding("cmd.room.section.rewind", delegate { SetRoomMenuSection(RoomMenuSection.Rewind); }),
                 new CommandPageActionBinding("cmd.room.section.boss", delegate { SetRoomMenuSection(RoomMenuSection.Boss); }),
-                new CommandPageActionBinding("cmd.room.section.state", delegate
-                {
-                    if (IsExperimentalModeEnabled())
-                    {
-                        SetRoomMenuSection(RoomMenuSection.State);
-                    }
-                }),
             };
         }
 
@@ -666,6 +665,11 @@ namespace EtgGameplayDashboard
         private bool IsRapidFireEnabledFor(PlayerController player)
         {
             return _rapidFireToggleService != null && _rapidFireToggleService.IsEnabledFor(player);
+        }
+
+        private bool IsSkipChargeEnabledFor(PlayerController player)
+        {
+            return _skipChargeToggleService != null && _skipChargeToggleService.IsEnabledFor(player);
         }
 
         private bool IsAutoReloadEnabled(PlayerController player)

@@ -23,6 +23,8 @@ namespace EtgGameplayDashboard
             _runtimeHookRegistry.Register(".controller_aim_lock", InstallControllerAimLockRuntimeHooks, ControllerAimLockHooks.ClearConfiguration);
             _runtimeHookRegistry.Register(".keyboard_aim_assist", InstallKeyboardAimAssistRuntimeHooks, KeyboardAimAssistHooks.ClearConfiguration);
             _runtimeHookRegistry.Register(".cursor_render_diagnostics", InstallCursorRenderDiagnosticsHooks, ClearCursorRenderDiagnosticsHookConfiguration);
+            _runtimeHookRegistry.Register(".projectile_scale_diagnostics", ProjectileScaleDiagnosticsHooks.Install, ProjectileScaleDiagnosticsHooks.Reset);
+            _runtimeHookRegistry.Register(".skip_charge", InstallSkipChargeRuntimeHooks, SkipChargeHooks.ClearConfiguration);
         }
 
         private void InstallRuntimeHooks()
@@ -103,6 +105,12 @@ namespace EtgGameplayDashboard
         {
             KeyboardAimAssistHooks.Configure(_keyboardAimAssistService);
             KeyboardAimAssistHooks.Install(harmony, logger);
+        }
+
+        private void InstallSkipChargeRuntimeHooks(Harmony harmony, ManualLogSource logger)
+        {
+            SkipChargeHooks.Configure(_skipChargeToggleService);
+            SkipChargeHooks.Install(harmony, logger);
         }
 
         private void InstallCursorRenderDiagnosticsHooks(Harmony harmony, ManualLogSource logger)

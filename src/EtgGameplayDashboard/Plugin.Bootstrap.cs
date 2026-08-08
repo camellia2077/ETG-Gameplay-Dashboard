@@ -124,11 +124,6 @@ namespace EtgGameplayDashboard
             _configuration.SetCommandPanelKey(keyName);
         }
 
-        private KeyCode GetRoomEnemyRewindKey()
-        {
-            return _configuration.GetRoomEnemyRewindKey();
-        }
-
         private string GetCommandPanelControllerShortcut()
         {
             return _configuration.GetCommandPanelControllerShortcut();
@@ -184,14 +179,14 @@ namespace EtgGameplayDashboard
             return _configuration.IsPlayerStatsPanelShown();
         }
 
-        private PickupShortcutRegistry GetPickupShortcutRegistry()
+        private KeyboardShortcutRegistry GetKeyboardShortcutRegistry()
         {
-            return _configuration.GetPickupShortcutRegistry();
+            return _configuration.GetKeyboardShortcutRegistry();
         }
 
-        private void SetPickupShortcuts(string serialized)
+        private void SetKeyboardShortcuts(string serialized)
         {
-            _configuration.SetPickupShortcuts(serialized);
+            _configuration.SetKeyboardShortcuts(serialized);
         }
 
         private bool IsCommandPanelCloseButtonShown()
@@ -492,11 +487,6 @@ namespace EtgGameplayDashboard
         private void SetActiveStartItemsPreset(string presetName)
         {
             _configuration.SetActiveStartItemsPreset(presetName);
-        }
-
-        private string NormalizeRoomEnemyRewindKeyName(string keyName)
-        {
-            return _configuration.NormalizeRoomEnemyRewindKeyName(keyName);
         }
 
         private string GetCombatCursorColor()

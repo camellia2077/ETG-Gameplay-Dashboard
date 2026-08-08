@@ -14,16 +14,19 @@ namespace EtgGameplayDashboard
             FoyerCharacterSwitchService foyerCharacterSwitchService,
             BossRushService bossRushService,
             RapidFireToggleService rapidFireToggleService,
+            SkipChargeToggleService skipChargeToggleService,
             AutoReloadToggleService autoReloadToggleService,
             ArmorNoConsumeToggleService armorNoConsumeToggleService,
             BlankNoConsumeToggleService blankNoConsumeToggleService,
             KeyNoConsumeToggleService keyNoConsumeToggleService,
             CurrencyNoConsumeToggleService currencyNoConsumeToggleService,
             InvincibilityToggleService invincibilityToggleService,
+            PlayerFlightToggleService playerFlightToggleService,
             EnemyHealthBarToggleService enemyHealthBarToggleService,
             ControllerAimLockService controllerAimLockService,
             KeyboardAimAssistService keyboardAimAssistService,
-            PlayerStatMultiplierService playerStatMultiplierService,
+            PlayerRuntimeStatOverrideService playerRuntimeStatOverrideService,
+            ProjectileModifierService projectileModifierService,
             AmmoModeToggleService ammoModeToggleService,
             ActiveItemNoCooldownToggleService activeItemNoCooldownToggleService,
             AmmonomiconFastOpenToggleService ammonomiconFastOpenToggleService,
@@ -32,15 +35,14 @@ namespace EtgGameplayDashboard
             System.Func<EtgPickupCatalogEntry[]> pickupCatalogProvider,
             System.Func<int, string> pickupGameplayNameProvider,
             System.Func<PickupAliasRegistry> aliasRegistryProvider,
-            System.Func<PickupShortcutRegistry> pickupShortcutRegistryProvider,
-            System.Action<string> pickupShortcutConfigSetter,
+            System.Func<KeyboardShortcutRegistry> keyboardShortcutRegistryProvider,
+            System.Action<string> keyboardShortcutConfigSetter,
             System.Func<string> languageProvider,
             System.Action<string> languageSetter,
             System.Action<string> inputLogHandler,
             System.Func<KeyCode> toggleKeyProvider,
             System.Func<string> toggleKeyNameProvider,
             System.Action<string> toggleKeySetter,
-            System.Func<KeyCode> roomEnemyRewindKeyProvider,
             System.Func<string> roomEnemyRefreshMethodProvider,
             System.Action<string> roomEnemyRefreshMethodSetter,
             System.Func<string> controllerShortcutProvider,
@@ -95,16 +97,19 @@ namespace EtgGameplayDashboard
             _foyerCharacterSwitchService = foyerCharacterSwitchService;
             _bossRushService = bossRushService;
             _rapidFireToggleService = rapidFireToggleService;
+            _skipChargeToggleService = skipChargeToggleService;
             _autoReloadToggleService = autoReloadToggleService;
             _armorNoConsumeToggleService = armorNoConsumeToggleService;
             _blankNoConsumeToggleService = blankNoConsumeToggleService;
             _keyNoConsumeToggleService = keyNoConsumeToggleService;
             _currencyNoConsumeToggleService = currencyNoConsumeToggleService;
             _invincibilityToggleService = invincibilityToggleService;
+            _playerFlightToggleService = playerFlightToggleService;
             _enemyHealthBarToggleService = enemyHealthBarToggleService;
             _controllerAimLockService = controllerAimLockService;
             _keyboardAimAssistService = keyboardAimAssistService;
-            _playerStatMultiplierService = playerStatMultiplierService;
+            _playerRuntimeStatOverrideService = playerRuntimeStatOverrideService;
+            _projectileModifierService = projectileModifierService;
             _ammoModeToggleService = ammoModeToggleService;
             _activeItemNoCooldownToggleService = activeItemNoCooldownToggleService;
             _ammonomiconFastOpenToggleService = ammonomiconFastOpenToggleService;
@@ -118,17 +123,22 @@ namespace EtgGameplayDashboard
                 _pickupCatalogProvider,
                 _aliasRegistryProvider,
                 _pickupGameplayNameProvider);
-            _pickupShortcutRegistry = pickupShortcutRegistryProvider != null
-                ? pickupShortcutRegistryProvider()
-                : PickupShortcutRegistry.Parse(string.Empty);
-            _pickupShortcutConfigSetter = pickupShortcutConfigSetter;
+            _keyboardShortcutRegistry = keyboardShortcutRegistryProvider != null
+                ? keyboardShortcutRegistryProvider()
+                : KeyboardShortcutRegistry.Parse(string.Empty);
+            KeyCode configuredRoomShortcut;
+            if (!_keyboardShortcutRegistry.TryGetKey("room.rewind", out configuredRoomShortcut))
+            {
+                string ignoredTargetId;
+                _keyboardShortcutRegistry.Set("room.rewind", RoomEnemyRewindShortcutKey, out ignoredTargetId);
+            }
+            _keyboardShortcutConfigSetter = keyboardShortcutConfigSetter;
             _languageProvider = languageProvider;
             _languageSetter = languageSetter;
             _inputLogHandler = inputLogHandler;
             _toggleKeyProvider = toggleKeyProvider;
             _toggleKeyNameProvider = toggleKeyNameProvider;
             _toggleKeySetter = toggleKeySetter;
-            _roomEnemyRewindKeyProvider = roomEnemyRewindKeyProvider;
             _roomEnemyRefreshMethodProvider = roomEnemyRefreshMethodProvider;
             _roomEnemyRefreshMethodSetter = roomEnemyRefreshMethodSetter;
             _controllerShortcutProvider = controllerShortcutProvider;
@@ -227,8 +237,32 @@ namespace EtgGameplayDashboard
 
             HandleControllerNavigation();
 
-            bool keyboardTogglePressed = Input.GetKeyDown(GetToggleKey());
-            bool controllerTogglePressed = IsGamepadToggleShortcutPressed();
+            // A newly captured keyboard key is handled by OnGUI. Do not interpret
+            // the same physical key as the panel toggle before capture completes,
+            // otherwise assigning a shortcut closes the settings page/panel.
+            bool isCapturingKeyboardShortcut = _isCapturingCommandPanelKey || _isCapturingPickupShortcut;
+            KeyCode configuredToggleKey = GetToggleKey();
+            if (_suppressCommandPanelToggleUntilKeyUp && !Input.GetKey(configuredToggleKey))
+            {
+                _suppressCommandPanelToggleUntilKeyUp = false;
+                LogCommandPanelShortcutDiagnostic(
+                    "Released newly captured key; command panel toggle suppression ended. Key=" +
+                    configuredToggleKey + ".");
+            }
+
+            bool rawKeyboardToggleDown = !_suppressCommandPanelToggleUntilKeyUp && Input.GetKeyDown(configuredToggleKey);
+            if (rawKeyboardToggleDown)
+            {
+                LogCommandPanelShortcutDiagnostic(
+                    "Observed configured keyboard key down. Key=" + configuredToggleKey +
+                    ", CapturingCommandPanelKey=" + _isCapturingCommandPanelKey +
+                    ", CapturingPickupShortcut=" + _isCapturingPickupShortcut +
+                    ", Visible=" + _isVisible +
+                    ", Page=" + _currentPage + ".");
+            }
+
+            bool keyboardTogglePressed = !isCapturingKeyboardShortcut && rawKeyboardToggleDown;
+            bool controllerTogglePressed = !isCapturingKeyboardShortcut && IsGamepadToggleShortcutPressed();
             LogCommandPanelShortcutState(keyboardTogglePressed, controllerTogglePressed);
             if (keyboardTogglePressed || controllerTogglePressed)
             {
@@ -276,6 +310,7 @@ namespace EtgGameplayDashboard
             // Handle it at the common IMGUI entry point so the active page cannot
             // accidentally omit keyboard capture.
             HandlePickupShortcutCapture();
+            HandleCommandPanelKeyCapture();
             LogCommandPanelPerformanceStage("LanguageAndFocus", stageStartedAtTimestamp);
 
             FoyerCharacterOption[] characterOptions = EmptyCharacterOptions;
@@ -355,6 +390,10 @@ namespace EtgGameplayDashboard
             {
                 panelHeight = CursorColorPanelHeight;
             }
+            else if (_isVisible && _currentPage == PanelPage.CommandInfo)
+            {
+                panelHeight = CommandInfoPanelHeight;
+            }
 
             LogCommandPanelPerformanceStage("PageDataAndHeight", stageStartedAtTimestamp);
         }
@@ -376,7 +415,9 @@ namespace EtgGameplayDashboard
             Rect panelRect = GetMainPanelRect(panelHeight);
             GUI.Box(ExpandPanelBorderRect(panelRect), GUIContent.none, _panelStyle);
             DrawTeleportPanelIfEnabled(panelRect, logger);
-            if (_currentPage != PanelPage.Command && _showCommandPanelCloseButton)
+            if (_currentPage != PanelPage.Command &&
+                _currentPage != PanelPage.CommandInfo &&
+                _showCommandPanelCloseButton)
             {
                 Rect closeButtonRect = new Rect(panelRect.x + panelRect.width - 44f, panelRect.y + 12f, 30f, 30f);
                 if (DrawCloseButton(closeButtonRect, "cmd.close"))
@@ -469,13 +510,26 @@ namespace EtgGameplayDashboard
                 return;
             }
 
+            if (_currentPage == PanelPage.CommandInfo)
+            {
+                DrawCommandInfoPage(panelRect);
+                return;
+            }
+
             DrawCommandPage(panelRect, player, logger);
             DrawExperimentalModeConfirmDialog(panelRect, logger);
         }
 
         private void Toggle()
         {
+            bool previousVisibility = _isVisible;
             _isVisible = !_isVisible;
+            LogCommandPanelShortcutDiagnostic(
+                "Toggle() changed visibility. PreviousVisible=" + previousVisibility +
+                ", CurrentVisible=" + _isVisible +
+                ", CapturingCommandPanelKey=" + _isCapturingCommandPanelKey +
+                ", CapturingPickupShortcut=" + _isCapturingPickupShortcut +
+                ", Page=" + _currentPage + ".");
             if (_isVisible)
             {
                 SyncPanelInputOverride();
@@ -820,6 +874,7 @@ namespace EtgGameplayDashboard
             ClearPanelInputOverride();
             _focusInputField = false;
             _focusPickupSearchField = false;
+            _isCapturingCommandPanelKey = false;
             _currentPage = PanelPage.Command;
             _commandPageFocusedControlId = "cmd.settings";
             _settingsPageFocusedControlId = "settings.toggle_key";
@@ -933,7 +988,13 @@ namespace EtgGameplayDashboard
 
         private KeyCode GetRoomEnemyRewindKey()
         {
-            return _roomEnemyRewindKeyProvider != null ? _roomEnemyRewindKeyProvider() : RoomEnemyRewindShortcutKey;
+            KeyCode shortcutKey;
+            if (_keyboardShortcutRegistry != null && _keyboardShortcutRegistry.TryGetKey("room.rewind", out shortcutKey))
+            {
+                return shortcutKey;
+            }
+
+            return RoomEnemyRewindShortcutKey;
         }
 
         private float GetAutoUiScale()
@@ -966,6 +1027,11 @@ namespace EtgGameplayDashboard
                 ? LoadoutEditorPanelWidth
                 : _currentPage == PanelPage.Settings
                     ? SettingsPanelWidth
+                    : _currentPage == PanelPage.Command &&
+                        _commandMenuCategory == CommandMenuCategory.Player &&
+                        _playerMenuSection != PlayerMenuSection.Combat &&
+                        (_characterMenuSection == CharacterMenuSection.Stats || _characterMenuSection == CharacterMenuSection.Projectiles)
+                        ? PlayerStatsCommandPanelWidth
                     : PanelWidth;
             float panelWidth = Mathf.Min(desiredPanelWidth, Mathf.Max(1f, GetScaledScreenWidth() - 24f));
             return new Rect(

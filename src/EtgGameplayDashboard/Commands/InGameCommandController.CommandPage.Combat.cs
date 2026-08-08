@@ -17,9 +17,11 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry("cmd.combat.ammonomicon", 4, 0),
             new ControllerFocusEntry("cmd.combat.enemy_health_bars", 4, 1),
             new ControllerFocusEntry("cmd.combat.full_ammo", 5, 1),
+            new ControllerFocusEntry("cmd.combat.flight", 7, 0),
+            new ControllerFocusEntry("cmd.combat.skip_charge", 8, 1),
             new ControllerFocusEntry("cmd.combat.boss_intro", 5, 0),
-            new ControllerFocusEntry(KeyboardAimAssistUiDefinition.ModeControlId, 8, 0),
-            new ControllerFocusEntry(KeyboardAimAssistUiDefinition.MultiplierControlId, 8, 1),
+            new ControllerFocusEntry(KeyboardAimAssistUiDefinition.ModeControlId, 9, 0),
+            new ControllerFocusEntry(KeyboardAimAssistUiDefinition.MultiplierControlId, 9, 1),
         };
 
         private static readonly ControllerFocusEntry[] CombatStandardCommandPageFocusEntries =
@@ -31,8 +33,10 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry("cmd.combat.ammonomicon", 4, 0),
             new ControllerFocusEntry("cmd.combat.enemy_health_bars", 4, 1),
             new ControllerFocusEntry("cmd.combat.full_ammo", 5, 1),
-            new ControllerFocusEntry(KeyboardAimAssistUiDefinition.ModeControlId, 8, 0),
-            new ControllerFocusEntry(KeyboardAimAssistUiDefinition.MultiplierControlId, 8, 1),
+            new ControllerFocusEntry("cmd.combat.flight", 7, 0),
+            new ControllerFocusEntry("cmd.combat.skip_charge", 8, 1),
+            new ControllerFocusEntry(KeyboardAimAssistUiDefinition.ModeControlId, 9, 0),
+            new ControllerFocusEntry(KeyboardAimAssistUiDefinition.MultiplierControlId, 9, 1),
         };
 
         private void DrawCombatSettings(Rect contentRect, float controlHeight, PlayerController player, ManualLogSource logger)
@@ -81,10 +85,17 @@ namespace EtgGameplayDashboard
                         logger,
                         experimentalModeEnabled),
                     CreateControllerAimLockCombatSetting(
-                        new Rect(contentRect.x, fourthRowY + controlHeight + ButtonGap, settingColumnWidth, controlHeight),
+                        new Rect(contentRect.x, fourthRowY + (controlHeight + ButtonGap) * 2f, settingColumnWidth, controlHeight),
                         logger),
                     CreateActiveItemNoCooldownCombatSetting(
                         new Rect(secondSettingColumnX, fifthRowY, settingColumnWidth, controlHeight),
+                        logger),
+                    CreateFlightCombatSetting(
+                        new Rect(contentRect.x, fifthRowY, settingColumnWidth, controlHeight),
+                        player,
+                        logger),
+                    CreateSkipChargeCombatSetting(
+                        new Rect(secondSettingColumnX, fourthRowY + (controlHeight + ButtonGap) * 2f, settingColumnWidth, controlHeight),
                         logger),
                 },
                 settingLabelWidth,
@@ -93,7 +104,7 @@ namespace EtgGameplayDashboard
 
             stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             DrawKeyboardAimAssistSetting(
-                new Rect(contentRect.x, fifthRowY + controlHeight + ButtonGap, contentRect.width, controlHeight),
+                new Rect(contentRect.x, fifthRowY + (controlHeight + ButtonGap) * 2f, contentRect.width, controlHeight),
                 controlHeight,
                 settingLabelWidth,
                 settingButtonWidth,
@@ -119,6 +130,19 @@ namespace EtgGameplayDashboard
                 GetOnOffStatusLabel(isEnabled),
                 isEnabled,
                 delegate { ExecuteToggleActiveItemNoCooldown(GetSelectedCommandTargetPlayer(), logger); });
+        }
+
+        private CombatSettingRow CreateFlightCombatSetting(Rect rect, PlayerController player, ManualLogSource logger)
+        {
+            PlayerController targetPlayer = GetSelectedCommandTargetPlayer() ?? player;
+            bool isEnabled = _playerFlightToggleService != null && _playerFlightToggleService.IsEnabledFor(targetPlayer);
+            return new CombatSettingRow(
+                rect,
+                "cmd.combat.flight",
+                GetLocalizedFallback("gui.command.setting.flight", "Flight", "飞行"),
+                GetOnOffStatusLabel(isEnabled),
+                isEnabled,
+                delegate { ExecuteToggleFlight(targetPlayer, logger); });
         }
 
         private void SyncPersistedCombatTargetState(PlayerController player)
@@ -165,6 +189,8 @@ namespace EtgGameplayDashboard
                     new CommandPageActionBinding("cmd.combat.auto_reload", delegate { ExecuteToggleAutoReload(null); }),
                     new CommandPageActionBinding("cmd.combat.ammo_mode", delegate { ExecuteCycleAmmoMode(null); }),
                     new CommandPageActionBinding("cmd.combat.active_item_no_cooldown", delegate { ExecuteToggleActiveItemNoCooldown(GetSelectedCommandTargetPlayer(), null); }),
+                    new CommandPageActionBinding("cmd.combat.flight", delegate { ExecuteToggleFlight(GetSelectedCommandTargetPlayer(), null); }),
+                    new CommandPageActionBinding("cmd.combat.skip_charge", delegate { ExecuteToggleSkipCharge(GetSelectedCommandTargetPlayer(), null); }),
                     new CommandPageActionBinding("cmd.combat.invincible", delegate { ExecuteToggleInvincibilityForSelectedTargets(player, null); }),
                     new CommandPageActionBinding("cmd.combat.ammonomicon", delegate { ExecuteToggleAmmonomiconFastOpen(null); }),
                 new CommandPageActionBinding("cmd.combat.enemy_health_bars", delegate { ExecuteToggleEnemyHealthBars(GetSelectedCommandTargetPlayer(), null); }),
@@ -181,6 +207,8 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.combat.auto_reload", delegate { ExecuteToggleAutoReload(null); }),
                 new CommandPageActionBinding("cmd.combat.ammo_mode", delegate { ExecuteCycleAmmoMode(null); }),
                 new CommandPageActionBinding("cmd.combat.active_item_no_cooldown", delegate { ExecuteToggleActiveItemNoCooldown(GetSelectedCommandTargetPlayer(), null); }),
+                new CommandPageActionBinding("cmd.combat.flight", delegate { ExecuteToggleFlight(GetSelectedCommandTargetPlayer(), null); }),
+                new CommandPageActionBinding("cmd.combat.skip_charge", delegate { ExecuteToggleSkipCharge(GetSelectedCommandTargetPlayer(), null); }),
                 new CommandPageActionBinding("cmd.combat.invincible", delegate { ExecuteToggleInvincibilityForSelectedTargets(player, null); }),
                 new CommandPageActionBinding("cmd.combat.ammonomicon", delegate { ExecuteToggleAmmonomiconFastOpen(null); }),
                 new CommandPageActionBinding("cmd.combat.enemy_health_bars", delegate { ExecuteToggleEnemyHealthBars(GetSelectedCommandTargetPlayer(), null); }),
@@ -203,6 +231,19 @@ namespace EtgGameplayDashboard
                 GetOnOffStatusLabel(isEnabled),
                 isEnabled,
                 delegate { ExecuteForSelectedPickupTargets(player, delegate (PlayerController selectedPlayer) { ExecuteToggleRapidFire(selectedPlayer, logger); }); });
+        }
+
+        private CombatSettingRow CreateSkipChargeCombatSetting(Rect rect, ManualLogSource logger)
+        {
+            PlayerController targetPlayer = GetSelectedCommandTargetPlayer();
+            bool isEnabled = IsSkipChargeEnabledFor(targetPlayer);
+            return new CombatSettingRow(
+                rect,
+                "cmd.combat.skip_charge",
+                GetLocalizedFallback("gui.command.setting.skip_charge", "Skip Charge", "跳过充能"),
+                GetOnOffStatusLabel(isEnabled),
+                isEnabled,
+                delegate { ExecuteToggleSkipCharge(targetPlayer, logger); });
         }
 
         private CombatSettingRow CreateAutoReloadCombatSetting(Rect rect, ManualLogSource logger)

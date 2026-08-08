@@ -73,6 +73,12 @@ namespace EtgGameplayDashboard
             return field != null && (bool)field.GetValue(target);
         }
 
+        public static T GetPrivateObject<T>(object target, string fieldName) where T : class
+        {
+            FieldInfo field = FindField(target, fieldName);
+            return field != null ? field.GetValue(target) as T : null;
+        }
+
         public static void SetPrivateBool(object target, string fieldName, bool value)
         {
             FieldInfo field = FindField(target, fieldName);
@@ -84,7 +90,19 @@ namespace EtgGameplayDashboard
 
         private static FieldInfo FindField(object target, string fieldName)
         {
-            return target != null ? target.GetType().GetField(fieldName, InstancePrivateFlags) : null;
+            System.Type currentType = target != null ? target.GetType() : null;
+            while (currentType != null)
+            {
+                FieldInfo field = currentType.GetField(fieldName, InstancePrivateFlags);
+                if (field != null)
+                {
+                    return field;
+                }
+
+                currentType = currentType.BaseType;
+            }
+
+            return null;
         }
     }
 }

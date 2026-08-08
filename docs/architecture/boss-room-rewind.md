@@ -26,7 +26,7 @@ The persistent settings are stored by BepInEx in `BepInEx/config/etg-gameplay-da
 
 ```ini
 [UI]
-RoomEnemyRewindKey = C
+KeyboardShortcuts = room.rewind=C
 RoomEnemyRefreshRecordingEnabled = false
 RoomEnemyRefreshMethod = rewind
 PlayerRewindEnabled = true

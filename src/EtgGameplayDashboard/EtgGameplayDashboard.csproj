@@ -164,7 +164,7 @@
     <Compile Include="Configuration\PickupGameplayEntry.cs" />
     <Compile Include="Configuration\PickupGameplayRegistry.cs" />
     <Compile Include="Configuration\PickupInfoTermsRegistry.cs" />
-    <Compile Include="Configuration\PickupShortcutRegistry.cs" />
+    <Compile Include="Configuration\KeyboardShortcutRegistry.cs" />
     <Compile Include="Configuration\RandomPoolSelectionStateProvider.cs" />
     <Compile Include="Configuration\StartItemsPresetNames.cs" />
     <Compile Include="Commands\GrantCommandExecutionResult.cs" />
@@ -212,7 +212,7 @@
     <Compile Include="Commands\PickupBrowserEntry.cs" />
     <Compile Include="Commands\PickupBrowserQueryService.cs" />
     <Compile Include="Commands\PickupIconData.cs" />
-    <Compile Include="Commands\InGameCommandController.PickupShortcuts.cs" />
+    <Compile Include="Commands\InGameCommandController.KeyboardShortcuts.cs" />
     <Compile Include="Commands\InGameCommandController.PlayerStats.cs" />
     <Compile Include="Commands\InGameCommandController.Settings.cs" />
     <Compile Include="Commands\InGameCommandController.State.cs" />
@@ -221,7 +221,8 @@
     <Compile Include="Commands\PlayerDebugCommandService.cs" />
     <Compile Include="Commands\PlayerRuntimeOverrideServiceBase.cs" />
     <Compile Include="Commands\PlayerHealthOverrideService.cs" />
-    <Compile Include="Commands\PlayerStatMultiplierService.cs" />
+    <Compile Include="Commands\PlayerRuntimeStatOverrideService.cs" />
+    <Compile Include="Commands\ProjectileModifierService.cs" />
     <Compile Include="Commands\DamageDiagnosticsService.cs" />
     <Compile Include="Commands\PlayerActiveItemCapacityOverrideService.cs" />
     <Compile Include="Commands\RoomDebugCommandService.cs" />
@@ -249,6 +250,7 @@
     <Compile Include="Commands\AutoReloadToggleService.cs" />
     <Compile Include="Commands\CurrencyNoConsumeToggleService.cs" />
     <Compile Include="Commands\InvincibilityToggleService.cs" />
+    <Compile Include="Commands\PlayerFlightToggleService.cs" />
     <Compile Include="Commands\EnemyHealthBarToggleService.cs" />
     <Compile Include="Commands\ControllerAimLockService.cs" />
     <Compile Include="Commands\KeyboardAimAssistService.cs" />
@@ -258,6 +260,7 @@
     <Compile Include="Commands\AmmoModeToggleService.cs" />
     <Compile Include="Commands\ActiveItemNoCooldownToggleService.cs" />
     <Compile Include="Commands\RapidFireToggleService.cs" />
+    <Compile Include="Commands\SkipChargeToggleService.cs" />
     <Compile Include="Etg\EtgGrantOutcome.cs" />
     <Compile Include="Etg\EtgPickupCatalogEntry.cs" />
     <Compile Include="Etg\EtgPickupCatalogExportResult.cs" />
@@ -301,6 +304,7 @@
     <Compile Include="Runtime\BossNameCatalog.cs" />
     <Compile Include="Runtime\ControllerAimLockHooks.cs" />
     <Compile Include="Runtime\KeyboardAimAssistHooks.cs" />
+    <Compile Include="Runtime\SkipChargeHooks.cs" />
     <Compile Include="Runtime\CommandPanelCursorRenderHooks.cs" />
     <Compile Include="Runtime\CurrencyNoConsumeHooks.cs" />
     <Compile Include="Runtime\GameWindowFocusService.cs" />
@@ -319,6 +323,7 @@
       <Compile Include="Runtime\RoomEnemyReplayService.Diagnostics.cs" />
       <Compile Include="Runtime\RoomReplayWaveDiagnostics.cs" />
     <Compile Include="Runtime\PrivateFieldAccessor.cs" />
+    <Compile Include="Runtime\ProjectileScaleDiagnosticsHooks.cs" />
     <Compile Include="Runtime\RuntimeHookRegistry.cs" />
     <Compile Include="Runtime\BossRushService.cs" />
     <Compile Include="Runtime\BossRushCoroutineHost.cs" />

@@ -19,6 +19,7 @@ namespace EtgGameplayDashboard
             _wrappedHintStyle = null;
             _textFieldStyle = null;
             _buttonStyle = null;
+            _infoButtonStyle = null;
             _cursorColorSelectedButtonStyle = null;
             _enabledButtonStyle = null;
             _pickupGrantButtonStyle = null;
@@ -144,6 +145,12 @@ namespace EtgGameplayDashboard
             _buttonStyle.active.textColor = PrimaryTextColor;
             _buttonStyle.fontStyle = FontStyle.Bold;
             _buttonStyle.fontSize = 14;
+
+            _infoButtonStyle = new GUIStyle(_buttonStyle);
+            _infoButtonStyle.hover.background = _infoButtonStyle.normal.background;
+            _infoButtonStyle.active.background = _infoButtonStyle.normal.background;
+            _infoButtonStyle.hover.textColor = _infoButtonStyle.normal.textColor;
+            _infoButtonStyle.active.textColor = _infoButtonStyle.normal.textColor;
 
             // Cursor Color uses the theme's selected border as its enabled state.
             // Keep the ordinary button fills unchanged so this UI does not switch

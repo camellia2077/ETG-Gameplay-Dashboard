@@ -104,6 +104,7 @@ namespace EtgGameplayDashboard
             _rapidFireToggleService = new RapidFireToggleService(
                 _configuration.RapidFireEnabledConfig.Value,
                 PersistRapidFireEnabled);
+            _skipChargeToggleService = new SkipChargeToggleService();
             _autoReloadToggleService = new AutoReloadToggleService(
                 ParseAutoReloadMode(_configuration.AutoReloadModeConfig.Value),
                 PersistAutoReloadMode);
@@ -112,6 +113,7 @@ namespace EtgGameplayDashboard
             _keyNoConsumeToggleService = new KeyNoConsumeToggleService();
             _currencyNoConsumeToggleService = new CurrencyNoConsumeToggleService();
             _invincibilityToggleService = new InvincibilityToggleService();
+            _playerFlightToggleService = new PlayerFlightToggleService();
             _enemyHealthBarToggleService = new EnemyHealthBarToggleService(
                 _configuration.EnemyHealthBarsEnabledConfig.Value,
                 PersistEnemyHealthBarsEnabled);
@@ -139,11 +141,12 @@ namespace EtgGameplayDashboard
             _playerHealthOverrideService = new PlayerHealthOverrideService(Logger, IsCommandPanelHealthVerboseLoggingEnabled);
             _playerActiveItemCapacityOverrideService = new PlayerActiveItemCapacityOverrideService(Logger, IsActiveItemGrantVerboseLoggingEnabled);
             _playerDebugCommandService = new PlayerDebugCommandService(_playerHealthOverrideService);
-            _playerStatMultiplierService = new PlayerStatMultiplierService();
+            _playerRuntimeStatOverrideService = new PlayerRuntimeStatOverrideService();
+            _projectileModifierService = new ProjectileModifierService();
             _damageDiagnosticsService = new DamageDiagnosticsService(
                 Logger,
                 IsDamageDiagnosticsVerboseLoggingEnabled,
-                delegate { return _playerStatMultiplierService != null ? _playerStatMultiplierService.DamageMultiplier : 1f; });
+                delegate { return _playerRuntimeStatOverrideService != null ? _playerRuntimeStatOverrideService.DamageMultiplier : 1f; });
             _pickupGranter = new EtgPickupGranter(_playerActiveItemCapacityOverrideService, IsActiveItemGrantVerboseLoggingEnabled);
             _bossRushCoroutineHost = gameObject.AddComponent<BossRushCoroutineHost>();
             _bossRushService = new BossRushService(Logger, IsBossRushVerboseLoggingEnabled, _bossRushCoroutineHost);
@@ -224,16 +227,19 @@ namespace EtgGameplayDashboard
                     new PlayerInputOwnershipService(delegate { BraveInput.ReassignAllControllers(); })),
                 _bossRushService,
                 _rapidFireToggleService,
+                _skipChargeToggleService,
                 _autoReloadToggleService,
                 _armorNoConsumeToggleService,
                 _blankNoConsumeToggleService,
                 _keyNoConsumeToggleService,
                 _currencyNoConsumeToggleService,
                 _invincibilityToggleService,
+                _playerFlightToggleService,
                 _enemyHealthBarToggleService,
                 _controllerAimLockService,
                 _keyboardAimAssistService,
-                _playerStatMultiplierService,
+                _playerRuntimeStatOverrideService,
+                _projectileModifierService,
                 _ammoModeToggleService,
                 _activeItemNoCooldownToggleService,
                 _ammonomiconFastOpenToggleService,
@@ -242,15 +248,14 @@ namespace EtgGameplayDashboard
                 _pickupResolver.GetGrantablePickupCatalog,
                 GetPickupGameplayDisplayName,
                 GetAliasRegistry,
-                GetPickupShortcutRegistry,
-                SetPickupShortcuts,
+                GetKeyboardShortcutRegistry,
+                SetKeyboardShortcuts,
                 GetUiLanguage,
                 SetUiLanguage,
                 LogCommandInput,
                 GetCommandPanelKey,
                 GetCommandPanelKeyName,
                 SetCommandPanelKey,
-                GetRoomEnemyRewindKey,
                 GetRoomEnemyRefreshMethod,
                 SetRoomEnemyRefreshMethod,
                 GetCommandPanelControllerShortcut,
@@ -372,9 +377,14 @@ namespace EtgGameplayDashboard
 
         private void ResetServices(bool pluginDestroying = false)
         {
-            if (_playerStatMultiplierService != null)
+            if (_playerRuntimeStatOverrideService != null)
             {
-                _playerStatMultiplierService.Reset(!pluginDestroying);
+                _playerRuntimeStatOverrideService.Reset(!pluginDestroying);
+            }
+
+            if (_projectileModifierService != null)
+            {
+                _projectileModifierService.Reset(!pluginDestroying);
             }
 
             if (_damageDiagnosticsService != null)
@@ -390,6 +400,11 @@ namespace EtgGameplayDashboard
             if (_rapidFireToggleService != null)
             {
                 _rapidFireToggleService.Reset();
+            }
+
+            if (_skipChargeToggleService != null)
+            {
+                _skipChargeToggleService.Reset();
             }
 
             if (_autoReloadToggleService != null)
@@ -420,6 +435,11 @@ namespace EtgGameplayDashboard
             if (_invincibilityToggleService != null)
             {
                 _invincibilityToggleService.Reset();
+            }
+
+            if (_playerFlightToggleService != null)
+            {
+                _playerFlightToggleService.Reset();
             }
 
             if (_enemyHealthBarToggleService != null)

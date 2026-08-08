@@ -48,8 +48,9 @@ namespace EtgGameplayDashboard
             DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.reload", FormatStat(stats, PlayerStats.StatType.ReloadSpeed));
             DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.move_speed", FormatStat(stats, PlayerStats.StatType.MovementSpeed));
             DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.shot_speed", FormatStat(stats, PlayerStats.StatType.ProjectileSpeed));
-            DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.luck", FormatStat(stats, PlayerStats.StatType.Coolness));
+            DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.coolness", FormatStat(stats, PlayerStats.StatType.Coolness));
             DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.curse", FormatStat(stats, PlayerStats.StatType.Curse));
+            DrawPlayerStatsRow(panelRect, ref rowY, "gui.command.stats.magnificence", FormatNumber(stats.Magnificence));
             DrawCurrentGunStatsRows(panelRect, ref rowY, player);
         }
 

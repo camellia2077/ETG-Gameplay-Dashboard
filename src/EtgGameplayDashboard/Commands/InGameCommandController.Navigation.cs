@@ -15,7 +15,7 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            if (_isCapturingPickupShortcut)
+            if (_isCapturingPickupShortcut || _isCapturingCommandPanelKey)
             {
                 ResetControllerNavigationAxes();
                 return;
@@ -84,6 +84,9 @@ namespace EtgGameplayDashboard
                     return;
                 case PanelPage.CursorColor:
                     HandleCursorColorPageControllerNavigation(isControllerBackPressed);
+                    return;
+                case PanelPage.CommandInfo:
+                    HandleCommandInfoPageControllerNavigation(isControllerBackPressed);
                     return;
                 case PanelPage.Pickups:
                     HandlePickupPageControllerNavigation(isControllerBackPressed);
