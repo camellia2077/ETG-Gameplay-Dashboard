@@ -42,6 +42,9 @@ namespace EtgGameplayDashboard
                     }
                 });
             _configuration.BindConfiguration();
+            BossIntroSkipHooks.Configure(
+                _configuration.BossIntroSkipEnabledConfig.Value,
+                PersistBossIntroSkipEnabled);
         }
         private void InitializeResolversAndProviders()
         {
@@ -104,7 +107,9 @@ namespace EtgGameplayDashboard
             _rapidFireToggleService = new RapidFireToggleService(
                 _configuration.RapidFireEnabledConfig.Value,
                 PersistRapidFireEnabled);
-            _skipChargeToggleService = new SkipChargeToggleService();
+            _skipChargeToggleService = new SkipChargeToggleService(
+                _configuration.SkipChargeEnabledConfig.Value,
+                PersistSkipChargeEnabled);
             _autoReloadToggleService = new AutoReloadToggleService(
                 ParseAutoReloadMode(_configuration.AutoReloadModeConfig.Value),
                 PersistAutoReloadMode);
@@ -112,8 +117,12 @@ namespace EtgGameplayDashboard
             _blankNoConsumeToggleService = new BlankNoConsumeToggleService();
             _keyNoConsumeToggleService = new KeyNoConsumeToggleService();
             _currencyNoConsumeToggleService = new CurrencyNoConsumeToggleService();
-            _invincibilityToggleService = new InvincibilityToggleService();
-            _playerFlightToggleService = new PlayerFlightToggleService();
+            _invincibilityToggleService = new InvincibilityToggleService(
+                _configuration.InvincibilityEnabledConfig.Value,
+                PersistInvincibilityEnabled);
+            _playerFlightToggleService = new PlayerFlightToggleService(
+                _configuration.FlightEnabledConfig.Value,
+                PersistFlightEnabled);
             _enemyHealthBarToggleService = new EnemyHealthBarToggleService(
                 _configuration.EnemyHealthBarsEnabledConfig.Value,
                 PersistEnemyHealthBarsEnabled);

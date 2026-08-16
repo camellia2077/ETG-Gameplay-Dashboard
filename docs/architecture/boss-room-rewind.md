@@ -65,7 +65,7 @@ At room entry, each minor records its world cell, transform, broken state, proto
 - `TallGrassPatch`, when present in other rooms, remains handled separately by restoring its captured `cells`, clearing its private fire data, and calling the native `BuildPatch()` method.
 
 This distinction is important: setting only `m_isBroken = false` is insufficient because vanilla `MinorBreakable.Break()` also disables the rigidbody and changes or removes the visible break state.
-6. The recorded enemy wave is instantiated using the exact recorded enemy GUIDs and room-relative placement anchors. Boss replay does not call the native `GenericIntroDoer` a second time: Boss-specific intro coroutines such as `BashelliskIntroDoer.PlayerWalkedIn` are not repeat-safe. Instead, replay explicitly restores the Boss to `AIActor.ActorState.Normal`, disables `invisibleUntilAwaken`, enables child sprites, clears `IsGone`, restores collision, and makes the Boss vulnerable.
+6. The recorded enemy wave is instantiated using the exact recorded enemy GUIDs and room-relative placement anchors. Boss replay does not call the native `GenericIntroDoer` a second time: Boss-specific intro coroutines such as `BashelliskIntroDoer.PlayerWalkedIn` are not repeat-safe. Instead, replay explicitly restores the Boss to `AIActor.ActorState.Normal`, disables `invisibleUntilAwaken`, enables child sprites, clears `IsGone`, restores collision, and makes the Boss vulnerable. Because `HealthHaver.EndBossState` already moved the music controller into its victory/override state during the original clear, replay first calls `DungeonFloorMusicController.EndVictoryMusic`, then calls `SwitchToBossMusic` with the replayed Boss's `GenericIntroDoer.BossMusicEvent` or `SpecificIntroDoer.OverrideBossMusicEvent`. This replaces the skipped native intro's music transition and prevents victory and Boss tracks from running together.
 7. If enabled, the player snapshot is restored. The restore includes health/max-health state, armor, blanks, stats, guns and ammo, passive items, active items, selected gun/active slots, and active-item charge/cooldown state.
 8. The replay restores the Boss-room entry values of `RoomHandler.PlayerHasTakenDamageInThisRoom` and `Dungeon.HasGivenMasteryToken`, then resets `RoomHandler.m_hasGivenReward` through the existing reflection helper. This lets vanilla's `OnEnemiesCleared -> HandleRoomClearReward` path create the normal Boss reward, including the floor's Master Round when the replay is flawless, after the replayed Boss dies.
 9. Reinforcement waves are inserted from the saved wave list before the final room-clear enemy is deregistered, preserving vanilla wave order and door sealing.
@@ -124,6 +124,8 @@ Cleared rewind-room objects before replay. ... RemovedCorpses=..., RemovedRoomPe
 Room enemy replay verification. ... Match=True
 Restored room-entry player state. ...
 Re-armed Boss-room clear reward for replay. ...
+Restored Boss music for replay. ... BossMusicEvent=...
+Cleared stale Boss victory music for replay. ... BossMusicRestored=False ...
 ```
 
 Interpretation:

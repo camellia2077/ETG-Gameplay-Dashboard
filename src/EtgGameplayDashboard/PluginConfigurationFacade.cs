@@ -67,6 +67,10 @@ namespace EtgGameplayDashboard
         private ConfigEntry<bool> _combatCursorColorEnabledConfig;
         private ConfigEntry<string> _combatCursorColorPresetConfig;
         private ConfigEntry<bool> _enemyHealthBarsEnabledConfig;
+        private ConfigEntry<bool> _bossIntroSkipEnabledConfig;
+        private ConfigEntry<bool> _skipChargeEnabledConfig;
+        private ConfigEntry<bool> _invincibilityEnabledConfig;
+        private ConfigEntry<bool> _flightEnabledConfig;
         private ConfigEntry<bool> _controllerAimLockEnabledConfig;
         private ConfigEntry<bool> _keyboardAimAssistEnabledConfig;
         private ConfigEntry<string> _keyboardAimAssistLevelConfig;
@@ -127,6 +131,10 @@ namespace EtgGameplayDashboard
         internal ConfigEntry<bool> CombatCursorColorEnabledConfig { get { return _combatCursorColorEnabledConfig; } }
         internal ConfigEntry<string> CombatCursorColorPresetConfig { get { return _combatCursorColorPresetConfig; } }
         internal ConfigEntry<bool> EnemyHealthBarsEnabledConfig { get { return _enemyHealthBarsEnabledConfig; } }
+        internal ConfigEntry<bool> BossIntroSkipEnabledConfig { get { return _bossIntroSkipEnabledConfig; } }
+        internal ConfigEntry<bool> SkipChargeEnabledConfig { get { return _skipChargeEnabledConfig; } }
+        internal ConfigEntry<bool> InvincibilityEnabledConfig { get { return _invincibilityEnabledConfig; } }
+        internal ConfigEntry<bool> FlightEnabledConfig { get { return _flightEnabledConfig; } }
         internal ConfigEntry<bool> ControllerAimLockEnabledConfig { get { return _controllerAimLockEnabledConfig; } }
         internal ConfigEntry<bool> KeyboardAimAssistEnabledConfig { get { return _keyboardAimAssistEnabledConfig; } }
         internal ConfigEntry<string> KeyboardAimAssistLevelConfig { get { return _keyboardAimAssistLevelConfig; } }
@@ -463,6 +471,26 @@ namespace EtgGameplayDashboard
                 "EnemyHealthBarsEnabled",
                 false,
                 "Keep Enemy HP Bars enabled across game launches. Disabled by default.");
+            _bossIntroSkipEnabledConfig = _configFile.Bind(
+                "Combat",
+                "BossIntroSkipEnabled",
+                false,
+                "Keep Skip Boss Intro enabled when returning to the Breach or across game launches. Disabled by default.");
+            _skipChargeEnabledConfig = _configFile.Bind(
+                "Combat",
+                "SkipChargeEnabled",
+                false,
+                "Keep Skip Charge enabled when returning to the Breach or across game launches. Disabled by default.");
+            _invincibilityEnabledConfig = _configFile.Bind(
+                "Combat",
+                "InvincibilityEnabled",
+                false,
+                "Keep Invincibility enabled when returning to the Breach or across game launches. Disabled by default.");
+            _flightEnabledConfig = _configFile.Bind(
+                "Combat",
+                "FlightEnabled",
+                false,
+                "Keep Flight enabled when returning to the Breach or across game launches. Disabled by default.");
             _controllerAimLockEnabledConfig = _configFile.Bind(
                 "Combat",
                 "ControllerAimLockEnabled",
@@ -1054,6 +1082,29 @@ namespace EtgGameplayDashboard
             {
                 return;
             }
+        }
+
+        internal void PersistBossIntroSkipEnabled(bool enabled)
+        {
+            if (!SetAndSave(_bossIntroSkipEnabledConfig, enabled))
+            {
+                return;
+            }
+        }
+
+        internal void PersistSkipChargeEnabled(bool enabled)
+        {
+            SetAndSave(_skipChargeEnabledConfig, enabled);
+        }
+
+        internal void PersistInvincibilityEnabled(bool enabled)
+        {
+            SetAndSave(_invincibilityEnabledConfig, enabled);
+        }
+
+        internal void PersistFlightEnabled(bool enabled)
+        {
+            SetAndSave(_flightEnabledConfig, enabled);
         }
 
         internal void PersistControllerAimLockEnabled(bool enabled)

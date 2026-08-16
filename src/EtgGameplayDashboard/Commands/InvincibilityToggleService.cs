@@ -38,8 +38,12 @@ namespace EtgGameplayDashboard
 
         private readonly Dictionary<PlayerController, PlayerInvincibilityState> _playerStates =
             new Dictionary<PlayerController, PlayerInvincibilityState>();
+        private readonly PersistedPlayerToggleState _persistedState;
 
-        private bool _isEnabled;
+        public InvincibilityToggleService(bool initiallyEnabled, System.Action<bool> persistEnabledState)
+        {
+            _persistedState = new PersistedPlayerToggleState(initiallyEnabled, persistEnabledState);
+        }
 
         public bool IsEnabled
         {
@@ -63,7 +67,7 @@ namespace EtgGameplayDashboard
                 PlayerInvincibilityState state = _playerStates[player];
                 RestorePlayer(player, state);
                 _playerStates.Remove(player);
-                _isEnabled = _playerStates.Count > 0;
+                _persistedState.Set(_playerStates.Count > 0);
                 return GrantCommandExecutionResult.Localized(true, "result.invincible.disable.success");
             }
 
@@ -74,24 +78,25 @@ namespace EtgGameplayDashboard
             }
 
             ApplyToPlayer(player);
-            _isEnabled = _playerStates.Count > 0;
+            _persistedState.Set(true);
             return GrantCommandExecutionResult.Localized(true, "result.invincible.enable.success");
         }
 
         public void Update(PlayerController player)
         {
-            if (!IsEnabledFor(player))
+            if (_persistedState.IsEnabled && (object)player != null)
             {
-                return;
+                ApplyToPlayer(player);
             }
-
-            ApplyToPlayer(player);
+            else if (IsEnabledFor(player))
+            {
+                ApplyToPlayer(player);
+            }
         }
 
         public void Reset()
         {
             RestoreAll();
-            _isEnabled = false;
         }
 
         private void ApplyToPlayer(PlayerController player)

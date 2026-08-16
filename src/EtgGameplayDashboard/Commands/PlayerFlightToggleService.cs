@@ -11,6 +11,12 @@ namespace EtgGameplayDashboard
         private const string CleanupOverrideKey = "EtgGameplayDashboard.FlightCleanup";
 
         private readonly HashSet<PlayerController> _enabledPlayers = new HashSet<PlayerController>();
+        private readonly PersistedPlayerToggleState _persistedState;
+
+        public PlayerFlightToggleService(bool initiallyEnabled, System.Action<bool> persistEnabledState)
+        {
+            _persistedState = new PersistedPlayerToggleState(initiallyEnabled, persistEnabledState);
+        }
 
         public bool IsEnabledFor(PlayerController player)
         {
@@ -28,16 +34,23 @@ namespace EtgGameplayDashboard
             {
                 Disable(player);
                 _enabledPlayers.Remove(player);
+                _persistedState.Set(_enabledPlayers.Count > 0);
                 return GrantCommandExecutionResult.Localized(true, "result.flight.disable.success");
             }
 
             player.SetIsFlying(true, FlightOverrideKey, true, false);
             _enabledPlayers.Add(player);
+            _persistedState.Set(true);
             return GrantCommandExecutionResult.Localized(true, "result.flight.enable.success");
         }
 
         public void Update(PlayerController player)
         {
+            if (_persistedState.IsEnabled && IsPlayerUsable(player) && !_enabledPlayers.Contains(player))
+            {
+                _enabledPlayers.Add(player);
+            }
+
             if (IsEnabledFor(player))
             {
                 player.SetIsFlying(true, FlightOverrideKey, true, false);
@@ -78,6 +91,36 @@ namespace EtgGameplayDashboard
         {
             return (object)player != null && player != null &&
                 (object)player.gameObject != null && player.gameObject != null;
+        }
+    }
+
+    /// <summary>
+    /// Keeps a persisted default separate from the per-player runtime state owned by a toggle service.
+    /// </summary>
+    internal sealed class PersistedPlayerToggleState
+    {
+        private readonly System.Action<bool> _persist;
+
+        public PersistedPlayerToggleState(bool initiallyEnabled, System.Action<bool> persist)
+        {
+            IsEnabled = initiallyEnabled;
+            _persist = persist;
+        }
+
+        public bool IsEnabled { get; private set; }
+
+        public void Set(bool enabled)
+        {
+            if (IsEnabled == enabled)
+            {
+                return;
+            }
+
+            IsEnabled = enabled;
+            if (_persist != null)
+            {
+                _persist(enabled);
+            }
         }
     }
 }

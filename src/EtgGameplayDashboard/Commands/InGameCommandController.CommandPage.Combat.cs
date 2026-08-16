@@ -32,6 +32,7 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry("cmd.combat.invincible", 3, 1),
             new ControllerFocusEntry("cmd.combat.ammonomicon", 4, 0),
             new ControllerFocusEntry("cmd.combat.enemy_health_bars", 4, 1),
+            new ControllerFocusEntry("cmd.combat.boss_intro", 5, 0),
             new ControllerFocusEntry("cmd.combat.full_ammo", 5, 1),
             new ControllerFocusEntry("cmd.combat.flight", 7, 0),
             new ControllerFocusEntry("cmd.combat.skip_charge", 8, 1),
@@ -46,7 +47,6 @@ namespace EtgGameplayDashboard
             const float settingButtonWidth = 108f;
             long stageStartedAtTimestamp = BeginCommandPanelPerformanceStage();
             SyncPersistedCombatTargetState(GetSelectedCommandTargetPlayer() ?? player);
-            bool experimentalModeEnabled = IsExperimentalModeEnabled();
             LogCommandPanelPerformanceStage("CommandPage.Player.Combat.State", stageStartedAtTimestamp);
             float secondSettingColumnX = contentRect.x + settingColumnWidth + ButtonGap;
             float firstRowY = contentRect.y;
@@ -82,8 +82,7 @@ namespace EtgGameplayDashboard
                         logger),
                     CreateBossIntroSkipCombatSetting(
                         new Rect(contentRect.x, fourthRowY, settingColumnWidth, controlHeight),
-                        logger,
-                        experimentalModeEnabled),
+                        logger),
                     CreateControllerAimLockCombatSetting(
                         new Rect(contentRect.x, fourthRowY + (controlHeight + ButtonGap) * 2f, settingColumnWidth, controlHeight),
                         logger),
@@ -181,26 +180,6 @@ namespace EtgGameplayDashboard
 
         private CommandPageActionBinding[] GetCombatCommandPageActionBindings(PlayerController player)
         {
-            if (!IsExperimentalModeEnabled())
-            {
-                return new[]
-                {
-                    new CommandPageActionBinding("cmd.combat.rapid", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteToggleRapidFire(targetPlayer, null); }); }),
-                    new CommandPageActionBinding("cmd.combat.auto_reload", delegate { ExecuteToggleAutoReload(null); }),
-                    new CommandPageActionBinding("cmd.combat.ammo_mode", delegate { ExecuteCycleAmmoMode(null); }),
-                    new CommandPageActionBinding("cmd.combat.active_item_no_cooldown", delegate { ExecuteToggleActiveItemNoCooldown(GetSelectedCommandTargetPlayer(), null); }),
-                    new CommandPageActionBinding("cmd.combat.flight", delegate { ExecuteToggleFlight(GetSelectedCommandTargetPlayer(), null); }),
-                    new CommandPageActionBinding("cmd.combat.skip_charge", delegate { ExecuteToggleSkipCharge(GetSelectedCommandTargetPlayer(), null); }),
-                    new CommandPageActionBinding("cmd.combat.invincible", delegate { ExecuteToggleInvincibilityForSelectedTargets(player, null); }),
-                    new CommandPageActionBinding("cmd.combat.ammonomicon", delegate { ExecuteToggleAmmonomiconFastOpen(null); }),
-                new CommandPageActionBinding("cmd.combat.enemy_health_bars", delegate { ExecuteToggleEnemyHealthBars(GetSelectedCommandTargetPlayer(), null); }),
-                new CommandPageActionBinding("cmd.combat.controller_aim_lock", delegate { ExecuteToggleControllerAimLock(GetSelectedCommandTargetPlayer(), null); }),
-                new CommandPageActionBinding(KeyboardAimAssistUiDefinition.ModeControlId, delegate { ExecuteToggleKeyboardAimAssist(GetSelectedCommandTargetPlayer(), null); }),
-                new CommandPageActionBinding(KeyboardAimAssistUiDefinition.MultiplierControlId, delegate { ExecuteCycleKeyboardAimAssistMultiplier(GetSelectedCommandTargetPlayer(), null); }),
-                new CommandPageActionBinding("cmd.combat.full_ammo", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteRefillCurrentGunAmmo(targetPlayer, null); }); }),
-                };
-            }
-
             return new[]
             {
                 new CommandPageActionBinding("cmd.combat.rapid", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteToggleRapidFire(targetPlayer, null); }); }),
@@ -363,15 +342,14 @@ namespace EtgGameplayDashboard
             }
         }
 
-        private CombatSettingRow CreateBossIntroSkipCombatSetting(Rect rect, ManualLogSource logger, bool isExperimentalModeEnabled)
+        private CombatSettingRow CreateBossIntroSkipCombatSetting(Rect rect, ManualLogSource logger)
         {
             return new CombatSettingRow(
                 rect,
                 "cmd.combat.boss_intro",
-                GetLocalizedFallback("gui.command.setting.boss_intro_skip", "Skip Boss Intro", "跳过 Boss 开场"),
-                GetOnOffStatusLabel(BossIntroSkipHooks.IsEnabled),
+                GetLocalizedFallback("gui.command.setting.boss_intro_skip", "Boss Intro Animation", "Boss 开场动画"),
+                GetBossIntroSkipStatusLabel(BossIntroSkipHooks.IsEnabled),
                 BossIntroSkipHooks.IsEnabled,
-                isExperimentalModeEnabled,
                 delegate { ExecuteToggleBossIntroSkip(logger); });
         }
 

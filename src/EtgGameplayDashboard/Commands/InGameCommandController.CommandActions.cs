@@ -866,8 +866,7 @@ namespace EtgGameplayDashboard
         {
             if (_revealMapEnabled)
             {
-                _revealMapEnabled = false;
-                ClearMapFeatureActivationState();
+                _mapFeatureRuntimeCoordinator.DisableRevealMap();
                 ShowStatus(
                     GetLocalizedFallback("result.map_reveal.disabled", "Reveal Map disabled.", "已关闭地图全开。"),
                     false);
@@ -896,13 +895,7 @@ namespace EtgGameplayDashboard
 
             if (executionResult.Succeeded)
             {
-                _revealMapEnabled = true;
-                MarkRevealMapActivatedForCurrentScene();
-                MarkMapDirectTeleportActivatedForCurrentScene();
-                if (_revealMapEveryFloor)
-                {
-                    _mapFeatureRuntimeCoordinator.AutomaticRevealMapSceneName = GetCurrentMapFeatureActivationKey();
-                }
+                _mapFeatureRuntimeCoordinator.HandleManualRevealCompleted();
                 if (logger != null)
                 {
                     logger.LogInfo(EtgGameplayDashboardLog.Command(executionResult.LogMessage));

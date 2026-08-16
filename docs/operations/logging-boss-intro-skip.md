@@ -21,11 +21,15 @@ When both the cfg switch and the in-game feature are enabled, `[EtgGameplayDashb
 
 - matching a Boss to a `BossTriggerZone`;
 - observing `GenericIntroDoer` entry through the room or trigger-zone path;
+- observing `GatlingGullIntroDoer.TriggerSequence`, which is a separate Boss intro implementation used by Gatling Gull;
+- observing `GatlingGullIntroDoer` running-state and phase changes;
 - writing the native `Tribool.Ready` skip request;
 - a timeout reason when the native intro never becomes active, including component and pause-state values;
 - a warning when a Boss trigger zone has no matching `GenericIntroDoer`.
 
 When `EnableBossIntroSkipVerboseLogs = false`, enabling or using `Skip Boss Intro` does not emit these diagnostics. Hook-install failures remain visible at startup because they indicate that the feature cannot operate.
+
+The vanilla Gatling Gull intro is not a `GenericIntroDoer`. It uses `GatlingGullIntroDoer`, subscribes to `RoomHandler.Entered`, and advances its own phase machine. For that Boss, inspect the `GatlingGullIntroDoer.TriggerSequence` and phase diagnostics instead of expecting `GenericIntroDoer` skip-request lines.
 
 ## Read Next
 

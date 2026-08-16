@@ -76,6 +76,7 @@ namespace EtgGameplayDashboard
                 ", ActivationKey=" + currentSceneName +
                 ", RevealMapEnabled=" + _revealMapEnabled +
                 ", RevealMapEveryFloor=" + _revealMapEveryFloor +
+                ", PendingDungeonReveal=" + _mapFeatureRuntimeCoordinator.PendingDungeonReveal +
                 ", AutoRevealScene=" + _mapFeatureRuntimeCoordinator.AutomaticRevealMapSceneName +
                 ", PlayerReady=" + ((object)player != null) +
                 ", PlayerActive=" + (player != null ? player.gameObject.activeInHierarchy.ToString() : "<unknown>") +
@@ -195,9 +196,9 @@ namespace EtgGameplayDashboard
             }
         }
 
-        private void ClearMapFeatureActivationState()
+        private void ClearMapFeatureActivationStateForTeleport()
         {
-            _mapFeatureRuntimeCoordinator.ClearActivationState();
+            _mapFeatureRuntimeCoordinator.ClearActivationStatePreservingPendingDungeonReveal();
             ResetMapDirectTeleportDiagnostics();
         }
 
@@ -217,20 +218,9 @@ namespace EtgGameplayDashboard
             return _revealMapEnabled;
         }
 
-        private void MarkRevealMapActivatedForCurrentScene()
-        {
-            _mapFeatureRuntimeCoordinator.MarkRevealMapActivatedForCurrentScene();
-        }
-
         private bool IsMapDirectTeleportActive()
         {
             return _mapFeatureRuntimeCoordinator.IsMapDirectTeleportActive();
-        }
-
-        private void MarkMapDirectTeleportActivatedForCurrentScene()
-        {
-            _mapFeatureRuntimeCoordinator.MarkMapDirectTeleportActivatedForCurrentScene();
-            ResetMapDirectTeleportDiagnostics();
         }
 
         private static string GetCurrentMapFeatureActivationKey()
@@ -290,6 +280,32 @@ namespace EtgGameplayDashboard
                 ", ConnectedRooms=[" +
                 DescribeConnectedMapDirectTeleportRooms(currentRoom, minimap) +
                 "].");
+        }
+
+        private void LogMapRevealTeleportLifecycle(string phase)
+        {
+            if (!ShouldLogMapTeleportVerbose())
+            {
+                return;
+            }
+
+            GameManager gameManager = GameManager.Instance;
+            LogGamepadShortcutState(
+                "Map reveal teleport lifecycle. " +
+                "Phase=" + phase +
+                ", Frame=" + Time.frameCount +
+                ", UnityScene=" + GetLoadedUnitySceneName() +
+                ", LastLoadedDungeonScene=" + GetLastLoadedDungeonSceneName(gameManager) +
+                ", GameManagerIsFoyer=" + ((object)gameManager != null && gameManager.IsFoyer) +
+                ", RevealMapEnabled=" + _revealMapEnabled +
+                ", RevealMapEveryFloor=" + _revealMapEveryFloor +
+                ", PendingDungeonReveal=" + _mapFeatureRuntimeCoordinator.PendingDungeonReveal +
+                ", RevealMapActive=" + IsRevealMapActive() +
+                ", RevealMapActivationScene=" + _mapFeatureRuntimeCoordinator.GetRevealMapActivationSceneName() +
+                ", AutoRevealScene=" + _mapFeatureRuntimeCoordinator.AutomaticRevealMapSceneName +
+                ", DirectTeleportActive=" + IsMapDirectTeleportActive() +
+                ", DirectTeleportActivationScene=" + _mapFeatureRuntimeCoordinator.GetMapDirectTeleportActivationSceneName() +
+                ".");
         }
 
         private void LogMapDirectTeleportRuntimeStateIfNeeded()

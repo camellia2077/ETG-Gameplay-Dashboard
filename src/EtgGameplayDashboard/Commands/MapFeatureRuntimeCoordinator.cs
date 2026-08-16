@@ -51,6 +51,7 @@ namespace EtgGameplayDashboard
 
         public bool RevealMapEnabled { get; set; }
         public bool RevealMapEveryFloor { get; set; }
+        public bool PendingDungeonReveal { get; private set; }
         public string AutomaticRevealMapSceneName
         {
             get { return _autoRevealMapSceneName; }
@@ -67,13 +68,41 @@ namespace EtgGameplayDashboard
             UpdateAutomaticRevealMap();
         }
 
-        public void ClearActivationState()
+        public void ClearActivationStatePreservingPendingDungeonReveal()
+        {
+            // Teleporting out of the foyer clears the foyer's active bindings, but
+            // must preserve the one-shot request to reveal the first dungeon floor.
+            ResetActivationState(true);
+        }
+
+        public void DisableRevealMap()
+        {
+            RevealMapEnabled = false;
+            ResetActivationState(false);
+            if (_resetDirectTeleportDiagnostics != null)
+            {
+                _resetDirectTeleportDiagnostics();
+            }
+        }
+
+        private void ResetActivationState(bool preservePendingDungeonReveal)
         {
             _revealMapActivatedSceneName = string.Empty;
             _mapDirectTeleportActivatedSceneName = string.Empty;
             _autoRevealMapSceneName = string.Empty;
+            _nextAutoRevealMapAttemptAt = 0f;
+            if (!preservePendingDungeonReveal)
+            {
+                PendingDungeonReveal = false;
+            }
             _autoRevealMapReadyRoomKey = string.Empty;
             _autoRevealMapReadyRoomFrames = 0;
+            // Current Floor mode ends when changing dungeon floors, unless the
+            // foyer request is still waiting to be consumed by the first floor.
+            if (!RevealMapEveryFloor && !PendingDungeonReveal)
+            {
+                RevealMapEnabled = false;
+            }
         }
 
         public bool IsRevealMapActive()
@@ -86,19 +115,39 @@ namespace EtgGameplayDashboard
             return IsActive(_mapDirectTeleportActivatedSceneName);
         }
 
-        public void MarkRevealMapActivatedForCurrentScene()
+        public void HandleManualRevealCompleted()
         {
-            _revealMapActivatedSceneName = GetSceneKey();
-        }
+            string currentSceneName = GetSceneKey();
+            RevealMapEnabled = true;
+            _revealMapActivatedSceneName = currentSceneName;
+            _mapDirectTeleportActivatedSceneName = currentSceneName;
+            if (IsDungeonFloorScene(currentSceneName))
+            {
+                if (RevealMapEveryFloor)
+                {
+                    AutomaticRevealMapSceneName = currentSceneName;
+                }
+            }
+            else if (IsFoyerScene(currentSceneName))
+            {
+                PendingDungeonReveal = true;
+                AutomaticRevealMapSceneName = string.Empty;
+            }
 
-        public void MarkMapDirectTeleportActivatedForCurrentScene()
-        {
-            _mapDirectTeleportActivatedSceneName = GetSceneKey();
+            if (_resetDirectTeleportDiagnostics != null)
+            {
+                _resetDirectTeleportDiagnostics();
+            }
         }
 
         public string GetMapDirectTeleportActivationSceneName()
         {
             return _mapDirectTeleportActivatedSceneName;
+        }
+
+        public string GetRevealMapActivationSceneName()
+        {
+            return _revealMapActivatedSceneName;
         }
 
         private void UpdateFeatureActivationState()
@@ -118,15 +167,13 @@ namespace EtgGameplayDashboard
                     ", CurrentScene=" + currentSceneName + ".");
             }
 
-            _revealMapActivatedSceneName = string.Empty;
-            _mapDirectTeleportActivatedSceneName = string.Empty;
-            if (!RevealMapEveryFloor) RevealMapEnabled = false;
+            ResetActivationState(PendingDungeonReveal);
             if (_resetDirectTeleportDiagnostics != null) _resetDirectTeleportDiagnostics();
         }
 
         private void UpdateAutomaticRevealMap()
         {
-            if (!RevealMapEveryFloor || !RevealMapEnabled)
+            if (!RevealMapEnabled)
             {
                 _autoRevealMapSceneName = string.Empty;
                 _autoRevealMapReadyRoomKey = string.Empty;
@@ -135,9 +182,13 @@ namespace EtgGameplayDashboard
             }
 
             string currentSceneName = GetSceneKey();
+            bool isDungeonFloor = IsDungeonFloorScene(currentSceneName);
+            bool shouldRevealPendingDungeonFloor = PendingDungeonReveal && isDungeonFloor;
+            bool shouldRevealEveryDungeonFloor = RevealMapEveryFloor &&
+                isDungeonFloor &&
+                !string.Equals(currentSceneName, _autoRevealMapSceneName, StringComparison.Ordinal);
             if (string.IsNullOrEmpty(currentSceneName) ||
-                string.Equals(currentSceneName, "foyer", StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(currentSceneName, _autoRevealMapSceneName, StringComparison.Ordinal) ||
+                (!shouldRevealPendingDungeonFloor && !shouldRevealEveryDungeonFloor) ||
                 Time.time < _nextAutoRevealMapAttemptAt) return;
 
             GameManager gameManager = GameManager.Instance;
@@ -178,9 +229,15 @@ namespace EtgGameplayDashboard
             }
 
             _autoRevealMapSceneName = currentSceneName;
+            PendingDungeonReveal = false;
             _nextAutoRevealMapAttemptAt = 0f;
-            MarkRevealMapActivatedForCurrentScene();
-            MarkMapDirectTeleportActivatedForCurrentScene();
+            _revealMapActivatedSceneName = currentSceneName;
+            _mapDirectTeleportActivatedSceneName = currentSceneName;
+            if (!RevealMapEveryFloor)
+            {
+                RevealMapEnabled = false;
+                _autoRevealMapSceneName = string.Empty;
+            }
             if (_resetDirectTeleportDiagnostics != null) _resetDirectTeleportDiagnostics();
             RaiseTransitionDiagnostic("auto_reveal_completed");
             if (_performanceLogger != null)
@@ -214,6 +271,25 @@ namespace EtgGameplayDashboard
         private bool ShouldLogVerbose()
         {
             return _verboseLoggingProvider != null && _verboseLoggingProvider();
+        }
+
+        private static bool IsFoyerScene(string sceneName)
+        {
+            GameManager gameManager = GameManager.Instance;
+            return (object)gameManager != null && gameManager.IsFoyer ||
+                string.Equals(sceneName, "foyer", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsDungeonFloorScene(string sceneName)
+        {
+            GameManager gameManager = GameManager.Instance;
+            return !string.IsNullOrEmpty(sceneName) &&
+                !string.Equals(sceneName, "LoadingDungeon", StringComparison.OrdinalIgnoreCase) &&
+                !IsFoyerScene(sceneName) &&
+                (object)gameManager != null &&
+                !gameManager.IsFoyer &&
+                gameManager.Dungeon != null &&
+                gameManager.Dungeon.data != null;
         }
 
         private void RaiseTransitionDiagnostic(string phase)

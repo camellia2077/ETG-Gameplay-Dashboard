@@ -12,12 +12,17 @@ namespace EtgGameplayDashboard
     {
         private static readonly FieldInfo IsRunningField = AccessTools.Field(typeof(GenericIntroDoer), "m_isRunning");
         private static readonly FieldInfo SkipDelayField = AccessTools.Field(typeof(GenericIntroDoer), "m_singleFrameSkipDelay");
+        private static readonly FieldInfo GatlingGullIsRunningField = AccessTools.Field(typeof(GatlingGullIntroDoer), "m_isRunning");
+        private static readonly FieldInfo GatlingGullPhaseField = AccessTools.Field(typeof(GatlingGullIntroDoer), "m_currentPhase");
         private static ManualLogSource s_logger;
         private static System.Func<bool> s_verboseLoggingEnabledProvider;
+        private static System.Action<bool> s_persistEnabledState;
         private static readonly System.Collections.Generic.HashSet<GenericIntroDoer> ObservedBossIntros =
             new System.Collections.Generic.HashSet<GenericIntroDoer>();
         private static readonly System.Collections.Generic.HashSet<GenericIntroDoer> PendingBossIntros =
             new System.Collections.Generic.HashSet<GenericIntroDoer>();
+        private static readonly System.Collections.Generic.Dictionary<GatlingGullIntroDoer, int> GatlingGullIntroPhases =
+            new System.Collections.Generic.Dictionary<GatlingGullIntroDoer, int>();
 
         public static bool IsEnabled { get; private set; }
 
@@ -29,54 +34,102 @@ namespace EtgGameplayDashboard
         public static bool Toggle()
         {
             IsEnabled = !IsEnabled;
+            if (s_persistEnabledState != null)
+            {
+                s_persistEnabledState(IsEnabled);
+            }
+
             return IsEnabled;
+        }
+
+        public static void Configure(bool initiallyEnabled, System.Action<bool> persistEnabledState)
+        {
+            IsEnabled = initiallyEnabled;
+            s_persistEnabledState = persistEnabledState;
         }
 
         public static void Reset()
         {
             IsEnabled = false;
             s_verboseLoggingEnabledProvider = null;
+            s_persistEnabledState = null;
             ObservedBossIntros.Clear();
             PendingBossIntros.Clear();
+            GatlingGullIntroPhases.Clear();
         }
 
         public static void Install(Harmony harmony, ManualLogSource logger, System.Func<bool> verboseLoggingEnabledProvider)
         {
             s_logger = logger;
             s_verboseLoggingEnabledProvider = verboseLoggingEnabledProvider;
+            if (!InstallGenericIntroHooks(harmony, logger))
+            {
+                return;
+            }
+
+            InstallGatlingGullDiagnosticsHooks(harmony, logger);
+            InstallBossTriggerZoneHook(harmony, logger);
+            if (logger != null)
+            {
+                logger.LogInfo(EtgGameplayDashboardLog.Init("Boss intro skip hook ready: GenericIntroDoer.InvariantUpdate postfix."));
+                logger.LogInfo(EtgGameplayDashboardLog.Init("Boss intro diagnostics hook ready: GatlingGullIntroDoer.TriggerSequence and InvariantUpdate."));
+            }
+        }
+
+        private static bool InstallGenericIntroHooks(Harmony harmony, ManualLogSource logger)
+        {
             MethodInfo target = AccessTools.Method(typeof(GenericIntroDoer), "InvariantUpdate");
             MethodInfo patch = AccessTools.Method(typeof(BossIntroSkipHooks), "InvariantUpdatePostfix");
             MethodInfo enteredTarget = AccessTools.Method(typeof(GenericIntroDoer), "PlayerEntered", new[] { typeof(PlayerController) });
             MethodInfo enteredPatch = AccessTools.Method(typeof(BossIntroSkipHooks), "PlayerEnteredPostfix");
             MethodInfo triggerTarget = AccessTools.Method(typeof(GenericIntroDoer), "TriggerSequence", new[] { typeof(PlayerController) });
             MethodInfo triggerPatch = AccessTools.Method(typeof(BossIntroSkipHooks), "TriggerSequencePostfix");
-            MethodInfo triggerZoneTarget = AccessTools.Method(typeof(BossTriggerZone), "OnTriggerCollision");
-            MethodInfo triggerZonePatch = AccessTools.Method(typeof(BossIntroSkipHooks), "BossTriggerZonePrefix");
-            if (target == null || patch == null || enteredTarget == null || enteredPatch == null || triggerTarget == null || triggerPatch == null || IsRunningField == null || SkipDelayField == null)
+            if (target == null || patch == null || enteredTarget == null || enteredPatch == null ||
+                triggerTarget == null || triggerPatch == null || IsRunningField == null || SkipDelayField == null)
             {
                 if (logger != null)
                 {
                     logger.LogWarning(EtgGameplayDashboardLog.Init("Boss intro skip hook skipped because GenericIntroDoer members were unavailable."));
                 }
 
-                return;
+                return false;
             }
 
             harmony.Patch(target, postfix: new HarmonyMethod(patch));
             harmony.Patch(enteredTarget, postfix: new HarmonyMethod(enteredPatch));
             harmony.Patch(triggerTarget, postfix: new HarmonyMethod(triggerPatch));
-            if (triggerZoneTarget != null && triggerZonePatch != null)
+            return true;
+        }
+
+        private static void InstallGatlingGullDiagnosticsHooks(Harmony harmony, ManualLogSource logger)
+        {
+            MethodInfo target = AccessTools.Method(typeof(GatlingGullIntroDoer), "InvariantUpdate");
+            MethodInfo patch = AccessTools.Method(typeof(BossIntroSkipHooks), "GatlingGullInvariantUpdatePostfix");
+            MethodInfo triggerTarget = AccessTools.Method(typeof(GatlingGullIntroDoer), "TriggerSequence", new[] { typeof(PlayerController) });
+            MethodInfo triggerPatch = AccessTools.Method(typeof(BossIntroSkipHooks), "GatlingGullTriggerSequencePostfix");
+            if (target != null && patch != null && triggerTarget != null && triggerPatch != null &&
+                GatlingGullIsRunningField != null && GatlingGullPhaseField != null)
             {
-                harmony.Patch(triggerZoneTarget, prefix: new HarmonyMethod(triggerZonePatch));
+                harmony.Patch(target, postfix: new HarmonyMethod(patch));
+                harmony.Patch(triggerTarget, postfix: new HarmonyMethod(triggerPatch));
+            }
+            else if (logger != null)
+            {
+                logger.LogWarning(EtgGameplayDashboardLog.Init("Boss intro diagnostics could not hook GatlingGullIntroDoer."));
+            }
+        }
+
+        private static void InstallBossTriggerZoneHook(Harmony harmony, ManualLogSource logger)
+        {
+            MethodInfo target = AccessTools.Method(typeof(BossTriggerZone), "OnTriggerCollision");
+            MethodInfo patch = AccessTools.Method(typeof(BossIntroSkipHooks), "BossTriggerZonePrefix");
+            if (target != null && patch != null)
+            {
+                harmony.Patch(target, prefix: new HarmonyMethod(patch));
             }
             else if (logger != null)
             {
                 logger.LogWarning(EtgGameplayDashboardLog.Init("Boss intro skip could not hook BossTriggerZone."));
-            }
-
-            if (logger != null)
-            {
-                logger.LogInfo(EtgGameplayDashboardLog.Init("Boss intro skip hook ready: GenericIntroDoer.InvariantUpdate postfix."));
             }
         }
 
@@ -98,6 +151,53 @@ namespace EtgGameplayDashboard
         private static void TriggerSequencePostfix(GenericIntroDoer __instance)
         {
             PrepareAndScheduleSkip(__instance, "TriggerSequence");
+        }
+
+        private static void GatlingGullTriggerSequencePostfix(GatlingGullIntroDoer __instance, PlayerController enterer)
+        {
+            if (!IsEnabled || __instance == null || !IsVerboseLoggingEnabled || s_logger == null)
+            {
+                return;
+            }
+
+            s_logger.LogInfo(
+                EtgGameplayDashboardLog.Command(
+                    "Boss intro diagnostic observed GatlingGullIntroDoer.TriggerSequence. " +
+                    "Object=" + __instance.name +
+                    ", Enterer=" + (enterer != null ? enterer.name : "<null>") +
+                    ", Enabled=" + __instance.enabled + "."));
+        }
+
+        private static void GatlingGullInvariantUpdatePostfix(GatlingGullIntroDoer __instance)
+        {
+            if (!IsEnabled || __instance == null || !IsVerboseLoggingEnabled || s_logger == null)
+            {
+                return;
+            }
+
+            if (GatlingGullIsRunningField == null || GatlingGullPhaseField == null)
+            {
+                s_logger.LogWarning(EtgGameplayDashboardLog.Command("Boss intro diagnostic could not read GatlingGullIntroDoer state fields."));
+                return;
+            }
+
+            object isRunningValue = GatlingGullIsRunningField.GetValue(__instance);
+            bool isRunning = isRunningValue is bool && (bool)isRunningValue;
+            int phase = (int)GatlingGullPhaseField.GetValue(__instance);
+            int previousPhase;
+            if (!GatlingGullIntroPhases.TryGetValue(__instance, out previousPhase) || previousPhase != phase)
+            {
+                GatlingGullIntroPhases[__instance] = phase;
+                s_logger.LogInfo(
+                    EtgGameplayDashboardLog.Command(
+                        "Boss intro diagnostic GatlingGullIntroDoer state. " +
+                        "Object=" + __instance.name +
+                        ", IsRunning=" + isRunning +
+                        ", Phase=" + phase +
+                        ", Enabled=" + __instance.enabled +
+                        ", GameIsBossIntro=" + (GameManager.HasInstance && GameManager.IsBossIntro) +
+                        ", PreventPausing=" + (GameManager.HasInstance && GameManager.Instance.PreventPausing) + "."));
+            }
         }
 
         private static void BossTriggerZonePrefix(BossTriggerZone __instance)

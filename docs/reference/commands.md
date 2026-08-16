@@ -137,7 +137,7 @@ the renderer logs `Cursor color shader unavailable` and falls back to the origin
 - `Teleport`
   Opens a separate left-side floor picker. Each row loads one configured floor through the same vanilla level-load route as the console `load_level` flow.
 - `Reveal Map`
-  Toggles the map-reveal feature. `ON` runs the current-floor reveal pass and promotes teleporter-capable rooms toward a usable teleport state; `OFF` stops the feature. `Settings -> Display -> Reveal Map Mode` controls only the scope: `Current Floor` resets to `OFF` after changing floors, while `Every Floor` keeps the feature enabled and runs the same pass when each new floor becomes ready. This is not the same thing as reproducing the exact vanilla minimap-discovery visuals for every room.
+  Toggles the map-reveal feature. `ON` runs the current-floor reveal pass and promotes teleporter-capable rooms toward a usable teleport state; `OFF` stops the feature. If enabled in the foyer, the foyer is revealed immediately and the first true dungeon floor is revealed automatically after it becomes ready. `Settings -> Display -> Reveal Map Mode` controls the dungeon scope: `Current Floor` performs that foyer-triggered reveal only on the first dungeon floor (or resets after a dungeon-floor change when enabled in a dungeon), while `Every Floor` keeps the feature enabled and runs the same pass when each new dungeon floor becomes ready. This is not the same thing as reproducing the exact vanilla minimap-discovery visuals for every room.
 
 ### Pickup Browser
 
@@ -209,7 +209,7 @@ In the `Currency` submenu:
 - `Player -> Character -> Projectiles`
   Contains projectile size, projectile speed, reload speed, and spread controls. Reload speed accepts `0.25x` to `4.0x`; `1.0x` is normal and higher values reload faster. Spread values accept `0` to `999`; higher values increase projectile spread and `0` means no spread.
 - `Player -> Combat`
-  Contains Hold Rapid, Skip Charge, Auto Reload, Ammo Mode, invincibility, plus cycling damage (`1x`, `2x`, `5x`, `10x`, `100x`) and movement-speed (`1x`, `1.5x`, `2x`, `3x`) multipliers. Skip Charge is off by default and causes charged guns to fire at full charge without waiting. Hold Rapid, Auto Reload, and Ammo Mode are restored from the `[Combat]` configuration on the next game launch; other runtime toggles are removed when the plugin is unloaded.
+  Contains Hold Rapid, Skip Charge, Auto Reload, Ammo Mode, invincibility, flight, and the other combat controls. Skip Charge is off by default and causes charged guns to fire at full charge without waiting. Combat toggle selections are persisted under `[Combat]` and restored after scene transitions and plugin restart; one-shot actions such as Full Ammo are not persisted.
 - `Player -> Combat -> Controller Aim Lock`
   Toggles locking controller camera offset while maintaining right-stick aiming. Persisted under `[Combat] ControllerAimLockEnabled`.
 - `Player -> Combat -> Keyboard Aim Assist`
@@ -217,7 +217,7 @@ In the `Currency` submenu:
 - `Player -> Combat -> Enemy HP Bars`
   Reuses Scouter's original health-bar prefab without granting Scouter or its damage/accuracy bonuses; damaging a normal enemy reveals its bar. The toggle state is persisted under `[Combat] EnemyHealthBarsEnabled` and restored on the next game launch.
 - `Player -> Combat -> Skip Boss Intro`
-  This experimental control is disabled until `Settings -> Experimental Mode` is enabled. It uses the existing disabled-control color and is excluded from controller focus and activation while unavailable.
+  This control is available independently of `Settings -> Experimental Mode`. Its enabled state is persisted under `[Combat] BossIntroSkipEnabled`, so returning to the Breach and entering a new run keeps the same state.
 
 ### Room Menu
 

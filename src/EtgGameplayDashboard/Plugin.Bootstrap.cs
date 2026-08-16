@@ -499,6 +499,26 @@ namespace EtgGameplayDashboard
             _configuration.PersistEnemyHealthBarsEnabled(enabled);
         }
 
+        private void PersistBossIntroSkipEnabled(bool enabled)
+        {
+            _configuration.PersistBossIntroSkipEnabled(enabled);
+        }
+
+        private void PersistSkipChargeEnabled(bool enabled)
+        {
+            _configuration.PersistSkipChargeEnabled(enabled);
+        }
+
+        private void PersistInvincibilityEnabled(bool enabled)
+        {
+            _configuration.PersistInvincibilityEnabled(enabled);
+        }
+
+        private void PersistFlightEnabled(bool enabled)
+        {
+            _configuration.PersistFlightEnabled(enabled);
+        }
+
         private void PersistControllerAimLockEnabled(bool enabled)
         {
             _configuration.PersistControllerAimLockEnabled(enabled);

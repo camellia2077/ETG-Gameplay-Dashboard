@@ -268,6 +268,9 @@ namespace EtgGameplayDashboard
 
             if (IsBossRoom(room))
             {
+                // A cleared Boss room leaves vanilla's victory music active. Reset it before
+                // restoring the Boss track, otherwise rewind mixes post-clear and combat music.
+                RestoreBossMusicForReplay(room);
                 // RoomHandler.OnEnemiesCleared invokes HandleRoomClearReward, but vanilla
                 // guards it with m_hasGivenReward after the first boss clear. Re-arm that
                 // state so the replayed boss can generate its normal reward again. The
@@ -721,6 +724,128 @@ namespace EtgGameplayDashboard
                 ", PreviousHasGivenMasteryToken=" + previousMasteryState +
                 ", RestoredHasGivenMasteryToken=" +
                 (snapshot != null && snapshot.HasGivenMasteryToken) + ".");
+        }
+
+        private void RestoreBossMusicForReplay(RoomHandler room)
+        {
+            GameManager gameManager = GameManager.Instance;
+            DungeonFloorMusicController musicController = gameManager != null
+                ? gameManager.DungeonMusicController
+                : null;
+            if (musicController == null)
+            {
+                LogWarning("Could not restore Boss music for replay because the dungeon music controller is unavailable. Room=" + GetRoomLabel(room) + ".");
+                return;
+            }
+
+            AIActor boss = null;
+            GenericIntroDoer intro = null;
+            if (!TryFindBossMusicSource(room, out boss, out intro))
+            {
+                LogWarning("Could not restore Boss music for replay because no active Boss was found. Room=" + GetRoomLabel(room) + ".");
+                return;
+            }
+
+            // HealthHaver.EndBossState calls EndBossMusic when the original Boss dies.
+            // That leaves DungeonFloorMusicController in its victory/override state. The
+            // replay skips GenericIntroDoer.FrameDelayedTriggerSequence, which is the
+            // vanilla call site for SwitchToBossMusic, so explicitly reset that state and
+            // replay the same Boss music selection here.
+            musicController.EndVictoryMusic();
+
+            string bossMusicEvent;
+            bool usedSpecificIntroOverride;
+            if (!TryResolveBossMusicEvent(boss, intro, out bossMusicEvent, out usedSpecificIntroOverride))
+            {
+                Log(
+                    "Cleared stale Boss victory music for replay. Room=" + GetRoomLabel(room) +
+                    ", Boss=" + boss.EnemyGuid +
+                    ", BossMusicRestored=False" +
+                    ", PreventBossMusic=" + (intro != null && intro.PreventBossMusic) + ".");
+                return;
+            }
+
+            musicController.SwitchToBossMusic(bossMusicEvent, boss.gameObject);
+            Log(
+                "Restored Boss music for replay. Room=" + GetRoomLabel(room) +
+                ", Boss=" + boss.EnemyGuid +
+                ", BossMusicEvent=" + bossMusicEvent +
+                ", UsedSpecificIntroOverride=" +
+                usedSpecificIntroOverride + ".");
+        }
+
+        private static bool TryFindBossMusicSource(
+            RoomHandler room,
+            out AIActor boss,
+            out GenericIntroDoer intro)
+        {
+            boss = null;
+            intro = null;
+            List<AIActor> activeEnemies = room != null
+                ? room.GetActiveEnemies(RoomHandler.ActiveEnemyType.All)
+                : null;
+            if (activeEnemies == null)
+            {
+                return false;
+            }
+
+            AIActor firstBoss = null;
+            GenericIntroDoer firstMusicIntro = null;
+            AIActor firstMusicBoss = null;
+            for (int index = 0; index < activeEnemies.Count; index++)
+            {
+                AIActor candidate = activeEnemies[index];
+                if ((object)candidate == null || candidate.healthHaver == null || !candidate.healthHaver.IsBoss)
+                {
+                    continue;
+                }
+
+                if (firstBoss == null)
+                {
+                    firstBoss = candidate;
+                }
+
+                GenericIntroDoer candidateIntro = candidate.GetComponent<GenericIntroDoer>();
+                if (firstMusicIntro == null && candidateIntro != null && !candidateIntro.PreventBossMusic)
+                {
+                    firstMusicBoss = candidate;
+                    firstMusicIntro = candidateIntro;
+                }
+            }
+
+            boss = firstMusicBoss ?? firstBoss;
+            intro = firstMusicIntro ?? (boss != null ? boss.GetComponent<GenericIntroDoer>() : null);
+            return boss != null;
+        }
+
+        private static bool TryResolveBossMusicEvent(
+            AIActor boss,
+            GenericIntroDoer intro,
+            out string bossMusicEvent,
+            out bool usedSpecificIntroOverride)
+        {
+            bossMusicEvent = string.Empty;
+            usedSpecificIntroOverride = false;
+            if (boss == null || intro == null || intro.PreventBossMusic)
+            {
+                return false;
+            }
+
+            bossMusicEvent = intro.BossMusicEvent;
+            SpecificIntroDoer specificIntro = boss.GetComponent<SpecificIntroDoer>();
+            string specificMusicEvent = specificIntro != null ? specificIntro.OverrideBossMusicEvent : null;
+            if (!string.IsNullOrEmpty(specificMusicEvent))
+            {
+                bossMusicEvent = specificMusicEvent;
+                usedSpecificIntroOverride = true;
+            }
+
+            if (string.IsNullOrEmpty(bossMusicEvent))
+            {
+                bossMusicEvent = "Play_MUS_Boss_Theme_Beholster";
+            }
+
+            return true;
         }
 
         private bool IsReplaying(RoomHandler room)

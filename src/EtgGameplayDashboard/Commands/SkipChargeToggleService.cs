@@ -8,6 +8,12 @@ namespace EtgGameplayDashboard
     internal sealed class SkipChargeToggleService
     {
         private readonly HashSet<PlayerController> _enabledPlayers = new HashSet<PlayerController>();
+        private readonly PersistedPlayerToggleState _persistedState;
+
+        public SkipChargeToggleService(bool initiallyEnabled, System.Action<bool> persistEnabledState)
+        {
+            _persistedState = new PersistedPlayerToggleState(initiallyEnabled, persistEnabledState);
+        }
 
         public bool Toggle(PlayerController player)
         {
@@ -21,7 +27,10 @@ namespace EtgGameplayDashboard
                 _enabledPlayers.Remove(player);
             }
 
-            return IsEnabledFor(player);
+            bool enabled = IsEnabledFor(player);
+            _persistedState.Set(_enabledPlayers.Count > 0);
+
+            return enabled;
         }
 
         public bool IsEnabledFor(PlayerController player)
@@ -29,9 +38,23 @@ namespace EtgGameplayDashboard
             return (object)player != null && _enabledPlayers.Contains(player);
         }
 
+        public void Update(PlayerController player)
+        {
+            if (_persistedState.IsEnabled && IsPlayerUsable(player))
+            {
+                _enabledPlayers.Add(player);
+            }
+        }
+
         public void Reset()
         {
             _enabledPlayers.Clear();
+        }
+
+        private static bool IsPlayerUsable(PlayerController player)
+        {
+            return (object)player != null && player != null &&
+                (object)player.gameObject != null && player.gameObject != null;
         }
 
         public void PrepareGunForSkipCharge(Gun gun)

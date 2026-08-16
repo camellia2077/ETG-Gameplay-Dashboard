@@ -69,6 +69,7 @@ namespace EtgGameplayDashboard
 
         private void ExecuteTeleport(TeleportOption option, ManualLogSource logger)
         {
+            LogMapRevealTeleportLifecycle("teleport_requested");
             LogTeleportInfo(
                 logger,
                 "Teleport requested. Token=" +
@@ -84,7 +85,11 @@ namespace EtgGameplayDashboard
             if (executionResult.Succeeded)
             {
                 _inputText = option.CommandText;
-                ClearMapFeatureActivationState();
+                LogMapRevealTeleportLifecycle("teleport_succeeded_before_map_state_clear");
+                // Preserve a foyer-armed Reveal Map request across teleport. The
+                // generic cleanup would otherwise discard it before floor loading.
+                ClearMapFeatureActivationStateForTeleport();
+                LogMapRevealTeleportLifecycle("teleport_succeeded_after_map_state_clear");
                 Close();
             }
 

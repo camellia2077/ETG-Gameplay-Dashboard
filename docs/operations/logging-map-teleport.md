@@ -38,6 +38,7 @@ Typical useful lines include:
 - `Map direct teleport room transition`
 - `Map direct teleport runtime sample`
 - `Map reveal transition diagnostic`
+- `Map reveal teleport lifecycle` (records map state before General -> Teleport, after teleport succeeds, and after teleport cleanup)
 - `Room map teleport eligibility` (always logged at rewind setup, Boss/room clear-reward completion, and replay completion; includes `CanTeleportFromRoom`, `IsSealed`, and active-enemy counts)
 - `Floor map teleporter state` (always logged before replay snapshots are cleared and after a new floor finishes loading; includes room counts, minimap registration count, active teleporter count, revealed-room count, and per-room registration/activation state)
 - `Minimap teleport attempt` (always logged from the game's private map-click entry; includes the selected target room, target eligibility, icon registration/activation, global teleport prevention, and whether the game accepted the attempt)
@@ -62,12 +63,13 @@ Failure-oriented warnings still remain visible, such as:
 ## Typical Workflow
 
 1. Set `EnableMapTeleportVerboseLogs = true` and restart the game.
-2. Set `Settings -> Display -> Reveal Map Mode` to `Every Floor`.
-3. Turn `Reveal Map` ON on a floor before using the in-game stairs/elevator to move to the next floor.
-4. Reproduce the stuck-elevator issue once, then stop; do not repeat the action while collecting the same log.
-5. Compare the `Map reveal transition diagnostic` lines around `floor_scene_changed_before_reset`, `auto_reveal_before_request`, and `auto_reveal_completed`.
-6. Pay particular attention to whether `PlayerPosition`/`CurrentRoom` changes before or after `auto_reveal_completed`, and whether `DungeonReady`/`MinimapHasInstance` became true before the automatic reveal ran.
-7. In `PlayerInputOverridden`/`PlayerInputState`, check whether vanilla still owns the player transition. In `ElevatorTransitionObjects`, check whether elevator/stair/entrance objects exist, are active, and expose an FSM state during the same frames.
+2. Set `Settings -> Display -> Reveal Map Mode` to `Current Floor`.
+3. In the foyer, turn `Reveal Map` ON and confirm the foyer map is revealed.
+4. Open `General -> Teleport` and select the first floor.
+5. Reproduce the failure once, then stop; do not repeat the action while collecting the same log.
+6. Capture the lines `Map reveal teleport lifecycle` for `teleport_requested`, `teleport_succeeded_before_map_state_clear`, and `teleport_succeeded_after_map_state_clear`.
+7. Also capture the surrounding `Map reveal transition diagnostic` lines, especially `floor_scene_changed_before_reset`, `auto_reveal_before_request`, and `auto_reveal_completed`.
+8. Pay particular attention to whether `PendingDungeonReveal` changes during teleport, whether the destination scene becomes a dungeon scene, and whether `DungeonReady`/`MinimapHasInstance` become true before the automatic reveal runs.
 
 Automatic Reveal Map waits for a non-null `CurrentRoom` to remain stable for 10 frames and for vanilla player control to be restored (`PlayerInputOverridden=false`, `PlayerInputState=AllInput`) before running. `CurrentRoom` can become valid while the elevator arrival sequence is still holding the player in `NoInput`, so the input state is part of the readiness gate.
 

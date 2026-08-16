@@ -320,6 +320,14 @@ turning the page off writes `CursorColorEnabled=false`. Turning it back on selec
 plugin restores the toggle on startup and attaches the health-bar behavior once a player is ready. Toggling the control in the panel
 updates and saves this value immediately.
 
+`Combat.BossIntroSkipEnabled` persists the `Player -> Combat -> Skip Boss Intro` toggle. It defaults to `false`; when set to `true`,
+the plugin restores the toggle when returning to the Breach and when entering a new run. Toggling the control in the panel updates and
+saves this value immediately.
+
+`Combat.SkipChargeEnabled`, `Combat.InvincibilityEnabled`, and `Combat.FlightEnabled` persist the corresponding `Player -> Combat`
+toggles. They default to `false`; when set to `true`, the plugin restores the behavior for the current player after a scene transition
+or plugin restart. Toggling any of these controls updates and saves its value immediately.
+
 `Combat.ControllerAimLockEnabled` persists the `Player -> Combat -> Controller Aim Lock` toggle. It defaults to `false`; when set to
 `true`, the plugin restores the toggle on startup. Toggling the control in the panel updates and saves this value immediately. The
 setting suppresses only controller camera aim-look; right-stick character and gun aiming remains vanilla, and keyboard/mouse camera

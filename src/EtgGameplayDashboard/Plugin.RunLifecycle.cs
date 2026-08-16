@@ -109,6 +109,11 @@ namespace EtgGameplayDashboard
                 LogPerformanceStep("InvincibilityToggleService.Update", startedAtTimestamp);
             }
 
+            if (_skipChargeToggleService != null)
+            {
+                _skipChargeToggleService.Update(player);
+            }
+
             if (_playerFlightToggleService != null)
             {
                 long startedAtTimestamp = BeginPerformanceSample();

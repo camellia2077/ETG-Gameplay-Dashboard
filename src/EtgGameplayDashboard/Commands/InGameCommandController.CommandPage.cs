@@ -648,6 +648,13 @@ namespace EtgGameplayDashboard
                 : GetLocalizedFallback("gui.command.status.off", "OFF", "\u5173");
         }
 
+        private static string GetBossIntroSkipStatusLabel(bool isEnabled)
+        {
+            return isEnabled
+                ? GetLocalizedFallback("gui.command.status.boss_intro_skip", "Skip", "跳过")
+                : GetLocalizedFallback("gui.command.status.boss_intro_play", "Do Not Skip", "不跳过");
+        }
+
         private static string GetNoConsumeActionLabel(bool isEnabled)
         {
             return isEnabled
