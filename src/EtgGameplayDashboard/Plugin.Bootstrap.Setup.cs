@@ -103,7 +103,7 @@ namespace EtgGameplayDashboard
                 Logger.LogWarning(EtgGameplayDashboardLog.Init(pickupGameplayWarning));
             }
 
-            _nearbyPickupTipService = new NearbyPickupTipService(_pickupGameplayRegistry, Logger, IsNearbyPickupVerboseLoggingEnabled, IsPickupInfoOverlayEnabled);
+            _nearbyPickupTipService = new NearbyPickupTipService(_pickupGameplayRegistry, _pickupResolver, Logger, IsNearbyPickupVerboseLoggingEnabled, IsPickupInfoOverlayEnabled);
             _rapidFireToggleService = new RapidFireToggleService(
                 _configuration.RapidFireEnabledConfig.Value,
                 PersistRapidFireEnabled);

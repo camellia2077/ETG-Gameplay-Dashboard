@@ -9,13 +9,22 @@ namespace EtgGameplayDashboard
 {
     internal sealed partial class InGameCommandController
     {
+        public void EnsureGooptonActiveOnFoyerLoad()
+        {
+            if (_roomDebugCommandService != null)
+            {
+                _roomDebugCommandService.EnsureGooptonActiveOnFoyerLoad();
+            }
+        }
+
         private static readonly ControllerFocusEntry[] RoomSectionCommandPageFocusEntries =
         {
             new ControllerFocusEntry("cmd.room.section.chest", 2, 0),
             new ControllerFocusEntry("cmd.room.section.neutral", 2, 1),
-            new ControllerFocusEntry("cmd.room.section.enemies", 2, 2),
-            new ControllerFocusEntry("cmd.room.section.rewind", 2, 3),
-            new ControllerFocusEntry("cmd.room.section.boss", 2, 4),
+            new ControllerFocusEntry("cmd.room.section.npc", 2, 2),
+            new ControllerFocusEntry("cmd.room.section.enemies", 2, 3),
+            new ControllerFocusEntry("cmd.room.section.rewind", 2, 4),
+            new ControllerFocusEntry("cmd.room.section.boss", 2, 5),
         };
 
         private static readonly ControllerFocusEntry[] RoomChestCommandPageFocusEntries =
@@ -33,6 +42,13 @@ namespace EtgGameplayDashboard
         {
             new ControllerFocusEntry("cmd.room.spawn_gunber_muncher", 3, 0),
             new ControllerFocusEntry("cmd.room.spawn_evil_muncher", 3, 1),
+        };
+
+        private static readonly ControllerFocusEntry[] RoomNpcCommandPageFocusEntries =
+        {
+            new ControllerFocusEntry("cmd.room.unlock_cadence_ox", 3, 0),
+            new ControllerFocusEntry("cmd.room.unlock_goopton", 3, 1),
+            new ControllerFocusEntry("cmd.room.unlock_doug", 3, 2),
         };
 
         private static readonly ControllerFocusEntry[] RoomRewindCommandPageFocusEntries =
@@ -69,11 +85,13 @@ namespace EtgGameplayDashboard
             const float sectionButtonHeight = 28f;
             Rect chestSectionRect = new Rect(contentRect.x, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect neutralSectionRect = new Rect(chestSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
-            Rect enemiesSectionRect = new Rect(neutralSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
+            Rect npcSectionRect = new Rect(neutralSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
+            Rect enemiesSectionRect = new Rect(npcSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect rewindSectionRect = new Rect(enemiesSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             Rect bossSectionRect = new Rect(rewindSectionRect.xMax + 2f, contentRect.y, sectionButtonWidth, sectionButtonHeight);
             DrawRoomSectionButton(chestSectionRect, "cmd.room.section.chest", RoomMenuSection.Chest, GetLocalizedFallback("gui.room.section.chest", "Chest", "宝箱"));
             DrawRoomSectionButton(neutralSectionRect, "cmd.room.section.neutral", RoomMenuSection.Neutral, GetLocalizedFallback("gui.room.section.neutral", "Neutral", "中立生物"));
+            DrawRoomSectionButton(npcSectionRect, "cmd.room.section.npc", RoomMenuSection.Npc, GetLocalizedFallback("gui.room.section.npc", "NPC", "NPC"));
             DrawRoomSectionButton(enemiesSectionRect, "cmd.room.section.enemies", RoomMenuSection.Enemies, GetLocalizedFallback("gui.room.section.enemies", "Enemies", "怪物"));
             DrawRoomSectionButton(rewindSectionRect, "cmd.room.section.rewind", RoomMenuSection.Rewind, GetLocalizedFallback("gui.room.section.rewind", "Rewind", "回溯"));
             DrawRoomSectionButton(bossSectionRect, "cmd.room.section.boss", RoomMenuSection.Boss, GetLocalizedFallback("gui.room.section.boss", "Boss", "Boss"));
@@ -83,6 +101,9 @@ namespace EtgGameplayDashboard
             {
                 case RoomMenuSection.Neutral:
                     DrawRoomNeutralSection(sectionContentRect, buttonWidth, controlHeight, player, logger);
+                    return;
+                case RoomMenuSection.Npc:
+                    DrawRoomNpcSection(sectionContentRect, buttonWidth, controlHeight, player, logger);
                     return;
                 case RoomMenuSection.Enemies:
                     DrawRoomPlaceholderSection(
@@ -583,6 +604,52 @@ namespace EtgGameplayDashboard
             }
         }
 
+        private void DrawRoomNpcSection(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
+        {
+            float secondColumnX = contentRect.x + buttonWidth + ButtonGap;
+            float thirdColumnX = secondColumnX + buttonWidth + ButtonGap;
+            GUI.Label(
+                new Rect(contentRect.x, contentRect.y, contentRect.width, 20f),
+                GetLocalizedFallback("gui.room.npc.title", "NPC", "NPC"),
+                _hintStyle);
+            GUI.Label(
+                new Rect(contentRect.x, contentRect.y + 24f, contentRect.width, 36f),
+                GetLocalizedFallback(
+                    "gui.room.npc.hint",
+                    "Unlock NPCs in the Breach by setting their vanilla foyer flags.",
+                    "通过设置游戏原版裂隙标记来解锁 NPC。"),
+                _wrappedHintStyle);
+
+            float buttonY = contentRect.y + 78f;
+            if (DrawControllerButton(
+                new Rect(contentRect.x, buttonY, buttonWidth, controlHeight),
+                "cmd.room.unlock_cadence_ox",
+                GetLocalizedFallback("gui.room.button.unlock_cadence_ox", "Cadence & Ox", "牛津与卡登"),
+                _buttonStyle))
+            {
+                ExecuteUnlockCadenceOx(logger);
+            }
+
+            if (DrawControllerButton(
+                new Rect(secondColumnX, buttonY, buttonWidth, controlHeight),
+                "cmd.room.unlock_goopton",
+                GetLocalizedFallback("gui.room.button.unlock_goopton", "Professor Goopton", "古普顿教授"),
+                _buttonStyle))
+            {
+                ExecuteUnlockGoopton(logger);
+            }
+
+            if (DrawControllerButton(
+                new Rect(thirdColumnX, buttonY, buttonWidth, controlHeight),
+                "cmd.room.unlock_doug",
+                GetLocalizedFallback("gui.room.button.unlock_doug", "Doug", "道格"),
+                _buttonStyle))
+            {
+                ExecuteUnlockDoug(logger);
+            }
+
+        }
+
         private void DrawRoomBossSection(Rect contentRect, float buttonWidth, float controlHeight, PlayerController player, ManualLogSource logger)
         {
             long drawStartedAtTimestamp = BeginBossSelectionPagePerformanceStage();
@@ -746,6 +813,13 @@ namespace EtgGameplayDashboard
                     RoomNeutralCommandPageFocusEntries);
             }
 
+            if (_roomMenuSection == RoomMenuSection.Npc)
+            {
+                return BuildCommandPageFocusEntries(
+                    sectionFocusEntries,
+                    RoomNpcCommandPageFocusEntries);
+            }
+
             if (_roomMenuSection == RoomMenuSection.Rewind)
             {
                 bool recordingEnabled = _roomDebugCommandService != null && _roomDebugCommandService.IsRoomEnemyRefreshRecordingEnabled;
@@ -824,6 +898,9 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.room.enemy_refresh_execute", delegate { ExecuteSelectedRoomEnemyRefresh(player, null); }),
                 new CommandPageActionBinding("cmd.room.spawn_gunber_muncher", delegate { ExecuteSpawnGunberMuncher(player, null); }),
                 new CommandPageActionBinding("cmd.room.spawn_evil_muncher", delegate { ExecuteSpawnEvilMuncher(player, null); }),
+                new CommandPageActionBinding("cmd.room.unlock_cadence_ox", delegate { ExecuteUnlockCadenceOx(null); }),
+                new CommandPageActionBinding("cmd.room.unlock_goopton", delegate { ExecuteUnlockGoopton(null); }),
+                new CommandPageActionBinding("cmd.room.unlock_doug", delegate { ExecuteUnlockDoug(null); }),
             };
         }
 
@@ -1014,6 +1091,21 @@ namespace EtgGameplayDashboard
         private void ExecuteSpawnEvilMuncher(PlayerController player, ManualLogSource logger)
         {
             ShowRoomActionResult(_roomDebugCommandService.SpawnEvilMuncher(player, logger), logger);
+        }
+
+        private void ExecuteUnlockCadenceOx(ManualLogSource logger)
+        {
+            ShowRoomActionResult(_roomDebugCommandService.UnlockCadenceOx(), logger);
+        }
+
+        private void ExecuteUnlockGoopton(ManualLogSource logger)
+        {
+            ShowRoomActionResult(_roomDebugCommandService.UnlockGoopton(), logger);
+        }
+
+        private void ExecuteUnlockDoug(ManualLogSource logger)
+        {
+            ShowRoomActionResult(_roomDebugCommandService.UnlockDoug(), logger);
         }
 
         private void ShowRoomActionResult(GrantCommandExecutionResult executionResult, ManualLogSource logger)

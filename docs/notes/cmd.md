@@ -7,6 +7,10 @@ python .\tools\deploy\deploy_mod.py "C:\Game\steam\steamapps\common\Enter the Gu
 
 ## Release
 
+- 不覆盖配置
+python .\tools\deploy\deploy_mod.py "C:\Game\steam\steamapps\common\Enter the Gungeon" --configuration Release
+
+- 覆盖配置
 python .\tools\deploy\deploy_mod.py "C:\Game\steam\steamapps\common\Enter the Gungeon" --configuration Release --overwrite-config
 
 

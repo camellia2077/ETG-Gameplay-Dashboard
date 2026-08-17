@@ -18,6 +18,9 @@ namespace EtgGameplayDashboard
         private const string GameUiAtlasSpriteCasingsPickup = "ui_coin_idle_002";
         private const string GameUiAtlasSpriteHegemonyPickup = "hbux_text_icon";
 
+        // Cell Keys use the CellKey prefab's tk2dSprite instead of a GameUIAtlas icon.
+        // Their pickup row resolves the live pickup sprite by PickupObjectId.
+
         private static string GetStartItemPickupSpriteName(string pickupType)
         {
             switch (StartItemPickupCatalog.NormalizeType(pickupType))

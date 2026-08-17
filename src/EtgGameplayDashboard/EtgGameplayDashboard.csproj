@@ -231,6 +231,7 @@
     <Compile Include="Commands\RoomDebugCommandService.BossSelection.cs" />
     <Compile Include="Commands\RoomDebugCommandService.Map.cs" />
     <Compile Include="Commands\RoomDebugCommandService.Helpers.cs" />
+    <Compile Include="Commands\RoomDebugCommandService.Npc.cs" />
     <Compile Include="Commands\LoadoutPresetEditorEntry.cs" />
     <Compile Include="Commands\LoadoutPresetEditorEntryBuilder.cs" />
     <Compile Include="Commands\LoadoutPresetDeck.cs" />

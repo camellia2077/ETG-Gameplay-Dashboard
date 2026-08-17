@@ -133,7 +133,15 @@ namespace EtgGameplayDashboard
                         return 9;
                     }
 
-                    return (_characterMenuSection == CharacterMenuSection.Stats || _characterMenuSection == CharacterMenuSection.Projectiles) ? 6 : 10;
+                    if (_characterMenuSection == CharacterMenuSection.Pickups)
+                    {
+                        // This is the total command-layout row budget, not the number
+                        // of pickup rows. Player -> Pickups gained Hegemony and Cell
+                        // Key, so reserve one additional layout row for the footer.
+                        return 11;
+                    }
+
+                    return 6;
                 case CommandMenuCategory.Room:
                     return GetRoomCommandPageRowCount();
                 case CommandMenuCategory.General:

@@ -13,6 +13,7 @@ namespace EtgGameplayDashboard
         // implementation scanned every 0.15s and caused visible hitches in non-combat
         // rooms, especially around loot-heavy or shop-heavy scenes.
         private readonly PickupGameplayRegistry _gameplayRegistry;
+        private readonly EtgPickupResolver _pickupResolver;
         private readonly ManualLogSource _logger;
         private readonly System.Func<bool> _verboseLoggingEnabledProvider;
         private readonly System.Func<bool> _overlayEnabledProvider;
@@ -21,11 +22,13 @@ namespace EtgGameplayDashboard
 
         public NearbyPickupTipService(
             PickupGameplayRegistry gameplayRegistry,
+            EtgPickupResolver pickupResolver,
             ManualLogSource logger,
             System.Func<bool> verboseLoggingEnabledProvider,
             System.Func<bool> overlayEnabledProvider)
         {
             _gameplayRegistry = gameplayRegistry ?? PickupGameplayRegistry.Empty;
+            _pickupResolver = pickupResolver;
             _logger = logger;
             _verboseLoggingEnabledProvider = verboseLoggingEnabledProvider;
             _overlayEnabledProvider = overlayEnabledProvider;
@@ -89,7 +92,23 @@ namespace EtgGameplayDashboard
                 return;
             }
 
-            ShowTip(shopItem, shopItem.item, "shop_item");
+            // The Breach meta shop displays ItemBlueprintItem instances. Vanilla copies
+            // the target item's journal data onto that blueprint, but the blueprint keeps
+            // its own PickupObjectId. Resolving the blueprint as a normal pickup therefore
+            // associates the overlay with the generic blueprint entry instead of the item
+            // actually being sold.
+            PickupObject displayedPickup = _pickupResolver != null
+                ? _pickupResolver.ResolveShopDisplayPickup(shopItem, LogInfo)
+                : shopItem.item;
+            LogInfo(
+                "Shop item display resolution: ShopInstanceId=" + shopItem.GetInstanceID() +
+                ", ShopItemType=" + shopItem.item.GetType().Name +
+                ", ShopItemId=" + shopItem.item.PickupObjectId +
+                ", ResolvedType=" + (displayedPickup != null ? displayedPickup.GetType().Name : "<null>") +
+                ", ResolvedPickupId=" + (displayedPickup != null ? displayedPickup.PickupObjectId.ToString() : "<null>") +
+                ", ResolvedLabel=" + Quote(displayedPickup != null ? GetPickupLabelForGameLanguage(displayedPickup) : string.Empty) +
+                ".");
+            ShowTip(shopItem, displayedPickup, "shop_item");
         }
 
         public void HandleShopItemExitedRange(ShopItemController shopItem)
@@ -199,6 +218,10 @@ namespace EtgGameplayDashboard
 
         private void ClearDestroyedVisibleSourceIfNeeded()
         {
+            // Both null checks are intentional: the cast bypasses Unity's overloaded
+            // null operator, while the second check recognizes a live Unity object.
+            // Only a non-null C# reference that Unity considers null (a destroyed object)
+            // reaches the cleanup below.
             if (!HasVisibleTip || (object)_currentRangeSource == null || _currentRangeSource != null)
             {
                 return;

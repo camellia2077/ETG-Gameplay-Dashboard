@@ -17,6 +17,8 @@ namespace EtgGameplayDashboard
         private const int KeyPickupId = 67;
         private const int BlankPickupId = 224;
         private const int RatKeyPickupId = 727;
+        private const int PickupDatabaseScanLimit = 2048;
+        private static int s_cellKeyPickupId = -2;
         private const float CurrencySpawnDistance = 3f;
         // Run currency (casings): drops during dungeon runs and is consumed in-run.
         private const int CurrencyBundleAmount = 100;
@@ -222,6 +224,37 @@ namespace EtgGameplayDashboard
                 "result.debug.spawn_rat_key.success");
         }
 
+        public static int FindCellKeyPickupId()
+        {
+            if (s_cellKeyPickupId >= -1)
+            {
+                return s_cellKeyPickupId;
+            }
+
+            for (int pickupId = 0; pickupId < PickupDatabaseScanLimit; pickupId++)
+            {
+                PickupObject pickup = PickupObjectDatabase.GetById(pickupId);
+                if ((object)pickup != null && pickup is NPCCellKeyItem)
+                {
+                    s_cellKeyPickupId = pickupId;
+                    return pickupId;
+                }
+            }
+
+            s_cellKeyPickupId = -1;
+            return -1;
+        }
+
+        public static GrantCommandExecutionResult SpawnCellKeyNearPlayer(PlayerController player)
+        {
+            return SpawnPickupNearPlayer(
+                player,
+                FindCellKeyPickupId(),
+                "result.debug.spawn_cell_key.unavailable",
+                "result.debug.spawn_cell_key.failed",
+                "result.debug.spawn_cell_key.success");
+        }
+
         public static GrantCommandExecutionResult SpawnCurrencyNearPlayer(PlayerController player)
         {
             if ((object)player == null)
@@ -362,6 +395,49 @@ namespace EtgGameplayDashboard
 
             consumables.ResourcefulRatKeys = consumables.ResourcefulRatKeys + SingleKeyAmount;
             return GrantCommandExecutionResult.Localized(true, "result.debug.add_rat_key.success");
+        }
+
+        public static GrantCommandExecutionResult AddCellKey(PlayerController player)
+        {
+            if ((object)player == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.common.player_not_ready");
+            }
+
+            PickupObject pickup = PickupObjectDatabase.GetById(FindCellKeyPickupId());
+            if ((object)pickup == null || (object)pickup.gameObject == null)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.debug.add_cell_key.unavailable");
+            }
+
+            try
+            {
+                DebrisObject spawnedPickup = LootEngine.SpawnItem(
+                    pickup.gameObject,
+                    player.CenterPosition,
+                    Vector2.right,
+                    0f,
+                    false,
+                    true,
+                    false);
+                NPCCellKeyItem cellKey = spawnedPickup != null ? spawnedPickup.GetComponent<NPCCellKeyItem>() : null;
+                if ((object)cellKey == null)
+                {
+                    if ((object)spawnedPickup != null)
+                    {
+                        Object.Destroy(spawnedPickup.gameObject);
+                    }
+
+                    return GrantCommandExecutionResult.Localized(false, "result.debug.add_cell_key.failed");
+                }
+
+                cellKey.Pickup(player);
+                return GrantCommandExecutionResult.Localized(true, "result.debug.add_cell_key.success");
+            }
+            catch (System.Exception)
+            {
+                return GrantCommandExecutionResult.Localized(false, "result.debug.add_cell_key.failed");
+            }
         }
 
         public static GrantCommandExecutionResult AddCurrency(PlayerController player)

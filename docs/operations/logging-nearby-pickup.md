@@ -33,6 +33,11 @@ Current nearby-pickup diagnostics include:
   - dropped pickups
   - shop items
   - reward pedestals
+- blueprint-resolution traces when the slot mapping cannot be used, including the
+  blueprint ID, copied journal metadata, candidate pickup IDs, field-by-field match
+  results, and the final resolved pickup
+- Breach NPC shop slot-resolution traces, including the shop type, live
+  spawn-position slot, merchant subtype, and pickup ID read from the current stock list
 - dropped-pickup enter-range, exit-range, and consumed callback traces, including pickup type, ID, and Unity instance ID
 - a fallback-clear warning when a visible tip's Unity range source has been destroyed without a matching consumed or exit-range callback; the service clears the tip immediately
 
@@ -41,9 +46,34 @@ Current nearby-pickup diagnostics include:
 Use these to narrow the failure:
 
 - stand near a normal dropped pickup in a combat room
-- stand near an unpurchased shop item in Bello's shop
+- stand near an unpurchased item in Cadence & Ox's Breach shop
+- stand near an unpurchased item in Doug's Breach shop when Doug is present
+- stand near an unpurchased item in Professor Goopton's Breach shop
 - stand near a boss reward pedestal item before picking it up
 - compare a nearby item that does show overlay info with one that does not
+
+## Breach NPC Shop Resolution
+
+Cadence & Ox, Doug, and Professor Goopton all use a `BaseShopController` configured as
+`FOYER_META`. Each visible item is an `ItemBlueprintItem` wrapper whose copied journal
+metadata can match multiple real pickups, including normal and synergy variants. The
+blueprint's own `PickupObjectId` is therefore not the item identity.
+
+The authoritative item is the live entry in the shop controller's `m_shopItems` list.
+`IsBeetleMerchant` is logged for diagnostics only; it is not used to select this path.
+
+1. Verify the parent shop is a foyer-meta `BaseShopController`.
+2. Match the visible `ShopItemController` parent transform to the shop's
+   `spawnPositions` array.
+3. Read `m_shopItems[slotIndex]` and resolve its `PickupObject`.
+
+This is intentionally slot-based rather than position-name-based. Shop stock can
+change or be rebuilt, so the same visual position is not a permanent item identity.
+The `Foyer meta shop slot mapping` verbose log records the shop type, merchant subtype,
+slot index, and live target pickup ID.
+
+The resolver still retains a compatibility path for other ETG `MetaShopController`
+shops, but the three Breach NPC shops use this `m_shopItems` slot mapping.
 
 ## Lines To Watch
 
@@ -64,6 +94,9 @@ Useful failure clues include:
 - `Loaded pickup gameplay info v2 from '...' (0 entries).`
 - `Nearby pickup entered range but gameplay entry was not found. Source=...`
 - `Nearby pickup overlay had a visible tip source, but no gameplay entry was resolved for rendering.`
+- `Blueprint resolution result: MatchCount=...`
+- `Meta shop slot mapping: ControllerIndex=..., Tier=..., SlotIndex=..., TargetPickupId=...`
+- `Foyer meta shop slot mapping: ShopType=..., IsBeetleMerchant=..., SlotIndex=..., TargetPickupId=..., TargetType=...`
 
 Interpretation hints:
 

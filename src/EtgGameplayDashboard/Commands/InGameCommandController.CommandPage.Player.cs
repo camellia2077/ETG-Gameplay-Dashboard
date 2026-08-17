@@ -36,15 +36,19 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry("cmd.player.add_blank", 7, 0),
             new ControllerFocusEntry("cmd.player.blank_no_consume", 7, 1),
             new ControllerFocusEntry("cmd.player.spawn_blank", 7, 2),
-            new ControllerFocusEntry("cmd.player.add_key", 8, 0),
-            new ControllerFocusEntry("cmd.player.key_no_consume", 8, 1),
-            new ControllerFocusEntry("cmd.player.spawn_key", 8, 2),
-            new ControllerFocusEntry("cmd.player.add_rat_key", 9, 0),
-            new ControllerFocusEntry("cmd.player.spawn_rat_key", 9, 1),
-            new ControllerFocusEntry("cmd.player.add_currency_large", 10, 0),
-            new ControllerFocusEntry("cmd.player.currency_no_consume", 10, 1),
-            new ControllerFocusEntry("cmd.player.clear_currency", 10, 2),
-            new ControllerFocusEntry("cmd.player.spawn_currency", 10, 3),
+            new ControllerFocusEntry("cmd.player.add_currency_large", 8, 0),
+            new ControllerFocusEntry("cmd.player.currency_no_consume", 8, 1),
+            new ControllerFocusEntry("cmd.player.clear_currency", 8, 2),
+            new ControllerFocusEntry("cmd.player.spawn_currency", 8, 3),
+            new ControllerFocusEntry("cmd.player.add_hegemony", 9, 0),
+            new ControllerFocusEntry("cmd.player.clear_hegemony", 9, 1),
+            new ControllerFocusEntry("cmd.player.add_key", 10, 0),
+            new ControllerFocusEntry("cmd.player.key_no_consume", 10, 1),
+            new ControllerFocusEntry("cmd.player.spawn_key", 10, 2),
+            new ControllerFocusEntry("cmd.player.add_rat_key", 11, 0),
+            new ControllerFocusEntry("cmd.player.spawn_rat_key", 11, 1),
+            new ControllerFocusEntry("cmd.player.add_cell_key", 12, 0),
+            new ControllerFocusEntry("cmd.player.spawn_cell_key", 12, 1),
         };
 
         private void DrawPlayerTargetButton(Rect contentRect, float buttonWidth, float controlHeight, ManualLogSource logger)
@@ -530,6 +534,24 @@ namespace EtgGameplayDashboard
                         new PickupActionButtonDefinition("cmd.player.spawn_blank", GuiText.Get("gui.command.player.blank.spawn"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnBlankNearPlayer(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
+                    GameUiAtlasSpriteCasingsPickup,
+                    GetLocalizedFallback("gui.command.label.casings", "Casings", "弹壳"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("cmd.player.add_currency_large", GetLocalizedFallback("gui.command.action.add_hundred", "+100", "+100"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddLargeCurrency(targetPlayer, logger); }); }, _buttonStyle),
+                        new PickupActionButtonDefinition("cmd.player.currency_no_consume", GetNoConsumeActionLabel(_currencyNoConsumeToggleService.IsEnabled), delegate { ExecuteToggleCurrencyNoConsume(player, logger); }, GetNoConsumeActionStyle(_currencyNoConsumeToggleService.IsEnabled)),
+                        new PickupActionButtonDefinition("cmd.player.clear_currency", GetLocalizedFallback("gui.command.currency.button.clear", "Clear", "清除"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearCurrency(targetPlayer, logger); }); }, _buttonStyle),
+                        new PickupActionButtonDefinition("cmd.player.spawn_currency", GuiText.Get("gui.command.action.spawn"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnCurrencyNearPlayer(targetPlayer, logger); }); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteHegemonyPickup,
+                    GetLocalizedFallback("gui.command.currency.label.hegemony", "Hegemony", "霸权币"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("cmd.player.add_hegemony", GetLocalizedFallback("gui.command.action.add_fifty", "+50", "+50"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, logger); }); }, _buttonStyle),
+                        new PickupActionButtonDefinition("cmd.player.clear_hegemony", GetLocalizedFallback("gui.command.currency.button.clear", "Clear", "清除"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearMetaCurrency(targetPlayer, logger); }); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
                     GameUiAtlasSpriteKeyPickup,
                     GetLocalizedFallback("gui.command.label.key", "Key", "钥匙"),
                     new[]
@@ -547,14 +569,12 @@ namespace EtgGameplayDashboard
                         new PickupActionButtonDefinition("cmd.player.spawn_rat_key", GuiText.Get("gui.command.action.spawn"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnRatKeyNearPlayer(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
-                    GameUiAtlasSpriteCasingsPickup,
-                    GetLocalizedFallback("gui.command.label.casings", "Casings", "弹壳"),
+                    PlayerDebugCommandService.FindCellKeyPickupId(),
+                    GetLocalizedFallback("gui.command.label.cell_key", "Cell Key", "牢房钥匙"),
                     new[]
                     {
-                        new PickupActionButtonDefinition("cmd.player.add_currency_large", GetLocalizedFallback("gui.command.action.add_hundred", "+100", "+100"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddLargeCurrency(targetPlayer, logger); }); }, _buttonStyle),
-                        new PickupActionButtonDefinition("cmd.player.currency_no_consume", GetNoConsumeActionLabel(_currencyNoConsumeToggleService.IsEnabled), delegate { ExecuteToggleCurrencyNoConsume(player, logger); }, GetNoConsumeActionStyle(_currencyNoConsumeToggleService.IsEnabled)),
-                        new PickupActionButtonDefinition("cmd.player.clear_currency", GetLocalizedFallback("gui.command.currency.button.clear", "Clear", "清除"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearCurrency(targetPlayer, logger); }); }, _buttonStyle),
-                        new PickupActionButtonDefinition("cmd.player.spawn_currency", GuiText.Get("gui.command.action.spawn"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnCurrencyNearPlayer(targetPlayer, logger); }); }, _buttonStyle),
+                        new PickupActionButtonDefinition("cmd.player.add_cell_key", GetLocalizedFallback("gui.command.action.add_one", "+1", "+1"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddCellKey(targetPlayer, logger); }); }, _buttonStyle),
+                        new PickupActionButtonDefinition("cmd.player.spawn_cell_key", GuiText.Get("gui.command.action.spawn"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnCellKeyNearPlayer(targetPlayer, logger); }); }, _buttonStyle),
                     }),
             };
         }
@@ -833,6 +853,8 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.player.add_blank", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, null); }); }),
                 new CommandPageActionBinding("cmd.player.spawn_blank", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnBlankNearPlayer(targetPlayer, null); }); }),
                 new CommandPageActionBinding("cmd.player.add_key", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, null); }); }),
+                new CommandPageActionBinding("cmd.player.add_cell_key", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddCellKey(targetPlayer, null); }); }),
+                new CommandPageActionBinding("cmd.player.spawn_cell_key", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnCellKeyNearPlayer(targetPlayer, null); }); }),
                 new CommandPageActionBinding("cmd.player.key_no_consume", delegate { ExecuteToggleKeyNoConsume(player, null); }),
                 new CommandPageActionBinding("cmd.player.spawn_key", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnKeyNearPlayer(targetPlayer, null); }); }),
                 new CommandPageActionBinding("cmd.player.add_rat_key", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, null); }); }),
@@ -841,6 +863,8 @@ namespace EtgGameplayDashboard
                 new CommandPageActionBinding("cmd.player.currency_no_consume", delegate { ExecuteToggleCurrencyNoConsume(player, null); }),
                 new CommandPageActionBinding("cmd.player.clear_currency", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearCurrency(targetPlayer, null); }); }),
                 new CommandPageActionBinding("cmd.player.spawn_currency", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteSpawnCurrencyNearPlayer(targetPlayer, null); }); }),
+                new CommandPageActionBinding("cmd.player.add_hegemony", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, null); }); }),
+                new CommandPageActionBinding("cmd.player.clear_hegemony", delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearMetaCurrency(targetPlayer, null); }); }),
                 new CommandPageActionBinding("cmd.player.blank_no_consume", delegate { ExecuteToggleBlankNoConsume(player, null); }),
                 new CommandPageActionBinding("cmd.combat.rapid", delegate { ExecuteToggleRapidFire(player, null); }),
                 new CommandPageActionBinding("cmd.combat.auto_reload", delegate { ExecuteToggleAutoReload(null); }),

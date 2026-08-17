@@ -223,6 +223,8 @@ In the `Currency` submenu:
 
 In the `Room` submenu:
 
+- `NPC`
+  Provides persistent Breach NPC unlocks for `Cadence & Ox`, `Professor Goopton`, and `Doug`. Goopton uses only the vanilla jailed-NPC PlayMaker `npcCellUnlocked` event from `NPC_Jellyfish_Jailed`, which sets `SHOP_GOOP_ACTIVE`; the popup explains that he must be found and purchased from in a dungeon shop before he appears in the Breach. Doug additionally sets the permanent `SHOP_HAS_MET_BEETLE` rescue flag, but his appearance remains occasional as in vanilla. The actions intentionally leave the vanilla "ever talked" flags unchanged so the original first-encounter dialogue can still run.
 - `Enemies`
   Reserved for future enemy-spawn tools; it currently has no actions.
 - `Rewind -> Rewind: ON/OFF`
@@ -246,6 +248,36 @@ In the `Room` submenu:
   Selects the chest tier for the next spawn. Current v1 options are `Brown`, `Blue`, `Green`, `Red`, `Black`, `Synergy`, and `Rainbow`.
 - `Spawn Chest`
   Spawns one unlocked chest of the selected tier in the current room near the player.
+
+### Breach Shop Pickup Display Resolution
+
+The nearby pickup information overlay has a generic `MetaShopController` compatibility path and a `BaseShopController` path for the three Breach NPC shops. The paths must remain distinct because they expose live shop stock through different controller structures.
+
+#### Meta-shop compatibility path
+
+Some ETG meta shops use `MetaShopController`. Their visible object may be an `ItemBlueprintItem`, whose own pickup ID and copied journal metadata describe the blueprint wrapper rather than the item currently sold. The resolver therefore:
+
+- finds the `ShopItemController` index in `MetaShopController.m_itemControllers`
+- reads the corresponding item ID from the current tier, then the proximate tier
+- resolves that ID through `PickupObjectDatabase`
+
+The mapping follows the controller order created by the vanilla meta-shop setup. It does not assume that a fixed screen position always represents the same item.
+
+#### Breach NPC shops
+
+Cadence & Ox, Professor Goopton, and Doug use the `BaseShopController` path. Their shops are identified by `baseShopType == FOYER_META`. The live stock is held in `BaseShopController.m_shopItems`, while each visible `ShopItemController` is parented to one of the shop's spawn-position transforms. The resolver therefore:
+
+- verifies that the parent is a foyer meta shop
+- finds the visible controller's spawn-position slot
+- reads `m_shopItems[slot]`
+- resolves the `PickupObject` from that live stock object
+
+This is necessary because the stock can be refreshed or replaced, and the item displayed in a slot is not reliably identified by the blueprint wrapper or by a hard-coded visual position.
+
+The implementation is in `src/EtgGameplayDashboard/Etg/EtgPickupResolver.Catalog.cs`:
+
+- `ResolveMetaShopSlotPickup` provides compatibility for other `MetaShopController` shops.
+- `ResolveFoyerMetaShopSlotPickup` and `FindShopSlotIndex` handle the three Breach NPC shops.
 
 ### Teleport Picker
 

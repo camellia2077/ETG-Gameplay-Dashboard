@@ -119,6 +119,9 @@ namespace EtgGameplayDashboard
                 case "currency.armor":
                     ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddArmor(targetPlayer, logger); });
                     return;
+                case "currency.cell_key":
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddCellKey(targetPlayer, logger); });
+                    return;
                 case "currency.blank":
                     ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, logger); });
                     return;
@@ -177,20 +180,6 @@ namespace EtgGameplayDashboard
                         new PickupActionButtonDefinition("currency.blank", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddBlank(targetPlayer, logger); }); }, _buttonStyle),
                     }),
                 new PickupActionRowDefinition(
-                    GameUiAtlasSpriteKeyPickup,
-                    GetLocalizedFallback("gui.command.currency.label.key", "Key (+1)", "钥匙（+1）"),
-                    new[]
-                    {
-                        new PickupActionButtonDefinition("currency.key", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, logger); }); }, _buttonStyle),
-                    }),
-                new PickupActionRowDefinition(
-                    GameUiAtlasSpriteRatRewardKeyPickup,
-                    GetLocalizedFallback("gui.command.currency.label.rat_key", "Rat Key (+1)", "老鼠钥匙（+1）"),
-                    new[]
-                    {
-                        new PickupActionButtonDefinition("currency.rat_key", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, logger); }); }, _buttonStyle),
-                    }),
-                new PickupActionRowDefinition(
                     GameUiAtlasSpriteCasingsPickup,
                     GetLocalizedFallback("gui.command.currency.label.casings", "Casings (+100)", "弹壳（+100）"),
                     new[]
@@ -205,6 +194,27 @@ namespace EtgGameplayDashboard
                     {
                         new PickupActionButtonDefinition("currency.hegemony", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, logger); }); }, _buttonStyle),
                         new PickupActionButtonDefinition("currency.clear_hegemony", GetLocalizedFallback("gui.command.currency.button.clear", "Clear", "清除"), delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteClearMetaCurrency(targetPlayer, logger); }); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteKeyPickup,
+                    GetLocalizedFallback("gui.command.currency.label.key", "Key (+1)", "钥匙（+1）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.key", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddKey(targetPlayer, logger); }); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    GameUiAtlasSpriteRatRewardKeyPickup,
+                    GetLocalizedFallback("gui.command.currency.label.rat_key", "Rat Key (+1)", "老鼠钥匙（+1）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.rat_key", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddRatKey(targetPlayer, logger); }); }, _buttonStyle),
+                    }),
+                new PickupActionRowDefinition(
+                    PlayerDebugCommandService.FindCellKeyPickupId(),
+                    GetLocalizedFallback("gui.command.currency.label.cell_key", "Cell Key (+1)", "牢房钥匙（+1）"),
+                    new[]
+                    {
+                        new PickupActionButtonDefinition("currency.cell_key", actionLabel, delegate { ExecuteForSelectedPickupTargets(player, delegate(PlayerController targetPlayer) { ExecuteAddCellKey(targetPlayer, logger); }); }, _buttonStyle),
                     }),
             };
         }

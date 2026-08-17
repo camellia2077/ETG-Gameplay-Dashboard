@@ -175,6 +175,11 @@ namespace EtgGameplayDashboard
         {
             ScheduleGameWindowFocusRetryAfterSceneReady();
 
+            if (_commandController != null)
+            {
+                _commandController.EnsureGooptonActiveOnFoyerLoad();
+            }
+
             if (_bossRushService != null)
             {
                 _bossRushService.NotifyLevelLoaded();
@@ -245,6 +250,11 @@ namespace EtgGameplayDashboard
                 if (string.Equals(lifecycle.SceneName, CharacterSelectSceneName, StringComparison.Ordinal))
                 {
                     ScheduleGameWindowFocusRetryAfterSceneReady();
+                }
+
+                if (gameManager.IsFoyer && _commandController != null)
+                {
+                    _commandController.EnsureGooptonActiveOnFoyerLoad();
                 }
             }
 

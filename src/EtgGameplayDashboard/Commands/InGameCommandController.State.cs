@@ -64,6 +64,7 @@ namespace EtgGameplayDashboard
         {
             Chest,
             Neutral,
+            Npc,
             Enemies,
             Rewind,
             Boss,
@@ -145,7 +146,9 @@ namespace EtgGameplayDashboard
         private const float CommandInfoPanelHeight = 390f;
         private const float CharacterPanelBaseHeaderHeight = 126f;
         private const float CharacterPanelFooterHeight = 26f;
-        private const float CurrencyPanelHeight = 430f;
+        // The Pickups page has eight 38px rows with 8px gaps after adding Cell Key.
+        // Keep one full row plus the bottom margin inside the fixed panel.
+        private const float CurrencyPanelHeight = 476f;
         private const float BossRushPanelHeight = 226f;
         private const float PanelBottomMargin = 92f;
         private const float StatusMaxWidth = 560f;
@@ -292,12 +295,13 @@ namespace EtgGameplayDashboard
             new ControllerFocusEntry("currency.back", 1, 1),
             new ControllerFocusEntry("currency.armor", 2, 0),
             new ControllerFocusEntry("currency.blank", 3, 0),
-            new ControllerFocusEntry("currency.key", 4, 0),
-            new ControllerFocusEntry("currency.rat_key", 5, 0),
-            new ControllerFocusEntry("currency.casings", 6, 0),
-            new ControllerFocusEntry("currency.clear_casings", 6, 1),
-            new ControllerFocusEntry("currency.hegemony", 7, 0),
-            new ControllerFocusEntry("currency.clear_hegemony", 7, 1),
+            new ControllerFocusEntry("currency.casings", 4, 0),
+            new ControllerFocusEntry("currency.clear_casings", 4, 1),
+            new ControllerFocusEntry("currency.hegemony", 5, 0),
+            new ControllerFocusEntry("currency.clear_hegemony", 5, 1),
+            new ControllerFocusEntry("currency.key", 6, 0),
+            new ControllerFocusEntry("currency.rat_key", 7, 0),
+            new ControllerFocusEntry("currency.cell_key", 8, 0),
         };
 
         private readonly GrantCommandParser _parser = new GrantCommandParser();

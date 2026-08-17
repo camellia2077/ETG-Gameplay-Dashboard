@@ -276,6 +276,12 @@ namespace EtgGameplayDashboard
             ShowPlayerDebugActionResult(executionResult, logger);
         }
 
+        private void ExecuteSpawnCellKeyNearPlayer(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.SpawnCellKeyNearPlayer(player);
+            ShowPlayerDebugActionResult(executionResult, logger);
+        }
+
         private void ExecuteSpawnCurrencyNearPlayer(PlayerController player, ManualLogSource logger)
         {
             GrantCommandExecutionResult executionResult = PlayerDebugCommandService.SpawnCurrencyNearPlayer(player);
@@ -537,6 +543,17 @@ namespace EtgGameplayDashboard
             if (logger != null)
             {
                 logger.LogInfo(EtgGameplayDashboardLog.Command(GuiText.GetEnglish("result.skip_charge.changed", status)));
+            }
+        }
+
+        private void ExecuteAddCellKey(PlayerController player, ManualLogSource logger)
+        {
+            GrantCommandExecutionResult executionResult = PlayerDebugCommandService.AddCellKey(player);
+            ShowStatus(executionResult.Message, !executionResult.Succeeded);
+            LogCommandExecutionResult(logger, executionResult);
+            if (executionResult.Succeeded)
+            {
+                _focusInputField = true;
             }
         }
 

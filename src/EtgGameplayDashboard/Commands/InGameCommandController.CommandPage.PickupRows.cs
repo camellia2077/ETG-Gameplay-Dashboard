@@ -29,11 +29,21 @@ namespace EtgGameplayDashboard
             public PickupActionRowDefinition(string spriteName, string label, PickupActionButtonDefinition[] actions)
             {
                 SpriteName = spriteName ?? string.Empty;
+                PickupId = -1;
+                Label = label ?? string.Empty;
+                Actions = actions ?? EmptyPickupActionButtons;
+            }
+
+            public PickupActionRowDefinition(int pickupId, string label, PickupActionButtonDefinition[] actions)
+            {
+                SpriteName = string.Empty;
+                PickupId = pickupId;
                 Label = label ?? string.Empty;
                 Actions = actions ?? EmptyPickupActionButtons;
             }
 
             public readonly string SpriteName;
+            public readonly int PickupId;
             public readonly string Label;
             public readonly PickupActionButtonDefinition[] Actions;
         }
@@ -64,7 +74,7 @@ namespace EtgGameplayDashboard
             // while allowing the action buttons to stay compact.
             const float labelWidth = 140f;
             Rect iconRect = new Rect(rowRect.x + rowPadding, rowRect.y + ((rowRect.height - iconSize) * 0.5f), iconSize, iconSize);
-            DrawPickupActionIcon(iconRect, row.SpriteName);
+                DrawPickupActionIcon(iconRect, row.SpriteName, row.PickupId);
 
             GUI.Label(
                 new Rect(iconRect.xMax + 10f, rowRect.y + 5f, labelWidth, rowRect.height - 10f),
@@ -104,11 +114,17 @@ namespace EtgGameplayDashboard
             }
         }
 
-        private void DrawPickupActionIcon(Rect iconRect, string spriteName)
+        private void DrawPickupActionIcon(Rect iconRect, string spriteName, int pickupId = -1)
         {
             GUI.Box(iconRect, GUIContent.none, _pickupIconBackgroundStyle);
 
             PickupIconData iconData;
+            if (pickupId >= 0 && TryGetPickupIcon(pickupId, out iconData))
+            {
+                GUI.DrawTextureWithTexCoords(iconRect, iconData.Texture, iconData.TextureCoords, true);
+                return;
+            }
+
             if (TryGetGameUiAtlasIcon(spriteName, out iconData))
             {
                 GUI.DrawTextureWithTexCoords(iconRect, iconData.Texture, iconData.TextureCoords, true);

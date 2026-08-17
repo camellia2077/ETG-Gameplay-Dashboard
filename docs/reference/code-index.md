@@ -117,6 +117,7 @@ Supporting services:
 | `RoomDebugCommandService.cs` | room-level debug operations such as spawning chests, Gunber Muncher (常规吃枪怪) / Evil Muncher (邪恶吃枪怪), map reveal, and teleporter-point promotion |
 | `RoomDebugCommandService.RoomReplay.cs` | room enemy rewind/respawn commands, room validation, player rewind toggles, and replay-specific result diagnostics |
 | `RoomDebugCommandService.Muncher.cs` | Gunber Muncher / Evil Muncher spawn queues, prefab and room-asset resolution, placement, registration, and diagnostics |
+| `RoomDebugCommandService.Npc.cs` | Persistent Breach NPC unlocks using the vanilla foyer-visibility flags |
 | `RoomDebugCommandService.BossSelection.cs` | Boss-room prototype enumeration, Boss-name resolution, Boss selection, and Boss-selection caching/diagnostics |
 | `RoomDebugCommandService.Map.cs` | floor map reveal, minimap teleporter activation, direct-teleport room promotion, and map diagnostics |
 | `RoomDebugCommandService.Helpers.cs` | shared room/object descriptions, scene and prototype resolution, result localization, and debug logging helpers |
@@ -191,6 +192,7 @@ Use this route for item names, aliases, pickup cards, quality filters, categorie
 | `src/EtgGameplayDashboard/Etg/EtgOwnedPickupReader.cs` | current player inventory reading |
 | `src/EtgGameplayDashboard/Etg/EtgPickupCatalogExporter.cs` | exporting pickup metadata |
 | `src/EtgGameplayDashboard/Runtime/NearbyPickupTipService.cs` | nearby dropped-pickup detection for gameplay overlay lookups |
+| `src/EtgGameplayDashboard/Etg/EtgPickupResolver.Catalog.cs` | Breach NPC shop display resolution through live foyer stock slots, plus compatibility handling for other meta-shop controllers |
 | `src/EtgGameplayDashboard/Commands/InGameCommandController.PickupBrowser.cs` | browser filtering and item card display |
 | `src/EtgGameplayDashboard/Configuration/JsonPickupAliasFileProvider.cs` | alias file loading |
 | `src/EtgGameplayDashboard/Configuration/PickupAliasRegistry.cs` | alias lookup |

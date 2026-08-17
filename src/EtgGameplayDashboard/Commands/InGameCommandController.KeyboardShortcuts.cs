@@ -13,10 +13,11 @@ namespace EtgGameplayDashboard
         private const string CurrencyShortcutMaxHealthId = "currency.max_health";
         private const string CurrencyShortcutArmorId = "currency.armor";
         private const string CurrencyShortcutBlankId = "currency.blank";
-        private const string CurrencyShortcutKeyId = "currency.key";
-        private const string CurrencyShortcutRatKeyId = "currency.rat_key";
         private const string CurrencyShortcutCasingsId = "currency.casings";
         private const string CurrencyShortcutHegemonyId = "currency.hegemony";
+        private const string CurrencyShortcutKeyId = "currency.key";
+        private const string CurrencyShortcutRatKeyId = "currency.rat_key";
+        private const string CurrencyShortcutCellKeyId = "currency.cell_key";
 
         private static string GetPickupShortcutConfigurationButtonLabel()
         {
@@ -382,10 +383,11 @@ namespace EtgGameplayDashboard
                 CreateCurrencyShortcutRow(GameUiAtlasSpriteHealthPickup, GetLocalizedFallback("gui.command.currency.label.max_health", "Max HP (+1)", "血量上限（+1）"), CurrencyShortcutMaxHealthId, "max_health", shortcutStyle, clearLabel),
                 CreateCurrencyShortcutRow(GameUiAtlasSpriteArmorPickup, GetLocalizedFallback("gui.command.currency.label.armor", "Armor (+1)", "护甲（+1）"), CurrencyShortcutArmorId, "armor", shortcutStyle, clearLabel),
                 CreateCurrencyShortcutRow(GameUiAtlasSpriteBlankPickup, GetLocalizedFallback("gui.command.currency.label.blank", "Blank (+1)", "空响弹（+1）"), CurrencyShortcutBlankId, "blank", shortcutStyle, clearLabel),
-                CreateCurrencyShortcutRow(GameUiAtlasSpriteKeyPickup, GetLocalizedFallback("gui.command.currency.label.key", "Key (+1)", "钥匙（+1）"), CurrencyShortcutKeyId, "key", shortcutStyle, clearLabel),
-                CreateCurrencyShortcutRow(GameUiAtlasSpriteRatRewardKeyPickup, GetLocalizedFallback("gui.command.currency.label.rat_key", "Rat Key (+1)", "老鼠钥匙（+1）"), CurrencyShortcutRatKeyId, "rat_key", shortcutStyle, clearLabel),
                 CreateCurrencyShortcutRow(GameUiAtlasSpriteCasingsPickup, GetLocalizedFallback("gui.command.currency.label.casings", "Casings (+100)", "弹壳（+100）"), CurrencyShortcutCasingsId, "casings", shortcutStyle, clearLabel),
                 CreateCurrencyShortcutRow(GameUiAtlasSpriteHegemonyPickup, GetLocalizedFallback("gui.command.currency.label.hegemony", "Hegemony (+50)", "霸权币（+50）"), CurrencyShortcutHegemonyId, "hegemony", shortcutStyle, clearLabel),
+                CreateCurrencyShortcutRow(GameUiAtlasSpriteKeyPickup, GetLocalizedFallback("gui.command.currency.label.key", "Key (+1)", "钥匙（+1）"), CurrencyShortcutKeyId, "key", shortcutStyle, clearLabel),
+                CreateCurrencyShortcutRow(GameUiAtlasSpriteRatRewardKeyPickup, GetLocalizedFallback("gui.command.currency.label.rat_key", "Rat Key (+1)", "老鼠钥匙（+1）"), CurrencyShortcutRatKeyId, "rat_key", shortcutStyle, clearLabel),
+                CreateCurrencyShortcutRow(PlayerDebugCommandService.FindCellKeyPickupId(), GetLocalizedFallback("gui.command.currency.label.cell_key", "Cell Key (+1)", "牢房钥匙（+1）"), CurrencyShortcutCellKeyId, "cell_key", shortcutStyle, clearLabel),
             };
         }
 
@@ -407,6 +409,12 @@ namespace EtgGameplayDashboard
                         delegate { ClearPickupShortcut(actionId); },
                         _buttonStyle),
                 });
+        }
+
+        private PickupActionRowDefinition CreateCurrencyShortcutRow(int pickupId, string label, string actionId, string actionName, GUIStyle shortcutStyle, string clearLabel)
+        {
+            PickupActionRowDefinition row = CreateCurrencyShortcutRow(string.Empty, label, actionId, actionName, shortcutStyle, clearLabel);
+            return new PickupActionRowDefinition(pickupId, row.Label, row.Actions);
         }
 
         private string GetCurrencyShortcutButtonLabel(string actionId)
@@ -431,9 +439,11 @@ namespace EtgGameplayDashboard
                 CreatePlayerPickupShortcutRow(GameUiAtlasSpriteHealthPickup, GetLocalizedFallback("gui.command.label.health", "Health", "血量"), CurrencyShortcutMaxHealthId, clearLabel),
                 CreatePlayerPickupShortcutRow(GameUiAtlasSpriteArmorPickup, GetLocalizedFallback("gui.command.label.armor", "Armor", "护甲"), CurrencyShortcutArmorId, clearLabel),
                 CreatePlayerPickupShortcutRow(GameUiAtlasSpriteBlankPickup, GetLocalizedFallback("gui.command.label.blank", "Blank", "空响弹"), CurrencyShortcutBlankId, clearLabel),
+                CreatePlayerPickupShortcutRow(GameUiAtlasSpriteCasingsPickup, GetLocalizedFallback("gui.command.label.casings", "Casings", "弹壳"), CurrencyShortcutCasingsId, clearLabel),
+                CreatePlayerPickupShortcutRow(GameUiAtlasSpriteHegemonyPickup, GetLocalizedFallback("gui.command.currency.label.hegemony", "Hegemony", "霸权币"), CurrencyShortcutHegemonyId, clearLabel),
                 CreatePlayerPickupShortcutRow(GameUiAtlasSpriteKeyPickup, GetLocalizedFallback("gui.command.label.key", "Key", "钥匙"), CurrencyShortcutKeyId, clearLabel),
                 CreatePlayerPickupShortcutRow(GameUiAtlasSpriteRatRewardKeyPickup, GetLocalizedFallback("gui.command.label.rat_key", "Rat Key", "老鼠钥匙"), CurrencyShortcutRatKeyId, clearLabel),
-                CreatePlayerPickupShortcutRow(GameUiAtlasSpriteCasingsPickup, GetLocalizedFallback("gui.command.label.casings", "Casings", "弹壳"), CurrencyShortcutCasingsId, clearLabel),
+                CreatePlayerPickupShortcutRow(PlayerDebugCommandService.FindCellKeyPickupId(), GetLocalizedFallback("gui.command.label.cell_key", "Cell Key", "牢房钥匙"), CurrencyShortcutCellKeyId, clearLabel),
             };
         }
 
@@ -455,6 +465,12 @@ namespace EtgGameplayDashboard
                         delegate { ClearPickupShortcut(targetId); },
                         _buttonStyle),
                 });
+        }
+
+        private PickupActionRowDefinition CreatePlayerPickupShortcutRow(int pickupId, string label, string targetId, string clearLabel)
+        {
+            PickupActionRowDefinition row = CreatePlayerPickupShortcutRow(string.Empty, label, targetId, clearLabel);
+            return new PickupActionRowDefinition(pickupId, row.Label, row.Actions);
         }
 
 
@@ -483,6 +499,9 @@ namespace EtgGameplayDashboard
                     return;
                 case CurrencyShortcutHegemonyId:
                     ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddMetaCurrency(targetPlayer, null); });
+                    return;
+                case CurrencyShortcutCellKeyId:
+                    ExecuteForSelectedPickupTargets(player, delegate (PlayerController targetPlayer) { ExecuteAddCellKey(targetPlayer, null); });
                     return;
                 default:
                     return;
